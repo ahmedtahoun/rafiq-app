@@ -36,6 +36,33 @@ const dict: Record<Lang, Record<string, string>> = {
     imMember: "I'm a Member",
     imMemberSub: "Follow your pro's plan, tasks, and upcoming sessions.",
     continue: 'Continue',
+
+    // QuickActions.dc.html
+    quickActionsTitle: 'Quick actions', quickActionsClose: 'Close',
+    qaAddMember: 'Add member', qaAddMemberSub: 'Bring a new member onboard',
+    qaViewProfile: 'View profile', qaViewProfileSub: 'See their full profile and progress',
+    qaScheduleSession: 'Schedule session', qaScheduleSessionSub: 'Book a new time slot',
+    qaAssignTask: 'Assign task', qaAssignTaskSub: 'Give a member their next step',
+    qaLogSession: 'Log session', qaLogSessionSub: 'Mark a session as completed',
+    qaRecordPayment: 'Record payment', qaRecordPaymentSub: 'Mark a payment as received',
+    qaSendMessage: 'Message', qaSendMessageSub: 'Send them a message in the app',
+
+    // Main.dc.html
+    mainGreeting: 'Good Morning', mainCoachName: 'Yasmin El-Sayed', mainStreak: '12-day streak',
+    mainSessions: 'Sessions', mainActiveClients: 'active members', mainCompletionRate: 'completion rate',
+    mainThisWeek: 'This Week', mainSessionsWord: 'sessions',
+    mainTodaysSchedule: "Today's Schedule", mainSeeAll: 'See all', mainNoSessions: 'No sessions scheduled today',
+    mainNeedsAttention: 'Needs Your Attention', mainAllCaughtUp: "You're all caught up!",
+    mainUpNext: 'Up next', mainJoinChip: 'Join',
+    mainCheckinNote: 'No recent check-in', mainPaymentOverdueNote: 'Payment overdue', mainPaymentDueNote: 'Payment due',
+    mainTaskOverdueNote: 'Task overdue', mainNoSessionNote: 'No upcoming session',
+    mainPackageExpiredNote: 'Package expired', mainPackageNoSessionsNote: 'No sessions left', mainPackageSoonNote: 'Package expires in {n}d',
+    mainNoFollowUpNote: 'No follow-up since last session',
+    mainMarkPaid: 'Mark paid', mainSchedule: 'Schedule', mainRenew: 'Renew',
+    mainNudgeAll: 'Nudge all', mainNudgeSheetTitle: 'Nudge members', mainNudgeSheetSub: 'Send a quick in-app check-in to everyone below.',
+    mainNudged: 'Nudged', mainDone: 'Done',
+    mainEarningsReceived: 'received', mainEarningsDueOne: '1 member due', mainEarningsDueMany: '{n} members due', mainEarningsAllPaid: 'Everyone is paid up',
+    mainHome: 'Home', mainClientsNav: 'Clients', mainMessagesNav: 'Messages', mainProfileNav: 'Profile',
   },
   ar: {
     skip: 'تخطي',
@@ -64,6 +91,33 @@ const dict: Record<Lang, Record<string, string>> = {
     imMember: 'أنا عضو',
     imMemberSub: 'تابع خطة محترفك، مهامك، وجلساتك القادمة.',
     continue: 'متابعة',
+
+    // QuickActions.dc.html
+    quickActionsTitle: 'إجراءات سريعة', quickActionsClose: 'إغلاق',
+    qaAddMember: 'إضافة عضو', qaAddMemberSub: 'أضف عضوًا جديدًا',
+    qaViewProfile: 'عرض الملف الشخصي', qaViewProfileSub: 'اطّلع على ملفه الكامل وتقدمه',
+    qaScheduleSession: 'جدولة جلسة', qaScheduleSessionSub: 'احجز موعدًا جديدًا',
+    qaAssignTask: 'تحديد مهمة', qaAssignTaskSub: 'أعطِ العضو خطوته التالية',
+    qaLogSession: 'تسجيل جلسة', qaLogSessionSub: 'حدد جلسة كمكتملة',
+    qaRecordPayment: 'تسجيل دفعة', qaRecordPaymentSub: 'حدد دفعة كمستلمة',
+    qaSendMessage: 'مراسلة', qaSendMessageSub: 'أرسل له رسالة داخل التطبيق',
+
+    // Main.dc.html
+    mainGreeting: 'صباح الخير', mainCoachName: 'ياسمين السيد', mainStreak: 'مواظبة 12 يومًا',
+    mainSessions: 'الجلسات', mainActiveClients: 'عضو نشط', mainCompletionRate: 'نسبة الإنجاز',
+    mainThisWeek: 'هذا الأسبوع', mainSessionsWord: 'جلسة',
+    mainTodaysSchedule: 'جدول اليوم', mainSeeAll: 'عرض الكل', mainNoSessions: 'لا توجد جلسات اليوم',
+    mainNeedsAttention: 'يحتاج انتباهك', mainAllCaughtUp: 'كل شيء على ما يرام!',
+    mainUpNext: 'القادمة', mainJoinChip: 'انضمام',
+    mainCheckinNote: 'لا يوجد تواصل حديث', mainPaymentOverdueNote: 'الدفع متأخر', mainPaymentDueNote: 'الدفع مستحق',
+    mainTaskOverdueNote: 'مهمة متأخرة', mainNoSessionNote: 'لا توجد جلسة قادمة',
+    mainPackageExpiredNote: 'انتهت صلاحية الباقة', mainPackageNoSessionsNote: 'لا توجد جلسات متبقية', mainPackageSoonNote: 'تنتهي الباقة خلال {n} يوم',
+    mainNoFollowUpNote: 'لا متابعة منذ آخر جلسة',
+    mainMarkPaid: 'تم الدفع', mainSchedule: 'جدولة', mainRenew: 'تجديد',
+    mainNudgeAll: 'تذكير الكل', mainNudgeSheetTitle: 'تذكير الأعضاء', mainNudgeSheetSub: 'أرسل رسالة تواصل سريعة داخل التطبيق لكل من في القائمة.',
+    mainNudged: 'تم التذكير', mainDone: 'تم',
+    mainEarningsReceived: 'مستلم', mainEarningsDueOne: 'عضو واحد بحاجة للدفع', mainEarningsDueMany: '{n} أعضاء بحاجة للدفع', mainEarningsAllPaid: 'الجميع دفعوا',
+    mainHome: 'الرئيسية', mainClientsNav: 'الأعضاء', mainMessagesNav: 'الرسائل', mainProfileNav: 'الملف الشخصي',
   },
 };
 
