@@ -31,7 +31,8 @@ function writeLocal<T>(key: string, value: T): void {
 // instead of a routing library.
 export type Screen =
   | 'welcome' | 'roleSelect'
-  | 'comingSoon'; // placeholder landing spot post-role-select — removed once Auth exists
+  | 'onboarding'
+  | 'comingSoon'; // placeholder landing spot post-onboarding — removed once Main exists
 
 // Screens with no back-history (entering one always clears the stack —
 // bottom-nav destinations, or dead-end/landing screens).
@@ -51,17 +52,35 @@ interface NavPatch {
   screen?: Screen;
 }
 
+// A coach's onboarding profile — local-only for now (no Supabase schema
+// yet, see the Rafiq Build Plan doc's Foundation phase). Shaped to match
+// what completeCoachSignup wrote in the design prototype's store.js, so
+// swapping this for a real Supabase insert later is a like-for-like
+// replacement, not a redesign.
+export interface CoachProfileDraft {
+  name: string;
+  phone: string;
+  countryDial: string;
+  email: string;
+  city: string;
+  country: string;
+  specialties: string[];
+  experience: string;
+}
+
 interface AppState {
   lang: Lang;
   dark: boolean;
   role: Role;
   screen: Screen;
   hist: Screen[];
+  coachProfile: CoachProfileDraft | null;
   setLang: (lang: Lang) => void;
   setDark: (dark: boolean) => void;
   setRole: (role: Role) => void;
   nav: (patch: Screen | NavPatch) => void;
   back: () => void;
+  completeCoachSignup: (profile: CoachProfileDraft) => void;
 }
 
 // Same persisted preferences the design prototype's store.js tracked
@@ -74,6 +93,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   role: readLocal<Role>('role', null),
   screen: 'welcome',
   hist: [],
+  coachProfile: readLocal<CoachProfileDraft | null>('coachProfile', null),
 
   setLang: (lang) => {
     writeLocal('lang', lang);
@@ -120,5 +140,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
     // RET or no PARENT entry: nothing sensible to go back to from here
     // (e.g. 'welcome' itself) — no-op rather than guessing a destination.
+  },
+
+  completeCoachSignup(profile) {
+    writeLocal('coachProfile', profile);
+    writeLocal('role', 'coach');
+    set({ coachProfile: profile, role: 'coach' });
+    get().nav('comingSoon');
   },
 }));

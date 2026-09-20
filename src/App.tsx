@@ -3,6 +3,7 @@ import { useAppStore } from './store/appStore';
 import { isRtl } from './lib/i18n';
 import Welcome from './screens/Welcome';
 import RoleSelect from './screens/RoleSelect';
+import Onboarding from './screens/Onboarding';
 import ComingSoon from './screens/ComingSoon';
 
 export default function App() {
@@ -22,7 +23,17 @@ export default function App() {
       return <Welcome />;
     case 'roleSelect':
       return <RoleSelect />;
+    case 'onboarding':
+      return <Onboarding />;
     case 'comingSoon':
       return <ComingSoon />;
+    default: {
+      // A Screen value with no case here is a compile error (unreachable
+      // per the exhaustive union), not a silent blank page at runtime —
+      // adding a screen to the Screen union without registering it here
+      // used to fail exactly that way.
+      const _exhaustive: never = screen;
+      return _exhaustive;
+    }
   }
 }
