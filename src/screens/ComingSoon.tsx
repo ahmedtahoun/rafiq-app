@@ -1,17 +1,13 @@
-import { useAppStore, type Role } from '../store/appStore';
+import { useAppStore } from '../store/appStore';
 import './ComingSoon.css';
-
-interface ComingSoonProps {
-  role: Role;
-}
 
 // Honest placeholder — everything past role selection (Onboarding /
 // ClientOnboarding, Auth, and the ~90 in-app screens) is still being
 // ported from the design prototype screen by screen. This exists so the
-// early flow (theming, i18n, RTL, persistence) is verifiable end-to-end
-// before the rest lands.
-export default function ComingSoon({ role }: ComingSoonProps) {
-  const { lang, setLang, dark, setDark } = useAppStore();
+// early flow (theming, i18n, RTL, persistence, routing) is verifiable
+// end-to-end before the rest lands.
+export default function ComingSoon() {
+  const { lang, setLang, dark, setDark, role } = useAppStore();
 
   return (
     <div className="phone-frame coming-soon">

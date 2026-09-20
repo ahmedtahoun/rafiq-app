@@ -23,22 +23,58 @@ function writeLocal<T>(key: string, value: T): void {
   }
 }
 
+// Screen names that exist so far — each track adds its own as it builds
+// screens out (see the Rafiq Build Plan doc), rather than every screen
+// being pre-declared up front. Same shape as the sibling SafeLog app's
+// router (see app/src/store/appStore.ts there), chosen for consistency:
+// one flat Screen union + a nav()/back() pair with a real history stack,
+// instead of a routing library.
+export type Screen =
+  | 'welcome' | 'roleSelect'
+  | 'comingSoon'; // placeholder landing spot post-role-select — removed once Auth exists
+
+// Screens with no back-history (entering one always clears the stack —
+// bottom-nav destinations, or dead-end/landing screens).
+const ROOTS: Screen[] = ['comingSoon'];
+// Screens that shouldn't be pushed onto the NEXT screen's back-stack when
+// LEFT (e.g. splash/entry screens nobody should land back on). Empty for
+// now — extend as screens like that are added.
+const NOHIST: Screen[] = [];
+const RET = '@return';
+
+// Fallback destination for back() when there's no history AND no better
+// answer (e.g. deep-linking straight into a screen). Extend this as
+// screens are added — same purpose as SafeLog's PARENT map.
+const PARENT: Partial<Record<Screen, Screen | typeof RET>> = {};
+
+interface NavPatch {
+  screen?: Screen;
+}
+
 interface AppState {
   lang: Lang;
   dark: boolean;
   role: Role;
+  screen: Screen;
+  hist: Screen[];
   setLang: (lang: Lang) => void;
   setDark: (dark: boolean) => void;
   setRole: (role: Role) => void;
+  nav: (patch: Screen | NavPatch) => void;
+  back: () => void;
 }
 
-// Same three persisted preferences the design prototype's store.js tracked
+// Same persisted preferences the design prototype's store.js tracked
 // (getLang/setLang, getDark/setDark, setRole) — same localStorage-backed
-// persistence model, now as a real, typed app-wide store.
-export const useAppStore = create<AppState>((set) => ({
+// persistence model, now as a real, typed app-wide store, plus the
+// screen router described above.
+export const useAppStore = create<AppState>((set, get) => ({
   lang: readLocal<Lang>('lang', 'en'),
   dark: readLocal<boolean>('dark', window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false),
   role: readLocal<Role>('role', null),
+  screen: 'welcome',
+  hist: [],
+
   setLang: (lang) => {
     writeLocal('lang', lang);
     set({ lang });
@@ -50,5 +86,39 @@ export const useAppStore = create<AppState>((set) => ({
   setRole: (role) => {
     writeLocal('role', role);
     set({ role });
+  },
+
+  nav(patch) {
+    const p: NavPatch = typeof patch === 'string' ? { screen: patch } : patch;
+    const { screen: current, hist } = get();
+    const next = p.screen ?? current;
+
+    let h = hist.slice();
+    if (next !== current) {
+      if (ROOTS.includes(next)) {
+        h = [];
+      } else if (!NOHIST.includes(current)) {
+        const at = h.indexOf(next);
+        if (at >= 0) h = h.slice(0, at);
+        else h.push(current);
+      }
+    }
+    set({ screen: next, hist: h });
+  },
+
+  back() {
+    const { screen, hist } = get();
+    if (hist.length > 0) {
+      const h = hist.slice();
+      const prev = h.pop()!;
+      set({ screen: prev, hist: h });
+      return;
+    }
+    const parent = PARENT[screen];
+    if (parent && parent !== RET) {
+      set({ screen: parent as Screen, hist: [] });
+    }
+    // RET or no PARENT entry: nothing sensible to go back to from here
+    // (e.g. 'welcome' itself) — no-op rather than guessing a destination.
   },
 }));

@@ -1,12 +1,9 @@
 import { useState } from 'react';
+import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { ChevronIcon, ArrowForwardIcon } from '../components/icons';
 import './Welcome.css';
-
-interface WelcomeProps {
-  onDone: () => void;
-}
 
 interface Slide {
   accent: string;
@@ -96,8 +93,10 @@ const SLIDES: Slide[] = [
   },
 ];
 
-export default function Welcome({ onDone }: WelcomeProps) {
+export default function Welcome() {
   const t = useT();
+  const nav = useAppStore((s) => s.nav);
+  const onDone = () => nav('roleSelect');
   const [step, setStep] = useState(0);
   const slide = SLIDES[step];
   const isLast = step === SLIDES.length - 1;

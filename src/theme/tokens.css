@@ -101,6 +101,21 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 button, a { transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease; }
 button:active, a:active { transform: scale(0.96); }
 
+/* The one phone-sized root frame every screen renders into — shared here
+   (not per-screen) since every screen uses it, and BottomSheet/overlays
+   need it to establish a positioning context. */
+.phone-frame {
+  width: 100%;
+  max-width: 430px;
+  height: 100dvh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  background: var(--bg-grad);
+}
+
 /* Direction-sensitive glyphs (back/forward chevrons) mirror automatically
    under RTL — real CSS logical flipping in place of the design prototype's
    per-language literal path-data swap. */

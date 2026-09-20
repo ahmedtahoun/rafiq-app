@@ -1,14 +1,3 @@
-.phone-frame {
-  width: 100%;
-  max-width: 430px;
-  height: 100dvh;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background: var(--bg-grad);
-}
-
 .welcome-hero {
   height: 55%;
   flex-shrink: 0;

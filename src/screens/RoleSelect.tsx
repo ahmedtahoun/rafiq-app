@@ -4,26 +4,23 @@ import { useT } from '../lib/i18n';
 import { ChevronIcon, CheckIcon, CoachIcon, PersonIcon } from '../components/icons';
 import './RoleSelect.css';
 
-interface RoleSelectProps {
-  onContinue: () => void;
-  onBack: () => void;
-}
-
-export default function RoleSelect({ onContinue, onBack }: RoleSelectProps) {
+export default function RoleSelect() {
   const t = useT();
   const setRole = useAppStore((s) => s.setRole);
+  const nav = useAppStore((s) => s.nav);
+  const back = useAppStore((s) => s.back);
   const [selected, setSelected] = useState<Role>(null);
 
   function choose(role: Role) {
     setSelected(role);
     setRole(role);
-    onContinue();
+    nav('comingSoon');
   }
 
   return (
     <div className="phone-frame">
       <div className="role-select-header">
-        <button className="role-select-back" aria-label="Back" onClick={onBack}>
+        <button className="role-select-back" aria-label="Back" onClick={back}>
           <ChevronIcon size={16} />
         </button>
         <div className="role-select-mark" style={{ background: 'linear-gradient(135deg, var(--accent), #7A3D26)' }}>

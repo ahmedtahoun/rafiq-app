@@ -1,15 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useAppStore } from './store/appStore';
 import { isRtl } from './lib/i18n';
 import Welcome from './screens/Welcome';
 import RoleSelect from './screens/RoleSelect';
 import ComingSoon from './screens/ComingSoon';
 
-type Flow = 'welcome' | 'roleSelect' | 'app';
-
 export default function App() {
-  const { lang, dark, role } = useAppStore();
-  const [flow, setFlow] = useState<Flow>('welcome');
+  const { lang, dark, screen } = useAppStore();
 
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -20,11 +17,12 @@ export default function App() {
     document.documentElement.dataset.theme = dark ? 'dark' : 'light';
   }, [dark]);
 
-  if (flow === 'welcome') {
-    return <Welcome onDone={() => setFlow('roleSelect')} />;
+  switch (screen) {
+    case 'welcome':
+      return <Welcome />;
+    case 'roleSelect':
+      return <RoleSelect />;
+    case 'comingSoon':
+      return <ComingSoon />;
   }
-  if (flow === 'roleSelect') {
-    return <RoleSelect onContinue={() => setFlow('app')} onBack={() => setFlow('welcome')} />;
-  }
-  return <ComingSoon role={role} />;
 }
