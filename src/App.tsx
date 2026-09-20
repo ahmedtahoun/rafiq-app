@@ -3,6 +3,7 @@ import { useAppStore } from './store/appStore';
 import { isRtl } from './lib/i18n';
 import Welcome from './screens/Welcome';
 import RoleSelect from './screens/RoleSelect';
+import Main from './screens/Main';
 import ComingSoon from './screens/ComingSoon';
 
 export default function App() {
@@ -22,6 +23,8 @@ export default function App() {
       return <Welcome />;
     case 'roleSelect':
       return <RoleSelect />;
+    case 'main':
+      return <Main />;
     case 'comingSoon':
       return <ComingSoon />;
   }

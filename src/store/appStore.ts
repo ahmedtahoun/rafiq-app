@@ -31,6 +31,7 @@ function writeLocal<T>(key: string, value: T): void {
 // instead of a routing library.
 export type Screen =
   | 'welcome' | 'roleSelect'
+  | 'main' // coach home dashboard
   | 'comingSoon'; // placeholder landing spot post-role-select — removed once Auth exists
 
 // Route params a screen was entered with — e.g.
@@ -50,7 +51,7 @@ interface HistEntry {
 
 // Screens with no back-history (entering one always clears the stack —
 // bottom-nav destinations, or dead-end/landing screens).
-const ROOTS: Screen[] = ['comingSoon'];
+const ROOTS: Screen[] = ['comingSoon', 'main'];
 // Screens that shouldn't be pushed onto the NEXT screen's back-stack when
 // LEFT (e.g. splash/entry screens nobody should land back on). Empty for
 // now — extend as screens like that are added.
