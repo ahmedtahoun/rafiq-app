@@ -1,0 +1,107 @@
+/* Design tokens ported 1:1 from the Rafiq Claude Artifact prototype
+   (every .dc.html screen's getTheme(dark) function used these exact
+   values) so the real app matches the approved design without redrawing
+   it from screenshots. */
+
+:root {
+  --accent: #B75C3D;
+  --accent-glow: rgba(183, 92, 61, 0.4);
+
+  --bg-grad: linear-gradient(180deg, #FBF2EA 0px, #FAF9F5 280px);
+  --surface: #FFFFFF;
+  --ink: #241F18;
+  --ink-soft: #7A7166;
+  --line: #EDE6DA;
+  --accent-soft: #F4E1D3;
+
+  --green: #3F7D58;
+  --green-bg: #E1F0E5;
+  --red: #B54A3E;
+  --red-bg: #F7DEDA;
+  --amber: #B0801E;
+  --amber-bg: #FBF0D9;
+  --blue: #3E6FB0;
+
+  --shadow: 0 10px 24px -12px rgba(36, 31, 24, 0.16), 0 2px 6px rgba(36, 31, 24, 0.05);
+  --shadow-soft: 0 2px 8px rgba(36, 31, 24, 0.06);
+  --nav-shadow: 0 12px 28px -8px rgba(36, 31, 24, 0.22);
+
+  --font-display-en: 'Lora', Georgia, serif;
+  --font-display-ar: 'Cairo', sans-serif;
+  --font-body-en: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-body-ar: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+:root[data-theme='dark'] {
+  --bg-grad: linear-gradient(180deg, #211A13 0px, #18140F 280px);
+  --surface: #241F17;
+  --ink: #F2ECE1;
+  --ink-soft: #B3A791;
+  --line: #3A3226;
+  --accent-soft: #3A2B22;
+
+  --green: #7FD9A0;
+  --green-bg: #1E3326;
+  --red: #E8998A;
+  --red-bg: #3A241F;
+  --amber: #E8C468;
+  --amber-bg: #3A301A;
+  --blue: #9AC0EA;
+
+  --shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --nav-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.6);
+}
+
+/* Respect the OS preference until the user picks explicitly (persisted
+   choice is applied via the data-theme attribute above, same
+   getDark()/setDark() precedence the prototype's store.js used). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg-grad: linear-gradient(180deg, #211A13 0px, #18140F 280px);
+    --surface: #241F17;
+    --ink: #F2ECE1;
+    --ink-soft: #B3A791;
+    --line: #3A3226;
+    --accent-soft: #3A2B22;
+
+    --green: #7FD9A0;
+    --green-bg: #1E3326;
+    --red: #E8998A;
+    --red-bg: #3A241F;
+    --amber: #E8C468;
+    --amber-bg: #3A301A;
+    --blue: #9AC0EA;
+
+    --shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.3);
+    --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --nav-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.6);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg-grad);
+  color: var(--ink);
+  font-family: var(--font-body-en);
+}
+
+html[dir='rtl'] body {
+  font-family: var(--font-body-ar);
+}
+
+a { text-decoration: none; color: inherit; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+button, a { transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease; }
+button:active, a:active { transform: scale(0.96); }
+
+/* Direction-sensitive glyphs (back/forward chevrons) mirror automatically
+   under RTL — real CSS logical flipping in place of the design prototype's
+   per-language literal path-data swap. */
+[dir='rtl'] .icon-directional { transform: scaleX(-1); }
