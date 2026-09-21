@@ -130,6 +130,15 @@ interface AppState {
   authStatus: AuthStatus;
   /** auth.users.id of the signed-in account, or null. */
   userId: string | null;
+  /**
+   * i18n key for a sign-in failure that has to outlive the screen that
+   * caused it. A failed provider return arrives as a cold start, so there
+   * is no Auth component left holding the error when it lands — it has to
+   * be here for Auth to find once it mounts.
+   */
+  authErrorKey: string | null;
+  /** The provider's own words for that failure, untranslated. */
+  authErrorDetail: string | null;
   screen: Screen;
   params: ScreenParams;
   hist: HistEntry[];
@@ -138,6 +147,8 @@ interface AppState {
   setRole: (role: Role) => void;
   setSession: (userId: string | null) => void;
   setAuthDisabled: () => void;
+  setAuthError: (key: string, detail?: string) => void;
+  clearAuthError: () => void;
   nav: (patch: Screen | NavPatch) => void;
   back: () => void;
   completeCoachSignup: (fields: CoachSignupFields) => void;
@@ -154,6 +165,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   role: readLocal<Role>('role', null),
   authStatus: 'unknown',
   userId: null,
+  authErrorKey: null,
+  authErrorDetail: null,
   screen: 'welcome',
   params: NO_PARAMS,
   hist: [],
@@ -178,6 +191,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   setSession: (userId) => set({ userId, authStatus: userId ? 'signedIn' : 'signedOut' }),
 
   setAuthDisabled: () => set({ authStatus: 'disabled', userId: null }),
+
+  setAuthError: (key, detail = '') => set({ authErrorKey: key, authErrorDetail: detail || null }),
+  clearAuthError: () => set({ authErrorKey: null, authErrorDetail: null }),
 
   nav(patch) {
     const p: NavPatch = typeof patch === 'string' ? { screen: patch } : patch;

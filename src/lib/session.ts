@@ -17,6 +17,7 @@ import { useAppStore } from '../store/appStore';
 import { getSession, onAuthStateChange } from './auth';
 import { isSupabaseConfigured } from './supabase';
 import { getCoachProfile } from './mockStore';
+import { classifyOAuthReturn, clearOAuthReturn, takeAuthOrigin, takeOAuthReturn } from './oauthReturn';
 
 // undefined = we have not yet heard anything, which is different from
 // "heard, and there is no session". Without that distinction a cold start
@@ -24,7 +25,12 @@ import { getCoachProfile } from './mockStore';
 let lastUserId: string | null | undefined = undefined;
 
 function routeAfterSignIn() {
-  const { role, nav } = useAppStore.getState();
+  const { role, nav, clearAuthError } = useAppStore.getState();
+
+  // A sign-in that worked retires whatever the last failed one left
+  // behind, so a later sign-out does not land on Auth showing an error
+  // about an attempt the user already recovered from.
+  clearAuthError();
 
   // No role chosen yet: the design sends a fresh sign-in to RoleSelect, and
   // it has to be the local choice that decides. profiles.role cannot: OAuth
@@ -45,6 +51,21 @@ function routeAfterSignIn() {
 
 function routeAfterSignOut() {
   useAppStore.getState().nav('auth');
+}
+
+/**
+ * Put a failed return on screen instead of dropping the user on the intro
+ * carousel with the failure unread in the address bar.
+ *
+ * Back to whichever sign-in screen this started from, so an invited
+ * member retries on ClientAuth with their coach's name still on it
+ * rather than being handed the generic entry screen. Welcome, where a
+ * cold start otherwise lands, has nowhere to show a message at all.
+ */
+function routeAfterFailedReturn(key: string, detail: string) {
+  const { setAuthError, nav } = useAppStore.getState();
+  setAuthError(key, detail);
+  nav(takeAuthOrigin() === 'clientAuth' ? 'clientAuth' : 'auth');
 }
 
 function apply(userId: string | null) {
@@ -74,7 +95,28 @@ export function initSession(): () => void {
     return () => {};
   }
 
-  void getSession().then((session) => apply(session?.user.id ?? null));
+  // Claim this page load's provider return, if there was one. Claiming it
+  // here rather than after the await matters: in development React mounts
+  // effects twice, and only one of the two inits should act on it.
+  const returned = takeOAuthReturn();
+
+  void getSession().then((session) => {
+    // Only now is the URL safe to tidy: getSession() is what gives
+    // supabase-js the chance to exchange the ?code= it needs to still be
+    // there for.
+    if (returned) clearOAuthReturn();
+
+    // Order matters. apply() routes a live session to its home screen, so
+    // the failure has to land after it to win — which is what should
+    // happen when someone already signed in fails to add a second
+    // provider: the message is the news, not the screen they were headed
+    // to anyway.
+    apply(session?.user.id ?? null);
+
+    const failure = returned && classifyOAuthReturn(returned, session !== null);
+    if (failure) routeAfterFailedReturn(failure.key, failure.detail);
+  });
+
   return onAuthStateChange((session) => apply(session?.user.id ?? null));
 }
 

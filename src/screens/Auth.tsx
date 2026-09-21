@@ -4,6 +4,7 @@ import { useT } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { ChevronIcon } from '../components/icons';
 import { signInWithOAuth, type OAuthProvider } from '../lib/auth';
+import { rememberAuthOrigin } from '../lib/oauthReturn';
 import { isSupabaseConfigured } from '../lib/supabase';
 import './Auth.css';
 
@@ -48,6 +49,16 @@ export default function Auth() {
   const [pending, setPending] = useState<OAuthProvider | null>(null);
   const [errorKey, setErrorKey] = useState('');
 
+  // A failed provider return is reported by lib/session.ts, not by this
+  // component: it happens while the app is away, so the attempt outlives
+  // the mount that started it. Local state covers failures to *leave* for
+  // the provider; the store covers failures to come back.
+  const returnErrorKey = useAppStore((s) => s.authErrorKey);
+  const returnErrorDetail = useAppStore((s) => s.authErrorDetail);
+  const clearAuthError = useAppStore((s) => s.clearAuthError);
+  const shownErrorKey = errorKey || returnErrorKey || '';
+  const shownDetail = errorKey ? '' : returnErrorDetail;
+
   async function signIn(provider: OAuthProvider) {
     // With no Supabase project wired up, the prototype's own behaviour is
     // the honest fallback: its buttons are plain links onward to
@@ -61,6 +72,8 @@ export default function Auth() {
 
     setPending(provider);
     setErrorKey('');
+    clearAuthError();
+    rememberAuthOrigin('auth');
     const result = await signInWithOAuth(provider);
     if (!result.ok) {
       setPending(null);
@@ -99,7 +112,15 @@ export default function Auth() {
       </div>
 
       <div className="auth-sheet">
-        {errorKey && <div className="auth-error" role="alert">{t(errorKey)}</div>}
+        {shownErrorKey && (
+          <div className="auth-error" role="alert">
+            {t(shownErrorKey)}
+            {/* The provider's own words, kept verbatim and LTR: it is the
+                only part that says which piece of the setup refused, and
+                translating or paraphrasing it would lose that. */}
+            {shownDetail && <span className="auth-error-detail" dir="ltr">{shownDetail}</span>}
+          </div>
+        )}
 
         <button
           className="auth-btn auth-btn-google"
