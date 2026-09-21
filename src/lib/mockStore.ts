@@ -497,6 +497,13 @@ export function getProNotifications(): ProNotification[] {
 // Earnings
 // ---------------------------------------------------------------------------
 
+export interface EarningsByClient {
+  clientId: string;
+  clientName: string;
+  total: number;
+  pending: number;
+}
+
 export interface EarningsSummary {
   totalReceived: number;
   pendingTotal: number;
@@ -504,27 +511,29 @@ export interface EarningsSummary {
   dueCount: number;
   pendingCount: number;
   totalClients: number;
+  byClient: EarningsByClient[];
 }
 
-// 1:1 port of store.js's getEarningsSummary (minus the per-client
-// `byClient` breakdown, which Main.tsx's earnings preview card doesn't
-// read — that belongs to Earnings.dc.html's own future port).
+// 1:1 port of store.js's getEarningsSummary, including the per-client
+// `byClient` breakdown Earnings.dc.html's own list reads (Main.tsx's
+// preview card only reads the aggregate fields above it).
 export function getEarningsSummary(): EarningsSummary {
   const clients = getClients();
   let totalReceived = 0;
   let pendingTotal = 0;
   let pendingCount = 0;
-  clients.forEach((c) => {
+  const byClient: EarningsByClient[] = clients.map((c) => {
     const payments = getPaymentHistory(c.id);
     const clientTotal = payments.reduce((sum, p) => sum + (p.status === 'pending' ? 0 : p.amount || 0), 0);
     const clientPending = payments.reduce((sum, p) => sum + (p.status === 'pending' ? p.amount : 0), 0);
     totalReceived += clientTotal;
     pendingTotal += clientPending;
     if (clientPending > 0) pendingCount += 1;
+    return { clientId: c.id, clientName: c.name, total: clientTotal, pending: clientPending };
   });
   const paidCount = clients.filter((c) => c.paymentStatus === 'paid').length;
   const dueCount = clients.filter((c) => c.paymentStatus === 'due' || c.paymentStatus === 'overdue').length;
-  return { totalReceived, pendingTotal, paidCount, dueCount, pendingCount, totalClients: clients.length };
+  return { totalReceived, pendingTotal, paidCount, dueCount, pendingCount, totalClients: clients.length, byClient };
 }
 
 // ---------------------------------------------------------------------------
@@ -654,10 +663,8 @@ export function completeCoachSignup(fields: CoachSignupFields): CoachProfile {
 }
 
 // ---------------------------------------------------------------------------
-// Subscription tier (Rafiq Pro) — Subscription.dc.html itself isn't ported
-// yet, but EditProfile/Profile both gate features on it, so the read side
-// exists now. Defaults to 'pro' — same as store.js's own default — so the
-// seeded demo Pro shows the full unlocked experience out of the box.
+// Subscription tier (Rafiq Pro) — read side existed for EditProfile/Profile's
+// feature gates; the write side (Subscription.dc.html itself) below.
 // ---------------------------------------------------------------------------
 
 export interface Subscription {
@@ -671,6 +678,101 @@ export function getSubscription(): Subscription {
 
 export function isVerified(): boolean {
   return getSubscription().tier === 'pro';
+}
+
+// 1:1 port of store.js's setSubscriptionTier — a real renewal date on
+// upgrade, cleared on downgrade, same as the prototype's demo billing.
+export function setSubscriptionTier(tier: Subscription['tier']): Subscription {
+  const sub: Subscription = { tier, renewsAtMs: tier === 'pro' ? TODAY_MS + 30 * DAY_MS : null };
+  writeLocal('subscription', sub);
+  return sub;
+}
+
+export type CancelReason = 'too_expensive' | 'not_using' | 'missing_features' | 'switching' | 'other';
+
+export interface SubscriptionCancelFeedback {
+  reason: CancelReason;
+  note: string;
+  atMs: number;
+}
+
+// The mandatory exit-survey answer a Pro gives before a downgrade completes
+// (Subscription.dc.html) — its own small log, same as store.js keeps it
+// separate from the session/payment event log below.
+export function logSubscriptionCancelFeedback(reason: CancelReason, note: string): SubscriptionCancelFeedback[] {
+  const list = [...readLocal<SubscriptionCancelFeedback[]>('subscription_cancel_feedback', []), { reason, note, atMs: Date.now() }];
+  writeLocal('subscription_cancel_feedback', list);
+  return list;
+}
+
+// ---------------------------------------------------------------------------
+// Offerings — a coach's own catalog of bookable things (Offerings.dc.html,
+// OfferingDetail.dc.html), shown on their Member-facing profile. One flat
+// shape for every type below (no per-type dashboards), same as store.js —
+// a Course/Program's "duration" is just a longer free-text string ("8
+// weeks") than a Session's ("50 min"), not a different shape.
+// ---------------------------------------------------------------------------
+
+export type OfferingType = 'session' | 'consultation' | 'group' | 'workshop' | 'program' | 'event';
+export type OfferingFormat = 'online' | 'in_person' | 'both';
+
+export const OFFERING_TYPE_KEYS: OfferingType[] = ['session', 'consultation', 'group', 'workshop', 'program', 'event'];
+
+export interface Offering {
+  id: string;
+  type: OfferingType;
+  name: string;
+  description: string;
+  duration: string;
+  price: number;
+  format: OfferingFormat;
+  /** Sessions a client working through this offering is expected to
+      complete, or null when there's no fixed length (an ongoing 1:1/group
+      cadence, or a single-sitting workshop/event). */
+  sessionsTotal: number | null;
+}
+
+// Same 6 seed offerings as store.js's DEFAULT_OFFERINGS.
+const DEFAULT_OFFERINGS: Offering[] = [
+  { id: 'off-1to1', type: 'session', name: '1:1 Coaching Session', description: 'Personalized one-on-one coaching focused on your goals.', duration: '50 min', price: 750, format: 'both', sessionsTotal: null },
+  { id: 'off-intro', type: 'session', name: 'Intro Call', description: 'A free first conversation to see if we are a good fit.', duration: '20 min', price: 0, format: 'both', sessionsTotal: 1 },
+  { id: 'off-consult', type: 'consultation', name: 'Consultation', description: 'A one-off paid session to meet and decide if we are a good fit, before committing to ongoing coaching.', duration: '30 min', price: 300, format: 'both', sessionsTotal: 1 },
+  { id: 'off-group', type: 'group', name: 'Group Reflection Circle', description: 'A small-group session to share progress and get peer support.', duration: '60 min', price: 400, format: 'online', sessionsTotal: null },
+  { id: 'off-workshop', type: 'workshop', name: 'Goal-Setting Workshop', description: 'A focused workshop to map out your next 90 days.', duration: '3 hours', price: 1200, format: 'in_person', sessionsTotal: 1 },
+  { id: 'off-program', type: 'program', name: '8-Week Transformation Program', description: 'A structured multi-session program with weekly check-ins.', duration: '8 weeks', price: 5400, format: 'both', sessionsTotal: 8 },
+];
+
+export function getOfferings(): Offering[] {
+  return readLocal('offerings', DEFAULT_OFFERINGS);
+}
+
+export function getOffering(id: string): Offering | undefined {
+  return getOfferings().find((o) => o.id === id);
+}
+
+export function updateOffering(id: string, patch: Partial<Offering>): Offering[] {
+  const list = getOfferings().map((o) => (o.id === id ? { ...o, ...patch } : o));
+  writeLocal('offerings', list);
+  return list;
+}
+
+export function deleteOffering(id: string): Offering[] {
+  const list = getOfferings().filter((o) => o.id !== id);
+  writeLocal('offerings', list);
+  return list;
+}
+
+// 1:1 port of store.js's createOffering — a blank row the coach fills in
+// on OfferingDetail immediately after, same as AddClient's flow.
+export function createOffering(): string {
+  const id = `off${Date.now().toString(36)}`;
+  const list = [...getOfferings(), { id, type: 'session' as OfferingType, name: 'New Offering', description: '', duration: '', price: 0, format: 'both' as OfferingFormat, sessionsTotal: null }];
+  writeLocal('offerings', list);
+  return id;
+}
+
+export function getSelectedOfferingId(): string | null {
+  return readLocal('selected_offering_id', null);
 }
 
 // ---------------------------------------------------------------------------

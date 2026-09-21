@@ -290,6 +290,54 @@ const dict: Record<Lang, Record<string, string>> = {
 
     // EditClientProfile.dc.html
     editClientProfileAge: 'Age',
+
+    // Offerings.dc.html
+    offeringsTitle: 'Offerings', offeringsSubtitle: 'What you offer — shown on your profile so members can choose what they want before booking.',
+    offeringsNoOfferings: 'No offerings yet', offeringsNoOfferingsSub: 'Add what you offer — sessions, workshops, programs — so members know what they can book.',
+    offeringsNewOffering: 'New Offering', offeringsFree: 'Free',
+    offeringTypeSession: '1:1 Session', offeringTypeConsultation: 'Consultation', offeringTypeGroup: 'Group Session',
+    offeringTypeWorkshop: 'Workshop', offeringTypeProgram: 'Course/Program', offeringTypeEvent: 'Event/Retreat',
+    offeringFormatOnline: 'Online', offeringFormatInPerson: 'In-person', offeringFormatBoth: 'Online & in-person',
+
+    // OfferingDetail.dc.html
+    offeringDetailCancel: 'Cancel', offeringDetailEditOffering: 'Edit Offering', offeringDetailSave: 'Save',
+    offeringDetailType: 'Type', offeringDetailName: 'Offering name', offeringDetailNamePlaceholder: 'e.g. 1:1 Coaching Session',
+    offeringDetailDescription: 'Description', offeringDetailDescriptionPlaceholder: 'What members can expect from this',
+    offeringDetailDuration: 'Duration', offeringDetailDurationPlaceholder: 'e.g. 50 min, 3 hours, 8 weeks',
+    offeringDetailPriceLabel: 'Price (EGP)', offeringDetailPricePlaceholder: '0 = free',
+    offeringDetailSessionsTotal: 'Total sessions (for progress tracking)', offeringDetailSessionsTotalPlaceholder: 'e.g. 8',
+    offeringDetailSessionsTotalHint: 'Leave blank if this offering has no fixed length — an ongoing 1:1/group cadence, or a single-sitting workshop/event.',
+    offeringDetailFormat: 'Format', offeringDetailFormatOnline: 'Online', offeringDetailFormatInPerson: 'In-person', offeringDetailFormatBoth: 'Both',
+    offeringDetailDeleteOffering: 'Delete Offering', offeringDetailDeleteConfirmTitle: 'Delete this offering?',
+    offeringDetailDeleteConfirmBodyTemplate: "{name} will no longer show on your profile. This doesn't affect sessions already booked.",
+    offeringDetailDelete: 'Delete',
+
+    // Subscription.dc.html
+    subscriptionTitle: 'Rafiq Pro', subscriptionCurrentPlan: 'Current plan',
+    subscriptionFreeName: 'Free', subscriptionFreePrice: 'Free forever',
+    subscriptionFreeFeature1: 'Up to 5 active members', subscriptionFreeFeature2: 'Scheduling & session tracking',
+    subscriptionFreeFeature3: 'Tasks & check-ins', subscriptionFreeFeature4: 'Session Templates',
+    subscriptionProName: 'Rafiq Pro', subscriptionProPrice: '450 EGP / month',
+    subscriptionProFeature1: 'Unlimited active members', subscriptionProFeature2: 'Verified badge on your profile',
+    subscriptionProFeature3: 'Featured placement in member search', subscriptionProFeature4: 'Priority support', subscriptionProFeature5: 'Everything in Free',
+    subscriptionUpgrade: 'Upgrade to Rafiq Pro', subscriptionDowngrade: 'Downgrade to Free',
+    subscriptionPlanLabelFree: 'Free plan', subscriptionPlanLabelPro: 'Rafiq Pro',
+    subscriptionRenewsOn: 'Renews on {date}', subscriptionFreeSub: "You're on the Free plan — up to 5 active members.",
+    subscriptionDisclaimer: 'This is a demo — no real payment is processed when you switch plans.',
+    subscriptionDone: 'Done',
+    subscriptionSurveyTitle: 'Before you go', subscriptionSurveySub: "Help us understand why you're downgrading — it takes 10 seconds and won't affect your account.",
+    subscriptionReasonExpensive: 'Too expensive', subscriptionReasonNotUsing: "I'm not using it enough",
+    subscriptionReasonMissingFeatures: "It's missing features I need", subscriptionReasonSwitching: "I'm switching to another tool", subscriptionReasonOther: 'Other',
+    subscriptionSurveyNoteLabel: 'Anything else? (optional)', subscriptionSurveyNotePlaceholder: 'Tell us more…',
+    subscriptionSurveySubmit: 'Switch to Free', subscriptionSurveyKeepPro: 'Never mind, keep Rafiq Pro',
+    subscriptionProConfirmedTitle: "You're now on Rafiq Pro!", subscriptionProConfirmedBodyTemplate: 'Unlimited members, your verified badge, and featured placement are live now. Renews on {date}.',
+    subscriptionFreeConfirmedTitle: "You're on the Free plan", subscriptionFreeConfirmedBody: 'Thanks for the feedback — it genuinely helps us improve Rafiq. You can upgrade again anytime.',
+
+    // Earnings.dc.html
+    earningsTitle: 'Earnings', earningsTotalReceived: 'Total received', earningsByMember: 'By member',
+    earningsPaid: 'paid up', earningsDue: 'need payment', earningsNoMembers: 'No members yet',
+    earningsStatusPaid: 'Paid up', earningsStatusDue: 'Payment due', earningsStatusOverdue: 'Payment overdue', earningsStatusPending: 'Payment pending',
+    earningsPendingConfirmation: 'awaiting confirmation', earningsPendingSuffix: '+{amount} EGP pending',
   },
   ar: {
     skip: 'تخطي',
@@ -576,6 +624,54 @@ const dict: Record<Lang, Record<string, string>> = {
 
     // EditClientProfile.dc.html
     editClientProfileAge: 'العمر',
+
+    // Offerings.dc.html
+    offeringsTitle: 'العروض', offeringsSubtitle: 'ما تقدمه — يظهر في ملفك الشخصي حتى يختار الأعضاء ما يريدونه قبل الحجز.',
+    offeringsNoOfferings: 'لا توجد عروض بعد', offeringsNoOfferingsSub: 'أضف ما تقدمه — جلسات، ورش عمل، برامج — حتى يعرف الأعضاء ما يمكنهم حجزه.',
+    offeringsNewOffering: 'عرض جديد', offeringsFree: 'مجانية',
+    offeringTypeSession: 'جلسة فردية', offeringTypeConsultation: 'استشارة', offeringTypeGroup: 'جلسة جماعية',
+    offeringTypeWorkshop: 'ورشة عمل', offeringTypeProgram: 'دورة/برنامج', offeringTypeEvent: 'فعالية/معتكف',
+    offeringFormatOnline: 'عبر الإنترنت', offeringFormatInPerson: 'حضوريًا', offeringFormatBoth: 'عبر الإنترنت وحضوريًا',
+
+    // OfferingDetail.dc.html
+    offeringDetailCancel: 'إلغاء', offeringDetailEditOffering: 'تعديل العرض', offeringDetailSave: 'حفظ',
+    offeringDetailType: 'النوع', offeringDetailName: 'اسم العرض', offeringDetailNamePlaceholder: 'مثال: جلسة تدريب فردية',
+    offeringDetailDescription: 'الوصف', offeringDetailDescriptionPlaceholder: 'ما يمكن للأعضاء توقعه من هذا العرض',
+    offeringDetailDuration: 'المدة', offeringDetailDurationPlaceholder: 'مثال: 50 دقيقة، 3 ساعات، 8 أسابيع',
+    offeringDetailPriceLabel: 'السعر (جنيه)', offeringDetailPricePlaceholder: '0 = مجانية',
+    offeringDetailSessionsTotal: 'إجمالي عدد الجلسات (لتتبع التقدم)', offeringDetailSessionsTotalPlaceholder: 'مثال: 8',
+    offeringDetailSessionsTotalHint: 'اتركي الحقل فارغًا إذا لم يكن لهذا العرض مدة ثابتة — جلسات فردية/جماعية مستمرة، أو ورشة/فعالية لمرة واحدة.',
+    offeringDetailFormat: 'الصيغة', offeringDetailFormatOnline: 'عبر الإنترنت', offeringDetailFormatInPerson: 'حضوريًا', offeringDetailFormatBoth: 'كلاهما',
+    offeringDetailDeleteOffering: 'حذف العرض', offeringDetailDeleteConfirmTitle: 'حذف هذا العرض؟',
+    offeringDetailDeleteConfirmBodyTemplate: 'لن يظهر {name} بعد الآن في ملفك الشخصي. هذا لا يؤثر على الجلسات المحجوزة بالفعل.',
+    offeringDetailDelete: 'حذف',
+
+    // Subscription.dc.html
+    subscriptionTitle: 'رفيق برو', subscriptionCurrentPlan: 'الباقة الحالية',
+    subscriptionFreeName: 'مجانية', subscriptionFreePrice: 'مجانية دائمًا',
+    subscriptionFreeFeature1: 'حتى 5 أعضاء نشطين', subscriptionFreeFeature2: 'الجدولة ومتابعة الجلسات',
+    subscriptionFreeFeature3: 'المهام والمتابعة اليومية', subscriptionFreeFeature4: 'قوالب الجلسات',
+    subscriptionProName: 'رفيق برو', subscriptionProPrice: '450 جنيه / شهريًا',
+    subscriptionProFeature1: 'عدد غير محدود من الأعضاء النشطين', subscriptionProFeature2: 'علامة موثّق على ملفك الشخصي',
+    subscriptionProFeature3: 'ظهور مميز في نتائج بحث الأعضاء', subscriptionProFeature4: 'دعم ذو أولوية', subscriptionProFeature5: 'كل ما في الباقة المجانية',
+    subscriptionUpgrade: 'الترقية إلى رفيق برو', subscriptionDowngrade: 'الرجوع إلى الباقة المجانية',
+    subscriptionPlanLabelFree: 'الباقة المجانية', subscriptionPlanLabelPro: 'رفيق برو',
+    subscriptionRenewsOn: 'يتجدد في {date}', subscriptionFreeSub: 'أنت على الباقة المجانية — حتى 5 أعضاء نشطين.',
+    subscriptionDisclaimer: 'هذه نسخة تجريبية — لا يتم تنفيذ أي دفع فعلي عند تبديل الباقة.',
+    subscriptionDone: 'تم',
+    subscriptionSurveyTitle: 'قبل أن تغادر', subscriptionSurveySub: 'ساعدنا في فهم سبب رجوعك إلى الباقة المجانية — يستغرق هذا 10 ثوانٍ ولن يؤثر على حسابك.',
+    subscriptionReasonExpensive: 'السعر مرتفع', subscriptionReasonNotUsing: 'لا أستخدمه بما يكفي',
+    subscriptionReasonMissingFeatures: 'تنقصه ميزات أحتاجها', subscriptionReasonSwitching: 'سأنتقل إلى أداة أخرى', subscriptionReasonOther: 'سبب آخر',
+    subscriptionSurveyNoteLabel: 'أي شيء آخر؟ (اختياري)', subscriptionSurveyNotePlaceholder: 'أخبرنا بالمزيد…',
+    subscriptionSurveySubmit: 'الرجوع إلى الباقة المجانية', subscriptionSurveyKeepPro: 'لا، أريد البقاء على رفيق برو',
+    subscriptionProConfirmedTitle: 'أصبحت الآن على رفيق برو!', subscriptionProConfirmedBodyTemplate: 'أصبح الآن متاحًا: عدد غير محدود من الأعضاء، علامة التوثيق، والظهور المميز. يتجدد في {date}.',
+    subscriptionFreeConfirmedTitle: 'أنت الآن على الباقة المجانية', subscriptionFreeConfirmedBody: 'شكرًا لملاحظاتك — فعلًا تساعدنا على تحسين رفيق. يمكنك الترقية مرة أخرى في أي وقت.',
+
+    // Earnings.dc.html
+    earningsTitle: 'الأرباح', earningsTotalReceived: 'إجمالي المستلم', earningsByMember: 'حسب العضو',
+    earningsPaid: 'دفعوا', earningsDue: 'بحاجة للدفع', earningsNoMembers: 'لا يوجد أعضاء بعد',
+    earningsStatusPaid: 'تم الدفع', earningsStatusDue: 'الدفع مستحق', earningsStatusOverdue: 'الدفع متأخر', earningsStatusPending: 'الدفع قيد الانتظار',
+    earningsPendingConfirmation: 'بانتظار التأكيد', earningsPendingSuffix: '+{amount} جنيه قيد الانتظار',
   },
 };
 

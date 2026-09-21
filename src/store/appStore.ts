@@ -37,6 +37,7 @@ export type Screen =
   | 'main' // coach home dashboard
   | 'profile' | 'editProfile' | 'accountDetails'
   | 'clients' | 'addClient' | 'clientDetail' | 'editClient'
+  | 'offerings' | 'offeringDetail' | 'subscription' | 'earnings'
   | 'clientOnboarding' | 'clientHome' | 'clientProfile' | 'editClientProfile' // Track B (client side)
   | 'comingSoon'; // placeholder landing spot for whatever's not built yet
 
@@ -77,6 +78,10 @@ const PARENT: Partial<Record<Screen, Screen | typeof RET>> = {
   clientOnboarding: 'clientAuth',
   addClient: 'clients',
   clientDetail: 'clients',
+  offerings: 'profile',
+  offeringDetail: 'offerings',
+  subscription: 'profile',
+  earnings: 'main',
   clientProfile: 'clientHome',
   editClientProfile: 'clientProfile',
 };

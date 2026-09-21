@@ -1,0 +1,213 @@
+.earnings-header {
+  padding: 30px 24px 4px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.earnings-header-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.earnings-back {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-soft);
+  color: var(--ink);
+}
+
+.earnings-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.earnings-dark-toggle {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+}
+
+.earnings-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.earnings-summary-card {
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 18px 20px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: fadeInUp 0.45s ease both;
+}
+
+.earnings-summary-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.earnings-summary-value {
+  font-family: var(--font-display-en);
+  font-size: 28px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+html[dir='rtl'] .earnings-summary-value {
+  font-family: var(--font-display-ar);
+}
+
+.earnings-progress-track {
+  height: 7px;
+  border-radius: 999px;
+  background: var(--amber-bg);
+  overflow: hidden;
+}
+
+.earnings-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--green);
+}
+
+.earnings-summary-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.earnings-paid-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.earnings-due-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--amber);
+}
+
+.earnings-pending-summary {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--amber);
+}
+
+.earnings-list-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.earnings-list-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.earnings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.earnings-row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  background: var(--surface);
+  border-radius: 18px;
+  padding: 14px 15px;
+  box-shadow: var(--shadow);
+  text-align: start;
+  width: 100%;
+  animation: fadeInUp 0.45s ease both;
+}
+
+.earnings-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.earnings-row-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.earnings-row-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.earnings-row-status {
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+.earnings-row-pending {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--amber);
+  margin-top: 1px;
+}
+
+.earnings-row-total {
+  font-size: 13.5px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.earnings-empty {
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  padding: 24px;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

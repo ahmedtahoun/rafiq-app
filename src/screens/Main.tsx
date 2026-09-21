@@ -397,8 +397,7 @@ export default function Main() {
         <button
           type="button"
           className="main-earnings-card"
-          // TODO: route to 'earnings' once Earnings.dc.html is ported
-          onClick={() => goTo({ screen: 'comingSoon', params: { feature: 'earnings' } })}
+          onClick={() => goTo({ screen: 'earnings', params: {} })}
         >
           <div className="main-earnings-row">
             <div className="main-earnings-icon">

@@ -391,7 +391,7 @@ export default function EditProfile() {
         <Button
           onClick={() => {
             setShowPhotoLockedSheet(false);
-            nav({ screen: 'comingSoon', params: { feature: 'subscription' } });
+            nav('subscription');
           }}
         >
           {t('editProfileUpgrade')}
