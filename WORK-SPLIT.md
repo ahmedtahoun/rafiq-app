@@ -47,28 +47,42 @@ second device seeing a stale role before that fix shipped may still have a
 mismatched row — not expected to matter for this app's usage pattern, flag
 if it does.
 
-**Google/Apple sign-in isn't actually functional yet.** The buttons exist in
-Auth.tsx/ClientAuth.tsx (satisfies Apple's App Store 4.8 requirement to offer
-Sign in with Apple alongside Google), but nothing is configured behind them —
-tapping either does nothing real yet. Two parts:
-1. **Ahmed — provider console + Supabase setup, no code.** Google Cloud
-   Console OAuth client, Apple Developer "Sign in with Apple" Services ID +
-   key, then both sets of credentials into Supabase Auth → Providers, plus
-   `localhost:5173` + the production origin into Auth → URL Configuration →
-   Redirect URLs.
-2. **A dev — native Capacitor OAuth handling**, blocked on #1's redirect
-   URL/scheme first. See the comment above `signInWithOAuth()` in
-   `src/lib/auth.ts` for the exact gap: needs `skipBrowserRedirect`, an
-   in-app browser (`@capacitor/browser`), and a deep link registered in
-   `capacitor.config.ts` to catch the callback. Also needs a second,
-   native-specific OAuth client in Google Cloud Console (Apple's Services ID
-   setup is shared with the web flow).
+**Google/Apple sign-in — web flow done, native still open.** The buttons
+exist in Auth.tsx/ClientAuth.tsx (satisfies Apple's App Store 4.8
+requirement to offer Sign in with Apple alongside Google). As of
+2026-09-21, both providers are fully configured and verified end-to-end in
+the browser (real Google + Apple consent screens, correctly scoped to the
+Supabase project) — Google Cloud OAuth client, Apple Developer App ID
+(`app.rafiqie.coach`) + Services ID (`app.rafiqie.coach.web`) + Sign in
+with Apple key, both providers enabled in Supabase Auth → Providers, and
+`localhost:5173` added to Redirect URLs. Local dev needs a `.env.local`
+(gitignored, copy `.env.local.example`) with the real project's
+`VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` for any of this to work
+locally — ask Ahmed for the anon key rather than trying to test against
+an unconfigured project. Apple's OAuth secret (a JWT, not the raw `.p8`
+file) expires every 6 months — `scripts/generate-apple-oauth-secret.mjs`
+regenerates it.
+
+Still open — **a dev: native Capacitor OAuth handling.** Blocked on
+nothing now (the web-side config above is what it was waiting on). See
+the comment above `signInWithOAuth()` in `src/lib/auth.ts` for the exact
+gap: needs `skipBrowserRedirect`, an in-app browser (`@capacitor/browser`),
+and a deep link registered in `capacitor.config.ts` to catch the callback.
+Also needs a second, native-specific OAuth client in Google Cloud Console
+(Apple's Services ID setup is shared with the web flow).
 
 **Not code, needs a human decision, not yet resolved:**
 - Privacy Policy / HelpCenter copy (coach-side, already shipped) still says
   member conversations happen over WhatsApp — inaccurate since in-app
   messaging shipped. Needs fixing in the design prototype first, then
   re-ported, not patched directly in this repo.
+- **App rename pending: "Rafiq" → "Rafiqie."** Not started — Ahmed asked
+  to defer it. Scope once picked up: `capacitor.config.ts`'s `appId`
+  (`app.rafiq.coach` → `app.rafiqie.coach`, to match what's now actually
+  registered in Apple Developer for Sign in with Apple), `appName`, the
+  "Welcome to Rafiq" strings in `i18n.ts`, README, `package.json`'s
+  `name`, and `<title>`. Do the bundle ID change carefully — it's already
+  live in Apple's system, so code and console need to agree exactly.
 
 ## Claim before you start
 
