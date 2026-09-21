@@ -1,89 +1,95 @@
-# Work split — three parallel tracks
+# Rafiq build status
 
-Three accounts are building this repo at once. Everything past the 7 ported
-screens is divided below so the three of us rarely touch the same lines.
+This file is the git-readable mirror of the live coordination doc (a Claude
+Docs artifact) for sessions that can't reach that link — several parallel
+Claude Code sessions building this repo have hit "artifact not found" on it
+repeatedly, even after sharing. If you're reading this from a session that
+*can* open the doc, prefer it — it's the one that's actually live and
+commented on. If you can't reach it, this file is the fallback: check here
+before claiming an item, and whoever finishes an item should update this
+file in the same PR that lands it (not a separate commit later — it drifts
+otherwise).
 
-The screen inventory here was reconstructed from the code's own
-`TODO: route to ...` comments and the `comingSoon` stubs, not from the Rafiq
-Build Plan doc (which lives outside this repo). Where the two disagree, the
-Build Plan doc wins — reconcile and update this file. Track A/B naming follows
-the convention already used in `src/components/BottomNav.tsx`.
+Doc link, for reference / whoever can reach it:
+https://claude.ai/artifact/Cp6dmzaZsmMC6t2YcEnKgR
 
-## The tracks
+## Two tracks, not three
 
-| | Track A — Coach (Pro) | Track B — Client (Member) | Track C — Auth & cross-role |
-|---|---|---|---|
-| **Already built** | Main, Profile, EditProfile, AccountDetails, Onboarding (coach) | nothing — RoleSelect dead-ends at `ComingSoon` | nothing — Supabase scaffolded, not connected |
-| **Owns** | Schedule, Clients, ClientDetail, AddClient, AddTask, AddTimeBlock, SessionRoom, Earnings, Offerings, SessionTemplates, Availability, PreviewProfile, ShareProfile | ClientOnboarding, ClientHome, Discover, RateCoach, client-side Subscription, client-side Schedule/Messages views | Auth, Notifications, Subscription (coach), HelpCenter, PrivacyPolicy, TermsOfService, MessagesInbox, Messages |
-| **Owns in shared files** | coach half of `mockStore.ts`, coach screens' i18n keys | client half of `mockStore.ts`, client screens' i18n keys | Supabase client, auth/session state in `appStore.ts`, legal + shared i18n keys |
+Earlier revisions of this file proposed a 3-track split (Coach/Client/Auth).
+That's superseded — the coordination doc's own 2-track split (Coach/Client)
+is source of truth, with Auth + Supabase infra treated as shared Phase-0
+work rather than an ongoing third track. Don't resurrect the 3-track model.
 
-Messaging (`MessagesInbox`, `Messages`, and `getUnreadMessageCount`'s
-`forRole` seam) serves both roles, so it sits with Track C rather than being
-built twice. `Subscription` is split: Track C ports the coach-side screen,
-Track B ports the member-side view once C's lands.
+## Status as of 2026-09-21
 
-## Order of work
+**Track A — Coach side: done, #1–#10, all merged.**
+Onboarding, Main, Profile/EditProfile/AccountDetails, Clients/AddClient/
+ClientDetail/EditClient, Schedule/AddTimeBlock/Availability, Offerings/
+OfferingDetail/Subscription/Earnings, Templates/TemplateDetail, AddTask/
+SessionRoom, Messages/MessagesInbox, Notifications/ShareProfile/
+PreviewProfile/HelpCenter/CoachPrivacyPolicy/CoachTermsOfService.
 
-Ordering is by fan-in — how many existing stubs route into a screen today
-(`grep -rn "TODO: route to" src`). Building the high-fan-in screens first
-deletes the most placeholders and unblocks the most other work.
+**Track B — Client side: #1–#3 done, #4–#9 open.**
+Done: ClientOnboarding, ClientHome, ClientProfile + EditClientProfile.
 
-**Wave 1 — unblock everything else**
+Open, in order:
+- **#4 Finding & choosing a coach** — Discover.dc.html, CoachPreview.dc.html
+- **#5 The coach relationship** — ClientCoach.dc.html ("Your Pro"), ClientBooking.dc.html
+- **#6 Sessions & tasks** — ClientSchedule.dc.html, ClientTasks.dc.html
+- **#7 Programs & progress** — MyPrograms.dc.html, ProgramDetail.dc.html
+- **#8 Reviews & messaging** — RateCoach.dc.html, CoachMessages.dc.html, MyCoaches.dc.html
+- **#9 Everything else** — ClientNotifications.dc.html, ClientHelpCenter.dc.html, PrivacyPolicy.dc.html, TermsOfService.dc.html
 
-- **A: Schedule (4 refs) → Clients (3 refs) → ClientDetail.** Highest fan-in in
-  the repo. `Clients` is also the roster fallback `QuickActions` sends every
-  unscoped action to, so porting it makes the whole FAB live.
-- **B: ClientOnboarding → ClientHome.** The entire client half of the app is
-  unreachable until these exist; `BottomNav` was already built to take its tab
-  list as a prop for exactly this. Biggest unblock on the board.
-- **C: Auth (2 refs) + connect Supabase.** Everything is `localStorage` today.
-  The longer real auth waits, the more screens get written against a store
-  shape that has to change.
+**Auth + Supabase infra: done.** Schema/RLS/storage/CI (PR #1), Auth +
+ClientAuth wired to OAuth with session bootstrap (PR #3). Known follow-up:
+`profiles.role` syncs from `setProfileRole()` now (fixed in PR #6), but a
+second device seeing a stale role before that fix shipped may still have a
+mismatched row — not expected to matter for this app's usage pattern, flag
+if it does.
 
-**Wave 2**
+**Not code, needs a human decision, not yet resolved:**
+- Privacy Policy / HelpCenter copy (coach-side, already shipped) still says
+  member conversations happen over WhatsApp — inaccurate since in-app
+  messaging shipped. Needs fixing in the design prototype first, then
+  re-ported, not patched directly in this repo.
 
-- **A:** AddTimeBlock (3 refs), AddClient, AddTask, SessionRoom.
-- **B:** Discover, RateCoach, member-side Subscription.
-- **C:** MessagesInbox (3 refs) + Messages, Notifications, Subscription (coach).
+## Claim before you start
 
-**Wave 3**
+Say so in the coordination doc if you can reach it; if not, open a draft PR
+or push an empty commit to a branch named `<you>/<item>` early, so `git
+branch -a` on origin shows your claim to anyone who checks before starting.
+Two collisions already happened early in the build from skipping this.
 
-- **A:** Earnings (2 refs), Offerings, SessionTemplates, Availability,
-  PreviewProfile, ShareProfile.
-- **B:** remaining client screens from the Build Plan doc.
-- **C:** HelpCenter, PrivacyPolicy, TermsOfService; replace the `mockStore`
-  seams with real Supabase reads.
+## Working agreement (current — supersedes anything below about pushing to main)
 
-## Shared files — the collision points
+1. **Branch + PR, always.** Direct pushes to `main` are for the rare
+   one-line, already-reviewed fix (e.g. a routing bug confirmed across
+   multiple PR reviews) — not for new screens.
+2. **Rebase onto `main` before opening or updating a PR**, not just before
+   your first push. i18n.ts and appStore.ts both append near the same
+   lines from every track, so two PRs opened around the same time will
+   conflict even though neither is wrong — rebase resolves it, it's not a
+   sign anything's broken.
+3. **`npm run build && npm run lint` clean before every push.** CI enforces
+   this on every branch and PR now (typecheck, build, lint, plus the schema
+   test suite for anything touching `supabase/`).
+4. **Delete the stub you replace** — its `comingSoon` route and any
+   `TODO: route to ...` comment, in the same commit that lands the screen.
+5. **Test in-browser before calling anything done** — light/dark, EN/AR
+   with RTL, golden path + edge cases. Several real bugs (a raw-English
+   string leaking into Arabic UI, a CSS-specificity bug breaking a dark
+   screen, dead-end back buttons, a bidi-reordering bug on time ranges)
+   were only caught this way, not by typecheck/lint/build.
 
-Screens are one `.tsx` + one `.css` each, so those never collide. These four
-files do, because every new screen touches them:
+## Shared files — where tracks touch the same lines
 
-| File | What every track adds | Rule |
-|---|---|---|
-| `src/lib/i18n.ts` | per-screen keys in both `en` and `ar` | Append inside your track's region, never re-sort the dict. Keys stay screen-prefixed (`mainX`, `profileX`, `qaX`). |
-| `src/store/appStore.ts` | `Screen` union members, `ROOTS`/`NOHIST`/`PARENT` entries | Each track gets its own line in the union and its own entries block — don't reflow the others'. |
-| `src/App.tsx` | one `case` per screen | Cases grouped by track; add yours to your group only. |
-| `src/lib/mockStore.ts` | data seams for your screens | Coach and client sections are separate; add to yours. If it gets unwieldy, split into `mockStore.coach.ts` / `mockStore.client.ts` rather than interleaving. |
+Screens are one `.tsx` + one `.css` each, so those never collide. These
+four do, because every new screen touches them — append near the bottom of
+your track's existing section rather than re-sorting or reflowing:
 
-Region banner comments to make those rules enforceable aren't in the files
-yet — worth adding in one pass before Wave 1 starts, while the tree is quiet.
-
-## Merge protocol
-
-All three accounts currently push straight to `main` with no PRs, which is
-workable at this size as long as:
-
-1. **One track per session.** Don't pick up another track's screen mid-session —
-   that's what produces the shared-file conflicts.
-2. **`git pull --rebase origin main` before every push.** Two merge commits in
-   the history already came from skipping this.
-3. **`npm run build && npm run lint` must pass before pushing.** Both are clean
-   today (`tsc -b` strict, oxlint 0 findings) — keep them that way so a red
-   tree is always the last push, never someone else's. CI
-   (`.github/workflows/ci.yml`) runs the same checks plus the schema suite on
-   every branch, so this is now enforced rather than agreed — but finding out
-   locally is still faster than finding out from a red badge.
-4. **Delete the stub you replaced.** When a screen lands, remove its
-   `comingSoon` route and its `TODO: route to ...` comment in the same commit,
-   so the grep above stays an accurate to-do list.
+| File | What every screen adds |
+|---|---|
+| `src/lib/i18n.ts` | per-screen `en`/`ar` keys, screen-prefixed |
+| `src/store/appStore.ts` | `Screen` union member, `ROOTS`/`PARENT` entry |
+| `src/App.tsx` | one `case` in the exhaustive switch |
+| `src/lib/mockStore.ts` | data seams — check what already exists (a stub, a related type) before adding a parallel version |
