@@ -1,5 +1,7 @@
 # Rafiq
 
+[![CI](https://github.com/ahmedtahoun/rafiq-app/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ahmedtahoun/rafiq-app/actions/workflows/ci.yml)
+
 Coaching management platform and marketplace connecting coaches and clients.
 
 ## Stack
