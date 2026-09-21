@@ -80,7 +80,10 @@ workable at this size as long as:
    the history already came from skipping this.
 3. **`npm run build && npm run lint` must pass before pushing.** Both are clean
    today (`tsc -b` strict, oxlint 0 findings) — keep them that way so a red
-   tree is always the last push, never someone else's.
+   tree is always the last push, never someone else's. CI
+   (`.github/workflows/ci.yml`) runs the same checks plus the schema suite on
+   every branch, so this is now enforced rather than agreed — but finding out
+   locally is still faster than finding out from a red badge.
 4. **Delete the stub you replaced.** When a screen lands, remove its
    `comingSoon` route and its `TODO: route to ...` comment in the same commit,
    so the grep above stays an accurate to-do list.

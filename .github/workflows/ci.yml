@@ -1,0 +1,86 @@
+# CI for Rafiq.
+#
+# Three accounts push straight to main on this repo, so a red tree blocks two
+# people who didn't break it. This runs the same checks WORK-SPLIT.md asks for
+# before every push — typecheck, build, lint, and the schema's own test suite —
+# on every branch, so whoever broke it finds out rather than the next person.
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+# A second push to the same branch makes the first run's answer worthless.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  app:
+    name: typecheck, build, lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Vite 8 needs Node 22.12+; the repo pins no engines, so CI pins it here.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # `npm run build` is tsc -b && vite build — split so a type error and a
+      # bundler error don't look like the same failure in the log.
+      - name: Typecheck
+        run: npx tsc -b
+
+      - name: Build
+        run: npm run build
+
+      - name: Lint
+        run: npm run lint
+
+  schema:
+    name: database schema
+    runs-on: ubuntu-latest
+
+    # The suite needs a real Postgres — it asserts what RLS policies and check
+    # constraints actually do, which nothing can be mocked into answering.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # `a || b && c` would run the install even when psql is already there.
+      - name: Ensure psql is available
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends postgresql-client
+          fi
+          psql --version
+
+      # Given DATABASE_URL, run.sh uses that server instead of building its own
+      # cluster, and resets the schema first so the run is self-contained.
+      - name: Run schema tests
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+        run: supabase/tests/run.sh

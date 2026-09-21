@@ -37,23 +37,30 @@ TypeScript side: `src/lib/database.types.ts` (typed schema),
 ## Running the tests
 
 ```bash
-supabase/tests/run.sh
+supabase/tests/run.sh                                # builds its own cluster
+DATABASE_URL=postgres://... supabase/tests/run.sh     # uses a server you have
 ```
 
 Needs a local Postgres 16 (`initdb`/`pg_ctl`/`psql`) — no Supabase project and
 no network. It builds a throwaway cluster, stands in for the `auth` schema and
 the `anon`/`authenticated`/`service_role` roles, applies the migration, and
-runs every check as a real signed-in user via `auth.uid()`.
+runs every check as a real signed-in user via `auth.uid()`. Given a
+`DATABASE_URL` it uses that server instead and resets the schema first, which
+is how CI runs it against a `postgres:16` service container.
 
-Each line prints an expectation and the result. A number where the line says
-`DENIED`, or `ALLOWED` where it says `REJECTED`, is a failure. Currently 15 RLS
-assertions and 19 constraint assertions, all passing.
+Every assertion prints `PASS`/`FAIL` with its expected and actual value, and
+the script exits non-zero if any fail — or if fewer than 40 assertions ran at
+all, so a test file that quietly failed to load can't read as a clean run.
+Currently 20 RLS and 20 constraint assertions, all passing.
 
 These exist because RLS is the kind of thing that looks right and isn't. The
 first run of this suite caught the migration having no `GRANT`s at all — every
 query failed with `42501`. A real Supabase project's default privileges would
 have hidden that by handing `authenticated` blanket access to every table,
 which is both broader than this app needs and invisible in the schema.
+
+`.github/workflows/ci.yml` runs this suite on every push, alongside the app's
+typecheck, build and lint.
 
 ## How the model differs from mockStore
 
