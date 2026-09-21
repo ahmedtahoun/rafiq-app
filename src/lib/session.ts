@@ -40,8 +40,7 @@ function routeAfterSignIn() {
     return;
   }
 
-  // TODO: route to 'clientHome' once ClientHome.dc.html is ported.
-  nav({ screen: 'comingSoon', params: { feature: 'clientHome' } });
+  nav('clientHome');
 }
 
 function routeAfterSignOut() {

@@ -14,10 +14,15 @@ export default function RoleSelect() {
   function choose(role: Role) {
     setSelected(role);
     setRole(role);
-    // The member path goes through ClientAuth. In the design that screen is
-    // reached from a coach's invite link, which needs deep-link handling the
-    // app does not have yet — this is the interim way in, and the screen
-    // itself is unchanged by it.
+    // The member path goes through ClientAuth first: the design's order is
+    // ClientAuth -> ClientOnboarding, and signing in is what marks the role
+    // that ClientOnboarding's gated form then builds on. (Track B's own
+    // routing sent members straight to ClientOnboarding; resolved in favour
+    // of the design's order, with ClientAuth handing straight off to it.)
+    //
+    // In the design ClientAuth is reached from a coach's invite link, which
+    // needs deep-link handling the app does not have yet — this is the
+    // interim way in, and the screen itself is unchanged by it.
     nav(role === 'coach' ? 'onboarding' : 'clientAuth');
   }
 

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { completeCoachSignup as storeCompleteCoachSignup, type CoachSignupFields } from '../lib/mockStore';
+import { completeCoachSignup as storeCompleteCoachSignup, type CoachSignupFields, completeClientSignup as storeCompleteClientSignup, type ClientSignupFields } from '../lib/mockStore';
 
 export type Lang = 'en' | 'ar';
 export type Role = 'coach' | 'client' | null;
@@ -37,6 +37,7 @@ export type Screen =
   | 'main' // coach home dashboard
   | 'profile' | 'editProfile' | 'accountDetails'
   | 'clients' | 'addClient' | 'clientDetail' | 'editClient'
+  | 'clientOnboarding' | 'clientHome' // Track B (client side)
   | 'comingSoon'; // placeholder landing spot for whatever's not built yet
 
 // Route params a screen was entered with — e.g.
@@ -56,7 +57,7 @@ interface HistEntry {
 
 // Screens with no back-history (entering one always clears the stack —
 // bottom-nav destinations, or dead-end/landing screens).
-const ROOTS: Screen[] = ['comingSoon', 'main', 'profile', 'clients'];
+const ROOTS: Screen[] = ['comingSoon', 'main', 'profile', 'clients', 'clientHome'];
 // Screens that shouldn't be pushed onto the NEXT screen's back-stack when
 // LEFT (e.g. splash/entry screens nobody should land back on). Empty for
 // now — extend as screens like that are added.
@@ -71,6 +72,9 @@ const PARENT: Partial<Record<Screen, Screen | typeof RET>> = {
   accountDetails: 'profile',
   auth: 'welcome',
   clientAuth: 'roleSelect',
+  // ClientOnboarding is now only reachable through ClientAuth, so that is
+  // where a back with no history belongs.
+  clientOnboarding: 'clientAuth',
   addClient: 'clients',
   clientDetail: 'clients',
 };
@@ -104,6 +108,7 @@ interface AppState {
   nav: (patch: Screen | NavPatch) => void;
   back: () => void;
   completeCoachSignup: (fields: CoachSignupFields) => void;
+  completeClientSignup: (fields: ClientSignupFields) => void;
 }
 
 // Same persisted preferences the design prototype's store.js tracked
@@ -181,5 +186,14 @@ export const useAppStore = create<AppState>((set, get) => ({
     writeLocal('role', 'coach');
     set({ role: 'coach' });
     get().nav('main');
+  },
+
+  completeClientSignup(fields) {
+    // This prototype's one demo Member/Pro pair — same hardcoded 'sara' id
+    // ClientOnboarding.dc.html's own finishOnboarding() uses.
+    storeCompleteClientSignup('sara', fields);
+    writeLocal('role', 'client');
+    set({ role: 'client' });
+    get().nav('clientHome');
   },
 }));

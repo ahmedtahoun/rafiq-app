@@ -64,9 +64,9 @@ export default function ClientAuth() {
 
   function goOnward() {
     setRole('client');
-    // TODO: route to 'clientOnboarding' once ClientOnboarding.dc.html is
-    // ported — that screen is Track B's, and this is the handoff to it.
-    nav({ screen: 'comingSoon', params: { feature: 'clientOnboarding' } });
+    // The handoff the prototype describes: this screen marks the role, and
+    // every required field is collected on ClientOnboarding's gated form.
+    nav('clientOnboarding');
   }
 
   async function signIn(provider: OAuthProvider) {
