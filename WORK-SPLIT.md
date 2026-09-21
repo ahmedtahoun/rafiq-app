@@ -34,6 +34,7 @@ Done: ClientOnboarding, ClientHome, ClientProfile + EditClientProfile.
 
 Open, in order:
 - **#4 Finding & choosing a coach** — Discover.dc.html, CoachPreview.dc.html
+  — **CLAIMED, in progress** (branch `reem/discover`, 2026-09-21)
 - **#5 The coach relationship** — ClientCoach.dc.html ("Your Pro"), ClientBooking.dc.html
 - **#6 Sessions & tasks** — ClientSchedule.dc.html, ClientTasks.dc.html
 - **#7 Programs & progress** — MyPrograms.dc.html, ProgramDetail.dc.html
