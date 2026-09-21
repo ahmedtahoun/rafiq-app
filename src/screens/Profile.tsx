@@ -134,8 +134,7 @@ export default function Profile() {
     { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'main' },
     // TODO: route to 'clients' once Clients.dc.html is ported
     { key: 'clients', label: t('mainClientsNav'), icon: ClientsIcon, screen: 'comingSoon', params: { feature: 'clients' } },
-    // TODO: route to 'messagesInbox' once MessagesInbox.dc.html is ported
-    { key: 'messages', label: t('mainMessagesNav'), icon: MessageIcon, screen: 'comingSoon', params: { feature: 'messagesInbox' } },
+    { key: 'messages', label: t('mainMessagesNav'), icon: MessageIcon, screen: 'messagesInbox' },
     { key: 'quickActions', label: t('quickActionsTitle'), render: () => <QuickActions context="profile" /> },
     // TODO: route to 'schedule' once Schedule.dc.html is ported
     { key: 'schedule', label: t('mainSchedule'), icon: ScheduleIcon, screen: 'comingSoon', params: { feature: 'schedule' } },
@@ -318,7 +317,7 @@ export default function Profile() {
             </div>
             <ArrowForwardIcon size={15} color="var(--ink-soft)" />
           </button>
-          <button type="button" className="profile-row" onClick={() => nav({ screen: 'comingSoon', params: { feature: 'messagesInbox' } })}>
+          <button type="button" className="profile-row" onClick={() => nav('messagesInbox')}>
             <MessageIcon size={17} color="var(--accent)" />
             <div className="profile-row-text">
               <div className="profile-row-title">{t('profileMessages')}</div>

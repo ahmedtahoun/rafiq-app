@@ -24,6 +24,8 @@ import ClientHome from './screens/ClientHome';
 import ClientProfile from './screens/ClientProfile';
 import EditClientProfile from './screens/EditClientProfile';
 import AddTask from './screens/AddTask';
+import Messages from './screens/Messages';
+import MessagesInbox from './screens/MessagesInbox';
 import SessionRoom from './screens/SessionRoom';
 import Templates from './screens/Templates';
 import TemplateDetail from './screens/TemplateDetail';
@@ -88,6 +90,10 @@ export default function App() {
       return <ClientProfile />;
     case 'editClientProfile':
       return <EditClientProfile />;
+    case 'messages':
+      return <Messages />;
+    case 'messagesInbox':
+      return <MessagesInbox />;
     case 'addTask':
       return <AddTask />;
     case 'sessionRoom':

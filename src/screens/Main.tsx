@@ -277,8 +277,7 @@ export default function Main() {
   const navItems: BottomNavItem[] = [
     { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'main' },
     { key: 'clients', label: t('mainClientsNav'), icon: ClientsIcon, screen: 'clients' },
-    // TODO: route to 'messagesInbox' once MessagesInbox.dc.html is ported
-    { key: 'messages', label: t('mainMessagesNav'), icon: MessageIcon, screen: 'comingSoon', params: { feature: 'messagesInbox' } },
+    { key: 'messages', label: t('mainMessagesNav'), icon: MessageIcon, screen: 'messagesInbox' },
     { key: 'quickActions', label: t('quickActionsTitle'), render: () => <QuickActions context="home" /> },
     // TODO: route to 'schedule' once Schedule.dc.html is ported
     { key: 'schedule', label: t('mainSchedule'), icon: ScheduleIcon, screen: 'comingSoon', params: { feature: 'schedule' } },

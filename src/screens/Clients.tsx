@@ -135,7 +135,7 @@ export default function Clients() {
   const navItems: BottomNavItem[] = [
     { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'main' },
     { key: 'clients', label: t('mainClientsNav'), icon: ClientsIcon, screen: 'clients' },
-    { key: 'messages', label: t('mainMessagesNav'), icon: MessageIcon, screen: 'comingSoon', params: { feature: 'messagesInbox' } },
+    { key: 'messages', label: t('mainMessagesNav'), icon: MessageIcon, screen: 'messagesInbox' },
     { key: 'quickActions', label: t('quickActionsTitle'), render: () => <QuickActions context="members" /> },
     { key: 'schedule', label: t('mainSchedule'), icon: ScheduleIcon, screen: 'comingSoon', params: { feature: 'schedule' } },
     { key: 'profile', label: t('mainProfileNav'), icon: PersonIcon, screen: 'profile' },
