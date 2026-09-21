@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAppStore, type Role } from '../store/appStore';
+import { setProfileRole } from '../lib/auth';
 import { useT } from '../lib/i18n';
 import { ChevronIcon, CheckIcon, CoachIcon, PersonIcon } from '../components/icons';
 import './RoleSelect.css';
@@ -14,6 +15,20 @@ export default function RoleSelect() {
   function choose(role: Role) {
     setSelected(role);
     setRole(role);
+
+    // Mirror the choice onto profiles.role. Routing runs off the local copy,
+    // so this is a background sync, not a gate — awaiting it would stall
+    // navigation on a network round trip for something no screen reads yet.
+    // Without it profiles.role keeps handle_new_user()'s 'client' default
+    // (OAuth carries no role), and a second device would ask again instead
+    // of remembering. No-ops when Supabase is unconfigured.
+    if (role) {
+      void setProfileRole(role).catch(() => {
+        // Deliberately swallowed: a failed background sync must not break
+        // the flow. The local role still stands, and the next sign-in
+        // retries. Worth revisiting if profiles.role ever gates anything.
+      });
+    }
     // The member path goes through ClientAuth first: the design's order is
     // ClientAuth -> ClientOnboarding, and signing in is what marks the role
     // that ClientOnboarding's gated form then builds on. (Track B's own
