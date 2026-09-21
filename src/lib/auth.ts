@@ -14,6 +14,10 @@
 import type { Session, User, AuthError } from '@supabase/supabase-js';
 import { getSupabase, isSupabaseConfigured } from './supabase';
 import type { Enums, Row } from './database.types';
+import {
+  isNativePlatform, openAuthUrl, initDeepLinkAuth,
+  NATIVE_REDIRECT_URL, type AuthCallback,
+} from './nativeAuth';
 
 export type AppRole = Enums<'app_role'>;
 export type Profile = Row<'profiles'>;
@@ -162,27 +166,126 @@ export function onAuthStateChange(handler: (session: Session | null) => void): (
 }
 
 /**
- * Starts a provider sign-in. On the web this hands the browser to the
- * provider's consent screen and does not come back here — the session
- * arrives later through onAuthStateChange — so a caller must not navigate
- * on success.
+ * Starts a provider sign-in.
  *
- * Capacitor caveat, deliberately unhandled: the iOS and Android shells have
- * no browser to hand off to. A native build needs `skipBrowserRedirect`, an
- * in-app browser opened on the returned `url`, and a deep link registered to
- * catch the callback. That needs a URL scheme in capacitor.config.ts and
- * entries in the provider consoles first, so it is its own change.
+ * Both platforms end the same way — the session arrives later through
+ * onAuthStateChange — so a caller must not navigate on success. How they
+ * get there differs:
+ *
+ * On the web, supabase-js navigates this page to the provider's consent
+ * screen and the session comes back on the next load.
+ *
+ * On iOS/Android there is no page to navigate: the webview *is* the app.
+ * So we ask supabase-js for the authorize URL instead of letting it
+ * navigate (`skipBrowserRedirect`), open that URL in the system in-app
+ * browser, and point the redirect at a custom URL scheme that brings the
+ * provider's answer back as a deep link. lib/nativeAuth.ts owns that half;
+ * initDeepLinkAuth's listener finishes the exchange.
+ *
+ * An explicit `redirectTo` still wins on either platform, so a caller that
+ * knows better than the default can say so.
  */
 export async function signInWithOAuth(
   provider: OAuthProvider,
   redirectTo?: string,
 ): Promise<AuthResult<{ url: string | null }>> {
   if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const native = isNativePlatform();
+
   const { data, error } = await getSupabase().auth.signInWithOAuth({
     provider,
-    options: { redirectTo: redirectTo ?? window.location.origin },
+    options: {
+      redirectTo: redirectTo ?? (native ? NATIVE_REDIRECT_URL : window.location.origin),
+      skipBrowserRedirect: native,
+    },
   });
-  return error ? fail(error) : { ok: true, data: { url: data.url } };
+  if (error) return fail(error);
+
+  // Opening the browser belongs here rather than in the screens: from a
+  // caller's side "start a sign-in" is one action on both platforms, and
+  // Auth.tsx/ClientAuth.tsx should not have to know which shell they are
+  // running in.
+  if (native && data.url) {
+    try {
+      await openAuthUrl(data.url);
+    } catch (cause) {
+      return {
+        ok: false,
+        code: 'unknown',
+        message: cause instanceof Error ? cause.message : 'Could not open the sign-in page.',
+      };
+    }
+  }
+
+  return { ok: true, data: { url: data.url } };
+}
+
+/**
+ * Finish a PKCE sign-in from the code a deep link brought back.
+ *
+ * The verifier this needs was stored by signInWithOAuth above, in this
+ * same webview's localStorage, so the code never leaves the device to be
+ * redeemed.
+ */
+export async function exchangeCodeForSession(code: string): Promise<AuthResult<null>> {
+  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const { error } = await getSupabase().auth.exchangeCodeForSession(code);
+  return error ? fail(error) : { ok: true, data: null };
+}
+
+/** Finish an implicit-flow sign-in, where the deep link carried tokens
+    rather than a code. */
+export async function setSessionFromTokens(
+  accessToken: string,
+  refreshToken: string,
+): Promise<AuthResult<null>> {
+  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const { error } = await getSupabase().auth.setSession({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+  });
+  return error ? fail(error) : { ok: true, data: null };
+}
+
+/**
+ * Apply whatever a provider's deep link brought back.
+ *
+ * Exported for its own sake so the three outcomes can be exercised
+ * without a device — the platforms this runs on cannot be driven from CI,
+ * so the logic is kept where a test can reach it.
+ */
+export async function finishOAuthCallback(callback: AuthCallback): Promise<AuthResult<null>> {
+  if (callback.kind === 'code') return exchangeCodeForSession(callback.code);
+  if (callback.kind === 'tokens') {
+    return setSessionFromTokens(callback.accessToken, callback.refreshToken);
+  }
+  return {
+    ok: false,
+    code: 'unknown',
+    message: callback.description || callback.error,
+  };
+}
+
+/**
+ * Start listening for provider redirects on native. Returns its own
+ * unsubscribe, so App can hand it straight back from a useEffect; a no-op
+ * on web, where the callback arrives as an ordinary page load.
+ *
+ * A failed return is logged rather than shown. There is nowhere to show
+ * it yet: the store gains a field for exactly this in the open web
+ * silent-failure fix (PR #11), and once that lands this handler sets it
+ * in one line and native gets the same message web does.
+ */
+export function initOAuthDeepLinks(): () => void {
+  return initDeepLinkAuth((callback) => {
+    void finishOAuthCallback(callback).then((result) => {
+      if (!result.ok) {
+        console.error('[auth] provider returned without a session:', result.message);
+      }
+      // A success needs nothing here: setting the session fires
+      // onAuthStateChange, and session.ts decides where that lands.
+    });
+  });
 }
 
 /**

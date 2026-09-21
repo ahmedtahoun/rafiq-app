@@ -47,7 +47,8 @@ second device seeing a stale role before that fix shipped may still have a
 mismatched row — not expected to matter for this app's usage pattern, flag
 if it does.
 
-**Google/Apple sign-in — web flow done, native still open.** The buttons
+**Google/Apple sign-in — web done; native code done, console + device
+testing outstanding.** The buttons
 exist in Auth.tsx/ClientAuth.tsx (satisfies Apple's App Store 4.8
 requirement to offer Sign in with Apple alongside Google). As of
 2026-09-21, both providers are fully configured and verified end-to-end in
@@ -76,6 +77,55 @@ Also needs a second, native-specific OAuth client in Google Cloud Console
   member conversations happen over WhatsApp — inaccurate since in-app
   messaging shipped. Needs fixing in the design prototype first, then
   re-ported, not patched directly in this repo.
+### Native OAuth (branch `dev3/native-oauth`)
+
+The iOS/Android half is written: `skipBrowserRedirect` + the in-app
+browser + a deep-link listener, all in `src/lib/nativeAuth.ts` with the
+wiring in `src/lib/auth.ts`. Two things that were not true when the task
+was written, and are worth knowing before picking this up:
+
+1. **The native projects did not exist.** No `ios/` or `android/` — `cap
+   add` had never been run. Both are now generated and committed, because
+   the URL scheme has to live in them (`Info.plist`'s CFBundleURLTypes,
+   `AndroidManifest.xml`'s intent-filter); Capacitor has no config key for
+   it, despite what you might expect from `capacitor.config.ts`.
+2. **The app answers to two URL schemes**, `app.rafiq.coach://` and
+   `app.rafiqie.coach://`, both on host `auth-callback`. A URL scheme does
+   not have to equal the bundle id, so this makes the pending rename below
+   a no-op for sign-in instead of a day when nobody can log in on a phone.
+
+**Still needs Ahmed, in the consoles:**
+
+- **Supabase → Auth → URL Configuration → Redirect URLs:** add
+  `app.rafiq.coach://auth-callback` (and `app.rafiqie.coach://auth-callback`
+  if you want post-rename builds to work before the rename lands). Without
+  this Supabase refuses the redirect and the app never gets the callback.
+  This is the one required step.
+- **A second Google OAuth client is probably NOT needed**, contrary to the
+  original task note. With Supabase brokering, Google only ever sees
+  Supabase's own `/auth/v1/callback` as its `redirect_uri` — the custom
+  scheme is between Supabase and the app, and Google never sees it. The
+  existing web client should cover native. A separate native client *is*
+  required if we ever switch to Google's native SDK with
+  `signInWithIdToken` (better UX: the system account picker instead of a
+  browser sheet), which is a different change. Flagging rather than
+  asserting: this sandbox cannot reach `*.supabase.co` or
+  `accounts.google.com`, so it is reasoning from how the flow is wired, not
+  a verified round trip.
+- **Apple** needs nothing new: the browser-brokered flow uses the Services
+  ID (`app.rafiqie.coach.web`) already configured, not the bundle id. Worth
+  knowing for later that App Store review generally prefers native
+  `ASAuthorizationAppleIDProvider` over a browser sheet on iOS.
+
+**Not verified on a device.** This sandbox is Linux with no Android SDK, no
+emulator, no Xcode and no simulator, and `dl.google.com` is blocked, so the
+Gradle build cannot even resolve. The TypeScript was exercised in a browser
+through Capacitor's own `CapacitorCustomPlatform` hook — which is what makes
+`isNativePlatform()` true — so the native branch, the deep-link parser and
+the callback routing are all covered by tests, but nobody has yet watched a
+real consent screen hand a real session back to a real build. That is the
+next step and it needs a machine with the SDKs.
+
 - **App rename pending: "Rafiq" → "Rafiqie."** Not started — Ahmed asked
   to defer it. Scope once picked up: `capacitor.config.ts`'s `appId`
   (`app.rafiq.coach` → `app.rafiqie.coach`, to match what's now actually
@@ -83,6 +133,10 @@ Also needs a second, native-specific OAuth client in Google Cloud Console
   "Welcome to Rafiq" strings in `i18n.ts`, README, `package.json`'s
   `name`, and `<title>`. Do the bundle ID change carefully — it's already
   live in Apple's system, so code and console need to agree exactly.
+  It now also moves the Android package directory
+  (`android/app/src/main/java/app/rafiq/coach/` → `.../app/rafiqie/coach/`)
+  and the iOS `PRODUCT_BUNDLE_IDENTIFIER`. Sign-in is unaffected either
+  way — the app answers to both URL schemes, see Native OAuth above.
 
 ## Claim before you start
 
