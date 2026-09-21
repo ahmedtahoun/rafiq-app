@@ -1193,6 +1193,92 @@ export function requestAccountDeletion(clientId: string): { allowed: boolean; ob
 }
 
 // ---------------------------------------------------------------------------
+// Session templates — the reusable cadence + starter-task set a coach keeps
+// per specialty and plan, applied when a member with a matching pairing is
+// added. Ported 1:1 from store.js's DEFAULT_TEMPLATES and its template
+// functions, including the seeded 14.
+//
+// `icon` is a two-letter monogram drawn on a `bg` swatch, not an icon name —
+// that is how the design renders each row, so both travel with the record.
+// ---------------------------------------------------------------------------
+
+export interface Template {
+  id: string;
+  name: string;
+  /** Matches a SPECIALTIES value — English and stable, never translated. */
+  specialty: string;
+  plan: string;
+  cadence: string;
+  icon: string;
+  bg: string;
+  tasks: string[];
+}
+
+const DEFAULT_TEMPLATES: Template[] = [
+  { id: 'tpl-life-basic', name: 'Life Coaching · Basic', specialty: 'Life coaching', plan: 'Basic', cadence: 'Weekly', icon: 'LC', bg: '#B75C3D', tasks: ['Log post-session mood rating', 'Write one gratitude note', '10-minute evening walk'] },
+  { id: 'tpl-life-full', name: 'Life Coaching · Full Access', specialty: 'Life coaching', plan: 'Full Access', cadence: 'Weekly', icon: 'LC', bg: '#96472D', tasks: ['Log post-session mood rating', 'Write one gratitude note', '10-minute evening walk', 'Weekly reflection journal', 'Set one small goal'] },
+  { id: 'tpl-med-basic', name: 'Meditation · Basic', specialty: 'Meditation coaching', plan: 'Basic', cadence: 'Weekly', icon: 'ME', bg: '#7A6BAE', tasks: ['10-minute guided meditation', 'Breathing exercise', 'Sleep log'] },
+  { id: 'tpl-diving-basic', name: 'Free Diving Coaching · Basic', specialty: 'Free diving coaching', plan: 'Basic', cadence: 'Weekly', icon: 'FD', bg: '#1F7A8C', tasks: ['Breath-hold (STA) practice log', 'CO2/O2 tolerance table', 'Equalization drill', 'Pool or open-water session log'] },
+  { id: 'tpl-scuba-basic', name: 'Scuba Diving Coaching · Basic', specialty: 'Scuba diving coaching', plan: 'Basic', cadence: 'Weekly', icon: 'SD', bg: '#26547C', tasks: ['Equipment check & buoyancy drill', 'Log dive depth & bottom time', 'Air consumption review', 'Certification skill practice'] },
+  { id: 'tpl-yoga-basic', name: 'Yoga Coaching · Basic', specialty: 'Yoga coaching', plan: 'Basic', cadence: '2x/week', icon: 'YG', bg: '#5C8A6B', tasks: ['Morning stretch routine', 'Posture check-in', 'Flexibility log'] },
+  { id: 'tpl-career-basic', name: 'Career Coaching · Basic', specialty: 'Career coaching', plan: 'Basic', cadence: 'Bi-weekly', icon: 'CR', bg: '#3E6F6F', tasks: ['Update resume section', 'Set one career goal', 'Network outreach'] },
+  { id: 'tpl-rel-basic', name: 'Relationship Coaching · Basic', specialty: 'Relationship coaching', plan: 'Basic', cadence: 'Weekly', icon: 'RC', bg: '#A65D6E', tasks: ['Gratitude check-in', 'Communication exercise', 'Weekly reflection'] },
+  { id: 'tpl-stress-basic', name: 'Stress & Anxiety Coaching · Basic', specialty: 'Stress & anxiety coaching', plan: 'Basic', cadence: 'Weekly', icon: 'SA', bg: '#6B7FA6', tasks: ['Breathing exercise', 'Mood log', 'Grounding exercise'] },
+  { id: 'tpl-sleep-basic', name: 'Sleep Coaching · Basic', specialty: 'Sleep coaching', plan: 'Basic', cadence: 'Bi-weekly', icon: 'SL', bg: '#4A5A78', tasks: ['Sleep log', 'Wind-down routine', 'Screen-time check-in'] },
+  { id: 'tpl-nutrition-full', name: 'Nutrition · Full Access', specialty: 'Nutrition coaching', plan: 'Full Access', cadence: 'Bi-weekly', icon: 'NU', bg: '#3E6FB0', tasks: ['Food log', 'Water intake check-in', 'Meal prep plan', 'Weekly weigh-in'] },
+  { id: 'tpl-fitness-basic', name: 'Fitness Coaching · Basic', specialty: 'Fitness coaching', plan: 'Basic', cadence: '3x/week', icon: 'FC', bg: '#3F7D58', tasks: ['Workout log', 'Step count check-in'] },
+  { id: 'tpl-breakup-basic', name: 'Breakup Coaching · Basic', specialty: 'Breakup coaching', plan: 'Basic', cadence: 'Weekly', icon: 'BC', bg: '#B98900', tasks: ['Journal entry', 'Self-care activity', 'Weekly reflection'] },
+  { id: 'tpl-parenting-basic', name: 'Parenting Coaching · Basic', specialty: 'Parenting coaching', plan: 'Basic', cadence: 'Weekly', icon: 'PC', bg: '#7A7166', tasks: ['Daily patience check-in', 'One-on-one time log', 'Weekly reflection'] },
+];
+
+/** The cadences the design offers, in its order. Stored English and stable,
+    like a SPECIALTIES value — only the displayed label is translated. */
+export const TEMPLATE_CADENCES = ['Weekly', 'Bi-weekly', '2x/week', '3x/week'];
+
+/** i18n key for a stored cadence, e.g. 'Bi-weekly' -> templateCadenceBiweekly.
+    Lives beside the values so the list and the detail chips cannot drift —
+    they did: the list rendered the raw English while the chips translated. */
+export function cadenceLabelKey(cadence: string): string {
+  return `templateCadence${cadence.replace(/[^A-Za-z0-9]/g, '')}`;
+}
+/** Same two plans Client.plan uses. */
+export const TEMPLATE_PLANS = ['Basic', 'Full Access'];
+
+export function getTemplates(): Template[] {
+  return readLocal('templates', DEFAULT_TEMPLATES);
+}
+
+export function saveTemplates(list: Template[]): void {
+  writeLocal('templates', list);
+}
+
+export function getTemplate(id: string): Template | undefined {
+  return getTemplates().find((t) => t.id === id);
+}
+
+export function updateTemplate(id: string, patch: Partial<Template>): Template[] {
+  const list = getTemplates().map((t) => (t.id === id ? { ...t, ...patch } : t));
+  saveTemplates(list);
+  return list;
+}
+
+export function deleteTemplate(id: string): Template[] {
+  const list = getTemplates().filter((t) => t.id !== id);
+  saveTemplates(list);
+  return list;
+}
+
+/** Creates a blank template and returns its id, for the screen to open. */
+export function createTemplate(): string {
+  const id = `tpl${Date.now().toString(36)}`;
+  saveTemplates([
+    ...getTemplates(),
+    { id, name: 'New Template', specialty: 'Life coaching', plan: 'Basic', cadence: 'Weekly', icon: 'NT', bg: '#B75C3D', tasks: [] },
+  ]);
+  return id;
+}
+
+// ---------------------------------------------------------------------------
 // Cross-screen link targets
 // ---------------------------------------------------------------------------
 

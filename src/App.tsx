@@ -23,6 +23,8 @@ import ClientOnboarding from './screens/ClientOnboarding';
 import ClientHome from './screens/ClientHome';
 import ClientProfile from './screens/ClientProfile';
 import EditClientProfile from './screens/EditClientProfile';
+import Templates from './screens/Templates';
+import TemplateDetail from './screens/TemplateDetail';
 import ComingSoon from './screens/ComingSoon';
 
 export default function App() {
@@ -84,6 +86,10 @@ export default function App() {
       return <ClientProfile />;
     case 'editClientProfile':
       return <EditClientProfile />;
+    case 'templates':
+      return <Templates />;
+    case 'templateDetail':
+      return <TemplateDetail />;
     case 'comingSoon':
       return <ComingSoon />;
     default: {
