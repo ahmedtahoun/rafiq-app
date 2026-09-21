@@ -291,7 +291,7 @@ export function formatDate(ms: number): string {
 // store.js's fixed "now" anchor for every calendar/expiry calculation in
 // the prototype (its own comment: "this prototype's fixed now for all
 // calendar math"), not the real wall clock — ported as-is so a freshly
-// seeded client's package (no renewPackage/useCredit override yet) always
+// seeded client's package (no renewPackage/chargeCredit override yet) always
 // reads as a deterministic "30 days to expiry", matching the prototype's
 // own demo data exactly rather than drifting with the real date.
 const TODAY_MS = Date.UTC(2025, 9, 22);
@@ -374,6 +374,8 @@ export interface SessionLog {
   atMs: number;
   attendance: string;
   followedUp?: boolean;
+  attendanceSetBy?: 'pro' | 'client';
+  attendanceSetAtMs?: number;
 }
 
 // No seed data — store.js itself defaults this to `[]` (a log only grows
@@ -392,11 +394,29 @@ export function markSessionFollowedUp(clientId: string, sessionId: string): Sess
 // Pro notifications (Main only needs the unread-dot check)
 // ---------------------------------------------------------------------------
 
-interface CustomBlock {
+// Mirrors public.time_blocks (supabase/migrations/0001_init.sql) 1:1 — same
+// swap-seam rule every other data function in this file follows. starts/
+// endsAtMs are real epoch ms rather than store.js's own dayIndex+startH
+// pair, but computed against this app's one fixed fictional week (see
+// WEEK_START_MS below, anchored the same way TODAY_MS already is) — so a
+// screen that wants the old dayIndex/startH shape for layout math gets it
+// from the block* helpers below instead of a stored field, matching how
+// getPackageStatus derives daysToExpiry from expiresAtMs rather than
+// storing it.
+export type TimeBlockKind = 'available' | 'busy' | 'pending' | 'booked';
+
+export interface CustomBlock {
   id: string;
-  kind: string;
-  label?: string;
-  range?: string;
+  /** null for a coach's own available/busy block; set for pending/booked. */
+  clientId: string | null;
+  kind: TimeBlockKind;
+  label: string;
+  startsAtMs: number;
+  endsAtMs: number;
+  /** Only meaningful for a real booking — ClientBooking.dc.html stamps this
+      at creation, not ported yet, so this is always undefined today. */
+  sessionType?: SessionType;
+  createdAtMs: number;
 }
 
 export interface Payment {
@@ -435,14 +455,380 @@ export interface ProNotification {
   href: NavTarget;
 }
 
-// getCustomBlocks has no seed data — store.js itself defaults it to `[]`
-// (scheduling isn't ported yet) — so this reads back empty until a real
-// feature writes to it, matching a fresh install of the prototype exactly.
-function getCustomBlocks(): CustomBlock[] {
+// No seed data — a fresh install has no blocks on the calendar beyond the
+// fixed demo bookings Schedule.tsx itself hardcodes, same as store.js.
+export function getCustomBlocks(): CustomBlock[] {
   return readLocal('custom_blocks', []);
 }
 function getReadNotifications(): Record<string, boolean> {
   return readLocal('notif_read', {});
+}
+
+// ---------------------------------------------------------------------------
+// Scheduling — Schedule.dc.html / AddTimeBlock.dc.html / Availability.dc.html.
+//
+// This app's whole calendar lives on one fixed fictional week (TODAY_MS =
+// Wed Oct 22 2025 = dayIndex 2, the same anchor every other screen's
+// nextSession/expiry math already uses). WEEK_START_MS is that week's
+// Monday, so any (dayIndex, hour) pair — the shape every screen's UI still
+// thinks in — converts to/from a real epoch ms timestamp (the shape
+// time_blocks itself stores) without inventing a second calendar.
+// ---------------------------------------------------------------------------
+
+const HOUR_MS = DAY_MS / 24;
+const WEEK_START_MS = TODAY_MS - 2 * DAY_MS;
+
+function msFromDayHour(dayIndex: number, hour: number): number {
+  return WEEK_START_MS + dayIndex * DAY_MS + hour * HOUR_MS;
+}
+// Rounded to the nearest quarter-hour — every block in this app (fixed demo
+// data, AddTimeBlock's typed times, Availability's chip picker) already
+// falls on a 15-minute mark, so this only guards against float drift from
+// the ms round-trip, never a real value change.
+function hourFromMs(ms: number): number {
+  const hourOfWeek = (ms - WEEK_START_MS) / HOUR_MS;
+  const hourOfDay = ((hourOfWeek % 24) + 24) % 24;
+  return Math.round(hourOfDay * 4) / 4;
+}
+function dayIndexFromMs(ms: number): number {
+  return Math.floor((ms - WEEK_START_MS) / DAY_MS);
+}
+
+export function blockDayIndex(block: CustomBlock): number {
+  return dayIndexFromMs(block.startsAtMs);
+}
+export function blockStartH(block: CustomBlock): number {
+  return hourFromMs(block.startsAtMs);
+}
+export function blockEndH(block: CustomBlock): number {
+  return hourFromMs(block.endsAtMs);
+}
+
+function fmtHour(h: number, withPeriod: boolean): string {
+  let hh = Math.floor(h) % 12;
+  if (hh === 0) hh = 12;
+  const mins = Math.round((h % 1) * 60);
+  const period = h >= 12 ? 'PM' : 'AM';
+  return `${hh}:${mins.toString().padStart(2, '0')}${withPeriod ? ` ${period}` : ''}`;
+}
+export function hourRangeLabel(startH: number, endH: number): string {
+  const samePeriod = startH >= 12 === endH >= 12;
+  return samePeriod ? `${fmtHour(startH, false)} – ${fmtHour(endH, true)}` : `${fmtHour(startH, true)} – ${fmtHour(endH, true)}`;
+}
+export function blockRange(block: CustomBlock): string {
+  return hourRangeLabel(blockStartH(block), blockEndH(block));
+}
+
+export interface NewCustomBlockFields {
+  clientId: string | null;
+  kind: TimeBlockKind;
+  label: string;
+  dayIndex: number;
+  startH: number;
+  endH: number;
+  sessionType?: SessionType;
+}
+
+export function addCustomBlock(fields: NewCustomBlockFields): CustomBlock[] {
+  const block: CustomBlock = {
+    id: `blk${Date.now().toString(36)}`,
+    clientId: fields.clientId,
+    kind: fields.kind,
+    label: fields.label,
+    startsAtMs: msFromDayHour(fields.dayIndex, fields.startH),
+    endsAtMs: msFromDayHour(fields.dayIndex, fields.endH),
+    sessionType: fields.sessionType,
+    createdAtMs: Date.now(),
+  };
+  const list = [...getCustomBlocks(), block];
+  writeLocal('custom_blocks', list);
+  return list;
+}
+
+export function updateCustomBlock(id: string, patch: Partial<CustomBlock>): CustomBlock[] {
+  const list = getCustomBlocks().map((b) => (b.id === id ? { ...b, ...patch } : b));
+  writeLocal('custom_blocks', list);
+  return list;
+}
+
+export function removeCustomBlock(id: string): CustomBlock[] {
+  const list = getCustomBlocks().filter((b) => b.id !== id);
+  writeLocal('custom_blocks', list);
+  return list;
+}
+
+// ---------------------------------------------------------------------------
+// Weekly recurring availability (Availability.dc.html) — a simple per-
+// weekday pattern, not a full slot-by-slot calendar, same scope as the
+// design. Index 0=Mon..6=Sun, matching every other day-of-week convention
+// in this file. Defaults equal the same fixed hours Schedule.dc.html/
+// Main.tsx's demo week already implied, so nothing about the existing demo
+// data's look changes on first load.
+// ---------------------------------------------------------------------------
+
+export interface WeeklyAvailabilityDay {
+  enabled: boolean;
+  startH: number;
+  endH: number;
+}
+
+const DEFAULT_WEEKLY_AVAILABILITY: WeeklyAvailabilityDay[] = [
+  { enabled: true, startH: 17.5, endH: 18.5 },
+  { enabled: true, startH: 17, endH: 20 },
+  { enabled: true, startH: 16, endH: 19 },
+  { enabled: true, startH: 14, endH: 18 },
+  { enabled: false, startH: 9, endH: 17 },
+  { enabled: true, startH: 11.75, endH: 15 },
+  { enabled: false, startH: 9, endH: 17 },
+];
+
+export function getWeeklyAvailability(): WeeklyAvailabilityDay[] {
+  return readLocal('weekly_availability', DEFAULT_WEEKLY_AVAILABILITY);
+}
+
+export function setWeeklyAvailability(weekly: WeeklyAvailabilityDay[]): void {
+  writeLocal('weekly_availability', weekly);
+}
+
+export interface AvailabilitySlot {
+  startH: number;
+  endH: number;
+  kind: 'available';
+}
+
+export function getAvailabilityForDayIndex(dayIndex: number): AvailabilitySlot[] {
+  const day = getWeeklyAvailability()[dayIndex];
+  if (!day || !day.enabled) return [];
+  return [{ startH: day.startH, endH: day.endH, kind: 'available' }];
+}
+
+// ---------------------------------------------------------------------------
+// Session credits — charge/refund a package credit on an attendance outcome
+// (setAttendance below) or a late member cancellation (cancelBooking below).
+// ---------------------------------------------------------------------------
+
+export function chargeCredit(clientId: string): PackageStatus {
+  const pkg = getPackage(clientId);
+  writeLocal(`package_${clientId}`, { total: pkg.total, used: Math.min(pkg.total, pkg.used + 1), expiresAtMs: pkg.expiresAtMs });
+  return getPackageStatus(clientId);
+}
+
+export function refundCredit(clientId: string): PackageStatus {
+  const pkg = getPackage(clientId);
+  writeLocal(`package_${clientId}`, { total: pkg.total, used: Math.max(0, pkg.used - 1), expiresAtMs: pkg.expiresAtMs });
+  return getPackageStatus(clientId);
+}
+
+// ---------------------------------------------------------------------------
+// Cancellation / reschedule policy — a Member cancelling or moving a
+// session within CANCELLATION_GRACE_HOURS of its start forfeits a credit
+// (cancelBooking) or can't do it at all (rescheduleBooking); a Pro's own
+// cancellation never charges one.
+// ---------------------------------------------------------------------------
+
+const CANCELLATION_GRACE_HOURS = 12;
+
+export function getCancellationPolicy(): { graceHours: number } {
+  return { graceHours: CANCELLATION_GRACE_HOURS };
+}
+
+// Same fixed-week math as msFromDayHour above, expressed as an hours-until
+// figure both the cancel and reschedule flows gate on.
+export function getHoursUntilBlock(dayIndex: number, startH: number): number {
+  const blockMs = msFromDayHour(dayIndex, startH);
+  return Math.round((blockMs - TODAY_MS) / HOUR_MS);
+}
+
+export interface Cancellation {
+  id: string;
+  blockId: string | null;
+  cancelledByRole: 'pro' | 'client';
+  cancelledAtMs: number;
+  hoursUntilSession: number | null;
+  withinGrace: boolean;
+  reason: string | null;
+}
+
+export function getCancellations(clientId: string): Cancellation[] {
+  return readLocal(`cancellations_${clientId}`, []);
+}
+
+export interface CancelBookingOptions {
+  blockId?: string | null;
+  cancelledByRole: 'pro' | 'client';
+  dayIndex?: number;
+  startH?: number;
+  reason?: string | null;
+}
+
+// 1:1 port of store.js's cancelBooking — idempotent per blockId (a repeat
+// cancel on the same booking returns the original record rather than
+// charging a credit twice), and a late Member cancellation forfeits one.
+export function cancelBooking(clientId: string, opts: CancelBookingOptions): Cancellation {
+  const blockId = opts.blockId ?? null;
+  if (blockId) {
+    const already = getCancellations(clientId).find((c) => c.blockId === blockId);
+    if (already) return already;
+  }
+  const hasTiming = opts.dayIndex != null && opts.startH != null;
+  const hoursUntilSession = hasTiming ? getHoursUntilBlock(opts.dayIndex!, opts.startH!) : null;
+  const withinGrace = hoursUntilSession == null ? true : hoursUntilSession >= CANCELLATION_GRACE_HOURS;
+  const record: Cancellation = {
+    id: `cxl${Date.now().toString(36)}`,
+    blockId,
+    cancelledByRole: opts.cancelledByRole,
+    cancelledAtMs: Date.now(),
+    hoursUntilSession,
+    withinGrace,
+    reason: opts.reason ?? null,
+  };
+  writeLocal(`cancellations_${clientId}`, [record, ...getCancellations(clientId)]);
+
+  // Look up the block's kind BEFORE removing it — a 'booked' block is what
+  // populated this client's nextSession, so cancelling it must clear that
+  // too, or the member keeps seeing a session the coach just cancelled. A
+  // still-'pending' request never touched nextSession, so leave it alone.
+  const cancelledBlock = blockId ? getCustomBlocks().find((b) => b.id === blockId) : null;
+  if (blockId) removeCustomBlock(blockId);
+  if (cancelledBlock?.kind === 'booked') {
+    updateClient(clientId, { nextSession: 'No upcoming session' });
+  }
+
+  if (opts.cancelledByRole === 'client' && !withinGrace) {
+    chargeCredit(clientId);
+  }
+  return record;
+}
+
+export interface RescheduleEligibility {
+  eligible: boolean;
+  hoursUntilSession: number;
+  graceHours: number;
+}
+
+export function getRescheduleEligibility(dayIndex: number, startH: number): RescheduleEligibility {
+  const hoursUntilSession = getHoursUntilBlock(dayIndex, startH);
+  return { eligible: hoursUntilSession >= CANCELLATION_GRACE_HOURS, hoursUntilSession, graceHours: CANCELLATION_GRACE_HOURS };
+}
+
+// Moves an existing booking to a new day/time in place, keeping its id (and
+// so its cancellation/history trail) instead of cancelling and
+// re-requesting. A member moving a coach-confirmed ('booked') session
+// reopens it to 'pending' for the coach to re-confirm; a coach moving their
+// own confirmed session stays 'booked'; a still-'pending' request just
+// keeps its kind either way. Never touches payment/package credit — it's
+// the same session, not a cancellation plus a new booking.
+export function rescheduleBooking(
+  clientId: string,
+  blockId: string,
+  newDayIndex: number,
+  newStartH: number,
+  newEndH: number,
+  actorRole: 'pro' | 'client',
+): CustomBlock | { error: 'not_found' | 'too_late'; hoursUntilSession?: number } {
+  const block = getCustomBlocks().find((b) => b.id === blockId);
+  if (!block) return { error: 'not_found' };
+  const eligibility = getRescheduleEligibility(blockDayIndex(block), blockStartH(block));
+  if (!eligibility.eligible) return { error: 'too_late', hoursUntilSession: eligibility.hoursUntilSession };
+  const nextKind: TimeBlockKind = block.kind === 'booked' && actorRole === 'client' ? 'pending' : block.kind;
+  updateCustomBlock(blockId, { startsAtMs: msFromDayHour(newDayIndex, newStartH), endsAtMs: msFromDayHour(newDayIndex, newEndH), kind: nextKind });
+  if (nextKind === 'pending' && block.kind === 'booked') {
+    updateClient(clientId, { nextSession: 'No upcoming session' });
+  }
+  return getCustomBlocks().find((b) => b.id === blockId)!;
+}
+
+// ---------------------------------------------------------------------------
+// Attendance — what actually happened at a session's scheduled time,
+// distinct from just logging that it took place. Charges/refunds a package
+// credit based on the transition so a no-show or a disputed outcome doesn't
+// silently deduct (or fail to deduct) the way a plain "complete" always did.
+// ---------------------------------------------------------------------------
+
+export type AttendanceOutcome = 'completed' | 'member_no_show' | 'disputed';
+
+const ATTENDANCE_CREDIT_ACTION: Record<AttendanceOutcome, 'charge' | 'hold'> = {
+  completed: 'charge',
+  member_no_show: 'charge',
+  disputed: 'hold',
+};
+
+export function addSessionLog(clientId: string, entry: SessionLog): SessionLog[] {
+  const list = [entry, ...getSessionLogs(clientId)];
+  writeLocal(`session_logs_${clientId}`, list);
+  return list;
+}
+
+export function setAttendance(clientId: string, sessionId: string, outcome: AttendanceOutcome, actorRole: 'pro' | 'client'): SessionLog[] {
+  const logs = getSessionLogs(clientId);
+  const existing = logs.find((s) => s.id === sessionId) ?? null;
+  const prevAttendance = existing ? ((existing.attendance as AttendanceOutcome) || 'completed') : null;
+  const patch = { attendance: outcome, attendanceSetBy: actorRole, attendanceSetAtMs: Date.now() };
+
+  if (existing) {
+    writeLocal(
+      `session_logs_${clientId}`,
+      logs.map((s) => (s.id === sessionId ? { ...s, ...patch } : s)),
+    );
+  } else {
+    addSessionLog(clientId, { id: sessionId, atMs: Date.now(), ...patch });
+  }
+
+  const prevAction = prevAttendance ? ATTENDANCE_CREDIT_ACTION[prevAttendance] : null;
+  const nextAction = ATTENDANCE_CREDIT_ACTION[outcome];
+  if (prevAction !== nextAction) {
+    if (nextAction === 'charge' && prevAction !== 'charge') chargeCredit(clientId);
+  }
+  return getSessionLogs(clientId);
+}
+
+// ---------------------------------------------------------------------------
+// Session types — a property of the SESSION, never a new billing concept:
+// one package credit still equals one session regardless of type, so
+// chargeCredit/refundCredit and the whole package model above are untouched.
+// Falls back to 'standard' for any unknown/missing key, matching every
+// other lookup-with-fallback in this file (getPackage's plan-based default
+// etc.).
+// ---------------------------------------------------------------------------
+
+export interface SessionTypeInfo {
+  key: SessionType;
+  label: string;
+  minutes: number;
+}
+
+const SESSION_TYPES: Record<SessionType, SessionTypeInfo> = {
+  intro: { key: 'intro', label: 'Intro Call', minutes: 20 },
+  short: { key: 'short', label: '25-Minute Session', minutes: 25 },
+  standard: { key: 'standard', label: '50-Minute Session', minutes: 50 },
+};
+
+export function getSessionTypeInfo(key: SessionType | undefined): SessionTypeInfo {
+  return (key && SESSION_TYPES[key]) || SESSION_TYPES.standard;
+}
+
+// ---------------------------------------------------------------------------
+// Member reliability (Schedule.dc.html's confirm sheet) — repeated late
+// cancellations/no-shows, reusing the cancellation/attendance records above
+// rather than a new tracking mechanism.
+// ---------------------------------------------------------------------------
+
+const MEMBER_RELIABILITY_WATCH_THRESHOLD = 2;
+const MEMBER_RELIABILITY_RISK_THRESHOLD = 4;
+
+export interface MemberReliability {
+  lateCancellations: number;
+  noShows: number;
+  incidentCount: number;
+  flag: 'ok' | 'watch' | 'risk';
+}
+
+export function getMemberReliability(clientId: string): MemberReliability {
+  const lateCancellations = getCancellations(clientId).filter((c) => c.cancelledByRole === 'client' && !c.withinGrace).length;
+  const noShows = getSessionLogs(clientId).filter((s) => s.attendance === 'member_no_show').length;
+  const incidentCount = lateCancellations + noShows;
+  const flag = incidentCount >= MEMBER_RELIABILITY_RISK_THRESHOLD ? 'risk' : incidentCount >= MEMBER_RELIABILITY_WATCH_THRESHOLD ? 'watch' : 'ok';
+  return { lateCancellations, noShows, incidentCount, flag };
 }
 
 // ---------------------------------------------------------------------------
@@ -505,8 +891,7 @@ export function getProNotifications(): ProNotification[] {
   getCustomBlocks()
     .filter((b) => b.kind === 'pending')
     .forEach((b) => {
-      const clientName = (b.label || '').replace(' · Requested', '');
-      const client = clients.find((c) => c.name === clientName);
+      const client = clients.find((c) => c.id === b.clientId);
       if (!client) return;
       list.push({
         id: `pro-request-${b.id}`,
@@ -516,7 +901,7 @@ export function getProNotifications(): ProNotification[] {
           clientName: client.name,
           avatarBg: client.avatarBg,
           initials: client.initials,
-          range: b.range,
+          range: blockRange(b),
         },
         href: getClientDetailHref(client.id),
       });
@@ -976,9 +1361,7 @@ function getActiveObligations(clientId: string): ActiveObligations {
   const nextSessionRaw = client?.nextSession || '';
   const hasConfirmedUpcoming = !!nextSessionRaw && nextSessionRaw !== 'No upcoming session' && nextSessionRaw !== 'Program completed';
   const hasPendingRequest = client
-    ? getCustomBlocks()
-        .filter((b) => b.kind === 'pending')
-        .some((b) => (b.label || '').indexOf(client.name) !== -1)
+    ? getCustomBlocks().some((b) => b.kind === 'pending' && b.clientId === client.id)
     : false;
   const hasUpcomingSession = hasConfirmedUpcoming || hasPendingRequest;
   const openDisputesCount = getSessionLogs(clientId).filter((s) => s.attendance === 'disputed').length;
@@ -1192,12 +1575,11 @@ export interface ClientNotification {
 export function getClientNotifications(clientId: string): ClientNotification[] {
   const readMap = getReadNotifications();
   const client = getClients().find((c) => c.id === clientId);
-  const clientName = client?.name || '';
   const list: { id: string; kind: ClientNotification['kind'] }[] = [];
 
   const nextSessionRaw = client?.nextSession || '';
   const hasConfirmed = !!nextSessionRaw && nextSessionRaw !== 'No upcoming session' && nextSessionRaw !== 'Program completed';
-  const pendingBlock = getCustomBlocks().find((b) => b.kind === 'pending' && (b.label || '').indexOf(clientName) !== -1);
+  const pendingBlock = getCustomBlocks().find((b) => b.kind === 'pending' && b.clientId === clientId);
   if (pendingBlock) {
     list.push({ id: `session-pending-${pendingBlock.id}`, kind: 'session-pending' });
   } else if (hasConfirmed) {
