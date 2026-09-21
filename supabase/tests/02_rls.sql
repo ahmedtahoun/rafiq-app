@@ -50,8 +50,16 @@ select pg_temp.expect('memberN cannot see M tasks',
   pg_temp.as_user(:memberN, 'select count(*)::text from public.tasks'), '0');
 select pg_temp.expect('memberM sees own payments',
   pg_temp.as_user(:memberM, 'select count(*)::text from public.payments'), '1');
-select pg_temp.expect('signed-out sees nothing',
+select pg_temp.expect('a token with no subject sees nothing',
   pg_temp.as_user('', 'select count(*)::text from public.clients'), '0');
+-- And a genuinely signed-out caller: 0001 grants anon nothing at all, so this
+-- is refused a step earlier, at the grant.
+reset role;
+set role anon;
+select pg_temp.expect('signed-out is refused outright',
+  pg_temp.as_user('', 'select count(*)::text from public.clients'), 'DENIED(42501)');
+reset role;
+set role authenticated;
 
 -- Writes: only the side that owns the action may perform it.
 select pg_temp.expect('member cannot record a payment',

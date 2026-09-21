@@ -14,7 +14,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PGBIN="${PGBIN:-/usr/lib/postgresql/16/bin}"
 PGROOT="${PGROOT:-/var/tmp/rafiq-pgtest}"
-MIN_ASSERTIONS=40
+MIN_ASSERTIONS=74
 
 OUT=""
 OWN_CLUSTER=""
@@ -60,8 +60,13 @@ fi
 apply() { psql "$CONN" -v ON_ERROR_STOP=1 -q -f "$1"; }
 
 apply "$HERE/00_supabase_shim.sql"
-apply "$HERE/../migrations/0001_init.sql"
-echo "migration applied cleanly"
+# Every migration, in filename order — a new 000N_*.sql is picked up with no
+# edit here, and applying them in sequence is also a check that the sequence
+# itself still works from empty.
+for migration in "$HERE"/../migrations/*.sql; do
+  apply "$migration"
+  echo "applied $(basename "$migration")"
+done
 apply "$HERE/01_fixtures.sql"
 echo "fixtures loaded"
 
@@ -73,6 +78,12 @@ OUT="$(mktemp)"
   echo
   echo "=== CONSTRAINTS ==="
   psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/03_constraints.sql"
+  echo
+  echo "=== NOTIFICATIONS ==="
+  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/04_notifications.sql"
+  echo
+  echo "=== STORAGE ==="
+  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/05_storage.sql"
 } | grep -v '^$' | tee "$OUT"
 
 PASSED="$(grep -c '^PASS' "$OUT" || true)"

@@ -10,13 +10,16 @@ be reviewed and corrected before screens depend on it.
 ```
 supabase/
   migrations/0001_init.sql   tables, constraints, RLS policies, grants
+  migrations/0002_*.sql      triggers that write notification rows
+  migrations/0003_storage.sql  profile photo buckets and their policies
   seed.sql                   the 6 demo members from mockStore, for dev
-  tests/                     applies the migration to a throwaway Postgres
+  tests/                     applies every migration to a throwaway Postgres
                              and asserts the policies really hold
 ```
 
 TypeScript side: `src/lib/database.types.ts` (typed schema),
-`src/lib/supabase.ts` (the client), `src/lib/auth.ts` (sign-up/in/out).
+`src/lib/supabase.ts` (the client), `src/lib/auth.ts` (sign-up/in/out),
+`src/lib/storage.ts` (profile photo upload and signed URLs).
 
 ## Setting it up
 
@@ -51,7 +54,8 @@ is how CI runs it against a `postgres:16` service container.
 Every assertion prints `PASS`/`FAIL` with its expected and actual value, and
 the script exits non-zero if any fail — or if fewer than 40 assertions ran at
 all, so a test file that quietly failed to load can't read as a clean run.
-Currently 20 RLS and 20 constraint assertions, all passing.
+Currently 74 assertions across RLS, constraints, notification triggers and
+storage policies, all passing.
 
 These exist because RLS is the kind of thing that looks right and isn't. The
 first run of this suite caught the migration having no `GRANT`s at all — every
@@ -87,9 +91,17 @@ rendered rather than what the data means:
   stays auditable. One refund per charge is enforced by a unique index.
 - **Subscription tier has no client write path.** Tier changes should arrive
   from a payment webhook running as `service_role`, not from the app.
-- **Notifications are read-only to the client** apart from marking them read;
-  rows are expected to come from triggers or server-side jobs, which aren't
-  written yet.
+- **Notifications are read-only to the client** apart from marking them read.
+  `0002` writes the rows from triggers, and the rule is always *notify the
+  other side, never the actor*. One naming wart falls out of that: the enum
+  value is `payment-received`, but only a coach can insert a payment, so the
+  member is who gets told — it is really their receipt. If member-initiated
+  payments land, this should flip to notifying the coach.
+- **Photo buckets are private**, so there is no public URL and the client signs
+  one per read. That keeps them consistent with `anon` getting nothing, at the
+  cost of a `createSignedUrl` call. It also means `profiles.avatar_photo_url`
+  and `coach_profiles.cover_photo_url` hold an object *path*, not a URL — worth
+  renaming whenever something else is touching that schema anyway.
 - **A member can only ever mark their own task done**, request a `pending` time
   block, send messages as themselves, and rate their coach. Everything else on
   the relationship is the coach's to write.
