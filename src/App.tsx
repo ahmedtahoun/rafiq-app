@@ -5,6 +5,9 @@ import Welcome from './screens/Welcome';
 import RoleSelect from './screens/RoleSelect';
 import Onboarding from './screens/Onboarding';
 import Main from './screens/Main';
+import Profile from './screens/Profile';
+import EditProfile from './screens/EditProfile';
+import AccountDetails from './screens/AccountDetails';
 import ComingSoon from './screens/ComingSoon';
 
 export default function App() {
@@ -28,6 +31,12 @@ export default function App() {
       return <Onboarding />;
     case 'main':
       return <Main />;
+    case 'profile':
+      return <Profile />;
+    case 'editProfile':
+      return <EditProfile />;
+    case 'accountDetails':
+      return <AccountDetails />;
     case 'comingSoon':
       return <ComingSoon />;
     default: {

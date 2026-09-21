@@ -1,4 +1,5 @@
 import type { Screen, ScreenParams } from '../store/appStore';
+import { COUNTRIES } from './countries';
 
 /**
  * Mock data layer for the coach ("Pro") home dashboard — a scoped, 1:1
@@ -347,6 +348,271 @@ export function markNudged(key: string): Record<string, boolean> {
 // Messages.dc.html.
 export function draftMessage(clientId: string, text: string): void {
   writeLocal(`message_draft_${clientId}`, text);
+}
+
+// ---------------------------------------------------------------------------
+// Coach ("Pro") profile — 1:1 port of store.js's coach_profile record and
+// the handful of related reads Profile/EditProfile/AccountDetails need
+// (subscription tier, credential verification, aggregate rating, and the
+// active-obligations check that gates account deletion).
+// ---------------------------------------------------------------------------
+
+export type SessionMode = 'online' | 'in_person' | 'both';
+
+export interface CoachProfile {
+  id: string;
+  name: string;
+  countryCode: string;
+  phone: string;
+  email: string;
+  city: string;
+  country: string;
+  countryFlag: string;
+  title: string;
+  cert: string;
+  bio: string;
+  languages: string[];
+  sessionMode: SessionMode;
+  experienceYears: number | '';
+  certifications: string[];
+  avatarPhotoUrl: string;
+  coverPhotoUrl: string;
+  signupCompletedAtMs: number | null;
+}
+
+const DEFAULT_PRO_ID = 'pro-yasmin';
+
+// Same seed values as store.js's DEFAULT_COACH_PROFILE, minus the two
+// avatar/cover fields it seeds with a demo-only artifact blob URL that
+// doesn't resolve outside that environment — unset (empty string) here so
+// the UI falls back to the initials square / plain gradient header, same
+// as any other fresh install would show once a real photo host exists.
+const DEFAULT_COACH_PROFILE: CoachProfile = {
+  id: DEFAULT_PRO_ID,
+  name: 'Yasmin El-Sayed',
+  countryCode: '+20',
+  phone: '10 123 4567',
+  email: 'yasmin.elsayed@example.com',
+  city: 'Cairo',
+  country: 'Egypt',
+  countryFlag: '🇪🇬',
+  title: 'Life coaching',
+  cert: 'ICF Certified',
+  bio: '',
+  languages: ['Arabic', 'English'],
+  sessionMode: 'both',
+  experienceYears: 6,
+  certifications: ['ICF Certified'],
+  avatarPhotoUrl: '',
+  coverPhotoUrl: '',
+  signupCompletedAtMs: null,
+};
+
+// Merges over the default (not a bare read) so a profile saved before a
+// field like `languages`/`sessionMode` existed still comes back with a
+// usable value for it, instead of undefined.
+export function getCoachProfile(): CoachProfile {
+  return { ...DEFAULT_COACH_PROFILE, ...readLocal('coach_profile', {}) };
+}
+
+export function updateCoachProfile(patch: Partial<CoachProfile>): CoachProfile {
+  const profile = { ...getCoachProfile(), ...patch };
+  writeLocal('coach_profile', profile);
+  return profile;
+}
+
+export interface CoachSignupFields {
+  name: string;
+  phone: string;
+  countryDial: string;
+  email: string;
+  city: string;
+  country: string;
+  specialties: string[];
+  experience: string;
+}
+
+// 1:1 port of store.js's completeCoachSignup — the single write Onboarding
+// makes once its form validates, joining the chosen specialties into the
+// same `title` string every other screen (Profile's hero chips, the
+// completeness check) already reads.
+export function completeCoachSignup(fields: CoachSignupFields): CoachProfile {
+  const countryDef = COUNTRIES.find((c) => c.name === fields.country) ?? COUNTRIES[0];
+  return updateCoachProfile({
+    name: fields.name.trim(),
+    phone: fields.phone.trim(),
+    countryCode: fields.countryDial,
+    email: fields.email.trim(),
+    city: fields.city.trim(),
+    country: countryDef.name,
+    countryFlag: countryDef.flag,
+    title: fields.specialties.join(' · '),
+    signupCompletedAtMs: Date.now(),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Subscription tier (Rafiq Pro) — Subscription.dc.html itself isn't ported
+// yet, but EditProfile/Profile both gate features on it, so the read side
+// exists now. Defaults to 'pro' — same as store.js's own default — so the
+// seeded demo Pro shows the full unlocked experience out of the box.
+// ---------------------------------------------------------------------------
+
+export interface Subscription {
+  tier: 'free' | 'pro';
+  renewsAtMs: number | null;
+}
+
+export function getSubscription(): Subscription {
+  return readLocal('subscription', { tier: 'pro', renewsAtMs: TODAY_MS + 30 * DAY_MS });
+}
+
+export function isVerified(): boolean {
+  return getSubscription().tier === 'pro';
+}
+
+// ---------------------------------------------------------------------------
+// Credential verification — deliberately separate from isVerified()/
+// subscription above (a Pro can be subscribed without their credentials
+// having been reviewed, and vice versa).
+// ---------------------------------------------------------------------------
+
+export type VerificationStatus = 'unverified' | 'pending' | 'verified';
+
+export function getVerificationStatus(): VerificationStatus {
+  return readLocal('verification_status', 'unverified');
+}
+
+export function requestVerification(): VerificationStatus {
+  writeLocal('verification_status', 'pending');
+  return 'pending';
+}
+
+export function isCredentialVerified(): boolean {
+  return getVerificationStatus() === 'verified';
+}
+
+// ---------------------------------------------------------------------------
+// Aggregate rating — RateCoach.dc.html isn't ported yet, so this always
+// reads back empty (0 ratings) until a real rating gets written, matching
+// a fresh install of the design prototype exactly.
+// ---------------------------------------------------------------------------
+
+export interface AggregateRating {
+  count: number;
+  average: number;
+  hasEnoughReviews: boolean;
+}
+
+const MIN_REVIEWS_FOR_RATING = 3;
+
+function getRatings(clientId: string): Record<string, { rating: number }> {
+  return readLocal(`ratings_${clientId}`, {});
+}
+
+export function getProAggregateRating(): AggregateRating {
+  const values: number[] = [];
+  getClients().forEach((c) => {
+    Object.values(getRatings(c.id)).forEach((r) => values.push(r.rating));
+  });
+  const count = values.length;
+  const average = count > 0 ? values.reduce((a, b) => a + b, 0) / count : 0;
+  return { count, average, hasEnoughReviews: count >= MIN_REVIEWS_FOR_RATING };
+}
+
+// ---------------------------------------------------------------------------
+// Unread messages — Messages.dc.html/MessagesInbox.dc.html aren't ported
+// yet, so this always reads back 0 until a real thread gets written,
+// same "empty until a real feature writes to it" rule as everything else
+// in this file that fronts a not-yet-built screen.
+// ---------------------------------------------------------------------------
+
+interface StoredMessage {
+  senderRole: 'pro' | 'client';
+  atMs: number;
+}
+
+function getMessages(clientId: string): StoredMessage[] {
+  return readLocal(`messages_${clientId}`, []);
+}
+
+export function getUnreadMessageCount(clientId: string, forRole: 'pro' | 'client'): number {
+  const lastRead = readLocal(`messages_read_${forRole}_${clientId}`, 0);
+  return getMessages(clientId).filter((m) => m.senderRole !== forRole && m.atMs > lastRead).length;
+}
+
+// ---------------------------------------------------------------------------
+// Account deletion — a Pro's deletion is blocked while any active member
+// still has unused session credits, an upcoming session, or an open
+// dispute, exactly like the Member-side equivalent obligations check.
+// ---------------------------------------------------------------------------
+
+interface ActiveObligations {
+  hasUnusedCredits: boolean;
+  remainingCredits: number;
+  hasUpcomingSession: boolean;
+  openDisputesCount: number;
+  blocked: boolean;
+}
+
+function getActiveObligations(clientId: string): ActiveObligations {
+  const client = getClients().find((c) => c.id === clientId);
+  const pkgStatus = getPackageStatus(clientId);
+  const hasUnusedCredits = pkgStatus.remaining > 0;
+  const nextSessionRaw = client?.nextSession || '';
+  const hasConfirmedUpcoming = !!nextSessionRaw && nextSessionRaw !== 'No upcoming session' && nextSessionRaw !== 'Program completed';
+  const hasPendingRequest = client
+    ? getCustomBlocks()
+        .filter((b) => b.kind === 'pending')
+        .some((b) => (b.label || '').indexOf(client.name) !== -1)
+    : false;
+  const hasUpcomingSession = hasConfirmedUpcoming || hasPendingRequest;
+  const openDisputesCount = getSessionLogs(clientId).filter((s) => s.attendance === 'disputed').length;
+  return {
+    hasUnusedCredits,
+    remainingCredits: pkgStatus.remaining,
+    hasUpcomingSession,
+    openDisputesCount,
+    blocked: hasUnusedCredits || hasUpcomingSession || openDisputesCount > 0,
+  };
+}
+
+export interface ProObligations {
+  affectedClientCount: number;
+  totalUnusedCredits: number;
+  clientsWithUpcomingSessions: number;
+  openDisputesCount: number;
+  blocked: boolean;
+}
+
+export function getProActiveObligations(): ProObligations {
+  const clients = getClients().filter((c) => c.active);
+  let totalUnusedCredits = 0;
+  let clientsWithUpcomingSessions = 0;
+  let openDisputesCount = 0;
+  clients.forEach((c) => {
+    const ob = getActiveObligations(c.id);
+    if (ob.hasUnusedCredits) totalUnusedCredits += ob.remainingCredits;
+    if (ob.hasUpcomingSession) clientsWithUpcomingSessions++;
+    openDisputesCount += ob.openDisputesCount;
+  });
+  return {
+    affectedClientCount: clients.length,
+    totalUnusedCredits,
+    clientsWithUpcomingSessions,
+    openDisputesCount,
+    blocked: totalUnusedCredits > 0 || clientsWithUpcomingSessions > 0 || openDisputesCount > 0,
+  };
+}
+
+// Anonymizes the Pro's own identity but leaves every client's own
+// session/payment history exactly as it is — that history is the member's
+// own record of the relationship, not the Pro's to erase.
+export function requestProAccountDeletion(): { allowed: boolean; obligations: ProObligations } {
+  const obligations = getProActiveObligations();
+  if (obligations.blocked) return { allowed: false, obligations };
+  updateCoachProfile({ name: 'Deleted Pro', phone: '', countryCode: '', bio: '' });
+  return { allowed: true, obligations };
 }
 
 // ---------------------------------------------------------------------------

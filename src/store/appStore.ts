@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { completeCoachSignup as storeCompleteCoachSignup, type CoachSignupFields } from '../lib/mockStore';
 
 export type Lang = 'en' | 'ar';
 export type Role = 'coach' | 'client' | null;
@@ -33,6 +34,7 @@ export type Screen =
   | 'welcome' | 'roleSelect'
   | 'onboarding'
   | 'main' // coach home dashboard
+  | 'profile' | 'editProfile' | 'accountDetails'
   | 'comingSoon'; // placeholder landing spot for whatever's not built yet
 
 // Route params a screen was entered with — e.g.
@@ -52,7 +54,7 @@ interface HistEntry {
 
 // Screens with no back-history (entering one always clears the stack —
 // bottom-nav destinations, or dead-end/landing screens).
-const ROOTS: Screen[] = ['comingSoon', 'main'];
+const ROOTS: Screen[] = ['comingSoon', 'main', 'profile'];
 // Screens that shouldn't be pushed onto the NEXT screen's back-stack when
 // LEFT (e.g. splash/entry screens nobody should land back on). Empty for
 // now — extend as screens like that are added.
@@ -62,27 +64,14 @@ const RET = '@return';
 // Fallback destination for back() when there's no history AND no better
 // answer (e.g. deep-linking straight into a screen). Extend this as
 // screens are added — same purpose as SafeLog's PARENT map.
-const PARENT: Partial<Record<Screen, Screen | typeof RET>> = {};
+const PARENT: Partial<Record<Screen, Screen | typeof RET>> = {
+  editProfile: 'profile',
+  accountDetails: 'profile',
+};
 
 interface NavPatch {
   screen?: Screen;
   params?: ScreenParams;
-}
-
-// A coach's onboarding profile — local-only for now (no Supabase schema
-// yet, see the Rafiq Build Plan doc's Foundation phase). Shaped to match
-// what completeCoachSignup wrote in the design prototype's store.js, so
-// swapping this for a real Supabase insert later is a like-for-like
-// replacement, not a redesign.
-export interface CoachProfileDraft {
-  name: string;
-  phone: string;
-  countryDial: string;
-  email: string;
-  city: string;
-  country: string;
-  specialties: string[];
-  experience: string;
 }
 
 interface AppState {
@@ -92,13 +81,12 @@ interface AppState {
   screen: Screen;
   params: ScreenParams;
   hist: HistEntry[];
-  coachProfile: CoachProfileDraft | null;
   setLang: (lang: Lang) => void;
   setDark: (dark: boolean) => void;
   setRole: (role: Role) => void;
   nav: (patch: Screen | NavPatch) => void;
   back: () => void;
-  completeCoachSignup: (profile: CoachProfileDraft) => void;
+  completeCoachSignup: (fields: CoachSignupFields) => void;
 }
 
 // Same persisted preferences the design prototype's store.js tracked
@@ -112,7 +100,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   screen: 'welcome',
   params: NO_PARAMS,
   hist: [],
-  coachProfile: readLocal<CoachProfileDraft | null>('coachProfile', null),
 
   setLang: (lang) => {
     writeLocal('lang', lang);
@@ -162,10 +149,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     // (e.g. 'welcome' itself) — no-op rather than guessing a destination.
   },
 
-  completeCoachSignup(profile) {
-    writeLocal('coachProfile', profile);
+  completeCoachSignup(fields) {
+    storeCompleteCoachSignup(fields);
     writeLocal('role', 'coach');
-    set({ coachProfile: profile, role: 'coach' });
+    set({ role: 'coach' });
     get().nav('main');
   },
 }));

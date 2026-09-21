@@ -283,8 +283,7 @@ export default function Main() {
     { key: 'quickActions', label: t('quickActionsTitle'), render: () => <QuickActions context="home" /> },
     // TODO: route to 'schedule' once Schedule.dc.html is ported
     { key: 'schedule', label: t('mainSchedule'), icon: ScheduleIcon, screen: 'comingSoon', params: { feature: 'schedule' } },
-    // TODO: route to 'profile' once Profile.dc.html is ported
-    { key: 'profile', label: t('mainProfileNav'), icon: PersonIcon, screen: 'comingSoon', params: { feature: 'profile' } },
+    { key: 'profile', label: t('mainProfileNav'), icon: PersonIcon, screen: 'profile' },
   ];
 
   return (
