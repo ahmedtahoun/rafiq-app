@@ -1,0 +1,278 @@
+/* 1:1 port of AddTask.dc.html. */
+
+.add-task-header {
+  padding: 28px 20px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 10px;
+}
+
+.add-task-cancel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  min-height: 44px;
+}
+
+.add-task-heading {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.add-task-save {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  min-height: 44px;
+}
+.add-task-save.is-enabled { color: var(--accent); }
+.add-task-save:disabled { cursor: default; }
+.add-task-save:disabled:active { transform: none; }
+
+.add-task-save-placeholder { width: 44px; }
+
+.add-task-missing {
+  padding: 24px;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.add-task-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  animation: add-task-fade-in 0.45s ease both;
+}
+
+@keyframes add-task-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .add-task-body { animation: none; }
+}
+
+.add-task-for {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--accent-soft);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.add-task-for-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.add-task-for-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.add-task-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+.add-task-field label,
+.add-task-field-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.add-task-field input[type='text'],
+.add-task-field textarea {
+  border: none;
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-size: 14.5px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-soft);
+  font-family: inherit;
+}
+.add-task-field textarea { resize: none; }
+.add-task-field input:focus-visible,
+.add-task-field textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.add-task-field input::placeholder,
+.add-task-field textarea::placeholder {
+  color: inherit;
+  opacity: 0.45;
+}
+
+.add-task-chips {
+  display: flex;
+  gap: 8px;
+}
+
+.add-task-chip {
+  padding: 10px 15px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  background: var(--surface);
+  color: var(--ink);
+  white-space: nowrap;
+  box-shadow: var(--shadow-soft);
+  min-height: 44px;
+}
+.add-task-chip.is-selected {
+  background: var(--accent);
+  color: #FFFFFF;
+  box-shadow: 0 6px 14px -4px var(--accent-glow);
+}
+
+.add-task-exact {
+  display: flex;
+  gap: 12px;
+}
+
+.add-task-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 5px;
+  box-shadow: var(--shadow-soft);
+}
+.add-task-input-row input {
+  border: none;
+  outline: none;
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  font-size: 14px;
+  color: var(--ink);
+  font-family: inherit;
+  padding: 9px 0;
+  padding-inline-end: 10px;
+}
+.add-task-input-row input::placeholder {
+  color: inherit;
+  opacity: 0.45;
+}
+
+.add-task-input-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.add-task-recurring {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 15px;
+  box-shadow: var(--shadow-soft);
+}
+
+.add-task-recurring-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.add-task-switch {
+  width: 46px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--line);
+  position: relative;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+.add-task-switch.is-on { background: var(--accent); }
+
+/* The thumb slides on `inset-inline-start`, not a flex flip — a
+   justify-content change cannot be interpolated, so it would snap. Using the
+   logical property also mirrors the travel under RTL for free. */
+.add-task-switch-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #FFFFFF;
+  position: absolute;
+  top: 3px;
+  inset-inline-start: 3px;
+  transition: inset-inline-start 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+.add-task-switch.is-on .add-task-switch-thumb {
+  inset-inline-start: 23px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .add-task-switch,
+  .add-task-switch-thumb { transition: none; }
+}
+
+.add-task-recurring-note {
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin: -10px 0 0;
+}
+
+.add-task-footer {
+  flex-shrink: 0;
+  padding: 16px 24px 24px;
+  background: var(--surface);
+  box-shadow: 0 -8px 20px -12px rgba(0, 0, 0, 0.12);
+}
+
+.add-task-submit {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: var(--line);
+  color: var(--ink-soft);
+  border-radius: 16px;
+  padding: 16px;
+  font-size: 15px;
+  font-weight: 700;
+  min-height: 44px;
+}
+.add-task-submit.is-enabled {
+  background: var(--accent);
+  color: #FFFFFF;
+  box-shadow: 0 10px 20px -6px var(--accent-glow);
+}
+.add-task-submit:disabled { cursor: default; }
+.add-task-submit:disabled:active { transform: none; }

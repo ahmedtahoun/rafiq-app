@@ -16,6 +16,7 @@ import { BottomSheet } from '../components/BottomSheet';
 import {
   addPayment,
   formatToday,
+  getAddTaskHref,
   getClient,
   getEditClientHref,
   getMessagesHref,
@@ -266,7 +267,7 @@ export default function ClientDetail() {
             <div className="client-detail-section-title">{t('clientDetailTodoList')}</div>
             <div className="client-detail-tasks-meta">
               <span className="client-detail-tasks-count">{completedCount}/{allTasksCount} {t('clientDetailTasksDone')}</span>
-              <button type="button" className="client-detail-add-task" onClick={() => nav({ screen: 'comingSoon', params: { feature: 'addTask', clientId } })}>
+              <button type="button" className="client-detail-add-task" onClick={() => nav(getAddTaskHref(clientId))}>
                 {t('clientDetailAddTask')}
               </button>
             </div>

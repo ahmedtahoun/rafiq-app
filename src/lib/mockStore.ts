@@ -46,6 +46,8 @@ function writeLocal<T>(key: string, value: T): void {
 // ---------------------------------------------------------------------------
 
 export type PaymentStatus = 'paid' | 'due' | 'overdue';
+export type SessionType = 'intro' | 'short' | 'standard';
+export type AccountStatus = 'active' | 'suspended' | 'deleted';
 
 export interface Client {
   id: string;
@@ -69,6 +71,11 @@ export interface Client {
   progress: number;
   needsCheckin: boolean;
   nextSession: string;
+  /** Which session length is booked next — SessionRoom titles itself from
+      it. Absent on the seeded six, so it falls back to 'standard'. */
+  nextSessionType?: SessionType;
+  /** 'active' unless an account action suspended them. */
+  accountStatus?: AccountStatus;
   paymentStatus: PaymentStatus;
   goal: string;
   notes: string;
@@ -198,6 +205,8 @@ export interface Task {
   due: string;
   done: boolean;
   recurring?: boolean;
+  /** Why this task helps their goal — AddTask.dc.html collects it. */
+  description?: string;
 }
 
 // Same as store.js's DEFAULT_TASKS.
@@ -588,6 +597,8 @@ export interface CoachProfile {
   certifications: string[];
   avatarPhotoUrl: string;
   coverPhotoUrl: string;
+  /** 'active' unless the Pro suspended or deleted their account. */
+  accountStatus?: AccountStatus;
   signupCompletedAtMs: number | null;
 }
 
@@ -979,6 +990,67 @@ export function getActiveSession(clientId: string): ActiveSessionState {
   return readLocal(`active_session_${clientId}`, { active: false, startedAtMs: null });
 }
 
+export function startActiveSession(clientId: string): ActiveSessionState {
+  const state: ActiveSessionState = { active: true, startedAtMs: Date.now() };
+  writeLocal(`active_session_${clientId}`, state);
+  return state;
+}
+
+export function endActiveSession(clientId: string): ActiveSessionState {
+  const state: ActiveSessionState = { active: false, startedAtMs: null };
+  writeLocal(`active_session_${clientId}`, state);
+  return state;
+}
+
+// ---------------------------------------------------------------------------
+// Can this pair interact right now?
+//
+// store.js checks the same three things at every booking, messaging and
+// session entry point rather than letting each screen invent its own rule,
+// so the same guard is ported here as one function for the same reason.
+// Blocking has no UI yet, so it reads back false until something writes it —
+// same "empty until a real feature writes to it" rule as the rest of this
+// file.
+// ---------------------------------------------------------------------------
+
+export interface BlockStatus {
+  blockedByMember: boolean;
+  blockedByPro: boolean;
+  reason: string | null;
+  blockedAtMs: number | null;
+}
+
+export function getBlockStatus(clientId: string): BlockStatus {
+  return readLocal(`block_${clientId}`, {
+    blockedByMember: false,
+    blockedByPro: false,
+    reason: null,
+    blockedAtMs: null,
+  });
+}
+
+export function isRelationshipBlocked(clientId: string): boolean {
+  const status = getBlockStatus(clientId);
+  return status.blockedByMember || status.blockedByPro;
+}
+
+export function getMemberAccountStatus(clientId: string): AccountStatus {
+  return getClient(clientId)?.accountStatus ?? 'active';
+}
+
+export function getProAccountStatus(): AccountStatus {
+  return getCoachProfile().accountStatus ?? 'active';
+}
+
+/** The whole guard in one call, as every entry point in store.js uses it. */
+export function canInteract(clientId: string): boolean {
+  return (
+    !isRelationshipBlocked(clientId) &&
+    getMemberAccountStatus(clientId) === 'active' &&
+    getProAccountStatus() === 'active'
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Milestone-triggered review prompts — genuinely depends on the Offerings/
 // MyPrograms program-progress model (an enrollment's sessionsCompleted vs.
@@ -1299,14 +1371,12 @@ export function getEditClientHref(clientId: string): NavTarget {
   return { screen: 'editClient', params: { clientId } };
 }
 export function getSessionRoomHref(clientId: string): NavTarget {
-  // TODO: route to 'sessionRoom' once SessionRoom.dc.html is ported
-  return { screen: 'comingSoon', params: { clientId } };
+  return { screen: 'sessionRoom', params: { clientId } };
 }
 export function getMessagesHref(clientId: string): NavTarget {
   // TODO: route to 'messages' once Messages.dc.html is ported
   return { screen: 'comingSoon', params: { clientId } };
 }
 export function getAddTaskHref(clientId: string): NavTarget {
-  // TODO: route to 'addTask' once AddTask.dc.html is ported
-  return { screen: 'comingSoon', params: { clientId } };
+  return { screen: 'addTask', params: { clientId } };
 }
