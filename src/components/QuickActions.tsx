@@ -70,7 +70,7 @@ const PRIORITY: Record<QuickActionsContext, string[]> = {
 };
 
 function buildActionDefs(memberId: string, t: (key: string) => string): ActionDef[] {
-  const rosterFallback: NavTarget = { screen: 'comingSoon', params: { feature: 'clients' } }; // TODO: route to 'clients' once Clients.dc.html is ported
+  const rosterFallback: NavTarget = { screen: 'clients', params: {} };
   const defs: ActionDef[] = [];
 
   if (!memberId) {
@@ -79,7 +79,7 @@ function buildActionDefs(memberId: string, t: (key: string) => string): ActionDe
       title: t('qaAddMember'),
       sub: t('qaAddMemberSub'),
       icon: 'member',
-      href: { screen: 'comingSoon', params: { feature: 'addClient' } }, // TODO: route to 'addClient' once AddClient.dc.html is ported
+      href: { screen: 'addClient', params: {} },
     });
   }
   defs.push(
