@@ -14,9 +14,7 @@ export default function RoleSelect() {
   function choose(role: Role) {
     setSelected(role);
     setRole(role);
-    // Client track's onboarding isn't built yet — routes to the shared
-    // placeholder until ClientOnboarding exists (see Rafiq Build Plan doc).
-    nav(role === 'coach' ? 'onboarding' : 'comingSoon');
+    nav(role === 'coach' ? 'onboarding' : 'clientOnboarding');
   }
 
   return (

@@ -72,19 +72,36 @@ export interface Client {
   paymentStatus: PaymentStatus;
   goal: string;
   notes: string;
+  /** The member's own self-reported focus area from ClientOnboarding.dc.html
+      (its 12-item focus list) — a separate field from `specialty` above,
+      which is the coach's assigned program area for this relationship. The
+      design keeps these two distinct on purpose (a member's stated interest
+      vs. what they're actually enrolled in), so this is never derived from
+      `specialty`. */
+  focus: string;
+  email: string;
+  city: string;
+  /** Set once ClientOnboarding.dc.html's own signup form is completed —
+      same role store.js's field of the same name plays for a coach's
+      completeCoachSignup, and null before then, same as DEFAULT_COACH_PROFILE. */
+  signupCompletedAtMs: number | null;
 }
 
 // Same 6 seed clients as store.js's DEFAULT_CLIENTS. age/phone/countryCode/
-// goal/notes are demo values in the same spirit as the existing seed's
-// avatarBg/initials — store.js's own seed record carries the same fields,
-// this file just doesn't have that source file to port them from verbatim.
+// goal/notes/focus/email are demo values in the same spirit as the existing
+// seed's avatarBg/initials — store.js's own seed record carries the same
+// fields, this file just doesn't have that source file to port them from
+// verbatim. signupCompletedAtMs is null for all of them, same as a fresh
+// install (RoleSelect always routes to the onboarding screen regardless of
+// prior completion, same as the coach side, so this is read but never
+// gates navigation).
 const DEFAULT_CLIENTS: Client[] = [
-  { id: 'sara', name: 'Sara Ahmed', age: 29, phone: '10 234 5678', countryCode: '+20', program: 'Life coaching · Basic', specialty: 'Life coaching', plan: 'Basic', initials: 'SA', avatarBg: '#B75C3D', active: true, progress: 63, needsCheckin: false, nextSession: 'Next: Today, 10:00 AM', paymentStatus: 'overdue', goal: 'Build a consistent morning routine', notes: '' },
-  { id: 'omar', name: 'Omar Fathy', age: 34, phone: '11 345 6789', countryCode: '+20', program: 'Nutrition · Full Access', specialty: 'Nutrition coaching', plan: 'Full Access', initials: 'OF', avatarBg: '#3E6FB0', active: true, progress: 40, needsCheckin: false, nextSession: 'Next: Today, 1:30 PM', paymentStatus: 'due', goal: 'Improve energy levels through better nutrition', notes: '' },
-  { id: 'mona', name: 'Mona Reda', age: 26, phone: '12 456 7890', countryCode: '+20', program: 'Yoga coaching · Basic', specialty: 'Yoga coaching', plan: 'Basic', initials: 'MR', avatarBg: '#3F7D58', active: true, progress: 78, needsCheckin: false, nextSession: 'Next: Thu, 10:00 AM', paymentStatus: 'paid', goal: 'Increase flexibility and reduce back pain', notes: '' },
-  { id: 'khaled', name: 'Khaled Ibrahim', age: 41, phone: '10 567 8901', countryCode: '+20', program: 'Meditation coaching · Basic', specialty: 'Meditation coaching', plan: 'Basic', initials: 'KI', avatarBg: '#96472D', active: true, progress: 22, needsCheckin: true, nextSession: 'No upcoming session', paymentStatus: 'overdue', goal: 'Manage work stress through daily meditation', notes: 'Prefers evening sessions' },
-  { id: 'laila', name: 'Laila Youssef', age: 24, phone: '11 678 9012', countryCode: '+20', program: 'Breakup coaching · Basic', specialty: 'Breakup coaching', plan: 'Basic', initials: 'LY', avatarBg: '#B98900', active: true, progress: 55, needsCheckin: true, nextSession: 'No upcoming session', paymentStatus: 'due', goal: 'Rebuild confidence after a difficult breakup', notes: '' },
-  { id: 'nour', name: 'Nour Hassan', age: 31, phone: '12 789 0123', countryCode: '+20', program: 'Life coaching · Completed', specialty: 'Life coaching', plan: 'Basic', initials: 'NH', avatarBg: '#7A7166', active: false, progress: 100, needsCheckin: false, nextSession: 'Program completed', paymentStatus: 'paid', goal: 'Transitioned into a new role', notes: '' },
+  { id: 'sara', name: 'Sara Ahmed', age: 29, phone: '10 234 5678', countryCode: '+20', email: 'sara.ahmed@example.com', city: 'Cairo', program: 'Life coaching · Basic', specialty: 'Life coaching', focus: 'Life coaching', plan: 'Basic', initials: 'SA', avatarBg: '#B75C3D', active: true, progress: 63, needsCheckin: false, nextSession: 'Next: Today, 10:00 AM', paymentStatus: 'overdue', goal: 'Build a consistent morning routine', notes: '', signupCompletedAtMs: null },
+  { id: 'omar', name: 'Omar Fathy', age: 34, phone: '11 345 6789', countryCode: '+20', email: 'omar.fathy@example.com', city: 'Giza', program: 'Nutrition · Full Access', specialty: 'Nutrition coaching', focus: 'Nutrition', plan: 'Full Access', initials: 'OF', avatarBg: '#3E6FB0', active: true, progress: 40, needsCheckin: false, nextSession: 'Next: Today, 1:30 PM', paymentStatus: 'due', goal: 'Improve energy levels through better nutrition', notes: '', signupCompletedAtMs: null },
+  { id: 'mona', name: 'Mona Reda', age: 26, phone: '12 456 7890', countryCode: '+20', email: 'mona.reda@example.com', city: 'Alexandria', program: 'Yoga coaching · Basic', specialty: 'Yoga coaching', focus: 'Yoga', plan: 'Basic', initials: 'MR', avatarBg: '#3F7D58', active: true, progress: 78, needsCheckin: false, nextSession: 'Next: Thu, 10:00 AM', paymentStatus: 'paid', goal: 'Increase flexibility and reduce back pain', notes: '', signupCompletedAtMs: null },
+  { id: 'khaled', name: 'Khaled Ibrahim', age: 41, phone: '10 567 8901', countryCode: '+20', email: 'khaled.ibrahim@example.com', city: 'Cairo', program: 'Meditation coaching · Basic', specialty: 'Meditation coaching', focus: 'Meditation', plan: 'Basic', initials: 'KI', avatarBg: '#96472D', active: true, progress: 22, needsCheckin: true, nextSession: 'No upcoming session', paymentStatus: 'overdue', goal: 'Manage work stress through daily meditation', notes: 'Prefers evening sessions', signupCompletedAtMs: null },
+  { id: 'laila', name: 'Laila Youssef', age: 24, phone: '11 678 9012', countryCode: '+20', email: 'laila.youssef@example.com', city: 'Mansoura', program: 'Breakup coaching · Basic', specialty: 'Breakup coaching', focus: 'Relationships', plan: 'Basic', initials: 'LY', avatarBg: '#B98900', active: true, progress: 55, needsCheckin: true, nextSession: 'No upcoming session', paymentStatus: 'due', goal: 'Rebuild confidence after a difficult breakup', notes: '', signupCompletedAtMs: null },
+  { id: 'nour', name: 'Nour Hassan', age: 31, phone: '12 789 0123', countryCode: '+20', email: 'nour.hassan@example.com', city: 'Cairo', program: 'Life coaching · Completed', specialty: 'Life coaching', focus: 'Life coaching', plan: 'Basic', initials: 'NH', avatarBg: '#7A7166', active: false, progress: 100, needsCheckin: false, nextSession: 'Program completed', paymentStatus: 'paid', goal: 'Transitioned into a new role', notes: '', signupCompletedAtMs: null },
 ];
 
 export function getClients(): Client[] {
@@ -140,6 +157,14 @@ export function addClient(fields: NewClientFields): Client {
     paymentStatus: 'due',
     goal: fields.goal.trim(),
     notes: fields.notes.trim(),
+    // A coach adding a member (AddClient.dc.html) doesn't collect these —
+    // they're filled in later by the member's own ClientOnboarding.dc.html
+    // signup, same as a fresh install's DEFAULT_CLIENTS-adjacent record
+    // before that flow has run.
+    focus: '',
+    email: '',
+    city: '',
+    signupCompletedAtMs: null,
   };
   writeLocal('clients', [...getClients(), client]);
   return client;
@@ -251,7 +276,7 @@ export function isTaskOverdue(task: Task): boolean {
 const DAY_MS = 86400000;
 // Short display date matching the format literal session/payment entries
 // already use elsewhere in this file (e.g. "Oct 18, 2025").
-function formatDate(ms: number): string {
+export function formatDate(ms: number): string {
   return new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 // store.js's fixed "now" anchor for every calendar/expiry calculation in
@@ -790,6 +815,152 @@ export function requestProAccountDeletion(): { allowed: boolean; obligations: Pr
   if (obligations.blocked) return { allowed: false, obligations };
   updateCoachProfile({ name: 'Deleted Pro', phone: '', countryCode: '', bio: '' });
   return { allowed: true, obligations };
+}
+
+// ---------------------------------------------------------------------------
+// Client-side ("Member") signup and home-screen support — ClientOnboarding
+// and ClientHome are the same 'sara' Client record every coach-side screen
+// already reads (this prototype's one demo Member/Pro pair), viewed from
+// the member's own side rather than the coach's roster.
+// ---------------------------------------------------------------------------
+
+export interface ClientSignupFields {
+  goal: string;
+  phone: string;
+  countryCode: string;
+  email: string;
+  city: string;
+  focus: string;
+}
+
+// 1:1 port of store.js's completeClientSignup — validity is gated by the
+// caller (ClientOnboarding.tsx), same as completeCoachSignup/Onboarding.tsx.
+export function completeClientSignup(clientId: string, fields: ClientSignupFields): Client[] {
+  return updateClient(clientId, {
+    phone: fields.phone.trim(),
+    countryCode: fields.countryCode,
+    email: fields.email.trim(),
+    city: fields.city.trim(),
+    goal: fields.goal.trim(),
+    focus: fields.focus,
+    signupCompletedAtMs: Date.now(),
+  });
+}
+
+// A recap the pro writes for a session is shown to the member by default
+// ('shared') — ClientDetail.tsx (the pro's own screen) doesn't yet expose a
+// way to mark one private, so this always resolves to the same text
+// getRecaps itself holds. Routed through its own function rather than every
+// member-facing screen indexing getRecaps() directly, so adding that privacy
+// toggle later is a one-line change here instead of an audit of every caller.
+export function getRecapForMember(clientId: string, sessionId: string): string {
+  return getRecaps(clientId)[sessionId] || '';
+}
+
+// Same string convention every other screen's `nextSession` field already
+// uses ("Next: Today, 10:00 AM" vs "Next: Thu, 10:00 AM" etc.).
+export function isSessionToday(nextSessionRaw: string): boolean {
+  return /^Next:\s*Today,/.test(nextSessionRaw || '');
+}
+
+export interface ActiveSessionState {
+  active: boolean;
+  startedAtMs: number | null;
+}
+
+// Whether a confirmed session is live right now — a single relationship-
+// scoped flag both the member's and the coach's screens (and the shared
+// SessionRoom, not ported yet) would read/write. Nothing calls
+// startActiveSession yet (that belongs to SessionRoom), so this always
+// reads back inactive until that screen exists.
+export function getActiveSession(clientId: string): ActiveSessionState {
+  return readLocal(`active_session_${clientId}`, { active: false, startedAtMs: null });
+}
+
+// ---------------------------------------------------------------------------
+// Milestone-triggered review prompts — genuinely depends on the Offerings/
+// MyPrograms program-progress model (an enrollment's sessionsCompleted vs.
+// its offering's sessionsTotal), and neither is ported yet. Always empty
+// until that lands, matching this file's "empty until a real feature writes
+// to it" rule for everything else that fronts a not-yet-built screen.
+// ---------------------------------------------------------------------------
+
+export interface UnreviewedMilestone {
+  offeringId: string;
+  offering: { name: string };
+}
+
+export function getUnreviewedMilestones(_clientId: string): UnreviewedMilestone[] {
+  return [];
+}
+
+export function markMilestoneReviewed(clientId: string, offeringId: string): void {
+  writeLocal(`milestone_reviewed_${clientId}_${offeringId}`, true);
+}
+
+export function setSelectedOfferingId(id: string): void {
+  writeLocal('selected_offering_id', id);
+}
+
+// ---------------------------------------------------------------------------
+// Client-side notifications — 1:1 port of store.js's getNotifications,
+// minus the `data`/`href` fields ClientHome.tsx's unread-dot check doesn't
+// read (same trim rule getProNotifications above already applies), and
+// minus the 'checkin'/mood-based kind and notification-preferences filter,
+// neither of which is modeled anywhere in this app yet.
+// ---------------------------------------------------------------------------
+
+export interface ClientNotification {
+  id: string;
+  kind: 'session-pending' | 'session-confirmed' | 'task-overdue' | 'feedback' | 'payment-overdue' | 'payment-due' | 'payment-received' | 'package-expired' | 'package-out' | 'package-soon';
+  unread: boolean;
+}
+
+export function getClientNotifications(clientId: string): ClientNotification[] {
+  const readMap = getReadNotifications();
+  const client = getClients().find((c) => c.id === clientId);
+  const clientName = client?.name || '';
+  const list: { id: string; kind: ClientNotification['kind'] }[] = [];
+
+  const nextSessionRaw = client?.nextSession || '';
+  const hasConfirmed = !!nextSessionRaw && nextSessionRaw !== 'No upcoming session' && nextSessionRaw !== 'Program completed';
+  const pendingBlock = getCustomBlocks().find((b) => b.kind === 'pending' && (b.label || '').indexOf(clientName) !== -1);
+  if (pendingBlock) {
+    list.push({ id: `session-pending-${pendingBlock.id}`, kind: 'session-pending' });
+  } else if (hasConfirmed) {
+    list.push({ id: 'session-confirmed', kind: 'session-confirmed' });
+  }
+
+  const overdueTasks = getTasks(clientId).filter((t) => isTaskOverdue(t));
+  if (overdueTasks.length) {
+    list.push({ id: 'task-overdue', kind: 'task-overdue' });
+  }
+
+  const fallbackSessions = [{ id: 'sess1' }, { id: 'sess2' }];
+  const allSessions = [...getSessionLogs(clientId), ...fallbackSessions];
+  const recapSession = allSessions.find((s) => getRecapForMember(clientId, s.id).trim());
+  if (recapSession) {
+    list.push({ id: `feedback-${recapSession.id}`, kind: 'feedback' });
+  }
+
+  if (client?.paymentStatus === 'overdue') {
+    list.push({ id: 'payment-overdue', kind: 'payment-overdue' });
+  } else if (client?.paymentStatus === 'due') {
+    list.push({ id: 'payment-due', kind: 'payment-due' });
+  } else {
+    const lastPayment = getPaymentHistory(clientId)[0];
+    if (lastPayment && lastPayment.amount > 0) {
+      list.push({ id: `payment-received-${lastPayment.id}`, kind: 'payment-received' });
+    }
+  }
+
+  const pkgStatus = getPackageStatus(clientId);
+  if (pkgStatus.needsAttention) {
+    const pkgKind = pkgStatus.isExpired ? 'package-expired' : pkgStatus.isOutOfSessions ? 'package-out' : 'package-soon';
+    list.push({ id: 'package-alert', kind: pkgKind });
+  }
+
+  return list.map((n) => ({ ...n, unread: !readMap[n.id] }));
 }
 
 // ---------------------------------------------------------------------------
