@@ -132,8 +132,7 @@ export default function Profile() {
 
   const navItems: BottomNavItem[] = [
     { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'main' },
-    // TODO: route to 'clients' once Clients.dc.html is ported
-    { key: 'clients', label: t('mainClientsNav'), icon: ClientsIcon, screen: 'comingSoon', params: { feature: 'clients' } },
+    { key: 'clients', label: t('mainClientsNav'), icon: ClientsIcon, screen: 'clients' },
     { key: 'messages', label: t('mainMessagesNav'), icon: MessageIcon, screen: 'messagesInbox' },
     { key: 'quickActions', label: t('quickActionsTitle'), render: () => <QuickActions context="profile" /> },
     // TODO: route to 'schedule' once Schedule.dc.html is ported
