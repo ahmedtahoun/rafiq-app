@@ -1,0 +1,532 @@
+.client-profile-header {
+  padding: 30px 24px 8px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.client-profile-back {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-soft);
+  color: var(--ink);
+}
+
+.client-profile-title {
+  font-size: 16px;
+  font-weight: 700;
+  flex: 1;
+}
+
+.client-profile-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.client-profile-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  background: var(--surface);
+  border-radius: 22px;
+  padding: 26px 20px;
+  box-shadow: var(--shadow);
+  animation: client-profile-fx-in 0.45s ease both;
+}
+
+.client-profile-edit-btn {
+  position: absolute;
+  top: 14px;
+  inset-inline-end: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+}
+
+.client-profile-avatar {
+  width: 76px;
+  height: 76px;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 27px;
+  font-weight: 700;
+  box-shadow: 0 10px 20px -6px var(--accent-glow);
+}
+
+.client-profile-name {
+  font-family: var(--font-display-en);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+html[dir='rtl'] .client-profile-name {
+  font-family: var(--font-display-ar);
+}
+
+.client-profile-member-of {
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+
+.client-profile-phone {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+
+.client-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 15px;
+  box-shadow: var(--shadow);
+  width: 100%;
+  text-align: start;
+  color: inherit;
+  animation: client-profile-fx-in 0.45s ease both;
+}
+
+.client-profile-ring {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+}
+
+.client-profile-ring-pct {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.client-profile-card-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.client-profile-card-eyebrow {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.client-profile-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 3px;
+  line-height: 1.4;
+}
+
+.client-profile-card-sub {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  margin-top: 1px;
+}
+
+.client-profile-coach-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.client-profile-coach-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.client-profile-coach-specialty {
+  font-size: 11.5px;
+  color: var(--accent);
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+.client-profile-quick-row {
+  display: flex;
+  gap: 10px;
+}
+
+.client-profile-quick-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: var(--shadow);
+  text-align: start;
+  color: inherit;
+}
+
+.client-profile-quick-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.client-profile-quick-value {
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.client-profile-payment-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.client-profile-payment-title {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.client-profile-agreement-card {
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  /* No overflow:hidden here on purpose — this card's only child is a flex
+     row when collapsed, and overflow:hidden on a block container whose
+     sole child establishes its own formatting context (flex) collapses
+     the container to zero height in this rendering. Nothing inside needs
+     corner-clipping (no child has its own background), so it's safe to
+     leave scroll/overflow at its default. */
+}
+
+.client-profile-agreement-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  text-align: start;
+}
+
+.client-profile-agreement-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.client-profile-agreement-status {
+  font-size: 11.5px;
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+.client-profile-agreement-expand {
+  padding: 0 15px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.client-profile-agreement-body {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink);
+  background: var(--line);
+  border-radius: 12px;
+  padding: 13px 14px;
+}
+
+.client-profile-agreement-sign {
+  text-align: center;
+  background: var(--accent);
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 13px;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.client-profile-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.client-profile-section-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.client-profile-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 15px;
+  box-shadow: var(--shadow);
+}
+
+.client-profile-row-static {
+  justify-content: space-between;
+}
+
+.client-profile-row-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.client-profile-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.client-profile-lang-toggle {
+  display: flex;
+  gap: 6px;
+}
+
+.client-profile-lang-pill {
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 700;
+  background: var(--line);
+  color: var(--ink-soft);
+}
+.client-profile-lang-pill.is-active {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.client-profile-switch {
+  width: 46px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--line);
+  position: relative;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+.client-profile-switch.is-on {
+  background: var(--accent);
+}
+
+.client-profile-switch-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  position: absolute;
+  top: 3px;
+  inset-inline-start: 3px;
+  transition: inset-inline-start 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+.client-profile-switch.is-on .client-profile-switch-thumb {
+  inset-inline-start: 23px;
+}
+
+.client-profile-notif-card {
+  background: var(--surface);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  /* No overflow:hidden — same reason as .client-profile-agreement-card
+     above: with notifications off this card's only child is a flex row,
+     and overflow:hidden collapses that to zero height. */
+}
+
+.client-profile-notif-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px;
+}
+
+.client-profile-notif-sub-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 15px;
+  border-top: 1px solid var(--line);
+}
+
+.client-profile-notif-sub-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.client-profile-help {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 15px;
+  box-shadow: var(--shadow);
+  width: 100%;
+  text-align: start;
+  color: inherit;
+}
+
+.client-profile-help-label {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.client-profile-logout {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 15px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--red);
+  box-shadow: var(--shadow);
+}
+
+.client-profile-footer-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 6px 8px 4px;
+}
+.client-profile-footer-links button {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.client-profile-footer-dot {
+  font-size: 11px;
+  color: var(--line);
+}
+
+.client-profile-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  z-index: 40;
+}
+
+.client-profile-modal-card {
+  background: var(--surface);
+  border-radius: 22px;
+  padding: 24px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: var(--shadow);
+  max-width: 300px;
+}
+
+.client-profile-modal-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--red-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.client-profile-modal-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.client-profile-modal-body {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+
+.client-profile-modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.client-profile-modal-btn {
+  flex: 1;
+  text-align: center;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+.client-profile-modal-btn-neutral {
+  background: var(--line);
+  color: var(--ink);
+}
+.client-profile-modal-btn-danger {
+  background: var(--red);
+  color: #ffffff;
+}
+
+@keyframes client-profile-fx-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

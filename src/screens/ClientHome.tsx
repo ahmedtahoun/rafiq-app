@@ -164,7 +164,7 @@ export default function ClientHome() {
               type="button"
               className="client-home-avatar-btn"
               aria-label="Your profile"
-              onClick={() => nav({ screen: 'comingSoon', params: { feature: 'clientProfile' } })} // TODO: route to 'clientProfile' once ClientProfile.dc.html is ported
+              onClick={() => nav('clientProfile')}
             >
               {initials}
             </button>
