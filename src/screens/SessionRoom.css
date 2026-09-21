@@ -1,0 +1,286 @@
+/* 1:1 port of SessionRoom.dc.html.
+
+   This screen sets its own deep background and light-on-dark text in both
+   themes, which is the design's intent: a call surface, not a themed page.
+   So the colours here are literal rather than tokens — tokens.css has no
+   "always dark regardless of theme" pair, and inventing one for a single
+   screen would be worse than the four literals below.
+
+   Qualified with .phone-frame on purpose. That class also sets a background
+   (var(--bg-grad)), so a bare .session-room ties it on specificity and loses
+   on source order — tokens.css is imported from main.tsx and lands after the
+   per-screen sheets, which had this screen rendering in the light cream
+   gradient instead of the call surface. */
+
+.phone-frame.session-room {
+  background: linear-gradient(180deg, #1A1611 0%, #100D0A 100%);
+  color: #F2ECE1;
+}
+
+.session-room-topbar {
+  padding: 26px 20px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+  gap: 10px;
+}
+
+.session-room-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #F2ECE1;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+.session-room-circle-placeholder { width: 36px; flex-shrink: 0; }
+
+.session-room-titles { text-align: center; }
+
+.session-room-type {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.session-room-other {
+  font-size: 11px;
+  color: rgba(242, 236, 225, 0.65);
+  margin-top: 1px;
+}
+
+.session-room-banner {
+  margin: 2px 20px 0;
+  padding: 9px 13px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+  font-size: 10.5px;
+  color: rgba(242, 236, 225, 0.85);
+  line-height: 1.4;
+}
+.session-room-banner svg { flex-shrink: 0; }
+
+.session-room-missing {
+  padding: 24px;
+  font-size: 13.5px;
+  color: rgba(242, 236, 225, 0.7);
+  line-height: 1.6;
+}
+
+/* ---- pre-join ---- */
+
+.session-room-prejoin {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 24px;
+  text-align: center;
+  animation: session-room-fade-in 0.45s ease both;
+}
+
+@keyframes session-room-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .session-room-prejoin,
+  .session-room-live { animation: none; }
+}
+
+.session-room-avatar-lg {
+  width: 96px;
+  height: 96px;
+  border-radius: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-size: 32px;
+  font-weight: 700;
+}
+
+.session-room-ready {
+  font-family: var(--font-display-en);
+  font-size: 20px;
+  font-weight: 600;
+}
+html[dir='rtl'] .session-room-ready { font-family: var(--font-display-ar); }
+
+.session-room-ready-sub {
+  font-size: 13px;
+  color: rgba(242, 236, 225, 0.7);
+  margin-top: 6px;
+  line-height: 1.5;
+  max-width: 260px;
+}
+
+.session-room-blocked {
+  background: rgba(232, 153, 138, 0.16);
+  color: #E8998A;
+  border-radius: 14px;
+  padding: 13px 16px;
+  font-size: 12.5px;
+  font-weight: 700;
+  max-width: 280px;
+}
+
+.session-room-join {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--accent);
+  color: #FFFFFF;
+  border-radius: 16px;
+  padding: 16px 32px;
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: 0 14px 28px -10px var(--accent-glow);
+  min-height: 44px;
+}
+
+/* ---- in session ---- */
+
+.session-room-live {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 20px 0;
+  animation: session-room-fade-in 0.45s ease both;
+}
+
+.session-room-live-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #7FD9A0;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.session-room-live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #7FD9A0;
+  display: inline-block;
+  animation: session-room-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes session-room-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .session-room-live-dot { animation: none; }
+}
+
+.session-room-stage {
+  flex: 1;
+  min-height: 0;
+  border-radius: 22px;
+  background: linear-gradient(160deg, #2B241A, #1A1611);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.session-room-stage-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.session-room-avatar-md {
+  width: 84px;
+  height: 84px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.session-room-stage-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: rgba(242, 236, 225, 0.85);
+}
+
+.session-room-self {
+  position: absolute;
+  bottom: 10px;
+  inset-inline-end: 10px;
+  width: 74px;
+  height: 98px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-size: 16px;
+  font-weight: 700;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+}
+
+.session-room-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 6px 0 20px;
+  flex-shrink: 0;
+}
+
+.session-room-control {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.session-room-control.is-off { background: rgba(232, 153, 138, 0.18); }
+
+.session-room-leave {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #B54A3E;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 20px -6px rgba(181, 74, 62, 0.6);
+}
+
+.session-room-leave-hint {
+  text-align: center;
+  padding-bottom: 14px;
+  font-size: 11px;
+  color: rgba(242, 236, 225, 0.6);
+}

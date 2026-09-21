@@ -39,6 +39,7 @@ export type Screen =
   | 'clients' | 'addClient' | 'clientDetail' | 'editClient'
   | 'offerings' | 'offeringDetail' | 'subscription' | 'earnings'
   | 'templates' | 'templateDetail'
+  | 'addTask' | 'sessionRoom'
   | 'clientOnboarding' | 'clientHome' | 'clientProfile' | 'editClientProfile' // Track B (client side)
   | 'comingSoon'; // placeholder landing spot for whatever's not built yet
 
@@ -79,6 +80,8 @@ const PARENT: Partial<Record<Screen, Screen | typeof RET>> = {
   clientOnboarding: 'clientAuth',
   addClient: 'clients',
   templates: 'profile',
+  addTask: 'clients',
+  sessionRoom: 'clients',
   templateDetail: 'templates',
   clientDetail: 'clients',
   offerings: 'profile',
