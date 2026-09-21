@@ -137,7 +137,7 @@ export default function Clients() {
     { key: 'clients', label: t('mainClientsNav'), icon: ClientsIcon, screen: 'clients' },
     { key: 'messages', label: t('mainMessagesNav'), icon: MessageIcon, screen: 'messagesInbox' },
     { key: 'quickActions', label: t('quickActionsTitle'), render: () => <QuickActions context="members" /> },
-    { key: 'schedule', label: t('mainSchedule'), icon: ScheduleIcon, screen: 'comingSoon', params: { feature: 'schedule' } },
+    { key: 'schedule', label: t('mainSchedule'), icon: ScheduleIcon, screen: 'schedule' },
     { key: 'profile', label: t('mainProfileNav'), icon: PersonIcon, screen: 'profile' },
   ];
 

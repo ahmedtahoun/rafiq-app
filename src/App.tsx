@@ -35,6 +35,9 @@ import CoachPrivacyPolicy from './screens/CoachPrivacyPolicy';
 import CoachTermsOfService from './screens/CoachTermsOfService';
 import Templates from './screens/Templates';
 import TemplateDetail from './screens/TemplateDetail';
+import Schedule from './screens/Schedule';
+import AddTimeBlock from './screens/AddTimeBlock';
+import Availability from './screens/Availability';
 import ComingSoon from './screens/ComingSoon';
 
 export default function App() {
@@ -120,6 +123,12 @@ export default function App() {
       return <Templates />;
     case 'templateDetail':
       return <TemplateDetail />;
+    case 'schedule':
+      return <Schedule />;
+    case 'addTimeBlock':
+      return <AddTimeBlock />;
+    case 'availability':
+      return <Availability />;
     case 'comingSoon':
       return <ComingSoon />;
     default: {

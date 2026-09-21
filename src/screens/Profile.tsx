@@ -135,8 +135,7 @@ export default function Profile() {
     { key: 'clients', label: t('mainClientsNav'), icon: ClientsIcon, screen: 'clients' },
     { key: 'messages', label: t('mainMessagesNav'), icon: MessageIcon, screen: 'messagesInbox' },
     { key: 'quickActions', label: t('quickActionsTitle'), render: () => <QuickActions context="profile" /> },
-    // TODO: route to 'schedule' once Schedule.dc.html is ported
-    { key: 'schedule', label: t('mainSchedule'), icon: ScheduleIcon, screen: 'comingSoon', params: { feature: 'schedule' } },
+    { key: 'schedule', label: t('mainSchedule'), icon: ScheduleIcon, screen: 'schedule' },
     { key: 'profile', label: t('mainProfileNav'), icon: PersonIcon, screen: 'profile' },
   ];
 

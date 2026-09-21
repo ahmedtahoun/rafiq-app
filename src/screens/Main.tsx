@@ -279,8 +279,7 @@ export default function Main() {
     { key: 'clients', label: t('mainClientsNav'), icon: ClientsIcon, screen: 'clients' },
     { key: 'messages', label: t('mainMessagesNav'), icon: MessageIcon, screen: 'messagesInbox' },
     { key: 'quickActions', label: t('quickActionsTitle'), render: () => <QuickActions context="home" /> },
-    // TODO: route to 'schedule' once Schedule.dc.html is ported
-    { key: 'schedule', label: t('mainSchedule'), icon: ScheduleIcon, screen: 'comingSoon', params: { feature: 'schedule' } },
+    { key: 'schedule', label: t('mainSchedule'), icon: ScheduleIcon, screen: 'schedule' },
     { key: 'profile', label: t('mainProfileNav'), icon: PersonIcon, screen: 'profile' },
   ];
 
@@ -322,8 +321,7 @@ export default function Main() {
         <button
           type="button"
           className="main-ring-link"
-          // TODO: route to 'schedule' once Schedule.dc.html is ported
-          onClick={() => goTo({ screen: 'comingSoon', params: { feature: 'schedule' } })}
+          onClick={() => nav('schedule')}
         >
           <span className="main-ring">
             <svg width="64" height="64" viewBox="0 0 64 64" style={{ transform: 'rotate(-90deg)' }}>
@@ -420,8 +418,7 @@ export default function Main() {
             <button
               type="button"
               className="main-see-all"
-              // TODO: route to 'schedule' once Schedule.dc.html is ported
-              onClick={() => goTo({ screen: 'comingSoon', params: { feature: 'schedule' } })}
+              onClick={() => nav('schedule')}
             >
               {t('mainSeeAll')}
             </button>
