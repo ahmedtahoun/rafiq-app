@@ -1,0 +1,168 @@
+/* 1:1 port of ClientAuth.dc.html. Differs from Auth.dc.html in three
+   ways the design is explicit about: a language toggle instead of a back
+   button, the inviting coach's avatar instead of the Rafiq mark, and the
+   provider buttons sitting in the body's flex tail rather than in a
+   raised sheet. */
+
+.client-auth {
+  padding: 0;
+}
+
+.client-auth-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  pointer-events: none;
+  opacity: 0.14;
+}
+.client-auth-blob-a {
+  top: -70px;
+  inset-inline-end: -70px;
+  width: 240px;
+  height: 240px;
+}
+.client-auth-blob-b {
+  top: 260px;
+  inset-inline-start: -90px;
+  width: 220px;
+  height: 220px;
+  background: var(--green);
+  opacity: 0.12;
+}
+
+.client-auth-topbar {
+  padding: 24px 24px 0;
+  display: flex;
+  justify-content: flex-end;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.client-auth-lang {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+  font-size: 12.5px;
+  font-weight: 700;
+  box-shadow: var(--shadow-soft);
+}
+
+.client-auth-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px 32px 40px;
+  position: relative;
+  animation: client-auth-fade-in 0.45s ease both;
+}
+
+@keyframes client-auth-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .client-auth-body { animation: none; }
+}
+
+.client-auth-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  font-size: 19px;
+  font-weight: 700;
+  margin-bottom: 22px;
+}
+
+.client-auth-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.client-auth-heading {
+  font-family: var(--font-display-en);
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 0 0 16px;
+}
+html[dir='rtl'] .client-auth-heading { font-family: var(--font-display-ar); }
+
+.client-auth-subheading {
+  font-size: 14.5px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.client-auth-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.client-auth-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 14px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  min-height: 44px;
+}
+.client-auth-btn:disabled { opacity: 0.6; cursor: default; }
+.client-auth-btn:disabled:active { transform: none; }
+
+.client-auth-btn-google {
+  background: #FFFFFF;
+  color: #1F1F1F;
+  border: 1px solid #DADCE0;
+}
+:root[data-theme='dark'] .client-auth-btn-google {
+  background: #131314;
+  color: #FFFFFF;
+  border: none;
+}
+
+.client-auth-btn-apple {
+  background: #000000;
+  color: #FFFFFF;
+}
+:root[data-theme='dark'] .client-auth-btn-apple {
+  background: #FFFFFF;
+  color: #000000;
+}
+
+.client-auth-error {
+  background: var(--red-bg);
+  color: var(--red);
+  border-radius: 12px;
+  padding: 11px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.client-auth-terms {
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin: 4px 0 0;
+}

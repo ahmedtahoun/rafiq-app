@@ -225,6 +225,23 @@ const dict: Record<Lang, Record<string, string>> = {
     clientDetailRecapPlaceholder: 'What did you cover? Any follow-ups for next time?',
     clientDetailFallbackNote1: 'Career pivot check-in', clientDetailFallbackNote2: 'Set weekly goals',
     clientDetailCancel: 'Cancel',
+    // Auth.dc.html / ClientAuth.dc.html
+    back: 'Back',
+    switchLanguage: 'Switch language',
+    authEyebrow: 'Welcome to Rafiq',
+    authHeadline: 'Coaching, made personal.',
+    authSubtext: "Whether you're a pro or you're being coached — tasks, schedule, and progress, all in one place.",
+    authGoogle: 'Continue with Google',
+    authApple: 'Continue with Apple',
+    authConnecting: 'Connecting…',
+    authTerms: 'By continuing you agree to the Terms of Service & Privacy Policy',
+    authErrorGeneric: "Couldn't start sign-in. Please try again.",
+    authErrorNetwork: 'No connection. Check your network and try again.',
+    authErrorNotConfigured: 'Sign-in is not connected yet.',
+    clientAuthInvitedBy: 'Invited by {name}',
+    clientAuthHeading: 'Your coaching journey, in one place.',
+    clientAuthSubheading: 'See your tasks, track progress, and stay in touch with {name} between sessions.',
+    clientAuthTerms: 'By continuing you agree to the Terms of Service & Privacy Policy',
   },
   ar: {
     skip: 'تخطي',
@@ -442,6 +459,27 @@ const dict: Record<Lang, Record<string, string>> = {
     clientDetailRecapPlaceholder: 'ماذا تناولتما؟ أي متابعات للمرة القادمة؟',
     clientDetailFallbackNote1: 'متابعة تحول مسار العمل', clientDetailFallbackNote2: 'تحديد أهداف الأسبوع',
     clientDetailCancel: 'إلغاء',
+    // Auth.dc.html / ClientAuth.dc.html
+    back: 'رجوع',
+    switchLanguage: 'تغيير اللغة',
+    authEyebrow: 'أهلًا بك في رفيق',
+    authHeadline: 'تدريب أكثر شخصية.',
+    authSubtext: 'سواء كنت محترفًا أو يتم تدريبك — المهام والجدول والتقدم، كل ذلك في مكان واحد.',
+    authGoogle: 'المتابعة عبر جوجل',
+    authApple: 'المتابعة عبر آبل',
+    authConnecting: 'جارٍ الاتصال…',
+    authTerms: 'بالمتابعة، فإنك توافق على شروط الخدمة وسياسة الخصوصية',
+    authErrorGeneric: 'تعذّر بدء تسجيل الدخول. حاول مرة أخرى.',
+    authErrorNetwork: 'لا يوجد اتصال. تحقق من الشبكة وحاول مرة أخرى.',
+    authErrorNotConfigured: 'تسجيل الدخول غير مُفعّل بعد.',
+    // The prototype hardcodes the coach's name in both languages because its
+    // store held one Pro; CoachProfile has a single `name` field and no
+    // Arabic equivalent, so these interpolate the Latin name. A proper fix
+    // needs a name_ar column — flagged rather than invented.
+    clientAuthInvitedBy: 'دعوة من {name}',
+    clientAuthHeading: 'رحلتك التدريبية، في مكان واحد.',
+    clientAuthSubheading: 'تابعي مهامك، وتقدمك، وابقي على تواصل مع {name} بين الجلسات.',
+    clientAuthTerms: 'بالمتابعة، أنتِ توافقين على شروط الخدمة وسياسة الخصوصية',
   },
 };
 

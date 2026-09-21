@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import { useAppStore } from './store/appStore';
 import { isRtl } from './lib/i18n';
+import { initSession } from './lib/session';
 import Welcome from './screens/Welcome';
 import RoleSelect from './screens/RoleSelect';
+import Auth from './screens/Auth';
+import ClientAuth from './screens/ClientAuth';
 import Onboarding from './screens/Onboarding';
 import Main from './screens/Main';
 import Profile from './screens/Profile';
@@ -16,6 +19,10 @@ import ComingSoon from './screens/ComingSoon';
 
 export default function App() {
   const { lang, dark, screen } = useAppStore();
+
+  // Picks up a session left by a provider redirect, and keeps the store in
+  // step with it afterwards. Returns its own unsubscribe.
+  useEffect(() => initSession(), []);
 
   useEffect(() => {
     document.documentElement.lang = lang;
@@ -31,6 +38,10 @@ export default function App() {
       return <Welcome />;
     case 'roleSelect':
       return <RoleSelect />;
+    case 'auth':
+      return <Auth />;
+    case 'clientAuth':
+      return <ClientAuth />;
     case 'onboarding':
       return <Onboarding />;
     case 'main':

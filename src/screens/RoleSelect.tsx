@@ -14,9 +14,11 @@ export default function RoleSelect() {
   function choose(role: Role) {
     setSelected(role);
     setRole(role);
-    // Client track's onboarding isn't built yet — routes to the shared
-    // placeholder until ClientOnboarding exists (see Rafiq Build Plan doc).
-    nav(role === 'coach' ? 'onboarding' : 'comingSoon');
+    // The member path goes through ClientAuth. In the design that screen is
+    // reached from a coach's invite link, which needs deep-link handling the
+    // app does not have yet — this is the interim way in, and the screen
+    // itself is unchanged by it.
+    nav(role === 'coach' ? 'onboarding' : 'clientAuth');
   }
 
   return (

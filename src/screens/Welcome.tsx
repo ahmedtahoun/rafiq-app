@@ -96,7 +96,9 @@ const SLIDES: Slide[] = [
 export default function Welcome() {
   const t = useT();
   const nav = useAppStore((s) => s.nav);
-  const onDone = () => nav('roleSelect');
+  // Auth.dc.html sits between the intro and RoleSelect: its back button
+  // returns to Welcome1 and both provider buttons go on to RoleSelect.
+  const onDone = () => nav('auth');
   const [step, setStep] = useState(0);
   const slide = SLIDES[step];
   const isLast = step === SLIDES.length - 1;
