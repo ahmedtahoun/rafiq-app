@@ -37,7 +37,7 @@ export type Screen =
   | 'main' // coach home dashboard
   | 'profile' | 'editProfile' | 'accountDetails'
   | 'clients' | 'addClient' | 'clientDetail' | 'editClient'
-  | 'clientOnboarding' | 'clientHome' // Track B (client side)
+  | 'clientOnboarding' | 'clientHome' | 'clientProfile' | 'editClientProfile' // Track B (client side)
   | 'comingSoon'; // placeholder landing spot for whatever's not built yet
 
 // Route params a screen was entered with — e.g.
@@ -77,6 +77,8 @@ const PARENT: Partial<Record<Screen, Screen | typeof RET>> = {
   clientOnboarding: 'clientAuth',
   addClient: 'clients',
   clientDetail: 'clients',
+  clientProfile: 'clientHome',
+  editClientProfile: 'clientProfile',
 };
 
 interface NavPatch {

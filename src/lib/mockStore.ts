@@ -749,7 +749,7 @@ export function getUnreadMessageCount(clientId: string, forRole: 'pro' | 'client
 // dispute, exactly like the Member-side equivalent obligations check.
 // ---------------------------------------------------------------------------
 
-interface ActiveObligations {
+export interface ActiveObligations {
   hasUnusedCredits: boolean;
   remainingCredits: number;
   hasUpcomingSession: boolean;
@@ -960,7 +960,134 @@ export function getClientNotifications(clientId: string): ClientNotification[] {
     list.push({ id: 'package-alert', kind: pkgKind });
   }
 
-  return list.map((n) => ({ ...n, unread: !readMap[n.id] }));
+  const prefs = getNotificationPrefs();
+  if (!prefs.enabled) return [];
+  const categoryOfKind: Partial<Record<ClientNotification['kind'], keyof NotificationPrefs>> = {
+    'session-pending': 'session',
+    'session-confirmed': 'session',
+    'task-overdue': 'task',
+    feedback: 'messages',
+  };
+  const filtered = list.filter((n) => {
+    const cat = categoryOfKind[n.kind];
+    return !cat || prefs[cat] !== false;
+  });
+
+  return filtered.map((n) => ({ ...n, unread: !readMap[n.id] }));
+}
+
+// ---------------------------------------------------------------------------
+// Notification preferences (ClientProfile.dc.html) — real, persisted
+// toggles, unlike the coach-side Profile.dc.html equivalent, which the
+// design itself keeps as pure local component state (ported as such in
+// Profile.tsx). This one gates getClientNotifications above, same as
+// store.js's own getNotificationPrefs/setNotificationPrefs.
+// ---------------------------------------------------------------------------
+
+export interface NotificationPrefs {
+  enabled: boolean;
+  session: boolean;
+  task: boolean;
+  messages: boolean;
+}
+
+export function getNotificationPrefs(): NotificationPrefs {
+  return readLocal('notif_prefs', { enabled: true, session: true, task: true, messages: true });
+}
+
+export function setNotificationPrefs(patch: Partial<NotificationPrefs>): NotificationPrefs {
+  const prefs = { ...getNotificationPrefs(), ...patch };
+  writeLocal('notif_prefs', prefs);
+  return prefs;
+}
+
+// ---------------------------------------------------------------------------
+// Coaching agreement (ClientProfile.dc.html) — the waiver/scope-of-practice
+// text a member reviews and signs, chosen by the coach's specialty
+// category. This body/title text is never translated in the design either
+// (its own AGREEMENT_TEXT sits outside translations(), English-only
+// regardless of `lang`), so it's ported the same way here.
+// ---------------------------------------------------------------------------
+
+type AgreementCategory = 'physical' | 'emotional' | 'general';
+
+const PHYSICAL_SPECIALTIES = ['Free diving coaching', 'Scuba diving coaching', 'Fitness coaching', 'Yoga coaching'];
+const EMOTIONAL_SPECIALTIES = ['Relationship coaching', 'Breakup coaching', 'Parenting coaching', 'Stress & anxiety coaching'];
+
+const AGREEMENT_TEXT: Record<AgreementCategory, { title: string; body: string }> = {
+  physical: {
+    title: 'Assumption of Risk & Safety Waiver',
+    body: 'I confirm I am physically fit to take part in this activity and have disclosed any relevant medical conditions to my pro. I understand it carries inherent physical risk, and I release my pro from liability for injury except in cases of gross negligence. I agree to follow all safety instructions given during sessions.',
+  },
+  emotional: {
+    title: 'Coaching Agreement & Scope of Practice',
+    body: 'I understand coaching is not a substitute for therapy, medical care, or mental health treatment, and my pro does not diagnose or treat any condition. Sessions are confidential except where disclosure is required by law. I understand the cancellation policy and agree to communicate openly with my pro about my goals.',
+  },
+  general: {
+    title: 'Coaching Service Agreement',
+    body: 'I agree to attend scheduled sessions and give advance notice of any changes. I understand session packages are non-transferable, and my pro will keep our discussions confidential. This agreement can be updated at any time by mutual consent.',
+  },
+};
+
+function agreementCategory(specialty: string): AgreementCategory {
+  if (PHYSICAL_SPECIALTIES.includes(specialty)) return 'physical';
+  if (EMOTIONAL_SPECIALTIES.includes(specialty)) return 'emotional';
+  return 'general';
+}
+
+export interface AgreementInfo {
+  category: AgreementCategory;
+  title: string;
+  body: string;
+}
+
+export function getAgreementInfo(specialty: string): AgreementInfo {
+  const category = agreementCategory(specialty);
+  const info = AGREEMENT_TEXT[category];
+  return { category, title: info.title, body: info.body };
+}
+
+export type AgreementStatus = 'none' | 'sent' | 'signed';
+
+export interface Agreement {
+  status: AgreementStatus;
+  at: number | null;
+}
+
+export function getAgreement(clientId: string): Agreement {
+  return readLocal(`agreement_${clientId}`, { status: 'none', at: null });
+}
+
+export function setAgreementStatus(clientId: string, status: AgreementStatus): Agreement {
+  const agreement: Agreement = { status, at: Date.now() };
+  writeLocal(`agreement_${clientId}`, agreement);
+  return agreement;
+}
+
+// ---------------------------------------------------------------------------
+// Member-side account deletion (ClientProfile.dc.html) — the mirror of the
+// coach-side requestProAccountDeletion above. store.js combines obligations
+// across every Pro relationship a member has; this app models exactly one,
+// so wrapping the existing single-relationship getActiveObligations directly
+// keeps the same shape store.js's own getMemberActiveObligations returns.
+// ---------------------------------------------------------------------------
+
+export function getMemberActiveObligations(clientId: string): ActiveObligations {
+  return getActiveObligations(clientId);
+}
+
+// Scrubs the member's own PII but leaves the coach's copies of session/
+// payment history untouched — that history belongs to the relationship,
+// not to the member alone, same rule the coach-side deletion follows.
+function anonymizeMember(clientId: string): void {
+  updateClient(clientId, { name: 'Deleted Member', phone: '', countryCode: '', age: null, goal: '', notes: '', active: false });
+}
+
+export function requestAccountDeletion(clientId: string): { allowed: boolean; obligations: ActiveObligations } {
+  const obligations = getMemberActiveObligations(clientId);
+  if (obligations.blocked) return { allowed: false, obligations };
+  anonymizeMember(clientId);
+  return { allowed: true, obligations };
 }
 
 // ---------------------------------------------------------------------------

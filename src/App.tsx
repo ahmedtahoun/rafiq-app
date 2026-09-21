@@ -17,6 +17,8 @@ import ClientDetail from './screens/ClientDetail';
 import EditClient from './screens/EditClient';
 import ClientOnboarding from './screens/ClientOnboarding';
 import ClientHome from './screens/ClientHome';
+import ClientProfile from './screens/ClientProfile';
+import EditClientProfile from './screens/EditClientProfile';
 import ComingSoon from './screens/ComingSoon';
 
 export default function App() {
@@ -66,6 +68,10 @@ export default function App() {
       return <ClientOnboarding />;
     case 'clientHome':
       return <ClientHome />;
+    case 'clientProfile':
+      return <ClientProfile />;
+    case 'editClientProfile':
+      return <EditClientProfile />;
     case 'comingSoon':
       return <ComingSoon />;
     default: {

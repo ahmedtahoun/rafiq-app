@@ -275,6 +275,21 @@ const dict: Record<Lang, Record<string, string>> = {
     clientHomeJoinSession: 'Join', clientHomeRejoinSession: 'Rejoin',
     clientHomeDiscoverNav: 'Discover', clientHomeProgramsNav: 'Programs', clientHomeTasksNav: 'Tasks',
     clientHomeScheduleNav: 'Schedule', clientHomeCoachNav: 'Coach',
+
+    // ClientProfile.dc.html
+    clientProfileTitle: 'Profile', clientProfileMemberOf: 'Member of {coach}', clientProfileEditProfile: 'Edit profile',
+    clientProfileIAgree: 'I Agree', clientProfileGoalProgress: 'Goal progress', clientProfileYourPro: 'Your pro',
+    clientProfileSessionsQuick: 'Sessions', clientProfileTasksQuick: 'Tasks', clientProfileNoSessionLabel: 'None booked',
+    clientProfileTasksPending: '{n} pending', clientProfileTasksDone: 'All done',
+    clientProfilePaymentPaid: 'Payment up to date', clientProfilePaymentDue: 'Payment due', clientProfilePaymentOverdue: 'Payment overdue',
+    clientProfilePlanLabel: '{plan} plan',
+    clientProfileNotifSession: 'Session reminders', clientProfileNotifTask: 'Task reminders', clientProfileNotifMessages: 'Pro messages',
+    clientProfileDeleteBody: "This removes your personal info from {coach}'s roster. {coach} keeps their own record of your sessions and payments, as they're entitled to. This can't be undone.",
+    clientProfileObligationCredits: '{n} unused session credit(s)', clientProfileObligationSession: 'an upcoming session',
+    clientProfileAgreementAwaiting: 'Awaiting your review', clientProfileAgreementSigned: 'Agreed',
+
+    // EditClientProfile.dc.html
+    editClientProfileAge: 'Age',
   },
   ar: {
     skip: 'تخطي',
@@ -546,6 +561,21 @@ const dict: Record<Lang, Record<string, string>> = {
     clientHomeJoinSession: 'انضمام', clientHomeRejoinSession: 'العودة',
     clientHomeDiscoverNav: 'استكشاف', clientHomeProgramsNav: 'البرامج', clientHomeTasksNav: 'المهام',
     clientHomeScheduleNav: 'الجدول', clientHomeCoachNav: 'المحترف',
+
+    // ClientProfile.dc.html
+    clientProfileTitle: 'الملف الشخصي', clientProfileMemberOf: 'عضوة {coach}', clientProfileEditProfile: 'تعديل الملف',
+    clientProfileIAgree: 'أوافق', clientProfileGoalProgress: 'التقدم نحو الهدف', clientProfileYourPro: 'محترفتك',
+    clientProfileSessionsQuick: 'الجلسات', clientProfileTasksQuick: 'المهام', clientProfileNoSessionLabel: 'لا يوجد حجز',
+    clientProfileTasksPending: '{n} معلقة', clientProfileTasksDone: 'كل شيء منجز',
+    clientProfilePaymentPaid: 'الدفع محدث', clientProfilePaymentDue: 'الدفع مستحق', clientProfilePaymentOverdue: 'الدفع متأخر',
+    clientProfilePlanLabel: 'باقة {plan}',
+    clientProfileNotifSession: 'تذكيرات الجلسات', clientProfileNotifTask: 'تذكيرات المهام', clientProfileNotifMessages: 'رسائل المحترفة',
+    clientProfileDeleteBody: 'سيؤدي هذا إلى إزالة معلوماتك الشخصية من قائمة {coach}. تحتفظ {coach} بسجلها الخاص بجلساتك ومدفوعاتك، وهذا من حقها. لا يمكن التراجع عن هذا.',
+    clientProfileObligationCredits: '{n} رصيد جلسات غير مستخدم', clientProfileObligationSession: 'جلسة قادمة',
+    clientProfileAgreementAwaiting: 'بانتظار موافقتك', clientProfileAgreementSigned: 'تم القبول',
+
+    // EditClientProfile.dc.html
+    editClientProfileAge: 'العمر',
   },
 };
 

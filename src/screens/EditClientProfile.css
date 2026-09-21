@@ -1,0 +1,105 @@
+.edit-client-profile-header {
+  padding: 28px 20px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.edit-client-profile-cancel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.edit-client-profile-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.edit-client-profile-save {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.edit-client-profile-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 6px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.edit-client-profile-avatar-block {
+  display: flex;
+  justify-content: center;
+  padding: 6px 0 2px;
+}
+
+.edit-client-profile-avatar {
+  width: 76px;
+  height: 76px;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 700;
+  box-shadow: 0 10px 20px -6px var(--accent-glow);
+}
+
+.edit-client-profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.edit-client-profile-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.edit-client-profile-phone-row {
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border-radius: 14px;
+  box-shadow: var(--shadow-soft);
+  padding: 5px;
+}
+
+.edit-client-profile-dial-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding: 9px 10px;
+  border-radius: 11px;
+  background: var(--line);
+}
+
+.edit-client-profile-phone-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--line);
+  margin: 0 8px;
+  flex-shrink: 0;
+}
+
+.edit-client-profile-phone-input {
+  border: none;
+  outline: none;
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  font-size: 14.5px;
+  color: var(--ink);
+  padding: 9px 6px 9px 0;
+  font-family: inherit;
+}
