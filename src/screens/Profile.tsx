@@ -210,12 +210,12 @@ export default function Profile() {
       </div>
 
       <div className="profile-quick-actions">
-        <button type="button" className="profile-quick-btn" onClick={() => nav({ screen: 'comingSoon', params: { feature: 'previewProfile' } })}>
+        <button type="button" className="profile-quick-btn" onClick={() => nav('previewProfile')}>
           <EyeIcon size={15} color="var(--accent)" />
           <span>{t('profilePreview')}</span>
         </button>
         <div className="profile-quick-divider" />
-        <button type="button" className="profile-quick-btn" onClick={() => nav({ screen: 'comingSoon', params: { feature: 'shareProfile' } })}>
+        <button type="button" className="profile-quick-btn" onClick={() => nav('shareProfile')}>
           <ShareIcon size={14} />
           <span>{t('profileShare')}</span>
         </button>
@@ -447,7 +447,7 @@ export default function Profile() {
               <ArrowForwardIcon size={15} color="var(--ink-soft)" />
             </button>
             <div className="profile-support-divider" />
-            <button type="button" className="profile-support-row" onClick={() => nav({ screen: 'comingSoon', params: { feature: 'helpCenter' } })}>
+            <button type="button" className="profile-support-row" onClick={() => nav('helpCenter')}>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="9" />
                 <path d="M9.5 9a2.5 2.5 0 0 1 4.9.8c0 1.7-2.4 2-2.4 3.4" />
@@ -464,11 +464,11 @@ export default function Profile() {
         </button>
 
         <div className="profile-footer-links">
-          <button type="button" onClick={() => nav({ screen: 'comingSoon', params: { feature: 'privacyPolicy' } })}>
+          <button type="button" onClick={() => nav('coachPrivacyPolicy')}>
             {t('profilePrivacyPolicy')}
           </button>
           <span className="profile-footer-dot">·</span>
-          <button type="button" onClick={() => nav({ screen: 'comingSoon', params: { feature: 'termsOfService' } })}>
+          <button type="button" onClick={() => nav('coachTermsOfService')}>
             {t('profileTermsOfService')}
           </button>
           <span className="profile-footer-dot">·</span>

@@ -411,10 +411,28 @@ export interface Payment {
   reason?: string;
 }
 
+export type ProNotificationKind = 'session-request' | 'payment-received';
+
+/** What a row needs to render itself, beyond the unread flag Main reads. */
+export interface ProNotificationData {
+  clientId: string;
+  clientName: string;
+  avatarBg: string;
+  initials: string;
+  /** Session requests: the requested slot. */
+  range?: string;
+  /** Payments: amount and date. */
+  amount?: number;
+  date?: string;
+}
+
 export interface ProNotification {
   id: string;
-  kind: 'session-request' | 'payment-received';
+  kind: ProNotificationKind;
   unread: boolean;
+  data: ProNotificationData;
+  /** Where tapping the row goes. */
+  href: NavTarget;
 }
 
 // getCustomBlocks has no seed data — store.js itself defaults it to `[]`
@@ -476,12 +494,13 @@ export function setRecap(clientId: string, sessionId: string, text: string): Rec
   return recaps;
 }
 
-// 1:1 port of store.js's getProNotifications, minus the fields
-// (`data`/`href`) Main.tsx's unread-dot check doesn't read.
+// 1:1 port of store.js's getProNotifications. It was trimmed to the unread
+// flag while Main's dot was the only reader; Notifications.dc.html needs the
+// `data` and `href` the design builds each row from, so they are back.
 export function getProNotifications(): ProNotification[] {
   const readMap = getReadNotifications();
   const clients = getClients();
-  const list: ProNotification[] = [];
+  const list: Omit<ProNotification, 'unread'>[] = [];
 
   getCustomBlocks()
     .filter((b) => b.kind === 'pending')
@@ -489,17 +508,50 @@ export function getProNotifications(): ProNotification[] {
       const clientName = (b.label || '').replace(' · Requested', '');
       const client = clients.find((c) => c.name === clientName);
       if (!client) return;
-      list.push({ id: `pro-request-${b.id}`, kind: 'session-request', unread: false });
+      list.push({
+        id: `pro-request-${b.id}`,
+        kind: 'session-request',
+        data: {
+          clientId: client.id,
+          clientName: client.name,
+          avatarBg: client.avatarBg,
+          initials: client.initials,
+          range: b.range,
+        },
+        href: getClientDetailHref(client.id),
+      });
     });
 
   clients.forEach((c) => {
     const lastPayment = getPaymentHistory(c.id)[0];
     if (lastPayment && lastPayment.amount > 0) {
-      list.push({ id: `pro-payment-${c.id}-${lastPayment.id}`, kind: 'payment-received', unread: false });
+      list.push({
+        id: `pro-payment-${c.id}-${lastPayment.id}`,
+        kind: 'payment-received',
+        data: {
+          clientId: c.id,
+          clientName: c.name,
+          avatarBg: c.avatarBg,
+          initials: c.initials,
+          amount: lastPayment.amount,
+          date: lastPayment.date,
+        },
+        href: getClientDetailHref(c.id),
+      });
     }
   });
 
   return list.map((n) => ({ ...n, unread: !readMap[n.id] }));
+}
+
+export function markNotificationRead(id: string): void {
+  writeLocal('notif_read', { ...getReadNotifications(), [id]: true });
+}
+
+export function markAllNotificationsRead(list: ProNotification[]): void {
+  const readMap = { ...getReadNotifications() };
+  list.forEach((n) => { readMap[n.id] = true; });
+  writeLocal('notif_read', readMap);
 }
 
 // ---------------------------------------------------------------------------
@@ -829,7 +881,14 @@ export interface AggregateRating {
 
 const MIN_REVIEWS_FOR_RATING = 3;
 
-function getRatings(clientId: string): Record<string, { rating: number }> {
+export interface SessionRating {
+  rating: number;
+  /** RateCoach.dc.html's optional written feedback. A star-only rating
+      still counts toward the aggregate but has no quote to show. */
+  comment?: string;
+}
+
+export function getRatings(clientId: string): Record<string, SessionRating> {
   return readLocal(`ratings_${clientId}`, {});
 }
 

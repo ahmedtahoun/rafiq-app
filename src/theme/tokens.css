@@ -21,6 +21,7 @@
   --amber: #B0801E;
   --amber-bg: #FBF0D9;
   --blue: #3E6FB0;
+  --blue-bg: #E0EAF6;
 
   --shadow: 0 10px 24px -12px rgba(36, 31, 24, 0.16), 0 2px 6px rgba(36, 31, 24, 0.05);
   --shadow-soft: 0 2px 8px rgba(36, 31, 24, 0.06);
@@ -47,6 +48,7 @@
   --amber: #E8C468;
   --amber-bg: #3A301A;
   --blue: #9AC0EA;
+  --blue-bg: #1E2C3A;
 
   --shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.3);
   --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);
@@ -72,6 +74,7 @@
     --amber: #E8C468;
     --amber-bg: #3A301A;
     --blue: #9AC0EA;
+  --blue-bg: #1E2C3A;
 
     --shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.3);
     --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);

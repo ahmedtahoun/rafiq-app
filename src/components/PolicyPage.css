@@ -1,0 +1,71 @@
+/* Shared by CoachPrivacyPolicy.dc.html and CoachTermsOfService.dc.html,
+   which are the same screen with different copy. */
+
+.policy-page-header {
+  padding: 30px 24px 8px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.policy-page-back {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-soft);
+  color: var(--ink);
+}
+
+.policy-page-title {
+  font-size: 16px;
+  font-weight: 700;
+  flex: 1;
+}
+
+.policy-page-lang {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.policy-page-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.policy-page-updated {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+
+.policy-page-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.policy-page-heading {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.policy-page-text {
+  font-size: 13px;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  margin: 0;
+}

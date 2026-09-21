@@ -27,6 +27,12 @@ import AddTask from './screens/AddTask';
 import Messages from './screens/Messages';
 import MessagesInbox from './screens/MessagesInbox';
 import SessionRoom from './screens/SessionRoom';
+import Notifications from './screens/Notifications';
+import ShareProfile from './screens/ShareProfile';
+import PreviewProfile from './screens/PreviewProfile';
+import HelpCenter from './screens/HelpCenter';
+import CoachPrivacyPolicy from './screens/CoachPrivacyPolicy';
+import CoachTermsOfService from './screens/CoachTermsOfService';
 import Templates from './screens/Templates';
 import TemplateDetail from './screens/TemplateDetail';
 import ComingSoon from './screens/ComingSoon';
@@ -98,6 +104,18 @@ export default function App() {
       return <AddTask />;
     case 'sessionRoom':
       return <SessionRoom />;
+    case 'notifications':
+      return <Notifications />;
+    case 'shareProfile':
+      return <ShareProfile />;
+    case 'previewProfile':
+      return <PreviewProfile />;
+    case 'helpCenter':
+      return <HelpCenter />;
+    case 'coachPrivacyPolicy':
+      return <CoachPrivacyPolicy />;
+    case 'coachTermsOfService':
+      return <CoachTermsOfService />;
     case 'templates':
       return <Templates />;
     case 'templateDetail':

@@ -41,6 +41,8 @@ export type Screen =
   | 'templates' | 'templateDetail'
   | 'addTask' | 'sessionRoom'
   | 'messages' | 'messagesInbox'
+  | 'notifications' | 'shareProfile' | 'previewProfile'
+  | 'helpCenter' | 'coachPrivacyPolicy' | 'coachTermsOfService'
   | 'clientOnboarding' | 'clientHome' | 'clientProfile' | 'editClientProfile' // Track B (client side)
   | 'comingSoon'; // placeholder landing spot for whatever's not built yet
 
@@ -81,6 +83,12 @@ const PARENT: Partial<Record<Screen, Screen | typeof RET>> = {
   clientOnboarding: 'clientAuth',
   addClient: 'clients',
   templates: 'profile',
+  shareProfile: 'profile',
+  previewProfile: 'profile',
+  helpCenter: 'profile',
+  coachPrivacyPolicy: 'profile',
+  coachTermsOfService: 'profile',
+  notifications: 'main',
   addTask: 'clients',
   messages: 'messagesInbox',
   // The inbox is a bottom-nav root, so it is usually entered with an empty

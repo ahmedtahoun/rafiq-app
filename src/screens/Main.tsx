@@ -311,8 +311,7 @@ export default function Main() {
               type="button"
               className="main-hero-icon-btn main-hero-bell"
               aria-label="Notifications"
-              // TODO: route to 'notifications' once Notifications.dc.html is ported
-              onClick={() => goTo({ screen: 'comingSoon', params: { feature: 'notifications' } })}
+              onClick={() => nav('notifications')}
             >
               <BellIcon size={16} color="#FFFFFF" />
               {hasUnreadNotifications && <span className="main-bell-dot" />}
