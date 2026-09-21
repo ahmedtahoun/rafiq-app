@@ -34,6 +34,21 @@ export type Screen =
   | 'onboarding'
   | 'comingSoon'; // placeholder landing spot post-onboarding — removed once Main exists
 
+// Route params a screen was entered with — e.g.
+// nav({ screen: 'clientDetail', params: { clientId: 'sara' } }), then that
+// screen reads params.clientId. Kept as a loose string-keyed bag (not a
+// per-screen typed map) to match this store's existing pragmatic style —
+// add keys as screens that need them are built, not ahead of time. Every
+// history entry carries its own params alongside its screen, so back()
+// restores both together (a bare Screen[] history couldn't do that).
+export type ScreenParams = Record<string, string>;
+const NO_PARAMS: ScreenParams = {};
+
+interface HistEntry {
+  screen: Screen;
+  params: ScreenParams;
+}
+
 // Screens with no back-history (entering one always clears the stack —
 // bottom-nav destinations, or dead-end/landing screens).
 const ROOTS: Screen[] = ['comingSoon'];
@@ -50,6 +65,7 @@ const PARENT: Partial<Record<Screen, Screen | typeof RET>> = {};
 
 interface NavPatch {
   screen?: Screen;
+  params?: ScreenParams;
 }
 
 // A coach's onboarding profile — local-only for now (no Supabase schema
@@ -73,7 +89,8 @@ interface AppState {
   dark: boolean;
   role: Role;
   screen: Screen;
-  hist: Screen[];
+  params: ScreenParams;
+  hist: HistEntry[];
   coachProfile: CoachProfileDraft | null;
   setLang: (lang: Lang) => void;
   setDark: (dark: boolean) => void;
@@ -92,6 +109,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   dark: readLocal<boolean>('dark', window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false),
   role: readLocal<Role>('role', null),
   screen: 'welcome',
+  params: NO_PARAMS,
   hist: [],
   coachProfile: readLocal<CoachProfileDraft | null>('coachProfile', null),
 
@@ -110,20 +128,21 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   nav(patch) {
     const p: NavPatch = typeof patch === 'string' ? { screen: patch } : patch;
-    const { screen: current, hist } = get();
+    const { screen: current, params: currentParams, hist } = get();
     const next = p.screen ?? current;
+    const nextParams = p.params ?? NO_PARAMS;
 
     let h = hist.slice();
     if (next !== current) {
       if (ROOTS.includes(next)) {
         h = [];
       } else if (!NOHIST.includes(current)) {
-        const at = h.indexOf(next);
+        const at = h.findIndex((e) => e.screen === next);
         if (at >= 0) h = h.slice(0, at);
-        else h.push(current);
+        else h.push({ screen: current, params: currentParams });
       }
     }
-    set({ screen: next, hist: h });
+    set({ screen: next, params: nextParams, hist: h });
   },
 
   back() {
@@ -131,12 +150,12 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (hist.length > 0) {
       const h = hist.slice();
       const prev = h.pop()!;
-      set({ screen: prev, hist: h });
+      set({ screen: prev.screen, params: prev.params, hist: h });
       return;
     }
     const parent = PARENT[screen];
     if (parent && parent !== RET) {
-      set({ screen: parent as Screen, hist: [] });
+      set({ screen: parent as Screen, params: NO_PARAMS, hist: [] });
     }
     // RET or no PARENT entry: nothing sensible to go back to from here
     // (e.g. 'welcome' itself) — no-op rather than guessing a destination.

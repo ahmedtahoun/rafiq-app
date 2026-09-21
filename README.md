@@ -16,7 +16,7 @@ Capacitor + Vite + React + TypeScript + Supabase, iOS/Android via Capacitor — 
 
 The approved UX lives as a Claude Artifact "Design" canvas prototype (~90 screens across coach and client sides). This codebase is a screen-by-screen port of that design into real, working code — not a redesign. Design tokens (`src/theme/tokens.css`), the i18n copy (`src/lib/i18n.ts`), and screen layouts are all ported 1:1 from the prototype's own `.dc.html` source, not redrawn from screenshots.
 
-**Status**: Welcome (3-slide intro) and RoleSelect are built and wired end-to-end (real navigation, EN/AR + RTL, light/dark theme, role persisted via a Supabase-ready local store). Everything past role selection — Auth, Onboarding, and the full coach/client app — is still being ported.
+**Status**: Welcome (3-slide intro) and RoleSelect are built and wired end-to-end (real navigation, EN/AR + RTL, light/dark theme, role persisted via a Supabase-ready local store). Phase 0 shared infra is now in place — the router supports per-screen params (`nav({screen, params})`, restored on `back()`), and the shared UI kit has `Button`/`Card`/`TextField`/`BottomSheet`/`BottomNav`. Everything past role selection — Auth, Onboarding, and the full coach/client app — is still being ported.
 
 ## Getting started
 
