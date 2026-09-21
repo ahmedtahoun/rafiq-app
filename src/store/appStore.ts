@@ -32,7 +32,8 @@ function writeLocal<T>(key: string, value: T): void {
 export type Screen =
   | 'welcome' | 'roleSelect'
   | 'onboarding'
-  | 'comingSoon'; // placeholder landing spot post-onboarding — removed once Main exists
+  | 'main' // coach home dashboard
+  | 'comingSoon'; // placeholder landing spot for whatever's not built yet
 
 // Route params a screen was entered with — e.g.
 // nav({ screen: 'clientDetail', params: { clientId: 'sara' } }), then that
@@ -51,7 +52,7 @@ interface HistEntry {
 
 // Screens with no back-history (entering one always clears the stack —
 // bottom-nav destinations, or dead-end/landing screens).
-const ROOTS: Screen[] = ['comingSoon'];
+const ROOTS: Screen[] = ['comingSoon', 'main'];
 // Screens that shouldn't be pushed onto the NEXT screen's back-stack when
 // LEFT (e.g. splash/entry screens nobody should land back on). Empty for
 // now — extend as screens like that are added.
@@ -165,6 +166,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     writeLocal('coachProfile', profile);
     writeLocal('role', 'coach');
     set({ coachProfile: profile, role: 'coach' });
-    get().nav('comingSoon');
+    get().nav('main');
   },
 }));

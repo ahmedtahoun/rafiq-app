@@ -1,13 +1,18 @@
-import type { ComponentType } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import { useAppStore, type Screen, type ScreenParams } from '../store/appStore';
 import './BottomNav.css';
 
 export interface BottomNavItem {
   key: string;
   label: string;
-  icon: ComponentType<{ size?: number; color?: string }>;
-  screen: Screen;
+  icon?: ComponentType<{ size?: number; color?: string }>;
+  screen?: Screen;
   params?: ScreenParams;
+  /** Custom slot rendered in place of the normal icon button, taking the
+      same flex-1 tab width — e.g. Main.dc.html's embedded QuickActions
+      FAB (`<dc-import name="QuickActions" context="home">`) sitting
+      between two ordinary tabs. When set, `icon`/`screen` are ignored. */
+  render?: () => ReactNode;
 }
 
 interface BottomNavProps {
@@ -28,8 +33,15 @@ export function BottomNav({ items }: BottomNavProps) {
   return (
     <div className="bottom-nav">
       {items.map((item) => {
+        if (item.render) {
+          return (
+            <div key={item.key} className="bottom-nav-slot">
+              {item.render()}
+            </div>
+          );
+        }
         const isActive = item.screen === screen;
-        const Icon = item.icon;
+        const Icon = item.icon!;
         return (
           <button
             key={item.key}

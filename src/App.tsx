@@ -4,6 +4,7 @@ import { isRtl } from './lib/i18n';
 import Welcome from './screens/Welcome';
 import RoleSelect from './screens/RoleSelect';
 import Onboarding from './screens/Onboarding';
+import Main from './screens/Main';
 import ComingSoon from './screens/ComingSoon';
 
 export default function App() {
@@ -25,6 +26,8 @@ export default function App() {
       return <RoleSelect />;
     case 'onboarding':
       return <Onboarding />;
+    case 'main':
+      return <Main />;
     case 'comingSoon':
       return <ComingSoon />;
     default: {
