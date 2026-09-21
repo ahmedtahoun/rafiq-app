@@ -263,11 +263,29 @@ create trigger sessions_set_updated_at
 -- payments — an append-only ledger. A refund is its own row pointing at the
 -- charge it reverses, so the history stays auditable instead of a charge row
 -- being edited into a different amount.
+--
+-- client_id RESTRICTS rather than cascades, and that is the whole point: a
+-- ledger that a coach can erase by deleting the client is not auditable, and
+-- cascade made "append-only" true only until someone pressed delete. The app
+-- never hard-deletes a client anyway — EditClient's Archive sets
+-- clients.active = false, and its own copy promises "their history and
+-- progress stay saved", so clients.active IS the soft delete and this FK just
+-- stops the schema from contradicting that promise.
+--
+-- Consequence worth knowing: because clients -> coach_profiles -> profiles ->
+-- auth.users all cascade, a coach account with any recorded payment can no
+-- longer be hard-deleted either. That matches what mockStore's
+-- requestProAccountDeletion already does — it anonymizes the Pro and leaves
+-- every client's history intact, on the grounds that the history is the
+-- member's own record of the relationship, not the Pro's to erase.
+--
+-- Refused deletes surface as SQLSTATE 23503 (foreign_key_violation); a UI that
+-- offers delete should catch that and point at Archive instead.
 -- ---------------------------------------------------------------------------
 
 create table public.payments (
   id         uuid          primary key default gen_random_uuid(),
-  client_id  uuid          not null references public.clients (id) on delete cascade,
+  client_id  uuid          not null references public.clients (id) on delete restrict,
   kind       payment_kind  not null default 'charge',
   amount     numeric(12,2) not null check (amount > 0),
   currency   char(3)       not null default 'EGP',

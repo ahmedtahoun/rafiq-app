@@ -89,6 +89,19 @@ rendered rather than what the data means:
 - **Payments and messages are append-only** (no `UPDATE`/`DELETE` grant). A
   correction is a refund row pointing at the charge it reverses, so the ledger
   stays auditable. One refund per charge is enforced by a unique index.
+  `payments.client_id` also **restricts** rather than cascades — an
+  append-only ledger a coach can erase by deleting the client is not
+  append-only. The app never hard-deletes a client (EditClient's Archive sets
+  `clients.active = false` and promises the history stays saved), so this only
+  stops the schema contradicting that promise. It does mean a coach account
+  with recorded payments cannot be hard-deleted either, which matches
+  `requestProAccountDeletion` anonymizing the Pro rather than erasing client
+  history. Refusals come back as SQLSTATE `23503`.
+- **Only payments restricts, for now.** `sessions`, `ratings` and `messages`
+  still cascade from `clients`. The same "it is the member's record, not the
+  coach's to erase" argument arguably covers session history and a member's
+  rating of their coach — left as-is deliberately rather than widened without
+  a decision, and moot while nothing hard-deletes a client.
 - **Subscription tier has no client write path.** Tier changes should arrive
   from a payment webhook running as `service_role`, not from the app.
 - **Notifications are read-only to the client** apart from marking them read.

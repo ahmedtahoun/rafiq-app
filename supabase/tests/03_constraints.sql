@@ -76,3 +76,19 @@ select pg_temp.expect('deleting an auth user',
   pg_temp.try('delete from auth.users where id = ' || quote_literal(:coachB)), 'ALLOWED');
 select pg_temp.expect('  ...cascaded their roster away',
   (select count(*)::text from public.clients where coach_id = '22222222-2222-2222-2222-222222222222'), '0');
+
+-- The ledger outlives the roster row. These four are the reason
+-- payments.client_id restricts instead of cascading.
+select pg_temp.expect('deleting a client with payments',
+  pg_temp.try('delete from public.clients where id = ' || quote_literal(:clientM)), 'REJECTED(23503)');
+select pg_temp.expect('  ...leaves the ledger intact',
+  (select (count(*) > 0)::text from public.payments where client_id = 'aaaaaaaa-0000-0000-0000-000000000001'), 'true');
+select pg_temp.expect('archiving that client instead',
+  pg_temp.try('update public.clients set active = false where id = ' || quote_literal(:clientM)), 'ALLOWED');
+select pg_temp.expect('deleting a client with no payments',
+  pg_temp.try('delete from public.clients where full_name = ''Walk-in 2'''), 'ALLOWED');
+select pg_temp.expect('deleting a coach who has taken payment',
+  pg_temp.try('delete from auth.users where id = ' || quote_literal(:coachA)), 'REJECTED(23503)');
+
+-- Put the roster back the way the later files expect to find it.
+update public.clients set active = true where id = 'aaaaaaaa-0000-0000-0000-000000000001';
