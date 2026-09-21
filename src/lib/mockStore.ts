@@ -570,6 +570,14 @@ export function draftMessage(clientId: string, text: string): void {
   writeLocal(`message_draft_${clientId}`, text);
 }
 
+export function getMessageDraft(clientId: string): string {
+  return readLocal(`message_draft_${clientId}`, '');
+}
+
+export function clearMessageDraft(clientId: string): void {
+  writeLocal(`message_draft_${clientId}`, '');
+}
+
 // ---------------------------------------------------------------------------
 // Coach ("Pro") profile — 1:1 port of store.js's coach_profile record and
 // the handful of related reads Profile/EditProfile/AccountDetails need
@@ -836,22 +844,54 @@ export function getProAggregateRating(): AggregateRating {
 }
 
 // ---------------------------------------------------------------------------
-// Unread messages — Messages.dc.html/MessagesInbox.dc.html aren't ported
-// yet, so this always reads back 0 until a real thread gets written,
-// same "empty until a real feature writes to it" rule as everything else
-// in this file that fronts a not-yet-built screen.
+// Messages — one log per (client, pro) relationship. There is no separate
+// "conversation" entity: the roster IS the thread list, which is why
+// MessagesInbox.dc.html maps clients straight to rows.
+//
+// "Read" is a single timestamp per side, not a per-message flag — store.js's
+// own note says it is cheaper to maintain and all either screen's badge
+// needs. getUnreadMessageCount's forRole seam already served both sides
+// before the screens existed; it is unchanged here.
 // ---------------------------------------------------------------------------
 
-interface StoredMessage {
-  senderRole: 'pro' | 'client';
+export type MessageRole = 'pro' | 'client';
+
+export interface Message {
+  id: string;
+  senderRole: MessageRole;
+  text: string;
   atMs: number;
 }
 
-function getMessages(clientId: string): StoredMessage[] {
+export function getMessages(clientId: string): Message[] {
   return readLocal(`messages_${clientId}`, []);
 }
 
-export function getUnreadMessageCount(clientId: string, forRole: 'pro' | 'client'): number {
+/**
+ * Appends a message, or returns null if it would not be allowed.
+ *
+ * Gated on canInteract() rather than a messaging-specific rule: store.js's
+ * canMessage checks exactly the same three things as its session guard, so a
+ * second copy would only be a second thing to keep in step.
+ */
+export function sendMessage(clientId: string, text: string, senderRole: MessageRole): Message | null {
+  const body = text.trim();
+  if (!body || !canInteract(clientId)) return null;
+  const message: Message = {
+    id: `msg${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
+    senderRole,
+    text: body,
+    atMs: Date.now(),
+  };
+  writeLocal(`messages_${clientId}`, [...getMessages(clientId), message]);
+  return message;
+}
+
+export function markMessagesRead(clientId: string, forRole: MessageRole): void {
+  writeLocal(`messages_read_${forRole}_${clientId}`, Date.now());
+}
+
+export function getUnreadMessageCount(clientId: string, forRole: MessageRole): number {
   const lastRead = readLocal(`messages_read_${forRole}_${clientId}`, 0);
   return getMessages(clientId).filter((m) => m.senderRole !== forRole && m.atMs > lastRead).length;
 }
@@ -1374,8 +1414,7 @@ export function getSessionRoomHref(clientId: string): NavTarget {
   return { screen: 'sessionRoom', params: { clientId } };
 }
 export function getMessagesHref(clientId: string): NavTarget {
-  // TODO: route to 'messages' once Messages.dc.html is ported
-  return { screen: 'comingSoon', params: { clientId } };
+  return { screen: 'messages', params: { clientId } };
 }
 export function getAddTaskHref(clientId: string): NavTarget {
   return { screen: 'addTask', params: { clientId } };
