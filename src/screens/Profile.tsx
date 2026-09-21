@@ -255,7 +255,7 @@ export default function Profile() {
             </div>
             <ArrowForwardIcon size={15} color="var(--ink-soft)" />
           </button>
-          <button type="button" className="profile-row" onClick={() => nav({ screen: 'comingSoon', params: { feature: 'subscription' } })}>
+          <button type="button" className="profile-row" onClick={() => nav('subscription')}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" />
               <path d="M9 12.5l2 2 4-4.5" />
@@ -281,7 +281,7 @@ export default function Profile() {
 
         <div className="profile-section">
           <div className="profile-section-label">{t('profileCoaching')}</div>
-          <button type="button" className="profile-row" onClick={() => nav({ screen: 'comingSoon', params: { feature: 'offerings' } })}>
+          <button type="button" className="profile-row" onClick={() => nav('offerings')}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
               <path d="M20.5 8L12 2 3.5 8v10a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2z" />
               <path d="M9 22V12h6v10" />
@@ -302,7 +302,7 @@ export default function Profile() {
             </div>
             <ArrowForwardIcon size={15} color="var(--ink-soft)" />
           </button>
-          <button type="button" className="profile-row" onClick={() => nav({ screen: 'comingSoon', params: { feature: 'earnings' } })}>
+          <button type="button" className="profile-row" onClick={() => nav('earnings')}>
             <PaymentIcon size={17} color="var(--accent)" />
             <div className="profile-row-text">
               <div className="profile-row-title">{t('profileEarnings')}</div>

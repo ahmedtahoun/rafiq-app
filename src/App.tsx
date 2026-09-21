@@ -15,6 +15,10 @@ import Clients from './screens/Clients';
 import AddClient from './screens/AddClient';
 import ClientDetail from './screens/ClientDetail';
 import EditClient from './screens/EditClient';
+import Offerings from './screens/Offerings';
+import OfferingDetail from './screens/OfferingDetail';
+import Subscription from './screens/Subscription';
+import Earnings from './screens/Earnings';
 import ClientOnboarding from './screens/ClientOnboarding';
 import ClientHome from './screens/ClientHome';
 import ClientProfile from './screens/ClientProfile';
@@ -64,6 +68,14 @@ export default function App() {
       return <ClientDetail />;
     case 'editClient':
       return <EditClient />;
+    case 'offerings':
+      return <Offerings />;
+    case 'offeringDetail':
+      return <OfferingDetail />;
+    case 'subscription':
+      return <Subscription />;
+    case 'earnings':
+      return <Earnings />;
     case 'clientOnboarding':
       return <ClientOnboarding />;
     case 'clientHome':

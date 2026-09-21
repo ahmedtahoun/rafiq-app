@@ -184,7 +184,7 @@ export default function Clients() {
         <button
           type="button"
           className="clients-cap-banner"
-          onClick={() => nav({ screen: 'comingSoon', params: { feature: 'subscription' } })}
+          onClick={() => nav('subscription')}
         >
           <CheckCircleIcon size={17} color="var(--accent)" />
           <span>{t('clientsCapBanner', { active: statActive, cap: FREE_MEMBER_CAP })}</span>
