@@ -1,0 +1,115 @@
+/* 1:1 port of Templates.dc.html. Colors come from tokens.css, which already
+   carries this prototype's getTheme() values. */
+
+.templates-header {
+  padding: 30px 24px 8px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.templates-back {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-soft);
+  color: var(--ink);
+}
+
+.templates-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.templates-intro {
+  padding: 8px 24px 4px;
+  flex-shrink: 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.templates-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: templates-fade-in 0.45s ease both;
+}
+
+@keyframes templates-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .templates-list { animation: none; }
+}
+
+.templates-row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  background: var(--surface);
+  border-radius: 18px;
+  padding: 14px 15px;
+  box-shadow: var(--shadow);
+  text-align: start;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+
+.templates-row-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.templates-row-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.templates-row-name {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.templates-row-meta {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+
+.templates-new {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+  border: 1.5px dashed var(--line);
+  border-radius: 18px;
+  padding: 15px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+  min-height: 44px;
+}

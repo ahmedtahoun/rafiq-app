@@ -292,7 +292,7 @@ export default function Profile() {
             </div>
             <ArrowForwardIcon size={15} color="var(--ink-soft)" />
           </button>
-          <button type="button" className="profile-row" onClick={() => nav({ screen: 'comingSoon', params: { feature: 'templates' } })}>
+          <button type="button" className="profile-row" onClick={() => nav('templates')}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
               <path d="M4 5h16M4 12h16M4 19h9" />
             </svg>
