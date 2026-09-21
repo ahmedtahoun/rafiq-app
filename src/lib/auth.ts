@@ -18,8 +18,12 @@ import type { Enums, Row } from './database.types';
 export type AppRole = Enums<'app_role'>;
 export type Profile = Row<'profiles'>;
 
+/** The providers Auth.dc.html and ClientAuth.dc.html offer. Nothing else. */
+export type OAuthProvider = 'google' | 'apple';
+
 export type AuthErrorCode =
   | 'not_configured'
+  | 'oauth_failed'
   | 'invalid_credentials'
   | 'email_taken'
   | 'weak_password'
@@ -155,4 +159,48 @@ export function onAuthStateChange(handler: (session: Session | null) => void): (
   if (!isSupabaseConfigured()) return () => {};
   const { data } = getSupabase().auth.onAuthStateChange((_event, session) => handler(session));
   return () => data.subscription.unsubscribe();
+}
+
+/**
+ * Starts a provider sign-in. On the web this hands the browser to the
+ * provider's consent screen and does not come back here — the session
+ * arrives later through onAuthStateChange — so a caller must not navigate
+ * on success.
+ *
+ * Capacitor caveat, deliberately unhandled: the iOS and Android shells have
+ * no browser to hand off to. A native build needs `skipBrowserRedirect`, an
+ * in-app browser opened on the returned `url`, and a deep link registered to
+ * catch the callback. That needs a URL scheme in capacitor.config.ts and
+ * entries in the provider consoles first, so it is its own change.
+ */
+export async function signInWithOAuth(
+  provider: OAuthProvider,
+  redirectTo?: string,
+): Promise<AuthResult<{ url: string | null }>> {
+  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const { data, error } = await getSupabase().auth.signInWithOAuth({
+    provider,
+    options: { redirectTo: redirectTo ?? window.location.origin },
+  });
+  return error ? fail(error) : { ok: true, data: { url: data.url } };
+}
+
+/**
+ * Records which side of the app this account is.
+ *
+ * OAuth cannot carry the role the way signUp()'s metadata does — the provider
+ * decides what is in the token — so handle_new_user() falls back to 'client'
+ * for every OAuth signup and the real answer has to be written afterwards,
+ * once RoleSelect has been answered. RLS allows exactly this and no more:
+ * profiles_update_own lets a signed-in user update their own row only.
+ */
+export async function setProfileRole(role: AppRole): Promise<AuthResult<null>> {
+  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const supabase = getSupabase();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) {
+    return { ok: false, code: 'unknown', message: 'No signed-in user to set a role for.' };
+  }
+  const { error } = await supabase.from('profiles').update({ role }).eq('id', auth.user.id);
+  return error ? { ok: false, code: 'unknown', message: error.message } : { ok: true, data: null };
 }

@@ -32,6 +32,7 @@ function writeLocal<T>(key: string, value: T): void {
 // instead of a routing library.
 export type Screen =
   | 'welcome' | 'roleSelect'
+  | 'auth' | 'clientAuth'
   | 'onboarding'
   | 'main' // coach home dashboard
   | 'profile' | 'editProfile' | 'accountDetails'
@@ -69,6 +70,11 @@ const RET = '@return';
 const PARENT: Partial<Record<Screen, Screen | typeof RET>> = {
   editProfile: 'profile',
   accountDetails: 'profile',
+  auth: 'welcome',
+  clientAuth: 'roleSelect',
+  // ClientOnboarding is now only reachable through ClientAuth, so that is
+  // where a back with no history belongs.
+  clientOnboarding: 'clientAuth',
   addClient: 'clients',
   clientDetail: 'clients',
 };
@@ -78,16 +84,27 @@ interface NavPatch {
   params?: ScreenParams;
 }
 
+// Whether this build has an authenticated session behind it.
+// 'disabled' is not an error: with no Supabase credentials the app runs
+// entirely on mockStore's localStorage, which is how every screen built
+// before auth still works and how the other tracks develop.
+export type AuthStatus = 'unknown' | 'disabled' | 'signedOut' | 'signedIn';
+
 interface AppState {
   lang: Lang;
   dark: boolean;
   role: Role;
+  authStatus: AuthStatus;
+  /** auth.users.id of the signed-in account, or null. */
+  userId: string | null;
   screen: Screen;
   params: ScreenParams;
   hist: HistEntry[];
   setLang: (lang: Lang) => void;
   setDark: (dark: boolean) => void;
   setRole: (role: Role) => void;
+  setSession: (userId: string | null) => void;
+  setAuthDisabled: () => void;
   nav: (patch: Screen | NavPatch) => void;
   back: () => void;
   completeCoachSignup: (fields: CoachSignupFields) => void;
@@ -102,6 +119,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   lang: readLocal<Lang>('lang', 'en'),
   dark: readLocal<boolean>('dark', window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false),
   role: readLocal<Role>('role', null),
+  authStatus: 'unknown',
+  userId: null,
   screen: 'welcome',
   params: NO_PARAMS,
   hist: [],
@@ -118,6 +137,14 @@ export const useAppStore = create<AppState>((set, get) => ({
     writeLocal('role', role);
     set({ role });
   },
+
+  // Called by lib/session.ts on load and on every auth state change.
+  // Routing is not decided here — the store only records what is true, so
+  // that a sign-in arriving mid-screen cannot yank the user somewhere
+  // unexpected; session.ts decides where to go and calls nav() itself.
+  setSession: (userId) => set({ userId, authStatus: userId ? 'signedIn' : 'signedOut' }),
+
+  setAuthDisabled: () => set({ authStatus: 'disabled', userId: null }),
 
   nav(patch) {
     const p: NavPatch = typeof patch === 'string' ? { screen: patch } : patch;
