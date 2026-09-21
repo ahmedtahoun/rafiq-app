@@ -50,10 +50,18 @@ export type PaymentStatus = 'paid' | 'due' | 'overdue';
 export interface Client {
   id: string;
   name: string;
+  age: number | null;
+  phone: string;
+  countryCode: string;
   program: string;
-  /** 'Basic' | 'Full Access' — not read by Main/QuickActions directly, but
-      needed internally by getPackageStatus's default package size, so it
-      has to travel with the rest of the seed record. */
+  /** Raw specialty (e.g. "Life coaching"), kept alongside `program` (its
+      composed "{specialty} · {plan}" display string) because EditClient.tsx
+      hydrates its specialty picker from this field directly, the same way
+      EditClient.dc.html reads `client.specialty` rather than re-parsing
+      `program`. */
+  specialty: string;
+  /** 'Basic' | 'Full Access' — also needed internally by getPackageStatus's
+      default package size. */
   plan: string;
   initials: string;
   avatarBg: string;
@@ -62,23 +70,29 @@ export interface Client {
   needsCheckin: boolean;
   nextSession: string;
   paymentStatus: PaymentStatus;
+  goal: string;
+  notes: string;
 }
 
-// Same 6 seed clients as store.js's DEFAULT_CLIENTS, trimmed to the fields
-// Main.dc.html/QuickActions.dc.html actually read (store.js's own record
-// also carries age/phone/email/city/specialty/goal/notes for other,
-// not-yet-ported screens).
+// Same 6 seed clients as store.js's DEFAULT_CLIENTS. age/phone/countryCode/
+// goal/notes are demo values in the same spirit as the existing seed's
+// avatarBg/initials — store.js's own seed record carries the same fields,
+// this file just doesn't have that source file to port them from verbatim.
 const DEFAULT_CLIENTS: Client[] = [
-  { id: 'sara', name: 'Sara Ahmed', program: 'Life coaching · Basic', plan: 'Basic', initials: 'SA', avatarBg: '#B75C3D', active: true, progress: 63, needsCheckin: false, nextSession: 'Next: Today, 10:00 AM', paymentStatus: 'overdue' },
-  { id: 'omar', name: 'Omar Fathy', program: 'Nutrition · Full Access', plan: 'Full Access', initials: 'OF', avatarBg: '#3E6FB0', active: true, progress: 40, needsCheckin: false, nextSession: 'Next: Today, 1:30 PM', paymentStatus: 'due' },
-  { id: 'mona', name: 'Mona Reda', program: 'Yoga coaching · Basic', plan: 'Basic', initials: 'MR', avatarBg: '#3F7D58', active: true, progress: 78, needsCheckin: false, nextSession: 'Next: Thu, 10:00 AM', paymentStatus: 'paid' },
-  { id: 'khaled', name: 'Khaled Ibrahim', program: 'Meditation coaching · Basic', plan: 'Basic', initials: 'KI', avatarBg: '#96472D', active: true, progress: 22, needsCheckin: true, nextSession: 'No upcoming session', paymentStatus: 'overdue' },
-  { id: 'laila', name: 'Laila Youssef', program: 'Breakup coaching · Basic', plan: 'Basic', initials: 'LY', avatarBg: '#B98900', active: true, progress: 55, needsCheckin: true, nextSession: 'No upcoming session', paymentStatus: 'due' },
-  { id: 'nour', name: 'Nour Hassan', program: 'Life coaching · Completed', plan: 'Basic', initials: 'NH', avatarBg: '#7A7166', active: false, progress: 100, needsCheckin: false, nextSession: 'Program completed', paymentStatus: 'paid' },
+  { id: 'sara', name: 'Sara Ahmed', age: 29, phone: '10 234 5678', countryCode: '+20', program: 'Life coaching · Basic', specialty: 'Life coaching', plan: 'Basic', initials: 'SA', avatarBg: '#B75C3D', active: true, progress: 63, needsCheckin: false, nextSession: 'Next: Today, 10:00 AM', paymentStatus: 'overdue', goal: 'Build a consistent morning routine', notes: '' },
+  { id: 'omar', name: 'Omar Fathy', age: 34, phone: '11 345 6789', countryCode: '+20', program: 'Nutrition · Full Access', specialty: 'Nutrition coaching', plan: 'Full Access', initials: 'OF', avatarBg: '#3E6FB0', active: true, progress: 40, needsCheckin: false, nextSession: 'Next: Today, 1:30 PM', paymentStatus: 'due', goal: 'Improve energy levels through better nutrition', notes: '' },
+  { id: 'mona', name: 'Mona Reda', age: 26, phone: '12 456 7890', countryCode: '+20', program: 'Yoga coaching · Basic', specialty: 'Yoga coaching', plan: 'Basic', initials: 'MR', avatarBg: '#3F7D58', active: true, progress: 78, needsCheckin: false, nextSession: 'Next: Thu, 10:00 AM', paymentStatus: 'paid', goal: 'Increase flexibility and reduce back pain', notes: '' },
+  { id: 'khaled', name: 'Khaled Ibrahim', age: 41, phone: '10 567 8901', countryCode: '+20', program: 'Meditation coaching · Basic', specialty: 'Meditation coaching', plan: 'Basic', initials: 'KI', avatarBg: '#96472D', active: true, progress: 22, needsCheckin: true, nextSession: 'No upcoming session', paymentStatus: 'overdue', goal: 'Manage work stress through daily meditation', notes: 'Prefers evening sessions' },
+  { id: 'laila', name: 'Laila Youssef', age: 24, phone: '11 678 9012', countryCode: '+20', program: 'Breakup coaching · Basic', specialty: 'Breakup coaching', plan: 'Basic', initials: 'LY', avatarBg: '#B98900', active: true, progress: 55, needsCheckin: true, nextSession: 'No upcoming session', paymentStatus: 'due', goal: 'Rebuild confidence after a difficult breakup', notes: '' },
+  { id: 'nour', name: 'Nour Hassan', age: 31, phone: '12 789 0123', countryCode: '+20', program: 'Life coaching · Completed', specialty: 'Life coaching', plan: 'Basic', initials: 'NH', avatarBg: '#7A7166', active: false, progress: 100, needsCheckin: false, nextSession: 'Program completed', paymentStatus: 'paid', goal: 'Transitioned into a new role', notes: '' },
 ];
 
 export function getClients(): Client[] {
   return readLocal('clients', DEFAULT_CLIENTS);
+}
+
+export function getClient(clientId: string): Client | undefined {
+  return getClients().find((c) => c.id === clientId);
 }
 
 export function updateClient(clientId: string, patch: Partial<Client>): Client[] {
@@ -86,6 +100,68 @@ export function updateClient(clientId: string, patch: Partial<Client>): Client[]
   writeLocal('clients', list);
   return list;
 }
+
+const AVATAR_PALETTE = ['#B75C3D', '#3E6FB0', '#3F7D58', '#7A6BAE', '#A65D6E', '#1F7A8C', '#96472D', '#26547C'];
+
+export interface NewClientFields {
+  name: string;
+  age: number | null;
+  phone: string;
+  countryCode: string;
+  specialty: string;
+  plan: string;
+  goal: string;
+  notes: string;
+}
+
+// 1:1 port of store.js's addClient / AddClient.dc.html's save() — starter
+// tasks aren't seeded here (that's Templates.dc.html/#7's job, not ported
+// yet), so a new member starts with an empty to-do list rather than a
+// fabricated one.
+export function addClient(fields: NewClientFields): Client {
+  const id = `${fields.name.trim().toLowerCase().replace(/[^a-z]+/g, '-').replace(/(^-|-$)/g, '')}-${Date.now().toString(36).slice(-4)}`;
+  const initials = fields.name.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2);
+  const avatarBg = AVATAR_PALETTE[Math.floor(Math.random() * AVATAR_PALETTE.length)];
+  const client: Client = {
+    id,
+    name: fields.name.trim(),
+    age: fields.age,
+    phone: fields.phone.trim(),
+    countryCode: fields.countryCode,
+    program: `${fields.specialty} · ${fields.plan}`,
+    specialty: fields.specialty,
+    plan: fields.plan,
+    initials,
+    avatarBg,
+    active: true,
+    progress: 0,
+    needsCheckin: false,
+    nextSession: 'No upcoming session',
+    paymentStatus: 'due',
+    goal: fields.goal.trim(),
+    notes: fields.notes.trim(),
+  };
+  writeLocal('clients', [...getClients(), client]);
+  return client;
+}
+
+// ---------------------------------------------------------------------------
+// Favorites (Clients.dc.html's star toggle)
+// ---------------------------------------------------------------------------
+
+export function getFavorites(): Record<string, boolean> {
+  return readLocal('fav_clients', {});
+}
+
+export function toggleFavorite(clientId: string): Record<string, boolean> {
+  const favs = { ...getFavorites(), [clientId]: !getFavorites()[clientId] };
+  writeLocal('fav_clients', favs);
+  return favs;
+}
+
+// Free-tier active-member cap (Clients.dc.html's upgrade banner) — same
+// value store.js's FREE_MEMBER_CAP uses.
+export const FREE_MEMBER_CAP = 5;
 
 // ---------------------------------------------------------------------------
 // Tasks
@@ -96,6 +172,7 @@ export interface Task {
   title: string;
   due: string;
   done: boolean;
+  recurring?: boolean;
 }
 
 // Same as store.js's DEFAULT_TASKS.
@@ -136,6 +213,30 @@ export function getTasks(clientId: string): Task[] {
   return readLocal(`tasks_${clientId}`, DEFAULT_TASKS[clientId] ?? []);
 }
 
+export function addTask(clientId: string, task: Task): Task[] {
+  const list = [...getTasks(clientId), task];
+  writeLocal(`tasks_${clientId}`, list);
+  return list;
+}
+
+export function updateTask(clientId: string, taskId: string, patch: Partial<Task>): Task[] {
+  const list = getTasks(clientId).map((t) => (t.id === taskId ? { ...t, ...patch } : t));
+  writeLocal(`tasks_${clientId}`, list);
+  return list;
+}
+
+export function deleteTask(clientId: string, taskId: string): Task[] {
+  const list = getTasks(clientId).filter((t) => t.id !== taskId);
+  writeLocal(`tasks_${clientId}`, list);
+  return list;
+}
+
+export function toggleTask(clientId: string, taskId: string): Task[] {
+  const list = getTasks(clientId).map((t) => (t.id === taskId ? { ...t, done: !t.done } : t));
+  writeLocal(`tasks_${clientId}`, list);
+  return list;
+}
+
 // Exact rule from store.js: not done, and its human-readable `due` string
 // mentions "today" (case-insensitive) — a substring check on the same
 // display string the UI renders, not a real date comparison.
@@ -148,6 +249,11 @@ export function isTaskOverdue(task: Task): boolean {
 // ---------------------------------------------------------------------------
 
 const DAY_MS = 86400000;
+// Short display date matching the format literal session/payment entries
+// already use elsewhere in this file (e.g. "Oct 18, 2025").
+function formatDate(ms: number): string {
+  return new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
 // store.js's fixed "now" anchor for every calendar/expiry calculation in
 // the prototype (its own comment: "this prototype's fixed now for all
 // calendar math"), not the real wall clock — ported as-is so a freshly
@@ -204,6 +310,27 @@ export function getPackageStatus(clientId: string): PackageStatus {
   };
 }
 
+// 1:1 port of store.js's renewPackage — adds sessions to the existing
+// total and pushes the expiry out a fresh 30 days, same as
+// ClientDetail.dc.html's renew-package sheet.
+export function renewPackage(clientId: string, addSessions: number): PackageStatus {
+  const current = getPackage(clientId);
+  const next: RawPackage = { total: current.total + addSessions, used: current.used, expiresAtMs: TODAY_MS + 30 * DAY_MS };
+  writeLocal(`package_${clientId}`, next);
+  return getPackageStatus(clientId);
+}
+
+export function previewRenewExpiry(): string {
+  return formatDate(TODAY_MS + 30 * DAY_MS);
+}
+
+// The app's fixed demo "today", formatted — used to date a payment
+// recorded/refunded right now, consistent with the same fixed clock every
+// other package/expiry calculation in this file already anchors to.
+export function formatToday(): string {
+  return formatDate(TODAY_MS);
+}
+
 // ---------------------------------------------------------------------------
 // Session logs
 // ---------------------------------------------------------------------------
@@ -238,11 +365,16 @@ interface CustomBlock {
   range?: string;
 }
 
-interface Payment {
+export interface Payment {
   id: string;
+  /** Negative = a refund entry (see refundPayment), never a real charge. */
   amount: number;
-  date?: string;
-  status?: string;
+  method: 'Cash' | 'Card' | 'Transfer';
+  date: string;
+  status?: 'pending' | 'paid';
+  /** Set on a refund entry: the id of the payment it refunds. */
+  refundOf?: string;
+  reason?: string;
 }
 
 export interface ProNotification {
@@ -251,18 +383,63 @@ export interface ProNotification {
   unread: boolean;
 }
 
-// Neither store has any seed data — store.js itself defaults both to
-// `[]` (scheduling and payments aren't ported yet) — so this reads back
-// empty until one of those features starts writing real data, matching a
-// fresh install of the prototype exactly.
+// getCustomBlocks has no seed data — store.js itself defaults it to `[]`
+// (scheduling isn't ported yet) — so this reads back empty until a real
+// feature writes to it, matching a fresh install of the prototype exactly.
 function getCustomBlocks(): CustomBlock[] {
   return readLocal('custom_blocks', []);
 }
-function getPaymentHistory(clientId: string): Payment[] {
-  return readLocal(`payments_${clientId}`, []);
-}
 function getReadNotifications(): Record<string, boolean> {
   return readLocal('notif_read', {});
+}
+
+// ---------------------------------------------------------------------------
+// Payments (ClientDetail.dc.html's record/history/refund flow)
+// ---------------------------------------------------------------------------
+
+export function getPaymentHistory(clientId: string): Payment[] {
+  return readLocal(`payments_${clientId}`, []);
+}
+
+export function addPayment(clientId: string, payment: Payment): Payment[] {
+  const list = [payment, ...getPaymentHistory(clientId)];
+  writeLocal(`payments_${clientId}`, list);
+  return list;
+}
+
+// A refund is its own ledger row (negative amount, `refundOf` pointing at
+// the original) rather than mutating the original payment in place — same
+// rule the design prototype's own refundPayment() enforces, so a refunded
+// payment's original record (amount, method, date) stays exactly as it was.
+export function refundPayment(clientId: string, paymentId: string, amount: number, reason?: string | null): Payment[] {
+  const original = getPaymentHistory(clientId).find((p) => p.id === paymentId);
+  const entry: Payment = {
+    id: `refund-${Date.now().toString(36)}`,
+    amount: -Math.abs(amount),
+    method: original?.method ?? 'Cash',
+    date: formatDate(TODAY_MS),
+    refundOf: paymentId,
+    reason: reason ?? undefined,
+  };
+  return addPayment(clientId, entry);
+}
+
+export function isPaymentRefunded(clientId: string, paymentId: string): boolean {
+  return getPaymentHistory(clientId).some((p) => p.refundOf === paymentId);
+}
+
+// ---------------------------------------------------------------------------
+// Session recaps (ClientDetail.dc.html's session-history notes)
+// ---------------------------------------------------------------------------
+
+export function getRecaps(clientId: string): Record<string, string> {
+  return readLocal(`recaps_${clientId}`, {});
+}
+
+export function setRecap(clientId: string, sessionId: string, text: string): Record<string, string> {
+  const recaps = { ...getRecaps(clientId), [sessionId]: text };
+  writeLocal(`recaps_${clientId}`, recaps);
+  return recaps;
 }
 
 // 1:1 port of store.js's getProNotifications, minus the fields
@@ -624,14 +801,16 @@ export interface NavTarget {
   params: ScreenParams;
 }
 
-// store.js's equivalents return a `.dc.html` filename; none of the real
-// screens they'd point to are ported yet, so every one of these resolves
-// to the 'comingSoon' placeholder for now. Each still carries the params
-// a real screen would need, so swapping in the real destination is a
-// one-line change at the call site once it exists.
+// store.js's equivalents return a `.dc.html` filename. ClientDetail and
+// EditClient are ported now, so those two resolve for real; the rest still
+// point at 'comingSoon' until SessionRoom/Messages/AddTask exist — each
+// still carries the params a real screen would need, so swapping in the
+// real destination is a one-line change at the call site once it exists.
 export function getClientDetailHref(clientId: string): NavTarget {
-  // TODO: route to 'clientDetail' once ClientDetail.dc.html is ported
-  return { screen: 'comingSoon', params: { clientId } };
+  return { screen: 'clientDetail', params: { clientId } };
+}
+export function getEditClientHref(clientId: string): NavTarget {
+  return { screen: 'editClient', params: { clientId } };
 }
 export function getSessionRoomHref(clientId: string): NavTarget {
   // TODO: route to 'sessionRoom' once SessionRoom.dc.html is ported

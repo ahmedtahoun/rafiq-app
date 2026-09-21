@@ -8,6 +8,10 @@ import Main from './screens/Main';
 import Profile from './screens/Profile';
 import EditProfile from './screens/EditProfile';
 import AccountDetails from './screens/AccountDetails';
+import Clients from './screens/Clients';
+import AddClient from './screens/AddClient';
+import ClientDetail from './screens/ClientDetail';
+import EditClient from './screens/EditClient';
 import ComingSoon from './screens/ComingSoon';
 
 export default function App() {
@@ -37,6 +41,14 @@ export default function App() {
       return <EditProfile />;
     case 'accountDetails':
       return <AccountDetails />;
+    case 'clients':
+      return <Clients />;
+    case 'addClient':
+      return <AddClient />;
+    case 'clientDetail':
+      return <ClientDetail />;
+    case 'editClient':
+      return <EditClient />;
     case 'comingSoon':
       return <ComingSoon />;
     default: {

@@ -254,3 +254,11 @@ export function WarningIcon({ size = 20, color = 'currentColor' }: { size?: numb
     </svg>
   );
 }
+
+export function FilterIcon({ size = 18, color = 'currentColor' }: { size?: number; color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 5h16l-6.5 8v6l-3 2v-8z" />
+    </svg>
+  );
+}

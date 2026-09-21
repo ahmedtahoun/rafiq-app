@@ -35,6 +35,7 @@ export type Screen =
   | 'onboarding'
   | 'main' // coach home dashboard
   | 'profile' | 'editProfile' | 'accountDetails'
+  | 'clients' | 'addClient' | 'clientDetail' | 'editClient'
   | 'comingSoon'; // placeholder landing spot for whatever's not built yet
 
 // Route params a screen was entered with — e.g.
@@ -54,7 +55,7 @@ interface HistEntry {
 
 // Screens with no back-history (entering one always clears the stack —
 // bottom-nav destinations, or dead-end/landing screens).
-const ROOTS: Screen[] = ['comingSoon', 'main', 'profile'];
+const ROOTS: Screen[] = ['comingSoon', 'main', 'profile', 'clients'];
 // Screens that shouldn't be pushed onto the NEXT screen's back-stack when
 // LEFT (e.g. splash/entry screens nobody should land back on). Empty for
 // now — extend as screens like that are added.
@@ -67,6 +68,8 @@ const RET = '@return';
 const PARENT: Partial<Record<Screen, Screen | typeof RET>> = {
   editProfile: 'profile',
   accountDetails: 'profile',
+  addClient: 'clients',
+  clientDetail: 'clients',
 };
 
 interface NavPatch {
