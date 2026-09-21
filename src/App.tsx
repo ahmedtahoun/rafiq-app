@@ -38,6 +38,8 @@ import TemplateDetail from './screens/TemplateDetail';
 import Schedule from './screens/Schedule';
 import AddTimeBlock from './screens/AddTimeBlock';
 import Availability from './screens/Availability';
+import Discover from './screens/Discover';
+import CoachPreview from './screens/CoachPreview';
 import ComingSoon from './screens/ComingSoon';
 
 export default function App() {
@@ -63,6 +65,10 @@ export default function App() {
       return <RoleSelect />;
     case 'auth':
       return <Auth />;
+    case 'discover':
+      return <Discover />;
+    case 'coachPreview':
+      return <CoachPreview />;
     case 'clientAuth':
       return <ClientAuth />;
     case 'onboarding':
