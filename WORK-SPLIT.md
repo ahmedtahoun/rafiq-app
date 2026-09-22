@@ -131,6 +131,12 @@ was written, and are worth knowing before picking this up:
   knowing for later that App Store review generally prefers native
   `ASAuthorizationAppleIDProvider` over a browser sheet on iOS.
 
+Native failures now show the same message the web flow does: the deep-link
+handler routes them through `oauthReturn.ts`'s classifier rather than
+keeping its own slug table, so "you cancelled" and "this isn't set up yet"
+read identically on a phone and in a browser, and an invited member retries
+on ClientAuth either way.
+
 **Not verified on a device.** This sandbox is Linux with no Android SDK, no
 emulator, no Xcode and no simulator, and `dl.google.com` is blocked, so the
 Gradle build cannot even resolve. The TypeScript was exercised in a browser

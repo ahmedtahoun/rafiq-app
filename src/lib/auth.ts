@@ -18,6 +18,8 @@ import {
   isNativePlatform, openAuthUrl, initDeepLinkAuth,
   NATIVE_REDIRECT_URL, type AuthCallback,
 } from './nativeAuth';
+import { classifyOAuthReturn, takeAuthOrigin, type OAuthFailure } from './oauthReturn';
+import { useAppStore } from '../store/appStore';
 
 export type AppRole = Enums<'app_role'>;
 export type Profile = Row<'profiles'>;
@@ -267,24 +269,73 @@ export async function finishOAuthCallback(callback: AuthCallback): Promise<AuthR
 }
 
 /**
+ * Turn a failed native return into the same message the web flow shows.
+ *
+ * Deliberately routed through lib/oauthReturn.ts's classifier rather than
+ * given its own slug table: the wording a user sees for "you cancelled"
+ * or "this isn't set up yet" should not depend on which platform they are
+ * holding. That classifier reads a web return's URL params, so the native
+ * callback is expressed in the same shape — one table, two callers.
+ */
+function classifyNativeFailure(callback: AuthCallback): OAuthFailure {
+  if (callback.kind === 'error') {
+    return classifyOAuthReturn(
+      { error: callback.error, errorCode: '', errorDescription: callback.description, hasCode: false },
+      false,
+    ) ?? { key: 'authErrorReturnGeneric', detail: callback.description };
+  }
+  if (callback.kind === 'code') {
+    // A code that arrived but would not exchange — expired, replayed, or
+    // issued to a different install. Same case, same words as on web.
+    return classifyOAuthReturn(
+      { error: '', errorCode: '', errorDescription: '', hasCode: true },
+      false,
+    ) ?? { key: 'authErrorReturnExchange', detail: '' };
+  }
+  // Tokens that would not become a session. The web flow has no
+  // equivalent to borrow wording from, so this takes the generic line.
+  return { key: 'authErrorReturnGeneric', detail: '' };
+}
+
+/**
+ * Apply a provider's deep link: take the session if there is one, and put
+ * the failure on screen if there is not.
+ *
+ * Split out from the listener below so it can be exercised without a
+ * device. The listener is plumbing; this is the policy, and the policy is
+ * what a test needs to reach.
+ */
+export async function applyOAuthCallback(callback: AuthCallback): Promise<AuthResult<null>> {
+  const result = await finishOAuthCallback(callback);
+  if (result.ok) {
+    // Nothing to do: setting the session fires onAuthStateChange, and
+    // session.ts decides where that lands.
+    return result;
+  }
+
+  const { key, detail } = classifyNativeFailure(callback);
+  const { setAuthError, nav } = useAppStore.getState();
+  setAuthError(key, detail);
+  // Back to whichever sign-in screen started this, read from the same
+  // origin the screens stash before redirecting — so an invited member
+  // retries on ClientAuth with their coach's name on it, on a phone
+  // exactly as in a browser. The in-app browser has already been
+  // dismissed by the listener, so this is usually the screen the user is
+  // already looking at; it matters when they navigated away while the
+  // browser was open.
+  nav(takeAuthOrigin() === 'clientAuth' ? 'clientAuth' : 'auth');
+  console.error('[auth] provider returned without a session:', result.message);
+  return result;
+}
+
+/**
  * Start listening for provider redirects on native. Returns its own
  * unsubscribe, so App can hand it straight back from a useEffect; a no-op
  * on web, where the callback arrives as an ordinary page load.
- *
- * A failed return is logged rather than shown. There is nowhere to show
- * it yet: the store gains a field for exactly this in the open web
- * silent-failure fix (PR #11), and once that lands this handler sets it
- * in one line and native gets the same message web does.
  */
 export function initOAuthDeepLinks(): () => void {
   return initDeepLinkAuth((callback) => {
-    void finishOAuthCallback(callback).then((result) => {
-      if (!result.ok) {
-        console.error('[auth] provider returned without a session:', result.message);
-      }
-      // A success needs nothing here: setting the session fires
-      // onAuthStateChange, and session.ts decides where that lands.
-    });
+    void applyOAuthCallback(callback);
   });
 }
 
