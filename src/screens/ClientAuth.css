@@ -159,6 +159,19 @@ html[dir='rtl'] .client-auth-heading { font-family: var(--font-display-ar); }
   line-height: 1.5;
 }
 
+/* The provider's raw message, sitting under the translated line as
+   subordinate detail. Its own block so a long one wraps cleanly, and
+   text-align: start so it stays left-aligned inside an RTL layout the
+   way its dir="ltr" demands. */
+.client-auth-error-detail {
+  display: block;
+  margin-block-start: 4px;
+  text-align: start;
+  font-size: 11.5px;
+  opacity: 0.8;
+  word-break: break-word;
+}
+
 .client-auth-terms {
   text-align: center;
   font-size: 11.5px;

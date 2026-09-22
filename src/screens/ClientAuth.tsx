@@ -4,6 +4,7 @@ import { useT } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { getCoachProfile } from '../lib/mockStore';
 import { signInWithOAuth, type OAuthProvider } from '../lib/auth';
+import { rememberAuthOrigin } from '../lib/oauthReturn';
 import { isSupabaseConfigured } from '../lib/supabase';
 import './ClientAuth.css';
 
@@ -54,6 +55,15 @@ export default function ClientAuth() {
   const [pending, setPending] = useState<OAuthProvider | null>(null);
   const [errorKey, setErrorKey] = useState('');
 
+  // Same split as Auth: local state for failing to leave for the
+  // provider, the store for failing to come back. A return that started
+  // here is routed back here, so this screen has to be able to show one.
+  const returnErrorKey = useAppStore((s) => s.authErrorKey);
+  const returnErrorDetail = useAppStore((s) => s.authErrorDetail);
+  const clearAuthError = useAppStore((s) => s.clearAuthError);
+  const shownErrorKey = errorKey || returnErrorKey || '';
+  const shownDetail = errorKey ? '' : returnErrorDetail;
+
   // The inviting coach. The prototype hardcoded "Yasmin El-Sayed" because
   // its store had exactly one Pro; reading the profile keeps the same
   // result without inventing a name. Once invites are real this becomes
@@ -79,6 +89,8 @@ export default function ClientAuth() {
 
     setPending(provider);
     setErrorKey('');
+    clearAuthError();
+    rememberAuthOrigin('clientAuth');
     const result = await signInWithOAuth(provider);
     if (!result.ok) {
       setPending(null);
@@ -125,7 +137,12 @@ export default function ClientAuth() {
         </div>
 
         <div className="client-auth-actions">
-          {errorKey && <div className="client-auth-error" role="alert">{t(errorKey)}</div>}
+          {shownErrorKey && (
+            <div className="client-auth-error" role="alert">
+              {t(shownErrorKey)}
+              {shownDetail && <span className="client-auth-error-detail" dir="ltr">{shownDetail}</span>}
+            </div>
+          )}
 
           <button
             className="client-auth-btn client-auth-btn-google"

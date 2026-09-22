@@ -238,6 +238,13 @@ const dict: Record<Lang, Record<string, string>> = {
     authErrorGeneric: "Couldn't start sign-in. Please try again.",
     authErrorNetwork: 'No connection. Check your network and try again.',
     authErrorNotConfigured: 'Sign-in is not connected yet.',
+    // Shown when the app is reopened after a provider sent the user back
+    // without a session. Each says what to do next, because a failed
+    // return gives the user no other clue that anything went wrong.
+    authErrorReturnDenied: 'Sign-in was cancelled. Try again whenever you like.',
+    authErrorReturnConfig: "Sign-in isn't finished being set up on our side. Nothing you did — please try again later.",
+    authErrorReturnExchange: "Sign-in didn't complete. The link had already been used or expired — please try again.",
+    authErrorReturnGeneric: "Sign-in didn't complete. Please try again.",
     clientAuthInvitedBy: 'Invited by {name}',
     clientAuthHeading: 'Your coaching journey, in one place.',
     clientAuthSubheading: 'See your tasks, track progress, and stay in touch with {name} between sessions.',
@@ -824,6 +831,10 @@ const dict: Record<Lang, Record<string, string>> = {
     authErrorGeneric: 'تعذّر بدء تسجيل الدخول. حاول مرة أخرى.',
     authErrorNetwork: 'لا يوجد اتصال. تحقق من الشبكة وحاول مرة أخرى.',
     authErrorNotConfigured: 'تسجيل الدخول غير مُفعّل بعد.',
+    authErrorReturnDenied: 'تم إلغاء تسجيل الدخول. يمكنك المحاولة مرة أخرى في أي وقت.',
+    authErrorReturnConfig: 'لم يكتمل إعداد تسجيل الدخول لدينا بعد. المشكلة ليست منك — حاول لاحقًا.',
+    authErrorReturnExchange: 'لم يكتمل تسجيل الدخول. الرابط مُستخدَم من قبل أو انتهت صلاحيته — حاول مرة أخرى.',
+    authErrorReturnGeneric: 'لم يكتمل تسجيل الدخول. حاول مرة أخرى.',
     // The prototype hardcodes the coach's name in both languages because its
     // store held one Pro; CoachProfile has a single `name` field and no
     // Arabic equivalent, so these interpolate the Latin name. A proper fix
