@@ -707,6 +707,11 @@ const dict: Record<Lang, Record<string, string>> = {
     clientBookingPendingNote: "This will show up on {coach}'s schedule as pending until they confirm it.",
     clientBookingDone: 'Done', clientBookingRequest: 'Request {time}', clientBookingSelectTime: 'Select a time',
     clientBookingLegendAvailable: 'Available', clientBookingLegendBooked: 'Booked', clientBookingLegendPassed: 'Passed',
+    // The month the app's one fixed week sits in. Anchored to that week
+    // like every other date in the app, so it moves when that does.
+    clientBookingMonthLabel: 'October 2025',
+    clientBookingMonthHint: 'Dates with a dot are open for booking',
+    clientBookingMonthClosed: 'Not open for booking',
     clientBookingDateLabel: 'Date', clientBookingTimeLabel: 'Time',
     clientBookingCoachLabel: 'Pro', clientBookingTypeLabel: 'Type',
     clientBookingAddToCalendar: 'Add to calendar',
@@ -1412,6 +1417,9 @@ const dict: Record<Lang, Record<string, string>> = {
     clientBookingPendingNote: 'سيظهر هذا في جدول {coach} كطلب معلق حتى التأكيد.',
     clientBookingDone: 'تم', clientBookingRequest: 'طلب {time}', clientBookingSelectTime: 'اختر وقتًا',
     clientBookingLegendAvailable: 'متاح', clientBookingLegendBooked: 'محجوز', clientBookingLegendPassed: 'فات',
+    clientBookingMonthLabel: 'أكتوبر 2025',
+    clientBookingMonthHint: 'التواريخ التي تحمل نقطة متاحة للحجز',
+    clientBookingMonthClosed: 'غير متاح للحجز',
     clientBookingDateLabel: 'التاريخ', clientBookingTimeLabel: 'الوقت',
     clientBookingCoachLabel: 'المحترف', clientBookingTypeLabel: 'النوع',
     clientBookingAddToCalendar: 'إضافة إلى التقويم',

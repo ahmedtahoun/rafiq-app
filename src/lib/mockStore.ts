@@ -1922,6 +1922,65 @@ export interface StandingSlot {
   setAtMs: number;
 }
 
+// ---------------------------------------------------------------------------
+// The month grid
+// ---------------------------------------------------------------------------
+
+/** One cell of a month calendar. */
+export interface MonthCell {
+  /** Day of the month shown in the cell. */
+  day: number;
+  /** False for the leading/trailing days that belong to a neighbouring month. */
+  inMonth: boolean;
+  /**
+   * Which day of the app's one live week this cell is, or null when it is
+   * outside it — which is most of the month. A cell with no dayIndex has
+   * no availability and no blocks to read, so nothing can be booked on it.
+   */
+  dayIndex: number | null;
+}
+
+/**
+ * The month containing the app's fixed week, as calendar cells.
+ *
+ * Derived from WEEK_START_MS rather than hardcoded. Schedule.tsx carries a
+ * 35-cell literal for the same grid, written out by hand; computing it
+ * means the two cannot disagree about which dates are live, and it stops
+ * being a literal that has to be re-typed if the fixed week ever moves.
+ * Schedule should move onto this — see WORK-SPLIT.md.
+ *
+ * Cells run in whole Monday-start weeks, so the grid is always rectangular.
+ */
+export function getMonthGrid(): MonthCell[] {
+  const anchor = new Date(WEEK_START_MS);
+  const year = anchor.getUTCFullYear();
+  const month = anchor.getUTCMonth();
+
+  const firstOfMonth = Date.UTC(year, month, 1);
+  // JS getUTCDay(): 0 = Sunday. This app's weeks start on Monday.
+  const leading = (new Date(firstOfMonth).getUTCDay() + 6) % 7;
+  const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  const total = Math.ceil((leading + daysInMonth) / 7) * 7;
+
+  const cells: MonthCell[] = [];
+  for (let i = 0; i < total; i++) {
+    const cellMs = firstOfMonth + (i - leading) * DAY_MS;
+    const date = new Date(cellMs);
+    const index = dayIndexFromMs(cellMs);
+    cells.push({
+      day: date.getUTCDate(),
+      inMonth: date.getUTCMonth() === month,
+      dayIndex: index >= 0 && index <= 6 ? index : null,
+    });
+  }
+  return cells;
+}
+
+/** The month the fixed week sits in, as a Date for formatting. */
+export function getMonthAnchorMs(): number {
+  return WEEK_START_MS;
+}
+
 /**
  * How many whole months a member and the Pro have been working together,
  * or null when the member never completed signup and there is no date to

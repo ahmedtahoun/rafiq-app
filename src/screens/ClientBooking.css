@@ -84,52 +84,96 @@
   color: var(--accent);
 }
 
-/* ---------- day strip ---------- */
+/* ---------- month grid ---------- */
 
-.client-booking-days {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-}
-
-.client-booking-day {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  border: none;
-  border-radius: 15px;
-  padding: 10px 0;
+.client-booking-month {
   background: var(--surface);
-  color: var(--ink);
-  font-family: inherit;
-  cursor: pointer;
-  box-shadow: var(--shadow-soft);
+  border-radius: 18px;
+  padding: 14px 14px 12px;
+  box-shadow: var(--shadow);
 }
 
-.client-booking-day-on {
-  background: var(--accent);
-  color: #ffffff;
-  box-shadow: 0 8px 16px -6px var(--accent-glow);
+.client-booking-month-label {
+  font-size: 13.5px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 10px;
 }
 
-.client-booking-day:disabled {
+.client-booking-weekdays,
+.client-booking-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.client-booking-weekday {
+  text-align: center;
+  font-size: 9px;
+  font-weight: 700;
   color: var(--ink-soft);
-  opacity: 0.4;
-  box-shadow: none;
+  padding-bottom: 5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.client-booking-cell {
+  position: relative;
+  aspect-ratio: 1;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: default;
 }
 
-.client-booking-dow {
-  font-size: 10px;
-  font-weight: 700;
+/* Days outside the month are context, not content. */
+.client-booking-cell-outside {
+  opacity: 0.3;
 }
 
-.client-booking-date {
-  font-size: 14px;
+/* A day the app actually has data for and that has not passed. */
+.client-booking-cell-open {
+  background: var(--line);
+  color: var(--ink);
   font-weight: 700;
+  cursor: pointer;
+}
+
+.client-booking-cell-on {
+  background: var(--accent);
+  color: #ffffff;
+  box-shadow: 0 6px 14px -4px var(--accent-glow);
+}
+
+/* Marks a day the Pro is open on, so the open days read at a glance. */
+.client-booking-cell-dot {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.client-booking-cell-on .client-booking-cell-dot {
+  background: #ffffff;
+}
+
+.client-booking-month-hint {
+  margin-top: 10px;
+  font-size: 10.5px;
+  text-align: center;
+  color: var(--ink-soft);
 }
 
 .client-booking-selected {

@@ -54,6 +54,12 @@ via `addCustomBlock({kind:'pending'})` — the same request the coach's
 Schedule already confirms or declines. There is no second request
 mechanism, and there should not be one.
 
+`getMonthGrid()` derives the October-2025 calendar from the fixed week's
+own constants. `Schedule.tsx` still carries a hand-written 35-cell literal
+for the same grid — worth moving it onto `getMonthGrid()` so the two cannot
+disagree about which dates are live, but that is Reem's file and was left
+alone here.
+
 New in mockStore for #5, all small: `reportPro`/`getProReports` (a member
 can report their Pro but not block them — blocking stays a coach-side
 tool, matching the design's asymmetry; nothing reads reports yet, there is
