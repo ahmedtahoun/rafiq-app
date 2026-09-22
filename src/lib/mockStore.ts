@@ -295,7 +295,10 @@ export function formatDate(ms: number): string {
 // reads as a deterministic "30 days to expiry", matching the prototype's
 // own demo data exactly rather than drifting with the real date.
 const TODAY_MS = Date.UTC(2025, 9, 22);
-const PACKAGE_DEFAULT_TOTAL: Record<string, number> = { Basic: 8, 'Full Access': 12 };
+/** Sessions a plan includes. Exported because ClientCoach's upgrade sheet
+    has to tell a member what Full Access actually buys, and a second copy
+    of the number would drift from the one getPackageStatus uses. */
+export const PACKAGE_DEFAULT_TOTAL: Record<string, number> = { Basic: 8, 'Full Access': 12 };
 const PACKAGE_DEFAULT_USED = 2;
 
 interface RawPackage {
@@ -1859,4 +1862,87 @@ export function getMessagesHref(clientId: string): NavTarget {
 }
 export function getAddTaskHref(clientId: string): NavTarget {
   return { screen: 'addTask', params: { clientId } };
+}
+
+// ---------------------------------------------------------------------------
+// The member's side of the relationship (ClientCoach.dc.html)
+// ---------------------------------------------------------------------------
+
+/**
+ * A member flagging a problem with their Pro.
+ *
+ * The trust model is deliberately asymmetric, matching the design: a Pro
+ * can block a member outright (ClientDetail's block action), a member can
+ * only report. Blocking your own coach from inside the app would strand
+ * the relationship — sessions, payments and package credits all hang off
+ * it — so escalation goes to whoever reviews these instead.
+ *
+ * Nothing reads this yet; there is no moderation surface to read it. It is
+ * stored rather than discarded for the same reason directory.ts records a
+ * session request: the button either does something durable or it is
+ * pretending, and a report that evaporates is worse than no button.
+ */
+export type ProReportReason = 'no_show' | 'inappropriate' | 'payment' | 'other';
+
+export interface ProReport {
+  clientId: string;
+  /** Which Pro was reported. One Pro today, so this is theirs. */
+  proId: string;
+  reason: ProReportReason;
+  reportedAtMs: number;
+}
+
+export function getProReports(): ProReport[] {
+  return readLocal<ProReport[]>('pro_reports', []);
+}
+
+/** Record a report. Appends — a second report is a second data point, not
+    a correction of the first. */
+export function reportPro(clientId: string, reason: ProReportReason): ProReport[] {
+  const next = [
+    ...getProReports(),
+    { clientId, proId: getCoachProfile().id, reason, reportedAtMs: Date.now() },
+  ];
+  writeLocal('pro_reports', next);
+  return next;
+}
+
+/**
+ * A recurring weekly time a Full Access member holds with their Pro.
+ *
+ * Stored as a weekday + hour range rather than dates, because that is what
+ * "a standing weekly time" is. Only the pattern lives here; the actual
+ * sessions it implies are ordinary time_blocks, so the coach's Schedule
+ * needs no concept of recurrence to show them.
+ */
+export interface StandingSlot {
+  dayIndex: number;
+  startH: number;
+  endH: number;
+  setAtMs: number;
+}
+
+/**
+ * How many whole months a member and the Pro have been working together,
+ * or null when the member never completed signup and there is no date to
+ * count from.
+ *
+ * Lives here rather than in the screen because it reads the clock, and a
+ * render that reads the clock produces a value that changes under it.
+ */
+export function getMonthsTogether(clientId: string): number | null {
+  const joinedAtMs = getClient(clientId)?.signupCompletedAtMs ?? null;
+  if (joinedAtMs === null) return null;
+  return Math.max(1, Math.round((Date.now() - joinedAtMs) / (30 * DAY_MS)));
+}
+
+export function getStandingSlot(clientId: string): StandingSlot | null {
+  return readLocal<Record<string, StandingSlot>>('standing_slots', {})[clientId] ?? null;
+}
+
+export function setStandingSlot(clientId: string, slot: Omit<StandingSlot, 'setAtMs'>): StandingSlot {
+  const all = readLocal<Record<string, StandingSlot>>('standing_slots', {});
+  const saved: StandingSlot = { ...slot, setAtMs: Date.now() };
+  writeLocal('standing_slots', { ...all, [clientId]: saved });
+  return saved;
 }

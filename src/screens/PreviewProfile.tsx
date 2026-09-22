@@ -91,9 +91,9 @@ export default function PreviewProfile() {
   function book() {
     if (!selectedId) return;
     setSelectedOfferingId(selectedId);
-    // TODO: route to 'clientBooking' once ClientBooking.dc.html is ported —
-    // Track B's screen, and where the design hands the selected offering off.
-    nav({ screen: 'comingSoon', params: { feature: 'clientBooking' } });
+    // ClientBooking reads this back as the offering being booked — the
+    // handoff the design describes.
+    nav('clientBooking');
   }
 
   return (

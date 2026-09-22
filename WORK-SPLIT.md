@@ -29,20 +29,37 @@ OfferingDetail/Subscription/Earnings, Templates/TemplateDetail, AddTask/
 SessionRoom, Messages/MessagesInbox, Notifications/ShareProfile/
 PreviewProfile/HelpCenter/CoachPrivacyPolicy/CoachTermsOfService.
 
-**Track B — Client side: #1–#4 done, #5–#9 open.**
+**Track B — Client side: #1–#5 done, #6–#9 open.**
 Done: ClientOnboarding, ClientHome, ClientProfile + EditClientProfile,
-Discover + CoachPreview.
+Discover + CoachPreview, ClientCoach + ClientBooking.
 
 Open, in order:
-- **#5 The coach relationship** — ClientCoach.dc.html ("Your Pro"), ClientBooking.dc.html
-  — **CLAIMED, in progress** (branch `dev3/coach-relationship`, 2026-09-22)
 - **#6 Sessions & tasks** — ClientSchedule.dc.html, ClientTasks.dc.html
+  — note: a member's session request is now a real `pending` time block
+  (`addCustomBlock`), so ClientSchedule can read the member's side of the
+  same data the coach's Schedule confirms.
 - **#7 Programs & progress** — MyPrograms.dc.html, ProgramDetail.dc.html
 - **#8 Reviews & messaging** — RateCoach.dc.html, CoachMessages.dc.html, MyCoaches.dc.html
   — note: `requestSession()` in `src/lib/directory.ts` already records a
   member's pending request to a directory coach. MyCoaches is the screen
   that should read it (`getSessionRequests()`); nothing reads it today.
 - **#9 Everything else** — ClientNotifications.dc.html, ClientHelpCenter.dc.html, PrivacyPolicy.dc.html, TermsOfService.dc.html
+
+**The member's own Pro vs. the browsable directory — two different
+things, don't merge them.** `directory.ts` is for *browsing* pros a member
+has no relationship with; its `requestSession()` records an ask to a
+stranger. ClientCoach/ClientBooking are the opposite: the one real
+relationship, so they read `getCoachProfile()` and write real `time_blocks`
+via `addCustomBlock({kind:'pending'})` — the same request the coach's
+Schedule already confirms or declines. There is no second request
+mechanism, and there should not be one.
+
+New in mockStore for #5, all small: `reportPro`/`getProReports` (a member
+can report their Pro but not block them — blocking stays a coach-side
+tool, matching the design's asymmetry; nothing reads reports yet, there is
+no moderation surface), `setStandingSlot`/`getStandingSlot` (the weekly
+pattern a Full Access member holds), `getMonthsTogether`, and
+`PACKAGE_DEFAULT_TOTAL` is now exported.
 
 **Multi-coach data is mocked, deliberately.** `src/lib/directory.ts`
 seeds eight demo coaches for Discover/CoachPreview. Everywhere else the
