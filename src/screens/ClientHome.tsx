@@ -10,7 +10,7 @@ import {
   getPackageStatus,
   getTasks,
   toggleTask,
-  getSessionLogs,
+  getMemberSessions,
   isSessionToday,
   getActiveSession,
   getUnreviewedMilestones,
@@ -18,21 +18,12 @@ import {
   setSelectedOfferingId,
   getRecapForMember,
   getClientNotifications,
-  formatDate,
 } from '../lib/mockStore';
 import './ClientHome.css';
 
 const CLIENT_ID = 'sara';
 const RING_R = 37;
 const RING_CIRC = 2 * Math.PI * RING_R;
-// Same two hardcoded fallback sessions store.js's own getNotifications/
-// ClientHome.dc.html renderVals() concat onto any real logged sessions, so
-// a fresh install still has something to look for a recap on.
-const FALLBACK_SESSIONS: { id: string; date: string }[] = [
-  { id: 'sess1', date: 'Oct 18, 2025' },
-  { id: 'sess2', date: 'Oct 11, 2025' },
-];
-
 // Matches tokens.css's --accent — darken() needs a literal hex, not the CSS
 // custom property, for the hero/coach-avatar gradient's darker stop.
 const ACCENT_HEX = '#B75C3D';
@@ -85,9 +76,9 @@ export default function ClientHome() {
   const sessionIsLive = getActiveSession(CLIENT_ID).active;
   const joinBadgeLabel = sessionIsLive ? t('clientHomeRejoinSession') : t('clientHomeJoinSession');
 
-  const loggedSessions = getSessionLogs(CLIENT_ID).map((s) => ({ id: s.id, date: formatDate(s.atMs) }));
-  const allSessions: { id: string; date: string }[] = [...loggedSessions, ...FALLBACK_SESSIONS];
-  const recentFeedback = allSessions.map((s) => ({ session: s, text: getRecapForMember(CLIENT_ID, s.id) })).find((r) => r.text.trim());
+  // Real logged sessions plus the same two demo ones ClientSchedule and
+  // ClientTasks read, from the one shared seam rather than a private copy.
+  const recentFeedback = getMemberSessions(CLIENT_ID).map((s) => ({ session: s, text: getRecapForMember(CLIENT_ID, s.id) })).find((r) => r.text.trim());
   const hasRecentFeedback = !!recentFeedback;
   const recentFeedbackText = recentFeedback?.text ?? '';
   const recentFeedbackDate = recentFeedback?.session.date ?? '';
@@ -121,10 +112,8 @@ export default function ClientHome() {
     { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'clientHome' },
     // TODO: route to 'myPrograms' once MyPrograms.dc.html is ported
     { key: 'programs', label: t('clientHomeProgramsNav'), icon: ProgramsIcon, screen: 'comingSoon', params: { feature: 'myPrograms' } },
-    // TODO: route to 'clientTasks' once ClientTasks.dc.html is ported
-    { key: 'tasks', label: t('clientHomeTasksNav'), icon: TasksIcon, screen: 'comingSoon', params: { feature: 'clientTasks' } },
-    // TODO: route to 'clientSchedule' once ClientSchedule.dc.html is ported
-    { key: 'schedule', label: t('clientHomeScheduleNav'), icon: ScheduleIcon, screen: 'comingSoon', params: { feature: 'clientSchedule' } },
+    { key: 'tasks', label: t('clientTasksNav'), icon: TasksIcon, screen: 'clientTasks' },
+    { key: 'schedule', label: t('clientScheduleNav'), icon: ScheduleIcon, screen: 'clientSchedule' },
     { key: 'coach', label: t('clientHomeCoachNav'), icon: PersonIcon, screen: 'clientCoach' },
   ];
 
@@ -190,7 +179,7 @@ export default function ClientHome() {
           <button
             type="button"
             className="client-home-progress-card"
-            onClick={() => nav({ screen: 'comingSoon', params: { feature: 'clientSchedule' } })} // TODO: route to 'clientSchedule' once ClientSchedule.dc.html is ported
+            onClick={() => nav('clientSchedule')}
           >
             <div className="client-home-progress-row">
               <div className="client-home-ring">
@@ -322,7 +311,7 @@ export default function ClientHome() {
                 <button
                   type="button"
                   className="client-home-see-all"
-                  onClick={() => nav({ screen: 'comingSoon', params: { feature: 'clientTasks' } })} // TODO: route to 'clientTasks' once ClientTasks.dc.html is ported
+                  onClick={() => nav('clientTasks')}
                 >
                   {t('mainSeeAll')}
                 </button>

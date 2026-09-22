@@ -416,8 +416,9 @@ export interface CustomBlock {
   label: string;
   startsAtMs: number;
   endsAtMs: number;
-  /** Only meaningful for a real booking — ClientBooking.dc.html stamps this
-      at creation, not ported yet, so this is always undefined today. */
+  /** Only meaningful for a real booking — ClientBooking stamps it at
+      creation, and ClientSchedule reads it back for the member's upcoming
+      session. Undefined on the coach's own available/busy blocks. */
   sessionType?: SessionType;
   createdAtMs: number;
 }
@@ -2004,4 +2005,56 @@ export function setStandingSlot(clientId: string, slot: Omit<StandingSlot, 'setA
   const saved: StandingSlot = { ...slot, setAtMs: Date.now() };
   writeLocal('standing_slots', { ...all, [clientId]: saved });
   return saved;
+}
+
+// ---------------------------------------------------------------------------
+// The member's sessions & tasks (ClientSchedule.dc.html, ClientTasks.dc.html)
+// ---------------------------------------------------------------------------
+
+/**
+ * The member's session history, newest first.
+ *
+ * Real logged sessions (`getSessionLogs`) concatenated with the same two
+ * hardcoded demo sessions store.js's own screens fall back to, so a fresh
+ * install still has a history to show a recap or a rating against. Lives
+ * here rather than in each screen because ClientHome, ClientSchedule and
+ * ClientTasks all need the same list and three private copies of the
+ * fallback would drift apart.
+ */
+export interface MemberSession {
+  id: string;
+  date: string;
+}
+
+const FALLBACK_MEMBER_SESSIONS: MemberSession[] = [
+  { id: 'sess1', date: 'Oct 18, 2025' },
+  { id: 'sess2', date: 'Oct 11, 2025' },
+];
+
+export function getMemberSessions(clientId: string): MemberSession[] {
+  const logged = getSessionLogs(clientId).map((s) => ({ id: s.id, date: formatDate(s.atMs) }));
+  return [...logged, ...FALLBACK_MEMBER_SESSIONS];
+}
+
+/**
+ * The member's daily mood check-in (ClientTasks.dc.html's emoji row).
+ *
+ * One value per member, not one per day: store.js keeps a single current
+ * mood and the screen's "logged for today" confirmation reads whether it
+ * is set at all. A real `mood_logs` table would be dated rows, which is
+ * why this is a named seam rather than the screen writing localStorage —
+ * but dating it here would invent history the prototype never showed.
+ */
+export type MoodKey = 'great' | 'good' | 'okay' | 'low' | 'hard';
+
+export const MOOD_KEYS: MoodKey[] = ['great', 'good', 'okay', 'low', 'hard'];
+
+export function getMood(clientId: string): MoodKey | null {
+  return readLocal<Record<string, MoodKey>>('moods', {})[clientId] ?? null;
+}
+
+export function setMood(clientId: string, mood: MoodKey): MoodKey {
+  const all = readLocal<Record<string, MoodKey>>('moods', {});
+  writeLocal('moods', { ...all, [clientId]: mood });
+  return mood;
 }

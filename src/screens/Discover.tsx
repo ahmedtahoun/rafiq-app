@@ -118,10 +118,8 @@ export default function Discover() {
     { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'clientHome' },
     // TODO: route to 'myPrograms' once MyPrograms.dc.html is ported
     { key: 'programs', label: t('clientHomeProgramsNav'), icon: ProgramsIcon, screen: 'comingSoon', params: { feature: 'myPrograms' } },
-    // TODO: route to 'clientTasks' once ClientTasks.dc.html is ported
-    { key: 'tasks', label: t('clientHomeTasksNav'), icon: TasksIcon, screen: 'comingSoon', params: { feature: 'clientTasks' } },
-    // TODO: route to 'clientSchedule' once ClientSchedule.dc.html is ported
-    { key: 'schedule', label: t('clientHomeScheduleNav'), icon: ScheduleIcon, screen: 'comingSoon', params: { feature: 'clientSchedule' } },
+    { key: 'tasks', label: t('clientTasksNav'), icon: TasksIcon, screen: 'clientTasks' },
+    { key: 'schedule', label: t('clientScheduleNav'), icon: ScheduleIcon, screen: 'clientSchedule' },
     { key: 'coach', label: t('clientCoachNav'), icon: PersonIcon, screen: 'clientCoach' },
   ];
 
