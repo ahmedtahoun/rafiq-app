@@ -47,6 +47,7 @@ export type Screen =
   | 'discover' | 'coachPreview'
   | 'clientCoach' | 'clientBooking'
   | 'clientSchedule' | 'clientTasks'
+  | 'myPrograms' | 'programDetail'
   | 'schedule' | 'addTimeBlock' | 'availability'
   | 'comingSoon'; // placeholder landing spot for whatever's not built yet
 
@@ -67,7 +68,7 @@ interface HistEntry {
 
 // Screens with no back-history (entering one always clears the stack —
 // bottom-nav destinations, or dead-end/landing screens).
-const ROOTS: Screen[] = ['comingSoon', 'main', 'profile', 'clients', 'clientHome', 'messagesInbox', 'schedule', 'discover', 'clientCoach', 'clientSchedule', 'clientTasks'];
+const ROOTS: Screen[] = ['comingSoon', 'main', 'profile', 'clients', 'clientHome', 'messagesInbox', 'schedule', 'discover', 'clientCoach', 'clientSchedule', 'clientTasks', 'myPrograms'];
 // Screens that shouldn't be pushed onto the NEXT screen's back-stack when
 // LEFT (e.g. splash/entry screens nobody should land back on). Empty for
 // now — extend as screens like that are added.
@@ -120,6 +121,8 @@ const PARENT: Partial<Record<Screen, Screen | typeof RET>> = {
   // history; ClientHome is where their own nav sits.
   clientSchedule: 'clientHome',
   clientTasks: 'clientHome',
+  myPrograms: 'clientHome',
+  programDetail: 'myPrograms',
   addTimeBlock: 'schedule',
   // Availability.dc.html's own back link points at Profile, not Schedule
   // (it's reached from Schedule's header icon, but is itself a settings-ish

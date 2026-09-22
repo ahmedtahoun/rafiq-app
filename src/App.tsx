@@ -45,6 +45,8 @@ import ClientCoach from './screens/ClientCoach';
 import ClientBooking from './screens/ClientBooking';
 import ClientSchedule from './screens/ClientSchedule';
 import ClientTasks from './screens/ClientTasks';
+import MyPrograms from './screens/MyPrograms';
+import ProgramDetail from './screens/ProgramDetail';
 import ComingSoon from './screens/ComingSoon';
 
 export default function App() {
@@ -87,6 +89,10 @@ export default function App() {
       return <ClientSchedule />;
     case 'clientTasks':
       return <ClientTasks />;
+    case 'myPrograms':
+      return <MyPrograms />;
+    case 'programDetail':
+      return <ProgramDetail />;
     case 'clientAuth':
       return <ClientAuth />;
     case 'onboarding':

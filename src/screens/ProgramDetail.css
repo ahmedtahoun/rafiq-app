@@ -1,0 +1,401 @@
+/* ProgramDetail.dc.html — one enrolled program: how far through it the
+   member is, their goal, and what happens next.
+   Logical properties throughout so the screen mirrors for Arabic. */
+
+.program-detail-screen {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-grad);
+  color: var(--ink);
+}
+
+/* ---------- header ---------- */
+
+.program-detail-top {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 30px 24px 8px;
+}
+
+.program-detail-top-start {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.program-detail-header-title {
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.program-detail-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.program-detail-circle {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+}
+
+.program-detail-theme {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: none;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ---------- scroller ---------- */
+
+.program-detail-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.program-detail-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------- hero card ---------- */
+
+.program-detail-hero {
+  border-radius: 26px;
+  padding: 20px 20px 22px;
+  box-shadow: 0 16px 30px -16px var(--accent-glow);
+  color: #ffffff;
+}
+
+.program-detail-hero-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.program-detail-hero-icon {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.program-detail-hero-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.program-detail-name {
+  margin: 0;
+  font-family: var(--font-display-en);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+  line-height: 1.3;
+}
+[dir='rtl'] .program-detail-name {
+  font-family: var(--font-display-ar);
+}
+
+.program-detail-type {
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 3px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.program-detail-description {
+  margin: 14px 0 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ---------- cards ---------- */
+
+.program-detail-card {
+  width: 100%;
+  border: none;
+  border-radius: 20px;
+  padding: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-family: inherit;
+  color: inherit;
+  text-align: start;
+}
+
+.program-detail-progress {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.program-detail-ring {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  display: block;
+}
+
+.program-detail-ring-value {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.program-detail-ongoing-icon {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.program-detail-progress-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.program-detail-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--ink-soft);
+}
+
+.program-detail-fraction {
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+/* A count reads left-to-right in both languages — "5/8", never "8/5". */
+.program-detail-fraction[dir='ltr'] {
+  text-align: start;
+}
+
+.program-detail-complete {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 5px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.program-detail-ongoing-body {
+  font-size: 11.5px;
+  line-height: 1.4;
+  margin-top: 4px;
+  color: var(--ink-soft);
+}
+
+.program-detail-goal {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.program-detail-goal-text {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+/* ---------- next-session / book link ---------- */
+
+.program-detail-link {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 15px;
+  cursor: pointer;
+}
+
+.program-detail-link-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: var(--accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.program-detail-link-body {
+  flex: 1;
+  min-width: 0;
+  display: block;
+}
+
+.program-detail-link-eyebrow {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--accent);
+}
+
+.program-detail-link-title {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.program-detail-link-sub {
+  display: block;
+  font-size: 12px;
+  margin-top: 1px;
+  color: var(--ink-soft);
+}
+
+.program-detail-link-chevron {
+  flex-shrink: 0;
+  display: flex;
+}
+
+/* ---------- history ---------- */
+
+.program-detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.program-detail-h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.program-detail-history {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 4px 16px;
+  box-shadow: var(--shadow);
+}
+
+.program-detail-history-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 0;
+}
+
+.program-detail-history-row + .program-detail-history-row {
+  border-top: 1px solid var(--line);
+}
+
+.program-detail-history-dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.program-detail-history-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.program-detail-history-label {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.program-detail-history-detail {
+  font-size: 11px;
+  margin-top: 1px;
+  color: var(--ink-soft);
+}
+
+/* ---------- not found ---------- */
+
+.program-detail-missing {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+  padding: 40px 24px;
+}
+
+.program-detail-missing-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.program-detail-missing-body {
+  max-width: 240px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.program-detail-missing-cta {
+  margin-top: 6px;
+  border: none;
+  border-radius: 14px;
+  padding: 12px 22px;
+  background: var(--accent);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+}

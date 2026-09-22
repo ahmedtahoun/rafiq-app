@@ -29,13 +29,12 @@ OfferingDetail/Subscription/Earnings, Templates/TemplateDetail, AddTask/
 SessionRoom, Messages/MessagesInbox, Notifications/ShareProfile/
 PreviewProfile/HelpCenter/CoachPrivacyPolicy/CoachTermsOfService.
 
-**Track B — Client side: #1–#6 done, #7–#9 open.**
+**Track B — Client side: #1–#7 done, #8–#9 open.**
 Done: ClientOnboarding, ClientHome, ClientProfile + EditClientProfile,
 Discover + CoachPreview, ClientCoach + ClientBooking, ClientSchedule +
-ClientTasks.
+ClientTasks, MyPrograms + ProgramDetail.
 
 Open, in order:
-- **#7 Programs & progress** — MyPrograms.dc.html, ProgramDetail.dc.html
 - **#8 Reviews & messaging** — RateCoach.dc.html, CoachMessages.dc.html, MyCoaches.dc.html
   — note: `requestSession()` in `src/lib/directory.ts` already records a
   member's pending request to a directory coach. MyCoaches is the screen
@@ -56,6 +55,37 @@ own constants. `Schedule.tsx` still carries a hand-written 35-cell literal
 for the same grid — worth moving it onto `getMonthGrid()` so the two cannot
 disagree about which dates are live, but that is Reem's file and was left
 alone here.
+
+**#7 added the enrollment model — the piece several features were waiting
+on.** `Enrollment` (clientId, offeringId, sessionsCompleted, enrolledAtMs)
+plus `getEnrollments`, `enrollClient`, `logProgramSession`,
+`getClientProgramProgress(clientId, offeringId)`,
+`getClientProgramProgressList(clientId)`, `getOfferingTypeInfo(type)` and
+`getMilestoneReviewStatus`. An offering is the Pro's catalogue entry; an
+enrollment is one member's relationship to it, and a member only ever sees
+what they are enrolled in.
+
+Consequences worth knowing:
+
+- **`getUnreviewedMilestones()` is real now.** It returned a hardcoded `[]`
+  with a comment saying it was blocked on exactly this model. ClientHome's
+  milestone-review card was therefore dead code since it was written; it
+  renders as soon as an enrollment completes.
+- **Progress is its own counter, not derived from session logs**, because
+  nothing in this data model attributes a session to an offering (store.js
+  says the same). `logProgramSession(clientId, offeringId)` is the seam
+  that writes it. Nothing calls it yet — it belongs in the Pro's
+  attendance flow, which doesn't know which offering a session was for.
+  That gap is real and unresolved, not an oversight.
+- **Seeded deliberately incomplete** (`sara`: 5/8 on the 8-week program,
+  plus the open-ended 1:1). A completed seed would fire a milestone review
+  prompt on ClientHome that nobody earned.
+- `getOfferingTypeInfo` returns a **labelKey, not English** — this file
+  holds no display copy. `Offerings.tsx` and `PreviewProfile.tsx` still
+  carry their own type→labelKey maps (Track A files); worth moving them
+  onto this one, not done here.
+- An enrollment whose offering the Pro deleted is **skipped**, not rendered
+  as a nameless row, and ProgramDetail shows its not-found state.
 
 New in mockStore for #6, both small: `getMemberSessions(clientId)` (real
 `getSessionLogs` entries plus the same two demo sessions store.js's own

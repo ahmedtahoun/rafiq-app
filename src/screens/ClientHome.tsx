@@ -110,8 +110,7 @@ export default function ClientHome() {
   const navItems: BottomNavItem[] = [
     { key: 'discover', label: t('clientHomeDiscoverNav'), icon: SearchIcon, screen: 'discover' },
     { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'clientHome' },
-    // TODO: route to 'myPrograms' once MyPrograms.dc.html is ported
-    { key: 'programs', label: t('clientHomeProgramsNav'), icon: ProgramsIcon, screen: 'comingSoon', params: { feature: 'myPrograms' } },
+    { key: 'programs', label: t('myProgramsNav'), icon: ProgramsIcon, screen: 'myPrograms' },
     { key: 'tasks', label: t('clientTasksNav'), icon: TasksIcon, screen: 'clientTasks' },
     { key: 'schedule', label: t('clientScheduleNav'), icon: ScheduleIcon, screen: 'clientSchedule' },
     { key: 'coach', label: t('clientHomeCoachNav'), icon: PersonIcon, screen: 'clientCoach' },

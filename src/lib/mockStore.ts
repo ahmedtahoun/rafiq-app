@@ -1538,11 +1538,11 @@ export function canInteract(clientId: string): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// Milestone-triggered review prompts — genuinely depends on the Offerings/
-// MyPrograms program-progress model (an enrollment's sessionsCompleted vs.
-// its offering's sessionsTotal), and neither is ported yet. Always empty
-// until that lands, matching this file's "empty until a real feature writes
-// to it" rule for everything else that fronts a not-yet-built screen.
+// Milestone-triggered review prompts — a program the member has finished
+// (an enrollment's sessionsCompleted vs. its offering's sessionsTotal) and
+// not yet been asked to review. This returned a hardcoded [] until the
+// enrollment model below existed; it is now real, and empty only because
+// no seeded enrollment is complete.
 // ---------------------------------------------------------------------------
 
 export interface UnreviewedMilestone {
@@ -1550,8 +1550,10 @@ export interface UnreviewedMilestone {
   offering: { name: string };
 }
 
-export function getUnreviewedMilestones(_clientId: string): UnreviewedMilestone[] {
-  return [];
+export function getUnreviewedMilestones(clientId: string): UnreviewedMilestone[] {
+  return getClientProgramProgressList(clientId)
+    .filter((p) => p.isComplete && !getMilestoneReviewStatus(clientId, p.offeringId))
+    .map((p) => ({ offeringId: p.offeringId, offering: { name: p.offering.name } }));
 }
 
 export function markMilestoneReviewed(clientId: string, offeringId: string): void {
@@ -2057,4 +2059,132 @@ export function setMood(clientId: string, mood: MoodKey): MoodKey {
   const all = readLocal<Record<string, MoodKey>>('moods', {});
   writeLocal('moods', { ...all, [clientId]: mood });
   return mood;
+}
+
+// ---------------------------------------------------------------------------
+// Program enrollments (MyPrograms.dc.html, ProgramDetail.dc.html)
+//
+// The piece every other program-shaped feature was waiting on: which
+// offerings a member is actually enrolled in, and how far through each one
+// they are. An offering is the Pro's catalogue entry; an enrollment is one
+// member's relationship to it. A member sees only what they're enrolled in,
+// never the full catalogue — that distinction is the whole point of this
+// table, and `getClientProgramProgressList` returning [] is a real answer,
+// not a stub.
+//
+// Progress is its own counter rather than a count of session logs, because
+// nothing in this data model attributes a session to a particular offering
+// (store.js's own note says the same). Deriving it would be inventing an
+// attribution that does not exist; `logProgramSession` is the seam that
+// writes it when something real does.
+// ---------------------------------------------------------------------------
+
+export interface Enrollment {
+  clientId: string;
+  offeringId: string;
+  sessionsCompleted: number;
+  enrolledAtMs: number;
+}
+
+/** Seeded in the same spirit as DEFAULT_CLIENTS/DEFAULT_TASKS: the one demo
+    member is partway through the 8-week program and on the open-ended 1:1
+    cadence, so both the fixed-length and the ongoing shapes are visible.
+    Deliberately NOT complete — a finished program would fire a milestone
+    review prompt on ClientHome that nobody earned. */
+const DEFAULT_ENROLLMENTS: Enrollment[] = [
+  { clientId: 'sara', offeringId: 'off-program', sessionsCompleted: 5, enrolledAtMs: TODAY_MS - 35 * DAY_MS },
+  { clientId: 'sara', offeringId: 'off-1to1', sessionsCompleted: 12, enrolledAtMs: TODAY_MS - 60 * DAY_MS },
+];
+
+export function getEnrollments(clientId: string): Enrollment[] {
+  return readLocal(`enrollments_${clientId}`, DEFAULT_ENROLLMENTS.filter((e) => e.clientId === clientId));
+}
+
+export function enrollClient(clientId: string, offeringId: string): Enrollment[] {
+  const existing = getEnrollments(clientId);
+  if (existing.some((e) => e.offeringId === offeringId)) return existing;
+  const list = [...existing, { clientId, offeringId, sessionsCompleted: 0, enrolledAtMs: Date.now() }];
+  writeLocal(`enrollments_${clientId}`, list);
+  return list;
+}
+
+/** Credits one session against an enrollment. Nothing calls this yet — the
+    Pro's attendance flow is where it belongs, and that doesn't know which
+    offering a session was for. Exported as the named seam so progress has
+    exactly one writer when it does. */
+export function logProgramSession(clientId: string, offeringId: string): Enrollment[] {
+  const list = getEnrollments(clientId).map((e) => (
+    e.offeringId === offeringId ? { ...e, sessionsCompleted: e.sessionsCompleted + 1 } : e
+  ));
+  writeLocal(`enrollments_${clientId}`, list);
+  return list;
+}
+
+export interface ProgramProgress {
+  offeringId: string;
+  offering: Offering;
+  sessionsCompleted: number;
+  /** null when the offering has no fixed length — an ongoing cadence. */
+  sessionsTotal: number | null;
+  /** null for the same reason: a percentage of nothing is not 0%. */
+  pct: number | null;
+  isComplete: boolean;
+  enrolledAtMs: number;
+}
+
+function progressOf(enrollment: Enrollment): ProgramProgress | null {
+  const offering = getOffering(enrollment.offeringId);
+  // An enrollment whose offering the Pro deleted: skipped rather than
+  // rendered as a nameless row.
+  if (!offering) return null;
+  const sessionsTotal = offering.sessionsTotal;
+  const hasFixedLength = sessionsTotal != null;
+  return {
+    offeringId: enrollment.offeringId,
+    offering,
+    sessionsCompleted: enrollment.sessionsCompleted,
+    sessionsTotal,
+    pct: hasFixedLength ? Math.min(100, Math.round((enrollment.sessionsCompleted / sessionsTotal) * 100)) : null,
+    isComplete: hasFixedLength && enrollment.sessionsCompleted >= sessionsTotal,
+    enrolledAtMs: enrollment.enrolledAtMs,
+  };
+}
+
+export function getClientProgramProgress(clientId: string, offeringId: string): ProgramProgress | null {
+  const enrollment = getEnrollments(clientId).find((e) => e.offeringId === offeringId);
+  return enrollment ? progressOf(enrollment) : null;
+}
+
+export function getClientProgramProgressList(clientId: string): ProgramProgress[] {
+  return getEnrollments(clientId)
+    .map(progressOf)
+    .filter((p): p is ProgramProgress => p !== null);
+}
+
+/** Per-type presentation, kept here for the same reason `Client.avatarBg`
+    is: it's fixed demo data both program screens read, and two private
+    copies would drift. The label is a key, not English — this file never
+    holds display copy. */
+export interface OfferingTypeInfo {
+  key: OfferingType;
+  labelKey: string;
+  icon: string;
+  color: string;
+}
+
+const OFFERING_TYPE_INFO: Record<OfferingType, OfferingTypeInfo> = {
+  session: { key: 'session', labelKey: 'offeringTypeSession', icon: '1:1', color: '#B75C3D' },
+  consultation: { key: 'consultation', labelKey: 'offeringTypeConsultation', icon: 'CN', color: '#2A8F8F' },
+  group: { key: 'group', labelKey: 'offeringTypeGroup', icon: 'GR', color: '#3E6FB0' },
+  workshop: { key: 'workshop', labelKey: 'offeringTypeWorkshop', icon: 'WS', color: '#7A6BAE' },
+  program: { key: 'program', labelKey: 'offeringTypeProgram', icon: 'PR', color: '#3F7D58' },
+  event: { key: 'event', labelKey: 'offeringTypeEvent', icon: 'EV', color: '#B98900' },
+};
+
+export function getOfferingTypeInfo(type: OfferingType | undefined): OfferingTypeInfo {
+  return (type && OFFERING_TYPE_INFO[type]) || OFFERING_TYPE_INFO.session;
+}
+
+export function getMilestoneReviewStatus(clientId: string, offeringId: string): boolean {
+  return readLocal(`milestone_reviewed_${clientId}_${offeringId}`, false);
 }
