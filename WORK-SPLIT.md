@@ -29,16 +29,12 @@ OfferingDetail/Subscription/Earnings, Templates/TemplateDetail, AddTask/
 SessionRoom, Messages/MessagesInbox, Notifications/ShareProfile/
 PreviewProfile/HelpCenter/CoachPrivacyPolicy/CoachTermsOfService.
 
-**Track B — Client side: #1–#5 done, #6–#9 open.**
+**Track B — Client side: #1–#7 done, #8–#9 open.**
 Done: ClientOnboarding, ClientHome, ClientProfile + EditClientProfile,
-Discover + CoachPreview, ClientCoach + ClientBooking.
+Discover + CoachPreview, ClientCoach + ClientBooking, ClientSchedule +
+ClientTasks, MyPrograms + ProgramDetail.
 
 Open, in order:
-- **#6 Sessions & tasks** — ClientSchedule.dc.html, ClientTasks.dc.html
-  — note: a member's session request is now a real `pending` time block
-  (`addCustomBlock`), so ClientSchedule can read the member's side of the
-  same data the coach's Schedule confirms.
-- **#7 Programs & progress** — MyPrograms.dc.html, ProgramDetail.dc.html
 - **#8 Reviews & messaging** — RateCoach.dc.html, CoachMessages.dc.html, MyCoaches.dc.html
   — note: `requestSession()` in `src/lib/directory.ts` already records a
   member's pending request to a directory coach. MyCoaches is the screen
@@ -59,6 +55,72 @@ own constants. `Schedule.tsx` still carries a hand-written 35-cell literal
 for the same grid — worth moving it onto `getMonthGrid()` so the two cannot
 disagree about which dates are live, but that is Reem's file and was left
 alone here.
+
+**#7 added the enrollment model — the piece several features were waiting
+on.** `Enrollment` (clientId, offeringId, sessionsCompleted, enrolledAtMs)
+plus `getEnrollments`, `enrollClient`, `logProgramSession`,
+`getClientProgramProgress(clientId, offeringId)`,
+`getClientProgramProgressList(clientId)`, `getOfferingTypeInfo(type)` and
+`getMilestoneReviewStatus`. An offering is the Pro's catalogue entry; an
+enrollment is one member's relationship to it, and a member only ever sees
+what they are enrolled in.
+
+Consequences worth knowing:
+
+- **`getUnreviewedMilestones()` is real now.** It returned a hardcoded `[]`
+  with a comment saying it was blocked on exactly this model. ClientHome's
+  milestone-review card was therefore dead code since it was written; it
+  renders as soon as an enrollment completes.
+- **Progress is its own counter, not derived from session logs**, because
+  nothing in this data model attributes a session to an offering (store.js
+  says the same). `logProgramSession(clientId, offeringId)` is the seam
+  that writes it. Nothing calls it yet — it belongs in the Pro's
+  attendance flow, which doesn't know which offering a session was for.
+  That gap is real and unresolved, not an oversight.
+- **Seeded deliberately incomplete** (`sara`: 5/8 on the 8-week program,
+  plus the open-ended 1:1). A completed seed would fire a milestone review
+  prompt on ClientHome that nobody earned.
+- `getOfferingTypeInfo` returns a **labelKey, not English** — this file
+  holds no display copy. `Offerings.tsx` and `PreviewProfile.tsx` still
+  carry their own type→labelKey maps (Track A files); worth moving them
+  onto this one, not done here.
+- An enrollment whose offering the Pro deleted is **skipped**, not rendered
+  as a nameless row, and ProgramDetail shows its not-found state.
+
+New in mockStore for #6, both small: `getMemberSessions(clientId)` (real
+`getSessionLogs` entries plus the same two demo sessions store.js's own
+screens fall back to — ClientHome, ClientSchedule and ClientTasks all read
+it now, so the fallback lives in one place instead of three), and
+`getMood`/`setMood` + `MOOD_KEYS` for ClientTasks' daily check-in. Mood is
+one current value per member, not dated rows, because that is what the
+prototype showed; a real `mood_logs` table would be dated, which is why it
+is a named seam rather than the screen writing localStorage directly.
+
+**#6 retired every `comingSoon` stub for these two screens** — six files'
+worth (ClientHome, ClientCoach, Discover, ClientProfile, SessionRoom, plus
+the bottom-nav entries). A member leaving SessionRoom now lands on
+ClientSchedule, which is where the design sends them.
+
+**Two pre-existing English strings show through in Arabic**, both older
+than #6 and both shared with screens other tracks own, so they were left
+alone rather than patched locally:
+
+1. `client.nextSession` is a pre-composed English display string
+   ("Next: Today, 10:00 AM"). ClientHome and the coach's Main render it the
+   same way. Localizing it is a data-model change across every reader.
+2. `formatDate()` formats with `en-US`, so "Oct 18, 2025" stays English in
+   Arabic everywhere it appears (session history, payments, expiries).
+
+A member's *own* pending request avoids both: ClientSchedule builds that
+line from the block itself, so its day name and AM/PM translate.
+
+**Bidi convention worth copying.** User-typed content (task titles, recaps,
+goals, due strings) and time ranges are wrapped in `<bdi>` in #6's two
+screens, so "10-minute evening walk" doesn't render as "minute evening
+walk-10" in Arabic and "10:00 صباحًا – 10:45 صباحًا" keeps its order. A
+`dir="ltr"` span around a whole range scrambles it once the AM/PM word is
+Arabic — isolate each end instead. ClientHome and ClientDetail render the
+same task titles without this and would benefit from the same treatment.
 
 New in mockStore for #5, all small: `reportPro`/`getProReports` (a member
 can report their Pro but not block them — blocking stays a coach-side

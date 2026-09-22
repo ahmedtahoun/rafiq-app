@@ -1,0 +1,224 @@
+/* MyPrograms.dc.html — the programs a member is enrolled in.
+   Logical properties throughout so the screen mirrors for Arabic. */
+
+.my-programs-screen {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-grad);
+  color: var(--ink);
+}
+
+/* ---------- hero ---------- */
+
+.my-programs-hero {
+  flex-shrink: 0;
+  padding: 30px 24px 22px;
+  border-radius: 0 0 32px 32px;
+  box-shadow: 0 18px 32px -18px var(--accent-glow);
+  color: #ffffff;
+}
+
+.my-programs-hero-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.my-programs-title {
+  margin: 0;
+  font-family: var(--font-display-en);
+  font-size: 27px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+[dir='rtl'] .my-programs-title {
+  font-family: var(--font-display-ar);
+}
+
+.my-programs-subtitle {
+  font-size: 13px;
+  margin-top: 2px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.my-programs-hero-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.my-programs-hero-btn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ---------- list ---------- */
+
+.my-programs-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.my-programs-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.my-programs-row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  border: none;
+  border-radius: 18px;
+  padding: 14px 15px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-family: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.my-programs-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.my-programs-body {
+  flex: 1;
+  min-width: 0;
+  display: block;
+}
+
+.my-programs-name {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.my-programs-type {
+  display: block;
+  font-size: 11.5px;
+  margin-top: 2px;
+  color: var(--ink-soft);
+}
+
+.my-programs-next {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 3px;
+  color: var(--accent);
+}
+
+.my-programs-progress {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.my-programs-pct {
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.my-programs-bar {
+  display: block;
+  width: 44px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+}
+
+.my-programs-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+/* An offering with no fixed length gets a chip, not a 0% bar — a
+   percentage of nothing would be a made-up number. */
+.my-programs-ongoing {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 4px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.my-programs-chevron {
+  flex-shrink: 0;
+  display: flex;
+}
+
+/* ---------- empty ---------- */
+
+.my-programs-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  background: var(--surface);
+  border-radius: 20px;
+  padding: 40px 20px;
+  box-shadow: var(--shadow);
+}
+
+.my-programs-empty-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.my-programs-empty-body {
+  max-width: 230px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.my-programs-empty-cta {
+  margin-top: 6px;
+  border: none;
+  border-radius: 14px;
+  padding: 12px 22px;
+  background: var(--accent);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 20px -6px var(--accent-glow);
+}

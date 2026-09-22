@@ -196,7 +196,7 @@ export default function ClientProfile() {
           <button
             type="button"
             className="client-profile-quick-card"
-            onClick={() => nav({ screen: 'comingSoon', params: { feature: 'clientSchedule' } })} // TODO: route to 'clientSchedule' once ClientSchedule.dc.html is ported
+            onClick={() => nav('clientSchedule')}
           >
             <ScheduleIcon size={17} color="var(--accent)" />
             <div className="client-profile-quick-label">{t('clientProfileSessionsQuick')}</div>
@@ -205,7 +205,7 @@ export default function ClientProfile() {
           <button
             type="button"
             className="client-profile-quick-card"
-            onClick={() => nav({ screen: 'comingSoon', params: { feature: 'clientTasks' } })} // TODO: route to 'clientTasks' once ClientTasks.dc.html is ported
+            onClick={() => nav('clientTasks')}
           >
             <TasksIcon size={17} color="var(--accent)" />
             <div className="client-profile-quick-label">{t('clientProfileTasksQuick')}</div>

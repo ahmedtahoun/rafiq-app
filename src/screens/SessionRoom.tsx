@@ -87,9 +87,8 @@ export default function SessionRoom() {
       nav({ screen: 'clientDetail', params: { clientId } });
       return;
     }
-    // TODO: route to 'clientSchedule' once ClientSchedule.dc.html is ported —
-    // Track B's screen, and where the design sends a member from here.
-    nav({ screen: 'comingSoon', params: { feature: 'clientSchedule' } });
+    // Where the design sends a member leaving the room.
+    nav('clientSchedule');
   }
 
   function join() {
