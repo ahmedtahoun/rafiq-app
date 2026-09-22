@@ -35,6 +35,7 @@ Discover + CoachPreview.
 
 Open, in order:
 - **#5 The coach relationship** — ClientCoach.dc.html ("Your Pro"), ClientBooking.dc.html
+  — **CLAIMED, in progress** (branch `dev3/coach-relationship`, 2026-09-22)
 - **#6 Sessions & tasks** — ClientSchedule.dc.html, ClientTasks.dc.html
 - **#7 Programs & progress** — MyPrograms.dc.html, ProgramDetail.dc.html
 - **#8 Reviews & messaging** — RateCoach.dc.html, CoachMessages.dc.html, MyCoaches.dc.html
