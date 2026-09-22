@@ -41,6 +41,8 @@ import AddTimeBlock from './screens/AddTimeBlock';
 import Availability from './screens/Availability';
 import Discover from './screens/Discover';
 import CoachPreview from './screens/CoachPreview';
+import ClientCoach from './screens/ClientCoach';
+import ClientBooking from './screens/ClientBooking';
 import ComingSoon from './screens/ComingSoon';
 
 export default function App() {
@@ -75,6 +77,10 @@ export default function App() {
       return <Discover />;
     case 'coachPreview':
       return <CoachPreview />;
+    case 'clientCoach':
+      return <ClientCoach />;
+    case 'clientBooking':
+      return <ClientBooking />;
     case 'clientAuth':
       return <ClientAuth />;
     case 'onboarding':

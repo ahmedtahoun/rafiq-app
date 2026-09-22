@@ -122,8 +122,7 @@ export default function Discover() {
     { key: 'tasks', label: t('clientHomeTasksNav'), icon: TasksIcon, screen: 'comingSoon', params: { feature: 'clientTasks' } },
     // TODO: route to 'clientSchedule' once ClientSchedule.dc.html is ported
     { key: 'schedule', label: t('clientHomeScheduleNav'), icon: ScheduleIcon, screen: 'comingSoon', params: { feature: 'clientSchedule' } },
-    // TODO: route to 'clientCoach' once ClientCoach.dc.html is ported
-    { key: 'coach', label: t('clientHomeCoachNav'), icon: PersonIcon, screen: 'comingSoon', params: { feature: 'clientCoach' } },
+    { key: 'coach', label: t('clientCoachNav'), icon: PersonIcon, screen: 'clientCoach' },
   ];
 
   const heroGrad = `linear-gradient(135deg, ${ACCENT_HEX} 0%, ${darken(ACCENT_HEX, 45)} 100%)`;

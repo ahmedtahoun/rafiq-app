@@ -125,8 +125,7 @@ export default function ClientHome() {
     { key: 'tasks', label: t('clientHomeTasksNav'), icon: TasksIcon, screen: 'comingSoon', params: { feature: 'clientTasks' } },
     // TODO: route to 'clientSchedule' once ClientSchedule.dc.html is ported
     { key: 'schedule', label: t('clientHomeScheduleNav'), icon: ScheduleIcon, screen: 'comingSoon', params: { feature: 'clientSchedule' } },
-    // TODO: route to 'clientCoach' once ClientCoach.dc.html is ported
-    { key: 'coach', label: t('clientHomeCoachNav'), icon: PersonIcon, screen: 'comingSoon', params: { feature: 'clientCoach' } },
+    { key: 'coach', label: t('clientHomeCoachNav'), icon: PersonIcon, screen: 'clientCoach' },
   ];
 
   return (
@@ -182,7 +181,7 @@ export default function ClientHome() {
             <button
               type="button"
               className="client-home-welcome-cta"
-              onClick={() => nav({ screen: 'comingSoon', params: { feature: 'clientBooking' } })} // TODO: route to 'clientBooking' once ClientBooking.dc.html is ported
+              onClick={() => nav('clientBooking')}
             >
               {t('clientHomeBookFirst')}
             </button>
@@ -259,7 +258,7 @@ export default function ClientHome() {
               <button
                 type="button"
                 className="client-home-card"
-                onClick={() => nav({ screen: 'comingSoon', params: { feature: 'clientCoach' } })} // TODO: route to 'clientCoach' once ClientCoach.dc.html is ported
+                onClick={() => nav('clientCoach')}
               >
                 <div className="client-home-coach-avatar" style={{ background: coachGrad }}>
                   {coachInitials}
@@ -286,7 +285,7 @@ export default function ClientHome() {
                 <button
                   type="button"
                   className="client-home-card"
-                  onClick={() => nav({ screen: 'comingSoon', params: { feature: 'clientBooking' } })} // TODO: route to 'clientBooking' once ClientBooking.dc.html is ported
+                  onClick={() => nav('clientBooking')}
                 >
                   <div className="client-home-card-icon">
                     <ScheduleIcon size={20} color="var(--accent)" />
@@ -304,7 +303,7 @@ export default function ClientHome() {
               <button
                 type="button"
                 className="client-home-card client-home-feedback-card"
-                onClick={() => nav({ screen: 'comingSoon', params: { feature: 'clientCoach' } })} // TODO: route to 'clientCoach' once ClientCoach.dc.html is ported
+                onClick={() => nav('clientCoach')}
               >
                 <div className="client-home-coach-avatar client-home-coach-avatar-sm" style={{ background: coachGrad }}>
                   {coachInitials}

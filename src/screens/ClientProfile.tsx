@@ -216,7 +216,7 @@ export default function ClientProfile() {
         <button
           type="button"
           className="client-profile-card"
-          onClick={() => nav({ screen: 'comingSoon', params: { feature: 'clientCoach' } })} // TODO: route to 'clientCoach' once ClientCoach.dc.html is ported
+          onClick={() => nav('clientCoach')}
         >
           <div className="client-profile-payment-icon" style={{ background: paymentState.bg }}>
             <PaymentIcon size={16} color={paymentState.color} />
