@@ -93,7 +93,7 @@ export default function ClientHome() {
   function rateMilestone() {
     if (!milestone) return;
     setSelectedOfferingId(milestone.offeringId);
-    nav({ screen: 'comingSoon', params: { feature: 'rateCoach' } }); // TODO: route to 'rateCoach' once RateCoach.dc.html is ported
+    nav('rateCoach');
   }
   function dismissMilestone() {
     if (!milestone) return;

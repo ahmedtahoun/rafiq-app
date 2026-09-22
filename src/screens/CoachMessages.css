@@ -1,0 +1,212 @@
+/* CoachMessages.dc.html — the member's side of the one thread they have
+   with their Pro. Logical properties throughout so it mirrors for Arabic. */
+
+.coach-messages-screen {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-grad);
+  color: var(--ink);
+}
+
+/* ---------- header ---------- */
+
+.coach-messages-top {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 30px 24px 12px;
+  box-shadow: 0 1px 0 var(--line);
+}
+
+.coach-messages-back {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+}
+
+.coach-messages-avatar {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.coach-messages-who {
+  flex: 1;
+  min-width: 0;
+}
+
+.coach-messages-name {
+  font-size: 15px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coach-messages-subtitle {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+
+/* ---------- thread ---------- */
+
+.coach-messages-thread {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.coach-messages-thread::-webkit-scrollbar {
+  display: none;
+}
+
+.coach-messages-row {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.coach-messages-row-mine {
+  justify-content: flex-end;
+}
+
+.coach-messages-bubble {
+  max-width: 78%;
+  padding: 10px 14px;
+  /* The squared-off corner sits on the side the bubble comes from, so it
+     follows the writing direction rather than being pinned left/right. */
+  border-radius: 16px 16px 16px 4px;
+  border-start-start-radius: 16px;
+  border-start-end-radius: 16px;
+  border-end-start-radius: 4px;
+  border-end-end-radius: 16px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-soft);
+}
+
+.coach-messages-bubble-mine {
+  border-end-start-radius: 16px;
+  border-end-end-radius: 4px;
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.coach-messages-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+  padding: 40px 24px;
+}
+
+.coach-messages-empty-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-soft);
+}
+
+.coach-messages-empty-title {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.coach-messages-empty-body {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+/* ---------- composer ---------- */
+
+.coach-messages-composer {
+  flex-shrink: 0;
+  padding: 12px 16px;
+  background: var(--surface);
+  box-shadow: 0 -8px 20px -12px rgba(0, 0, 0, 0.12);
+}
+
+.coach-messages-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.coach-messages-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-family: inherit;
+  font-size: 14px;
+  background: var(--line);
+  color: var(--ink);
+}
+
+.coach-messages-input::placeholder {
+  color: var(--ink-soft);
+  opacity: 0.8;
+}
+
+.coach-messages-send {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 12px;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.coach-messages-send:disabled {
+  background: var(--line);
+  cursor: default;
+}
+
+/* The send glyph points the way the language reads. */
+[dir='rtl'] .coach-messages-send svg {
+  transform: scaleX(-1);
+}
+
+.coach-messages-blocked {
+  text-align: center;
+  font-size: 12.5px;
+  line-height: 1.4;
+  padding: 8px 4px;
+  color: var(--red);
+}

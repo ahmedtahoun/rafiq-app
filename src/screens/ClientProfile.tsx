@@ -179,7 +179,7 @@ export default function ClientProfile() {
         <button
           type="button"
           className="client-profile-card"
-          onClick={() => nav({ screen: 'comingSoon', params: { feature: 'myCoaches' } })} // TODO: route to 'myCoaches' once MyCoaches.dc.html is ported
+          onClick={() => nav('myCoaches')}
         >
           <div className="client-profile-coach-avatar" style={{ background: coachGrad }}>
             {coachInitials}

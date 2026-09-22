@@ -48,6 +48,7 @@ export type Screen =
   | 'clientCoach' | 'clientBooking'
   | 'clientSchedule' | 'clientTasks'
   | 'myPrograms' | 'programDetail'
+  | 'rateCoach' | 'coachMessages' | 'myCoaches'
   | 'schedule' | 'addTimeBlock' | 'availability'
   | 'comingSoon'; // placeholder landing spot for whatever's not built yet
 
@@ -123,6 +124,11 @@ const PARENT: Partial<Record<Screen, Screen | typeof RET>> = {
   clientTasks: 'clientHome',
   myPrograms: 'clientHome',
   programDetail: 'myPrograms',
+  // RateCoach is reached from ClientSchedule's history and ClientHome's
+  // milestone card; both push history, so this is only the deep-link case.
+  rateCoach: 'clientSchedule',
+  coachMessages: 'clientCoach',
+  myCoaches: 'clientCoach',
   addTimeBlock: 'schedule',
   // Availability.dc.html's own back link points at Profile, not Schedule
   // (it's reached from Schedule's header icon, but is itself a settings-ish

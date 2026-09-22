@@ -1281,6 +1281,30 @@ export function getRatings(clientId: string): Record<string, SessionRating> {
   return readLocal(`ratings_${clientId}`, {});
 }
 
+/**
+ * Records a member's rating of one session, keyed by that session's id.
+ *
+ * Ratings were readable long before anything could write one — every
+ * screen showing stars (PreviewProfile, CoachPreview, ClientCoach,
+ * ClientSchedule) read a map nothing populated. RateCoach is the writer.
+ *
+ * A milestone rating has no real session behind it: nothing in this data
+ * model attributes a session to an offering, so RateCoach keys it
+ * `milestone-<offeringId>` — a synthetic but stable id in the same map,
+ * rather than pinning it to a session that may have nothing to do with
+ * that program.
+ */
+export function setRating(
+  clientId: string, sessionId: string, rating: number, comment?: string,
+): Record<string, SessionRating> {
+  const next = {
+    ...getRatings(clientId),
+    [sessionId]: { rating, ...(comment?.trim() ? { comment: comment.trim() } : {}) },
+  };
+  writeLocal(`ratings_${clientId}`, next);
+  return next;
+}
+
 export function getProAggregateRating(): AggregateRating {
   const values: number[] = [];
   getClients().forEach((c) => {

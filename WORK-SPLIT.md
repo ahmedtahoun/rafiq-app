@@ -29,16 +29,13 @@ OfferingDetail/Subscription/Earnings, Templates/TemplateDetail, AddTask/
 SessionRoom, Messages/MessagesInbox, Notifications/ShareProfile/
 PreviewProfile/HelpCenter/CoachPrivacyPolicy/CoachTermsOfService.
 
-**Track B — Client side: #1–#7 done, #8–#9 open.**
+**Track B — Client side: #1–#8 done, #9 open.**
 Done: ClientOnboarding, ClientHome, ClientProfile + EditClientProfile,
 Discover + CoachPreview, ClientCoach + ClientBooking, ClientSchedule +
-ClientTasks, MyPrograms + ProgramDetail.
+ClientTasks, MyPrograms + ProgramDetail, RateCoach + CoachMessages +
+MyCoaches.
 
 Open, in order:
-- **#8 Reviews & messaging** — RateCoach.dc.html, CoachMessages.dc.html, MyCoaches.dc.html
-  — note: `requestSession()` in `src/lib/directory.ts` already records a
-  member's pending request to a directory coach. MyCoaches is the screen
-  that should read it (`getSessionRequests()`); nothing reads it today.
 - **#9 Everything else** — ClientNotifications.dc.html, ClientHelpCenter.dc.html, PrivacyPolicy.dc.html, TermsOfService.dc.html
 
 **The member's own Pro vs. the browsable directory — two different
@@ -55,6 +52,39 @@ own constants. `Schedule.tsx` still carries a hand-written 35-cell literal
 for the same grid — worth moving it onto `getMonthGrid()` so the two cannot
 disagree about which dates are live, but that is Reem's file and was left
 alone here.
+
+**#8 added `setRating` — ratings were readable but unwritable.** Every
+screen showing stars (PreviewProfile, CoachPreview, ClientCoach,
+ClientSchedule, MyCoaches) read a map nothing populated, so
+`getProAggregateRating()` always returned zero. RateCoach is the writer.
+
+Other things worth knowing from #8:
+
+- **`getSessionRequests()` in `directory.ts` finally has a reader.** It has
+  recorded a member's requests to Discover pros since #4 and nothing read
+  them; MyCoaches' Pending section is the screen it was written for.
+- **RateCoach has two modes and they can collide.** ClientHome's milestone
+  card hands over an offeringId through the shared selected-offering
+  channel; ClientSchedule's per-row Rate button passes a `sessionId` param.
+  A named session always wins, and an offeringId is only treated as a
+  milestone when it is *currently* an unreviewed milestone — otherwise a
+  stale pointer left over from browsing Offerings would rate a program the
+  member never finished.
+- **A milestone rating is keyed `milestone-<offeringId>`**, not a session
+  id, for the same reason program progress is its own counter: nothing
+  attributes a session to an offering.
+- **RateCoach has a "nothing to rate" state** the design didn't have. The
+  prototype assumed there was always a target; with everything rated,
+  submitting would have written a rating keyed to nothing.
+- **MyCoaches' rating is real.** The design printed a hardcoded `4.9`; this
+  reads `getProAggregateRating()` and says "No rating yet" below the
+  3-review threshold, matching CoachPreview and PreviewProfile.
+- **MyCoaches' "Past" section is permanently empty on purpose** — no UI
+  path anywhere ends a member/pro relationship, so there is nothing to
+  read. Kept because the design has it and a member should see where ended
+  relationships will appear.
+- `markMessagesRead` moved into an effect in CoachMessages; the prototype
+  called it inline in render, which writes to storage on every re-render.
 
 **#7 added the enrollment model — the piece several features were waiting
 on.** `Enrollment` (clientId, offeringId, sessionsCompleted, enrolledAtMs)

@@ -224,8 +224,7 @@ export default function ClientCoach() {
             type="button"
             className="client-coach-hero-btn"
             aria-label={t('clientCoachMyPros')}
-            // TODO: route to 'myCoaches' once MyCoaches.dc.html is ported
-            onClick={() => nav({ screen: 'comingSoon', params: { feature: 'myCoaches' } })}
+            onClick={() => nav('myCoaches')}
           >
             <ChevronIcon size={16} color="#FFFFFF" />
           </button>
@@ -287,8 +286,7 @@ export default function ClientCoach() {
             type="button"
             className="client-coach-primary"
             disabled={!interactive}
-            // TODO: route to 'coachMessages' once CoachMessages.dc.html is ported
-            onClick={() => nav({ screen: 'comingSoon', params: { feature: 'coachMessages' } })}
+            onClick={() => nav('coachMessages')}
           >
             <MessageIcon size={15} color="currentColor" />
             {t('clientCoachMessage')}
