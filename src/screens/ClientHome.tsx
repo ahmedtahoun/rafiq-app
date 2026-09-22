@@ -93,7 +93,7 @@ export default function ClientHome() {
   function rateMilestone() {
     if (!milestone) return;
     setSelectedOfferingId(milestone.offeringId);
-    nav({ screen: 'comingSoon', params: { feature: 'rateCoach' } }); // TODO: route to 'rateCoach' once RateCoach.dc.html is ported
+    nav('rateCoach');
   }
   function dismissMilestone() {
     if (!milestone) return;
@@ -141,7 +141,7 @@ export default function ClientHome() {
               type="button"
               className="client-home-icon-btn"
               aria-label="Notifications"
-              onClick={() => nav({ screen: 'comingSoon', params: { feature: 'clientNotifications' } })} // TODO: route to 'clientNotifications' once ClientNotifications.dc.html is ported
+              onClick={() => nav('clientNotifications')}
             >
               <BellIcon size={16} color="#FFFFFF" />
               {hasUnreadNotifications && <span className="client-home-bell-dot" />}

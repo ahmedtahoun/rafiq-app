@@ -29,17 +29,18 @@ OfferingDetail/Subscription/Earnings, Templates/TemplateDetail, AddTask/
 SessionRoom, Messages/MessagesInbox, Notifications/ShareProfile/
 PreviewProfile/HelpCenter/CoachPrivacyPolicy/CoachTermsOfService.
 
-**Track B — Client side: #1–#7 done, #8–#9 open.**
-Done: ClientOnboarding, ClientHome, ClientProfile + EditClientProfile,
+**Track B — Client side: #1–#9 DONE. The member app is fully ported.**
+ClientOnboarding, ClientHome, ClientProfile + EditClientProfile,
 Discover + CoachPreview, ClientCoach + ClientBooking, ClientSchedule +
-ClientTasks, MyPrograms + ProgramDetail.
+ClientTasks, MyPrograms + ProgramDetail, RateCoach + CoachMessages +
+MyCoaches, ClientNotifications + ClientHelpCenter + ClientPrivacyPolicy +
+ClientTermsOfService.
 
-Open, in order:
-- **#8 Reviews & messaging** — RateCoach.dc.html, CoachMessages.dc.html, MyCoaches.dc.html
-  — note: `requestSession()` in `src/lib/directory.ts` already records a
-  member's pending request to a directory coach. MyCoaches is the screen
-  that should read it (`getSessionRequests()`); nothing reads it today.
-- **#9 Everything else** — ClientNotifications.dc.html, ClientHelpCenter.dc.html, PrivacyPolicy.dc.html, TermsOfService.dc.html
+**No screen in the member app routes to `comingSoon` any more.** There is
+a test that walks all eighteen member screens and asserts each renders its
+own component.
+
+Nothing is open on Track B.
 
 **The member's own Pro vs. the browsable directory — two different
 things, don't merge them.** `directory.ts` is for *browsing* pros a member
@@ -55,6 +56,75 @@ own constants. `Schedule.tsx` still carries a hand-written 35-cell literal
 for the same grid — worth moving it onto `getMonthGrid()` so the two cannot
 disagree about which dates are live, but that is Reem's file and was left
 alone here.
+
+## ⚠️ The WhatsApp claim in the privacy policy — coach side still wrong
+
+The design's Privacy Policy copy says, in both languages, that
+conversations with your pro happen over WhatsApp and are governed by
+WhatsApp's own privacy policy. **That stopped being true when in-app
+messaging shipped.** Messages are written by `sendMessage()` into the
+app's own store and never leave it.
+
+**Member side (#9): fixed.** `clientPrivacySection4Body` describes what
+the app actually does. A privacy policy that misstates where a member's
+messages go is a factual claim about data handling, not a copy nit, so it
+was not ported verbatim. The design prototype still has the old wording;
+if it is ever re-ported, do not overwrite this.
+
+**Coach side: STILL WRONG and needs a decision.**
+`privacySection4Body` in `i18n.ts` (both `en` and `ar`) carries the
+original claim, and `CoachPrivacyPolicy` renders it today. It was left
+alone because this file's own rule says that copy gets fixed in the design
+prototype first and re-ported, not patched here — but the result is that
+the two policies now contradict each other. Someone needs to either make
+that fix in the prototype or agree to patch it directly.
+
+`helpCenterA1` (coach side) also still describes adding a member by
+"WhatsApp number", which is a separate and probably still-accurate
+detail — the field is a phone number.
+
+**#9 also extended the client notification model.** `ClientNotification`
+now carries `data` (the specifics behind its subtitle) and `target` (where
+tapping it goes), both built where the notification is built — the builder
+already has the exact block, recap and payment in hand, and a second
+lookup in the screen would eventually disagree about *which* one a row is
+announcing. `CLIENT_NOTIFICATION_TARGET` is a full `Record`, so adding a
+kind is a compile error until it has a destination.
+`markAllNotificationsRead` was widened from `ProNotification[]` to
+`{ id: string }[]` so both sides can call it.
+
+**#8 added `setRating` — ratings were readable but unwritable.** Every
+screen showing stars (PreviewProfile, CoachPreview, ClientCoach,
+ClientSchedule, MyCoaches) read a map nothing populated, so
+`getProAggregateRating()` always returned zero. RateCoach is the writer.
+
+Other things worth knowing from #8:
+
+- **`getSessionRequests()` in `directory.ts` finally has a reader.** It has
+  recorded a member's requests to Discover pros since #4 and nothing read
+  them; MyCoaches' Pending section is the screen it was written for.
+- **RateCoach has two modes and they can collide.** ClientHome's milestone
+  card hands over an offeringId through the shared selected-offering
+  channel; ClientSchedule's per-row Rate button passes a `sessionId` param.
+  A named session always wins, and an offeringId is only treated as a
+  milestone when it is *currently* an unreviewed milestone — otherwise a
+  stale pointer left over from browsing Offerings would rate a program the
+  member never finished.
+- **A milestone rating is keyed `milestone-<offeringId>`**, not a session
+  id, for the same reason program progress is its own counter: nothing
+  attributes a session to an offering.
+- **RateCoach has a "nothing to rate" state** the design didn't have. The
+  prototype assumed there was always a target; with everything rated,
+  submitting would have written a rating keyed to nothing.
+- **MyCoaches' rating is real.** The design printed a hardcoded `4.9`; this
+  reads `getProAggregateRating()` and says "No rating yet" below the
+  3-review threshold, matching CoachPreview and PreviewProfile.
+- **MyCoaches' "Past" section is permanently empty on purpose** — no UI
+  path anywhere ends a member/pro relationship, so there is nothing to
+  read. Kept because the design has it and a member should see where ended
+  relationships will appear.
+- `markMessagesRead` moved into an effect in CoachMessages; the prototype
+  called it inline in render, which writes to storage on every re-render.
 
 **#7 added the enrollment model — the piece several features were waiting
 on.** `Enrollment` (clientId, offeringId, sessionsCompleted, enrolledAtMs)

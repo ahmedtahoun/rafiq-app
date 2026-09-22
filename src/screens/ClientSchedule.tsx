@@ -335,8 +335,10 @@ export default function ClientSchedule() {
                   <button
                     type="button"
                     className="client-schedule-rate"
-                    // TODO: route to 'rateCoach' once RateCoach.dc.html is ported
-                    onClick={() => nav({ screen: 'comingSoon', params: { feature: 'rateCoach' } })}
+                    // Carries which row was tapped — without it RateCoach
+                    // would always target the first unrated session, so
+                    // rating the second row would rate the first.
+                    onClick={() => nav({ screen: 'rateCoach', params: { sessionId: s.id } })}
                   >
                     {t('clientScheduleRate')}
                   </button>

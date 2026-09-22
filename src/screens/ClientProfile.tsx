@@ -179,7 +179,7 @@ export default function ClientProfile() {
         <button
           type="button"
           className="client-profile-card"
-          onClick={() => nav({ screen: 'comingSoon', params: { feature: 'myCoaches' } })} // TODO: route to 'myCoaches' once MyCoaches.dc.html is ported
+          onClick={() => nav('myCoaches')}
         >
           <div className="client-profile-coach-avatar" style={{ background: coachGrad }}>
             {coachInitials}
@@ -328,7 +328,7 @@ export default function ClientProfile() {
         <button
           type="button"
           className="client-profile-help"
-          onClick={() => nav({ screen: 'comingSoon', params: { feature: 'clientHelpCenter' } })} // TODO: route to 'clientHelpCenter' once ClientHelpCenter.dc.html is ported
+          onClick={() => nav('clientHelpCenter')}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="9" />
@@ -344,11 +344,11 @@ export default function ClientProfile() {
         </button>
 
         <div className="client-profile-footer-links">
-          <button type="button" onClick={() => nav({ screen: 'comingSoon', params: { feature: 'privacyPolicy' } })}>
+          <button type="button" onClick={() => nav('clientPrivacyPolicy')}>
             {t('profilePrivacyPolicy')}
           </button>
           <span className="client-profile-footer-dot">·</span>
-          <button type="button" onClick={() => nav({ screen: 'comingSoon', params: { feature: 'termsOfService' } })}>
+          <button type="button" onClick={() => nav('clientTermsOfService')}>
             {t('profileTermsOfService')}
           </button>
           <span className="client-profile-footer-dot">·</span>

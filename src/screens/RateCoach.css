@@ -1,0 +1,234 @@
+/* RateCoach.dc.html — a member rating a session, or a finished program.
+   Logical properties throughout so the screen mirrors for Arabic. */
+
+.rate-coach-screen {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-grad);
+  color: var(--ink);
+}
+
+.rate-coach-top {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 28px 24px 8px;
+}
+
+.rate-coach-cancel,
+.rate-coach-lang {
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.rate-coach-cancel {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.rate-coach-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.rate-coach-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.rate-coach-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------- who / what ---------- */
+
+.rate-coach-identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.rate-coach-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 19px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 22px;
+  font-weight: 700;
+  box-shadow: 0 10px 20px -6px var(--accent-glow);
+}
+
+.rate-coach-heading {
+  margin: 0;
+  font-family: var(--font-display-en);
+  font-size: 18px;
+  font-weight: 600;
+}
+[dir='rtl'] .rate-coach-heading {
+  font-family: var(--font-display-ar);
+}
+
+.rate-coach-sub {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+/* ---------- stars ---------- */
+
+.rate-coach-stars {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.rate-coach-star {
+  border: none;
+  background: none;
+  padding: 0;
+  display: flex;
+  cursor: pointer;
+}
+
+@keyframes rate-coach-star-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.rate-coach-star-pop {
+  animation: rate-coach-star-pop 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rate-coach-star-pop {
+    animation: none;
+  }
+}
+
+/* ---------- comment ---------- */
+
+.rate-coach-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rate-coach-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.rate-coach-textarea {
+  border: none;
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-family: inherit;
+  font-size: 14.5px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-soft);
+  resize: none;
+}
+
+.rate-coach-textarea::placeholder {
+  color: var(--ink-soft);
+  opacity: 0.75;
+}
+
+/* ---------- submit ---------- */
+
+.rate-coach-bar {
+  flex-shrink: 0;
+  padding: 16px 24px 24px;
+}
+
+.rate-coach-submit {
+  width: 100%;
+  border: none;
+  border-radius: 16px;
+  padding: 16px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  background: var(--accent);
+  color: #ffffff;
+  box-shadow: 0 10px 20px -6px var(--accent-glow);
+  cursor: pointer;
+}
+
+.rate-coach-submit:disabled {
+  background: var(--line);
+  color: var(--ink-soft);
+  box-shadow: none;
+  cursor: default;
+}
+
+/* ---------- thanks / nothing to rate ---------- */
+
+.rate-coach-done {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 16px;
+  padding: 24px;
+}
+
+.rate-coach-tick {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--green-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rate-coach-done-title {
+  margin: 0;
+  font-family: var(--font-display-en);
+  font-size: 20px;
+  font-weight: 600;
+}
+[dir='rtl'] .rate-coach-done-title {
+  font-family: var(--font-display-ar);
+}
+
+.rate-coach-done-body {
+  margin: 0;
+  max-width: 260px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.rate-coach-done .rate-coach-submit {
+  width: auto;
+  margin-top: 8px;
+  padding: 13px 24px;
+  font-size: 14px;
+  border-radius: 14px;
+}

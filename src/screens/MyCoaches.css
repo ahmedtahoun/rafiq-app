@@ -1,0 +1,311 @@
+/* MyCoaches.dc.html — the member's pros: the active one, requests they're
+   waiting on, and where ended relationships will live.
+   Logical properties throughout so the screen mirrors for Arabic. */
+
+.my-coaches-screen {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-grad);
+  color: var(--ink);
+}
+
+/* ---------- header ---------- */
+
+.my-coaches-top {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 30px 24px 8px;
+}
+
+.my-coaches-back {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+}
+
+.my-coaches-title {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.my-coaches-lang {
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+/* ---------- scroller ---------- */
+
+.my-coaches-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.my-coaches-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.my-coaches-section-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--ink-soft);
+}
+
+.my-coaches-section-gap {
+  margin-top: 6px;
+}
+
+/* ---------- the active pro ---------- */
+
+.my-coaches-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.my-coaches-head {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 15px;
+  font-family: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.my-coaches-avatar {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 700;
+  box-shadow: 0 6px 14px -4px var(--accent-glow);
+}
+
+.my-coaches-head-body {
+  flex: 1;
+  min-width: 0;
+  display: block;
+}
+
+.my-coaches-name {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 700;
+}
+
+.my-coaches-specialty {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 1px;
+  color: var(--accent);
+}
+
+.my-coaches-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.my-coaches-rating-value {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.my-coaches-rating-none {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+
+.my-coaches-badge {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--green-bg);
+  color: var(--green);
+}
+
+/* ---------- quick facts ---------- */
+
+.my-coaches-quick {
+  display: flex;
+  border-top: 1px solid var(--line);
+}
+
+.my-coaches-quick-cell {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 15px;
+}
+
+.my-coaches-quick-divider,
+.my-coaches-action-divider {
+  width: 1px;
+  background: var(--line);
+}
+
+.my-coaches-quick-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--ink-soft);
+}
+
+.my-coaches-quick-value {
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+/* ---------- action row ---------- */
+
+.my-coaches-actions {
+  display: flex;
+  border-top: 1px solid var(--line);
+}
+
+.my-coaches-action {
+  flex: 1;
+  border: none;
+  background: none;
+  padding: 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+/* ---------- pending requests ---------- */
+
+.my-coaches-pending {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 13px 15px;
+  box-shadow: var(--shadow-soft);
+}
+
+.my-coaches-pending-avatar {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.my-coaches-pending-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.my-coaches-pending-name {
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.my-coaches-pending-specialty {
+  font-size: 11.5px;
+  font-weight: 700;
+  margin-top: 1px;
+  color: var(--accent);
+}
+
+.my-coaches-pending-badge {
+  flex-shrink: 0;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--line);
+  color: var(--ink-soft);
+}
+
+.my-coaches-empty {
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: var(--shadow-soft);
+}
+
+/* ---------- find another ---------- */
+
+.my-coaches-find {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 6px;
+  border: 1.5px dashed var(--line);
+  border-radius: 18px;
+  padding: 16px;
+  background: none;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.my-coaches-hint {
+  margin: 0;
+  padding: 8px 4px 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
