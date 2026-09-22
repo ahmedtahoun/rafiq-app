@@ -67,23 +67,23 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 	<!-- OAuth deep links. After an in-app-browser sign-in, Supabase
-	     redirects to app.rafiq.coach://auth-callback and iOS hands that
+	     redirects to app.rafiqie.coach://auth-callback and iOS hands that
 	     URL to the app; lib/nativeAuth.ts's listener finishes the
-	     exchange. Two schemes on purpose: the bundle id is mid-rename to
-	     app.rafiqie.coach (WORK-SPLIT.md, "App rename pending"), and a
-	     URL scheme need not equal the bundle id, so answering to both
-	     means the rename is a no-op for sign-in. -->
+	     exchange. Two schemes on purpose: app.rafiq.coach is the bundle
+	     id from before the rename, kept so a build installed back then
+	     can still complete a sign-in. A URL scheme need not equal the
+	     bundle id, which is what makes that possible. -->
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>app.rafiq.coach.oauth</string>
+			<string>app.rafiqie.coach.oauth</string>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>app.rafiq.coach</string>
 				<string>app.rafiqie.coach</string>
+				<string>app.rafiq.coach</string>
 			</array>
 		</dict>
 	</array>

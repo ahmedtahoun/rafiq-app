@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">Rafiq</string>
     <string name="title_activity_main">Rafiq</string>
-    <string name="package_name">app.rafiq.coach</string>
-    <string name="custom_url_scheme">app.rafiq.coach</string>
+    <string name="package_name">app.rafiqie.coach</string>
+    <string name="custom_url_scheme">app.rafiqie.coach</string>
 </resources>

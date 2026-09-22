@@ -1,4 +1,4 @@
-package app.rafiq.coach;
+package app.rafiqie.coach;
 
 import com.getcapacitor.BridgeActivity;
 

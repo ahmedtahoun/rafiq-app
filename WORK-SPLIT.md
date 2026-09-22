@@ -57,41 +57,28 @@ for the same grid — worth moving it onto `getMonthGrid()` so the two cannot
 disagree about which dates are live, but that is Reem's file and was left
 alone here.
 
-## ⚠️ The WhatsApp claim in the privacy policy — coach side still wrong
+## The WhatsApp claim in the privacy policy — RESOLVED, both sides
 
-The design's Privacy Policy copy says, in both languages, that
-conversations with your pro happen over WhatsApp and are governed by
-WhatsApp's own privacy policy. **That stopped being true when in-app
-messaging shipped.** Messages are written by `sendMessage()` into the
-app's own store and never leave it.
+The design's Privacy Policy copy said, in both languages, that
+conversations happen over WhatsApp and are governed by WhatsApp's own
+privacy policy. That stopped being true when in-app messaging shipped:
+`sendMessage()` writes into the app's own store and nothing reaches a
+third party.
 
-**Member side (#9): fixed.** `clientPrivacySection4Body` describes what
-the app actually does. A privacy policy that misstates where a member's
-messages go is a factual claim about data handling, not a copy nit, so it
-was not ported verbatim. The design prototype still has the old wording;
-if it is ever re-ported, do not overwrite this.
+Both policies now describe what the app actually does:
 
-**Coach side: STILL WRONG and needs a decision.**
-`privacySection4Body` in `i18n.ts` (both `en` and `ar`) carries the
-original claim, and `CoachPrivacyPolicy` renders it today. It was left
-alone because this file's own rule says that copy gets fixed in the design
-prototype first and re-ported, not patched here — but the result is that
-the two policies now contradict each other. Someone needs to either make
-that fix in the prototype or agree to patch it directly.
+- **Member side** (`clientPrivacySection4Body`) — fixed when it was
+  written in #9; it was never ported with the false wording.
+- **Coach side** (`privacySection4Body`) — fixed now, at Ahmed's
+  instruction, directly in this repo rather than via the design prototype.
 
-`helpCenterA1` (coach side) also still describes adding a member by
-"WhatsApp number", which is a separate and probably still-accurate
-detail — the field is a phone number.
+The design prototype still has the old wording in both
+`PrivacyPolicy.dc.html` and `CoachPrivacyPolicy.dc.html`. **If either is
+ever re-ported, do not overwrite these two keys.**
 
-**#9 also extended the client notification model.** `ClientNotification`
-now carries `data` (the specifics behind its subtitle) and `target` (where
-tapping it goes), both built where the notification is built — the builder
-already has the exact block, recap and payment in hand, and a second
-lookup in the screen would eventually disagree about *which* one a row is
-announcing. `CLIENT_NOTIFICATION_TARGET` is a full `Record`, so adding a
-kind is a compile error until it has a destination.
-`markAllNotificationsRead` was widened from `ProNotification[]` to
-`{ id: string }[]` so both sides can call it.
+`helpCenterA1` (coach side) still says a member is added by "WhatsApp
+number". That one is left alone on purpose — the field genuinely is a
+phone number, so it is not a false claim.
 
 **#8 added `setRating` — ratings were readable but unwritable.** Every
 screen showing stars (PreviewProfile, CoachPreview, ClientCoach,
@@ -267,10 +254,12 @@ was written, and are worth knowing before picking this up:
 **Still needs Ahmed, in the consoles:**
 
 - **Supabase → Auth → URL Configuration → Redirect URLs:** add
-  `app.rafiq.coach://auth-callback` (and `app.rafiqie.coach://auth-callback`
-  if you want post-rename builds to work before the rename lands). Without
-  this Supabase refuses the redirect and the app never gets the callback.
-  This is the one required step.
+  **`app.rafiqie.coach://auth-callback`** — this is the primary scheme
+  since the identifier rename, and is what `NATIVE_REDIRECT_URL` now
+  sends. Add `app.rafiq.coach://auth-callback` too if any pre-rename
+  build is still installed anywhere. Without the first one Supabase
+  refuses the redirect and the app never gets the callback. This is the
+  one required step and it is still outstanding.
 - **A second Google OAuth client is probably NOT needed**, contrary to the
   original task note. With Supabase brokering, Google only ever sees
   Supabase's own `/auth/v1/callback` as its `redirect_uri` — the custom
@@ -302,17 +291,33 @@ the callback routing are all covered by tests, but nobody has yet watched a
 real consent screen hand a real session back to a real build. That is the
 next step and it needs a machine with the SDKs.
 
-- **App rename pending: "Rafiq" → "Rafiqie."** Not started — Ahmed asked
-  to defer it. Scope once picked up: `capacitor.config.ts`'s `appId`
-  (`app.rafiq.coach` → `app.rafiqie.coach`, to match what's now actually
-  registered in Apple Developer for Sign in with Apple), `appName`, the
-  "Welcome to Rafiq" strings in `i18n.ts`, README, `package.json`'s
-  `name`, and `<title>`. Do the bundle ID change carefully — it's already
-  live in Apple's system, so code and console need to agree exactly.
-  It now also moves the Android package directory
-  (`android/app/src/main/java/app/rafiq/coach/` → `.../app/rafiqie/coach/`)
-  and the iOS `PRODUCT_BUNDLE_IDENTIFIER`. Sign-in is unaffected either
-  way — the app answers to both URL schemes, see Native OAuth above.
+- **App rename: identifiers DONE, brand name unchanged.** The bundle id
+  is now `app.rafiqie.coach` everywhere — `capacitor.config.ts`, both
+  native `capacitor.config.json` copies, Android's `namespace` +
+  `applicationId` + `package_name` + `custom_url_scheme`, the Android
+  package directory (`android/app/src/main/java/app/rafiqie/coach/`) and
+  `MainActivity.java`'s package statement, and iOS's
+  `PRODUCT_BUNDLE_IDENTIFIER` (both build configs) +
+  `CFBundleURLName`.
+
+  **The primary OAuth URL scheme moved with it**, which changes what has
+  to be allowlisted: `NATIVE_REDIRECT_URL` is now
+  `app.rafiqie.coach://auth-callback`. See the Supabase step below.
+  `app.rafiq.coach` is kept as the *alternate* scheme, still registered
+  in both native projects, so a build installed before the rename can
+  still complete a sign-in.
+
+  **Deliberately NOT renamed:** `appName` ("Rafiq"), Android's
+  `app_name`/`title_activity_main`, `index.html`'s `<title>`,
+  `package.json`'s `name`, and every user-facing "Rafiq" / "رفيق" string
+  in `i18n.ts` (~40 in each language). Ahmed chose identifiers-only; the
+  brand wording is still his call, and the Arabic form in particular is
+  not a mechanical transliteration (رفيق means "companion"; رفيقي would
+  read as "my companion").
+
+  **The Apple Services ID is unchanged at `app.rafiqie.coach.web`** —
+  confirmed by Ahmed against the console. `scripts/generate-apple-oauth-secret.mjs`
+  was left as-is.
 
 ## Claim before you start
 

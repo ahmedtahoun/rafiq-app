@@ -26,21 +26,22 @@ import { Browser } from '@capacitor/browser';
 /**
  * The custom URL schemes this app answers to.
  *
- * Two, deliberately. The bundle id is mid-rename: `capacitor.config.ts`
- * still says `app.rafiq.coach`, while Apple Developer already has
- * `app.rafiqie.coach` registered (see WORK-SPLIT.md, "App rename
- * pending"). A URL scheme does not have to equal the bundle id, so
- * answering to both means the rename — whenever it lands — is a no-op for
- * sign-in rather than a day where nobody can log in on a phone.
+ * Two, deliberately. The bundle id rename to `app.rafiqie.coach` has now
+ * landed, but a build installed before it still answers to the old
+ * `app.rafiq.coach`. A URL scheme does not have to equal the bundle id,
+ * so keeping both means the rename is a no-op for sign-in rather than a
+ * day where nobody with an older build can log in on a phone.
  *
  * PRIMARY is what new sign-in requests ask to be sent to, and is the one
- * that must exist in Supabase's redirect allowlist. The second is
- * accepted on the way back so an installed build from either side of the
- * rename keeps working. Both are registered natively (Info.plist's
- * CFBundleURLTypes, AndroidManifest's intent-filter).
+ * that must exist in Supabase's redirect allowlist — it changed with the
+ * rename, so `app.rafiqie.coach://auth-callback` is now the required
+ * entry there. The second is accepted on the way back so an installed
+ * build from either side of the rename keeps working. Both are registered
+ * natively (Info.plist's CFBundleURLTypes, AndroidManifest's
+ * intent-filter).
  */
-export const AUTH_SCHEME_PRIMARY = 'app.rafiq.coach';
-export const AUTH_SCHEME_ALTERNATE = 'app.rafiqie.coach';
+export const AUTH_SCHEME_PRIMARY = 'app.rafiqie.coach';
+export const AUTH_SCHEME_ALTERNATE = 'app.rafiq.coach';
 export const AUTH_SCHEMES = [AUTH_SCHEME_PRIMARY, AUTH_SCHEME_ALTERNATE];
 
 /** The host part of the callback, so other deep links stay unclaimed. */

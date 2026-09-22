@@ -477,7 +477,12 @@ const dict: Record<Lang, Record<string, string>> = {
     privacySection3Heading: 'How we use it',
     privacySection3Body: "Your information is used to run scheduling, reminders, and payment tracking features. We never sell your data or your members' data to third parties.",
     privacySection4Heading: 'Messaging',
-    privacySection4Body: "Conversations with members happen over WhatsApp, governed by WhatsApp's own privacy policy in addition to this one.",
+    // Was: conversations happen over WhatsApp, governed by WhatsApp's
+    // privacy policy. In-app messaging shipped, so messages are written by
+    // sendMessage() into Rafiq's own store and never reach a third party.
+    // The member-facing clientPrivacySection4Body says the same thing from
+    // the other side; these two must not disagree.
+    privacySection4Body: 'Conversations with members are sent and stored in Rafiq, and are covered by this policy. No third-party messaging service is involved.',
     privacySection5Heading: 'Your choices',
     privacySection5Body: 'You can review or update your account details anytime from Profile → Account Details, or delete your account from Profile → Delete Account.',
     privacySection6Heading: 'Contact',
@@ -1358,7 +1363,7 @@ const dict: Record<Lang, Record<string, string>> = {
     privacySection3Heading: 'كيف نستخدمها',
     privacySection3Body: 'تُستخدم معلوماتك لتشغيل ميزات الجدولة والتذكيرات وتتبع الدفعات. لا نبيع بياناتك أو بيانات أعضائك أبدًا لأطراف ثالثة.',
     privacySection4Heading: 'المراسلة',
-    privacySection4Body: 'تتم المحادثات مع الأعضاء عبر واتساب، وتخضع لسياسة خصوصية واتساب الخاصة بالإضافة إلى هذه السياسة.',
+    privacySection4Body: 'تُرسل المحادثات مع الأعضاء وتُحفظ داخل رفيق، وتخضع لهذه السياسة. لا تتدخل أي خدمة مراسلة خارجية.',
     privacySection5Heading: 'خياراتك',
     privacySection5Body: 'يمكنك مراجعة أو تحديث تفاصيل حسابك في أي وقت من الملف الشخصي ← تفاصيل الحساب، أو حذف حسابك من الملف الشخصي ← حذف الحساب.',
     privacySection6Heading: 'التواصل',

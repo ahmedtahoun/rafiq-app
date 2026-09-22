@@ -23,23 +23,23 @@
             </intent-filter>
 
             <!-- OAuth deep links. After an in-app-browser sign-in, Supabase
-                 redirects to app.rafiq.coach://auth-callback; this filter is
-                 what routes that back into the already-running app (the
+                 redirects to app.rafiqie.coach://auth-callback; this filter
+                 is what routes that back into the already-running app (the
                  activity is launchMode="singleTask" above, so it arrives as
                  onNewIntent rather than a second instance) and
                  lib/nativeAuth.ts's listener finishes the exchange.
 
-                 Two schemes on purpose: the bundle id is mid-rename to
-                 app.rafiqie.coach (WORK-SPLIT.md, "App rename pending"),
-                 and a URL scheme need not equal the application id, so
-                 answering to both means the rename is a no-op for sign-in.
+                 Two schemes on purpose: app.rafiq.coach is the application
+                 id from before the rename, kept so a build installed back
+                 then can still complete a sign-in. A URL scheme need not
+                 equal the application id, which is what makes that possible.
                  The host is matched too, so other deep links stay free. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="app.rafiq.coach" android:host="auth-callback" />
                 <data android:scheme="app.rafiqie.coach" android:host="auth-callback" />
+                <data android:scheme="app.rafiq.coach" android:host="auth-callback" />
             </intent-filter>
 
         </activity>

@@ -8,13 +8,13 @@ import type { CapacitorConfig } from '@capacitor/cli';
  * MainActivity). `src/lib/nativeAuth.ts` holds the matching constants and
  * explains why there are two of them.
  *
- * `appId` below is the bundle id, which is a different thing, and is
- * mid-rename to app.rafiqie.coach — see WORK-SPLIT.md, "App rename
- * pending". Changing it also moves the Android package directory
- * (android/app/src/main/java/app/rafiq/coach/), so it is its own change.
+ * `appId` below is the bundle id, which is a different thing. It is
+ * app.rafiqie.coach, matching what is registered in Apple Developer.
+ * `appName` is still "Rafiq": only the identifiers were renamed, not the
+ * brand — see WORK-SPLIT.md, "App rename".
  */
 const config: CapacitorConfig = {
-  appId: 'app.rafiq.coach',
+  appId: 'app.rafiqie.coach',
   appName: 'Rafiq',
   webDir: 'dist'
 };
