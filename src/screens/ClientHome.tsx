@@ -117,8 +117,7 @@ export default function ClientHome() {
   const previewLabel = isFirstTime ? t('clientHomePreviewToNormal') : t('clientHomePreviewToFirst');
 
   const navItems: BottomNavItem[] = [
-    // TODO: route to 'discover' once Discover.dc.html is ported
-    { key: 'discover', label: t('clientHomeDiscoverNav'), icon: SearchIcon, screen: 'comingSoon', params: { feature: 'discover' } },
+    { key: 'discover', label: t('clientHomeDiscoverNav'), icon: SearchIcon, screen: 'discover' },
     { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'clientHome' },
     // TODO: route to 'myPrograms' once MyPrograms.dc.html is ported
     { key: 'programs', label: t('clientHomeProgramsNav'), icon: ProgramsIcon, screen: 'comingSoon', params: { feature: 'myPrograms' } },

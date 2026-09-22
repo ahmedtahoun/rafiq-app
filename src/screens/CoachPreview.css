@@ -1,0 +1,651 @@
+/* CoachPreview.dc.html — one directory coach, seen before booking.
+   Logical properties throughout so the screen mirrors for Arabic. */
+
+.coach-preview-screen {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  background: var(--bg-grad);
+  color: var(--ink);
+}
+
+.coach-preview-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.coach-preview-scroll::-webkit-scrollbar,
+.coach-preview-days::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------- hero ---------- */
+
+.coach-preview-hero {
+  padding: 22px 24px 28px;
+  border-radius: 0 0 32px 32px;
+  text-align: center;
+  color: #ffffff;
+}
+
+.coach-preview-hero-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.coach-preview-icon-btn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.coach-preview-fav-on {
+  color: #ffffff;
+}
+
+.coach-preview-avatar {
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 12px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.coach-preview-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.coach-preview-name {
+  margin: 0;
+  font-family: var(--font-display-en);
+  font-size: 23px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+[dir='rtl'] .coach-preview-name {
+  font-family: var(--font-display-ar);
+}
+
+.coach-preview-verified {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.coach-preview-specialty {
+  font-size: 12.5px;
+  font-weight: 700;
+  margin-top: 3px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.coach-preview-where {
+  font-size: 11.5px;
+  margin-top: 6px;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.coach-preview-sep {
+  margin-inline: 6px;
+}
+
+.coach-preview-chips {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.coach-preview-skill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ---------- stats ---------- */
+
+.coach-preview-stats {
+  display: flex;
+  margin: -20px 24px 0;
+  position: relative;
+  z-index: 3;
+  background: var(--surface);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  padding: 14px 0;
+}
+
+.coach-preview-stat {
+  flex: 1;
+  text-align: center;
+}
+
+.coach-preview-stat + .coach-preview-stat {
+  border-inline-start: 1px solid var(--line);
+}
+
+.coach-preview-stat-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.coach-preview-stat-label {
+  font-size: 10.5px;
+  color: var(--ink-soft);
+  margin-top: 2px;
+}
+
+/* ---------- body ---------- */
+
+.coach-preview-body {
+  padding: 22px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.coach-preview-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.coach-preview-h2 {
+  margin: 0;
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.coach-preview-bio {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.coach-preview-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  border: none;
+  border-radius: 16px;
+  padding: 14px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+
+.coach-preview-message-sent {
+  background: var(--green-bg);
+  color: var(--green);
+  box-shadow: none;
+  cursor: default;
+}
+
+/* ---------- offerings ---------- */
+
+.coach-preview-offering {
+  width: 100%;
+  text-align: start;
+  border: 2px solid transparent;
+  border-radius: 16px;
+  padding: 14px 15px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.coach-preview-offering-on {
+  border-color: var(--accent);
+}
+
+.coach-preview-offering-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.coach-preview-offering-type {
+  font-size: 9.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.coach-preview-radio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.coach-preview-radio-on {
+  background: var(--accent);
+}
+
+.coach-preview-offering-name {
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+.coach-preview-offering-desc {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin-top: 3px;
+}
+
+.coach-preview-offering-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+
+.coach-preview-offering-foot strong {
+  font-size: 13px;
+  color: var(--ink);
+}
+
+/* ---------- schedule ---------- */
+
+.coach-preview-sched-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.coach-preview-week-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.coach-preview-week-nav button {
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 50%;
+  background: var(--line);
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.coach-preview-week-nav button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ChevronIcon points toward the inline start; the forward control is the
+   same glyph turned around, which also keeps it correct under RTL. */
+.coach-preview-week-next svg {
+  transform: rotate(180deg);
+}
+
+.coach-preview-week-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  min-width: 78px;
+  text-align: center;
+}
+
+.coach-preview-next-available {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  border: 2px solid transparent;
+  border-radius: 16px;
+  padding: 13px 15px;
+  background: var(--green-bg);
+  font-family: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.coach-preview-next-on {
+  border-color: var(--green);
+}
+
+.coach-preview-next-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--green);
+}
+
+.coach-preview-next-value {
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.coach-preview-next-cta {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--green);
+}
+
+.coach-preview-days {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.coach-preview-day {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  border: none;
+  border-radius: 14px;
+  padding: 10px 15px;
+  background: var(--line);
+  color: var(--ink);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.coach-preview-day-on {
+  background: var(--green);
+  color: #ffffff;
+  box-shadow: 0 8px 16px -6px rgba(63, 125, 88, 0.5);
+}
+
+.coach-preview-dow {
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.coach-preview-date {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.coach-preview-times {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.coach-preview-time {
+  border: none;
+  border-radius: 14px;
+  padding: 11px 16px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+}
+
+.coach-preview-time-on {
+  background: var(--green);
+  color: #ffffff;
+  box-shadow: 0 8px 16px -6px rgba(63, 125, 88, 0.5);
+}
+
+.coach-preview-time-taken {
+  background: var(--line);
+  color: var(--ink-soft);
+  opacity: 0.55;
+  text-decoration: line-through;
+  box-shadow: none;
+  cursor: default;
+}
+
+.coach-preview-no-times {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: var(--shadow-soft);
+}
+
+/* ---------- reviews ---------- */
+
+.coach-preview-review {
+  background: var(--surface);
+  border-radius: 16px;
+  padding: 14px 15px;
+  box-shadow: var(--shadow);
+}
+
+.coach-preview-review-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.coach-preview-review-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--amber);
+}
+
+.coach-preview-review-count {
+  font-size: 11.5px;
+  color: var(--ink-soft);
+}
+
+.coach-preview-review-quote {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+/* ---------- sticky book bar ---------- */
+
+.coach-preview-bar {
+  flex-shrink: 0;
+  padding: 12px 20px 18px;
+  background: var(--surface);
+  box-shadow: 0 -12px 28px -14px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.coach-preview-bar-when {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.coach-preview-primary {
+  width: 100%;
+  border: none;
+  border-radius: 16px;
+  padding: 15px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  background: var(--accent);
+  color: #ffffff;
+  box-shadow: 0 12px 24px -8px var(--accent-glow);
+  cursor: pointer;
+}
+
+.coach-preview-primary:disabled {
+  background: var(--line);
+  color: var(--ink-soft);
+  box-shadow: none;
+  cursor: default;
+}
+
+.coach-preview-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  border-radius: 16px;
+  padding: 14px;
+  font-size: 13.5px;
+  font-weight: 700;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  text-decoration: none;
+}
+
+/* ---------- confirmed + missing states ---------- */
+
+.coach-preview-confirmed,
+.coach-preview-missing {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 40px 24px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+}
+
+.coach-preview-tick {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coach-preview-confirmed-title {
+  margin: 4px 0 0;
+  font-family: var(--font-display-en);
+  font-size: 22px;
+  font-weight: 600;
+}
+[dir='rtl'] .coach-preview-confirmed-title {
+  font-family: var(--font-display-ar);
+}
+
+.coach-preview-confirmed-sub {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.coach-preview-receipt {
+  width: 100%;
+  background: var(--surface);
+  border-radius: 18px;
+  padding: 6px 16px;
+  box-shadow: var(--shadow);
+  margin-top: 6px;
+}
+
+.coach-preview-receipt-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  text-align: start;
+}
+
+.coach-preview-receipt-row + .coach-preview-receipt-row {
+  border-top: 1px solid var(--line);
+}
+
+.coach-preview-receipt-row strong {
+  color: var(--ink);
+  text-align: end;
+}
+
+.coach-preview-note {
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.coach-preview-missing-text {
+  font-size: 14px;
+  font-weight: 700;
+}

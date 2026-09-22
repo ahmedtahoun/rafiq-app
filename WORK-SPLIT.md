@@ -29,16 +29,30 @@ OfferingDetail/Subscription/Earnings, Templates/TemplateDetail, AddTask/
 SessionRoom, Messages/MessagesInbox, Notifications/ShareProfile/
 PreviewProfile/HelpCenter/CoachPrivacyPolicy/CoachTermsOfService.
 
-**Track B — Client side: #1–#3 done, #4–#9 open.**
-Done: ClientOnboarding, ClientHome, ClientProfile + EditClientProfile.
+**Track B — Client side: #1–#4 done, #5–#9 open.**
+Done: ClientOnboarding, ClientHome, ClientProfile + EditClientProfile,
+Discover + CoachPreview.
 
 Open, in order:
-- **#4 Finding & choosing a coach** — Discover.dc.html, CoachPreview.dc.html
 - **#5 The coach relationship** — ClientCoach.dc.html ("Your Pro"), ClientBooking.dc.html
 - **#6 Sessions & tasks** — ClientSchedule.dc.html, ClientTasks.dc.html
 - **#7 Programs & progress** — MyPrograms.dc.html, ProgramDetail.dc.html
 - **#8 Reviews & messaging** — RateCoach.dc.html, CoachMessages.dc.html, MyCoaches.dc.html
+  — note: `requestSession()` in `src/lib/directory.ts` already records a
+  member's pending request to a directory coach. MyCoaches is the screen
+  that should read it (`getSessionRequests()`); nothing reads it today.
 - **#9 Everything else** — ClientNotifications.dc.html, ClientHelpCenter.dc.html, PrivacyPolicy.dc.html, TermsOfService.dc.html
+
+**Multi-coach data is mocked, deliberately.** `src/lib/directory.ts`
+seeds eight demo coaches for Discover/CoachPreview. Everywhere else the
+app models exactly one Pro (`getCoachProfile()`), which is correct — every
+coach-side screen is the signed-in Pro looking at their own data. Real
+discovery needs a public, RLS-readable projection of `profiles` plus
+ratings aggregated across members; neither exists, and guessing at the
+shape now would bake a wrong one into two screens. The module is written
+as the seam that projection will fill: replace `DIRECTORY_COACHES` with a
+query and the screens do not change. Favourites and session requests in
+that file are real localStorage, same `rafiq_` prefix as everything else.
 
 **Auth + Supabase infra: done.** Schema/RLS/storage/CI (PR #1), Auth +
 ClientAuth wired to OAuth with session bootstrap (PR #3). Known follow-up:
