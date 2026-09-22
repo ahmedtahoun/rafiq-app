@@ -88,7 +88,7 @@ function buildActionDefs(memberId: string, t: (key: string) => string): ActionDe
       title: t('qaScheduleSession'),
       sub: t('qaScheduleSessionSub'),
       icon: 'calendar',
-      href: { screen: 'comingSoon', params: memberId ? { feature: 'addTimeBlock', clientId: memberId } : { feature: 'addTimeBlock' } }, // TODO: route to 'addTimeBlock' once AddTimeBlock.dc.html is ported
+      href: { screen: 'addTimeBlock', params: {} },
     },
     {
       id: 'assignTask',

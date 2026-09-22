@@ -5,6 +5,8 @@ import { darken } from '../lib/color';
 import { ArrowForwardIcon, PencilIcon, ShareIcon, EyeIcon, ShieldIcon, StarIcon, CloseIcon, WarningIcon, MessageIcon, PaymentIcon, ScheduleIcon, PersonIcon, HomeIcon, ClientsIcon } from '../components/icons';
 import { BottomNav, type BottomNavItem } from '../components/BottomNav';
 import { QuickActions } from '../components/QuickActions';
+import { signOut } from '../lib/auth';
+import { isSupabaseConfigured } from '../lib/supabase';
 import {
   getClients,
   getCoachProfile,
@@ -118,10 +120,24 @@ export default function Profile() {
     setNotifSub((prev) => ({ ...prev, [key]: !prev[key] }));
   }
 
+  // Mirrors Auth.tsx's own fallback: with no Supabase project wired up,
+  // signOut() is a no-op (nothing to end a session on), so go straight to
+  // 'auth' instead of waiting on an auth-state change that will never
+  // fire. When configured, session.ts's own listener does the routing —
+  // it owns "where signed-out goes" so a stray auth event elsewhere can't
+  // fight this screen over it.
+  function logOut() {
+    if (!isSupabaseConfigured()) {
+      nav('auth');
+      return;
+    }
+    void signOut();
+  }
+
   function confirmDelete() {
     requestProAccountDeletion();
     setShowDeleteConfirm(false);
-    nav({ screen: 'comingSoon', params: { feature: 'auth' } }); // TODO: route to 'auth' once Auth.dc.html is ported
+    logOut();
   }
 
   const notifTypeDefs: { key: NotifTypeKey; label: string }[] = [
@@ -307,7 +323,7 @@ export default function Profile() {
             </div>
             <ArrowForwardIcon size={15} color="var(--ink-soft)" />
           </button>
-          <button type="button" className="profile-row" onClick={() => nav({ screen: 'comingSoon', params: { feature: 'availability' } })}>
+          <button type="button" className="profile-row" onClick={() => nav('availability')}>
             <ScheduleIcon size={17} color="var(--accent)" />
             <div className="profile-row-text">
               <div className="profile-row-title">{t('profileAvailability')}</div>
@@ -457,7 +473,7 @@ export default function Profile() {
           </div>
         </div>
 
-        <button type="button" className="profile-logout" onClick={() => nav({ screen: 'comingSoon', params: { feature: 'auth' } })}>
+        <button type="button" className="profile-logout" onClick={logOut}>
           {t('profileLogOut')}
         </button>
 

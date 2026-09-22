@@ -245,8 +245,7 @@ export default function Main() {
         dotColor: dotColors[kind],
         detailHref: getClientDetailHref(c.id),
         messagesHref: getMessagesHref(c.id),
-        // TODO: route to 'addTimeBlock' once AddTimeBlock.dc.html is ported
-        scheduleHref: { screen: 'comingSoon', params: { feature: 'addTimeBlock', clientId: c.id } },
+        scheduleHref: { screen: 'addTimeBlock', params: {} },
         showRemind: !isNoSession,
         isPayment,
         isNoSession,
