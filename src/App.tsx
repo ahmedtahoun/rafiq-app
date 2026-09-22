@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useAppStore } from './store/appStore';
 import { isRtl } from './lib/i18n';
 import { initSession } from './lib/session';
+import { initOAuthDeepLinks } from './lib/auth';
 import Welcome from './screens/Welcome';
 import RoleSelect from './screens/RoleSelect';
 import Auth from './screens/Auth';
@@ -48,6 +49,11 @@ export default function App() {
   // Picks up a session left by a provider redirect, and keeps the store in
   // step with it afterwards. Returns its own unsubscribe.
   useEffect(() => initSession(), []);
+
+  // Native only: catches the provider's redirect back into the app after
+  // an in-app-browser sign-in. A no-op in a browser, where that redirect
+  // is an ordinary page load initSession() already picks up.
+  useEffect(() => initOAuthDeepLinks(), []);
 
   useEffect(() => {
     document.documentElement.lang = lang;
