@@ -226,8 +226,7 @@ export default function Discover() {
               type="button"
               className="discover-hero-btn"
               aria-label={t('discoverNotifications')}
-              // TODO: route to 'clientNotifications' once ClientNotifications.dc.html is ported
-              onClick={() => nav({ screen: 'comingSoon', params: { feature: 'clientNotifications' } })}
+              onClick={() => nav('clientNotifications')}
             >
               <BellIcon size={16} color="#FFFFFF" />
             </button>

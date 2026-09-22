@@ -50,6 +50,10 @@ import ProgramDetail from './screens/ProgramDetail';
 import RateCoach from './screens/RateCoach';
 import CoachMessages from './screens/CoachMessages';
 import MyCoaches from './screens/MyCoaches';
+import ClientNotifications from './screens/ClientNotifications';
+import ClientHelpCenter from './screens/ClientHelpCenter';
+import ClientPrivacyPolicy from './screens/ClientPrivacyPolicy';
+import ClientTermsOfService from './screens/ClientTermsOfService';
 import ComingSoon from './screens/ComingSoon';
 
 export default function App() {
@@ -102,6 +106,14 @@ export default function App() {
       return <CoachMessages />;
     case 'myCoaches':
       return <MyCoaches />;
+    case 'clientNotifications':
+      return <ClientNotifications />;
+    case 'clientHelpCenter':
+      return <ClientHelpCenter />;
+    case 'clientPrivacyPolicy':
+      return <ClientPrivacyPolicy />;
+    case 'clientTermsOfService':
+      return <ClientTermsOfService />;
     case 'clientAuth':
       return <ClientAuth />;
     case 'onboarding':

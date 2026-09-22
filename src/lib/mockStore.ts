@@ -937,7 +937,8 @@ export function markNotificationRead(id: string): void {
   writeLocal('notif_read', { ...getReadNotifications(), [id]: true });
 }
 
-export function markAllNotificationsRead(list: ProNotification[]): void {
+/** Takes anything with an id — the Pro's list and the member's both. */
+export function markAllNotificationsRead(list: { id: string }[]): void {
   const readMap = { ...getReadNotifications() };
   list.forEach((n) => { readMap[n.id] = true; });
   writeLocal('notif_read', readMap);
@@ -1596,58 +1597,124 @@ export function setSelectedOfferingId(id: string): void {
 // neither of which is modeled anywhere in this app yet.
 // ---------------------------------------------------------------------------
 
+export type ClientNotificationKind =
+  | 'session-pending' | 'session-confirmed' | 'task-overdue' | 'feedback'
+  | 'payment-overdue' | 'payment-due' | 'payment-received'
+  | 'package-expired' | 'package-out' | 'package-soon';
+
+/**
+ * The specifics behind a notification's one-line subtitle.
+ *
+ * Carried on the notification rather than re-derived in the screen: the
+ * builder below already has the exact block, recap and payment in hand,
+ * and a second lookup in the UI would eventually disagree with this one
+ * about *which* recap or *which* payment the row is announcing.
+ */
+export interface ClientNotificationData {
+  /** session-pending: the requested slot, e.g. "10:00 – 10:45 AM". */
+  range?: string;
+  /** session-confirmed / feedback: who it's with. */
+  coachName?: string;
+  /** session-confirmed: the client's own nextSession display string. */
+  sessionDisplay?: string;
+  /** task-overdue: how many, and the first one's title. */
+  count?: number;
+  firstTitle?: string;
+  /** feedback: the recap text itself. */
+  recapText?: string;
+  /** payment-overdue / payment-due: which plan is owed for. */
+  plan?: string;
+  /** payment-received: what was paid, and when. */
+  amount?: number;
+  date?: string;
+  /** package-soon: how long is left. */
+  daysToExpiry?: number;
+}
+
 export interface ClientNotification {
   id: string;
-  kind: 'session-pending' | 'session-confirmed' | 'task-overdue' | 'feedback' | 'payment-overdue' | 'payment-due' | 'payment-received' | 'package-expired' | 'package-out' | 'package-soon';
+  kind: ClientNotificationKind;
   unread: boolean;
+  data: ClientNotificationData;
+  /** Where tapping the row goes. */
+  target: NavTarget;
 }
+
+// Every kind lands on the screen that can actually do something about it.
+// A Record, not a lookup with a fallback, so adding a kind above is a
+// compile error here until it has somewhere to go.
+const CLIENT_NOTIFICATION_TARGET: Record<ClientNotificationKind, Screen> = {
+  'session-pending': 'clientSchedule',
+  'session-confirmed': 'clientSchedule',
+  'task-overdue': 'clientTasks',
+  feedback: 'clientCoach',
+  'payment-overdue': 'clientCoach',
+  'payment-due': 'clientCoach',
+  'payment-received': 'clientCoach',
+  'package-expired': 'clientCoach',
+  'package-out': 'clientCoach',
+  'package-soon': 'clientCoach',
+};
 
 export function getClientNotifications(clientId: string): ClientNotification[] {
   const readMap = getReadNotifications();
   const client = getClients().find((c) => c.id === clientId);
-  const list: { id: string; kind: ClientNotification['kind'] }[] = [];
+  const list: { id: string; kind: ClientNotificationKind; data: ClientNotificationData }[] = [];
 
   const nextSessionRaw = client?.nextSession || '';
   const hasConfirmed = !!nextSessionRaw && nextSessionRaw !== 'No upcoming session' && nextSessionRaw !== 'Program completed';
   const pendingBlock = getCustomBlocks().find((b) => b.kind === 'pending' && b.clientId === clientId);
+  const coachName = getCoachProfile().name;
   if (pendingBlock) {
-    list.push({ id: `session-pending-${pendingBlock.id}`, kind: 'session-pending' });
+    list.push({ id: `session-pending-${pendingBlock.id}`, kind: 'session-pending', data: { range: blockRange(pendingBlock) } });
   } else if (hasConfirmed) {
-    list.push({ id: 'session-confirmed', kind: 'session-confirmed' });
+    list.push({
+      id: 'session-confirmed',
+      kind: 'session-confirmed',
+      data: { coachName, sessionDisplay: nextSessionRaw.replace(/^Next:\s*/, '') },
+    });
   }
 
   const overdueTasks = getTasks(clientId).filter((t) => isTaskOverdue(t));
   if (overdueTasks.length) {
-    list.push({ id: 'task-overdue', kind: 'task-overdue' });
+    list.push({ id: 'task-overdue', kind: 'task-overdue', data: { count: overdueTasks.length, firstTitle: overdueTasks[0].title } });
   }
 
   const fallbackSessions = [{ id: 'sess1' }, { id: 'sess2' }];
   const allSessions = [...getSessionLogs(clientId), ...fallbackSessions];
   const recapSession = allSessions.find((s) => getRecapForMember(clientId, s.id).trim());
   if (recapSession) {
-    list.push({ id: `feedback-${recapSession.id}`, kind: 'feedback' });
+    list.push({
+      id: `feedback-${recapSession.id}`,
+      kind: 'feedback',
+      data: { coachName, recapText: getRecapForMember(clientId, recapSession.id).trim() },
+    });
   }
 
   if (client?.paymentStatus === 'overdue') {
-    list.push({ id: 'payment-overdue', kind: 'payment-overdue' });
+    list.push({ id: 'payment-overdue', kind: 'payment-overdue', data: { plan: client.plan } });
   } else if (client?.paymentStatus === 'due') {
-    list.push({ id: 'payment-due', kind: 'payment-due' });
+    list.push({ id: 'payment-due', kind: 'payment-due', data: { plan: client.plan } });
   } else {
     const lastPayment = getPaymentHistory(clientId)[0];
     if (lastPayment && lastPayment.amount > 0) {
-      list.push({ id: `payment-received-${lastPayment.id}`, kind: 'payment-received' });
+      list.push({
+        id: `payment-received-${lastPayment.id}`,
+        kind: 'payment-received',
+        data: { amount: lastPayment.amount, date: lastPayment.date },
+      });
     }
   }
 
   const pkgStatus = getPackageStatus(clientId);
   if (pkgStatus.needsAttention) {
     const pkgKind = pkgStatus.isExpired ? 'package-expired' : pkgStatus.isOutOfSessions ? 'package-out' : 'package-soon';
-    list.push({ id: 'package-alert', kind: pkgKind });
+    list.push({ id: 'package-alert', kind: pkgKind, data: { daysToExpiry: pkgStatus.daysToExpiry } });
   }
 
   const prefs = getNotificationPrefs();
   if (!prefs.enabled) return [];
-  const categoryOfKind: Partial<Record<ClientNotification['kind'], keyof NotificationPrefs>> = {
+  const categoryOfKind: Partial<Record<ClientNotificationKind, keyof NotificationPrefs>> = {
     'session-pending': 'session',
     'session-confirmed': 'session',
     'task-overdue': 'task',
@@ -1658,7 +1725,11 @@ export function getClientNotifications(clientId: string): ClientNotification[] {
     return !cat || prefs[cat] !== false;
   });
 
-  return filtered.map((n) => ({ ...n, unread: !readMap[n.id] }));
+  return filtered.map((n) => ({
+    ...n,
+    unread: !readMap[n.id],
+    target: { screen: CLIENT_NOTIFICATION_TARGET[n.kind], params: {} },
+  }));
 }
 
 // ---------------------------------------------------------------------------

@@ -49,6 +49,7 @@ export type Screen =
   | 'clientSchedule' | 'clientTasks'
   | 'myPrograms' | 'programDetail'
   | 'rateCoach' | 'coachMessages' | 'myCoaches'
+  | 'clientNotifications' | 'clientHelpCenter' | 'clientPrivacyPolicy' | 'clientTermsOfService'
   | 'schedule' | 'addTimeBlock' | 'availability'
   | 'comingSoon'; // placeholder landing spot for whatever's not built yet
 
@@ -129,6 +130,10 @@ const PARENT: Partial<Record<Screen, Screen | typeof RET>> = {
   rateCoach: 'clientSchedule',
   coachMessages: 'clientCoach',
   myCoaches: 'clientCoach',
+  clientNotifications: 'clientHome',
+  clientHelpCenter: 'clientProfile',
+  clientPrivacyPolicy: 'clientProfile',
+  clientTermsOfService: 'clientProfile',
   addTimeBlock: 'schedule',
   // Availability.dc.html's own back link points at Profile, not Schedule
   // (it's reached from Schedule's header icon, but is itself a settings-ish

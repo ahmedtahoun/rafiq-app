@@ -141,7 +141,7 @@ export default function ClientHome() {
               type="button"
               className="client-home-icon-btn"
               aria-label="Notifications"
-              onClick={() => nav({ screen: 'comingSoon', params: { feature: 'clientNotifications' } })} // TODO: route to 'clientNotifications' once ClientNotifications.dc.html is ported
+              onClick={() => nav('clientNotifications')}
             >
               <BellIcon size={16} color="#FFFFFF" />
               {hasUnreadNotifications && <span className="client-home-bell-dot" />}

@@ -29,14 +29,18 @@ OfferingDetail/Subscription/Earnings, Templates/TemplateDetail, AddTask/
 SessionRoom, Messages/MessagesInbox, Notifications/ShareProfile/
 PreviewProfile/HelpCenter/CoachPrivacyPolicy/CoachTermsOfService.
 
-**Track B — Client side: #1–#8 done, #9 open.**
-Done: ClientOnboarding, ClientHome, ClientProfile + EditClientProfile,
+**Track B — Client side: #1–#9 DONE. The member app is fully ported.**
+ClientOnboarding, ClientHome, ClientProfile + EditClientProfile,
 Discover + CoachPreview, ClientCoach + ClientBooking, ClientSchedule +
 ClientTasks, MyPrograms + ProgramDetail, RateCoach + CoachMessages +
-MyCoaches.
+MyCoaches, ClientNotifications + ClientHelpCenter + ClientPrivacyPolicy +
+ClientTermsOfService.
 
-Open, in order:
-- **#9 Everything else** — ClientNotifications.dc.html, ClientHelpCenter.dc.html, PrivacyPolicy.dc.html, TermsOfService.dc.html
+**No screen in the member app routes to `comingSoon` any more.** There is
+a test that walks all eighteen member screens and asserts each renders its
+own component.
+
+Nothing is open on Track B.
 
 **The member's own Pro vs. the browsable directory — two different
 things, don't merge them.** `directory.ts` is for *browsing* pros a member
@@ -52,6 +56,42 @@ own constants. `Schedule.tsx` still carries a hand-written 35-cell literal
 for the same grid — worth moving it onto `getMonthGrid()` so the two cannot
 disagree about which dates are live, but that is Reem's file and was left
 alone here.
+
+## ⚠️ The WhatsApp claim in the privacy policy — coach side still wrong
+
+The design's Privacy Policy copy says, in both languages, that
+conversations with your pro happen over WhatsApp and are governed by
+WhatsApp's own privacy policy. **That stopped being true when in-app
+messaging shipped.** Messages are written by `sendMessage()` into the
+app's own store and never leave it.
+
+**Member side (#9): fixed.** `clientPrivacySection4Body` describes what
+the app actually does. A privacy policy that misstates where a member's
+messages go is a factual claim about data handling, not a copy nit, so it
+was not ported verbatim. The design prototype still has the old wording;
+if it is ever re-ported, do not overwrite this.
+
+**Coach side: STILL WRONG and needs a decision.**
+`privacySection4Body` in `i18n.ts` (both `en` and `ar`) carries the
+original claim, and `CoachPrivacyPolicy` renders it today. It was left
+alone because this file's own rule says that copy gets fixed in the design
+prototype first and re-ported, not patched here — but the result is that
+the two policies now contradict each other. Someone needs to either make
+that fix in the prototype or agree to patch it directly.
+
+`helpCenterA1` (coach side) also still describes adding a member by
+"WhatsApp number", which is a separate and probably still-accurate
+detail — the field is a phone number.
+
+**#9 also extended the client notification model.** `ClientNotification`
+now carries `data` (the specifics behind its subtitle) and `target` (where
+tapping it goes), both built where the notification is built — the builder
+already has the exact block, recap and payment in hand, and a second
+lookup in the screen would eventually disagree about *which* one a row is
+announcing. `CLIENT_NOTIFICATION_TARGET` is a full `Record`, so adding a
+kind is a compile error until it has a destination.
+`markAllNotificationsRead` was widened from `ProNotification[]` to
+`{ id: string }[]` so both sides can call it.
 
 **#8 added `setRating` — ratings were readable but unwritable.** Every
 screen showing stars (PreviewProfile, CoachPreview, ClientCoach,
