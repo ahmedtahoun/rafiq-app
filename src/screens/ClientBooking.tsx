@@ -6,7 +6,7 @@ import {
   getClient, getCoachProfile, getAvailabilityForDayIndex, getCustomBlocks,
   getPackageStatus, getSessionTypeInfo, getSelectedOfferingId, getOffering,
   addCustomBlock, addPayment, chargeCredit, formatDate, canInteract,
-  blockDayIndex, blockStartH, type SessionType,
+  blockDayIndex, blockStartH, getMonthGrid, type SessionType,
 } from '../lib/mockStore';
 import './ClientBooking.css';
 
@@ -112,6 +112,16 @@ export default function ClientBooking() {
 
   const canConfirm = slot !== null && (hasCredit || paid);
   const selectedDayLabel = `${dayNames[day]}, ${monthLabel} ${DATE_NUMS[day]}`;
+
+  // The whole month, so a member can see where they are rather than
+  // scrolling a seven-day strip. Only the seven days the app actually has
+  // data for are bookable — the same limitation the coach's own Schedule
+  // month view shows, and the hint under the grid says so rather than
+  // leaving dead cells unexplained.
+  const monthCells = getMonthGrid();
+  // A dot marks a day the Pro is open on at all, so the open days are
+  // visible without tapping each one.
+  const openByDayIndex = [0, 1, 2, 3, 4, 5, 6].map((i) => getAvailabilityForDayIndex(i).length > 0);
 
   function icsHref(): string {
     if (slot === null || slotEnd === null) return '';
@@ -262,23 +272,47 @@ export default function ClientBooking() {
           </div>
         )}
 
-        <div className="client-booking-days">
-          {dayNames.map((dow, i) => {
-            const isPast = i < TODAY_INDEX;
-            return (
-              <button
-                key={dow}
-                type="button"
-                className={`client-booking-day${i === day ? ' client-booking-day-on' : ''}`}
-                disabled={isPast}
-                aria-pressed={i === day}
-                onClick={() => { setDay(i); setSlot(null); }}
-              >
-                <span className="client-booking-dow">{dow}</span>
-                <span className="client-booking-date">{DATE_NUMS[i]}</span>
-              </button>
-            );
-          })}
+        <div className="client-booking-month">
+          <div className="client-booking-month-label">{t('clientBookingMonthLabel')}</div>
+          {/* Full short names, not initials. Schedule's month grid uses
+              first characters, which works in English but not in Arabic:
+              إثنين and أحد reduce to the same letter, so the columns stop
+              being distinguishable. These fit at this size in both. */}
+          <div className="client-booking-weekdays" aria-hidden="true">
+            {dayNames.map((dow) => (
+              <div key={dow} className="client-booking-weekday">{dow}</div>
+            ))}
+          </div>
+          <div className="client-booking-grid">
+            {monthCells.map((cell, i) => {
+              const live = cell.dayIndex !== null;
+              const past = live && cell.dayIndex! < TODAY_INDEX;
+              const bookable = live && !past;
+              const selected = live && cell.dayIndex === day;
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  className={[
+                    'client-booking-cell',
+                    selected ? 'client-booking-cell-on' : '',
+                    bookable ? 'client-booking-cell-open' : '',
+                    cell.inMonth ? '' : 'client-booking-cell-outside',
+                  ].filter(Boolean).join(' ')}
+                  disabled={!bookable}
+                  aria-pressed={selected}
+                  aria-label={bookable
+                    ? `${t('clientBookingMonthLabel')} ${cell.day}${openByDayIndex[cell.dayIndex!] ? '' : ` — ${t('clientBookingMonthClosed')}`}`
+                    : `${cell.day} — ${past ? t('clientBookingLegendPassed') : t('clientBookingMonthClosed')}`}
+                  onClick={() => { if (cell.dayIndex !== null) { setDay(cell.dayIndex); setSlot(null); } }}
+                >
+                  {cell.day}
+                  {bookable && openByDayIndex[cell.dayIndex!] && <span className="client-booking-cell-dot" />}
+                </button>
+              );
+            })}
+          </div>
+          <div className="client-booking-month-hint">{t('clientBookingMonthHint')}</div>
         </div>
 
         <div className="client-booking-selected">{selectedDayLabel}</div>
