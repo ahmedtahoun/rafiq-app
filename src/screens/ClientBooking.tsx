@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, dayKey, type MessageKey } from '../lib/i18n';
 import { CheckIcon, CloseIcon, ScheduleIcon, WarningIcon } from '../components/icons';
 import {
   getClient, getCoachProfile, getAvailabilityForDayIndex, getCustomBlocks,
@@ -31,7 +31,7 @@ const SLOT_STEP = 0.75;
 // the relationship yet, and this is the same number shown there.
 const SESSION_PRICE = 750;
 
-const TYPE_CHIPS: { key: SessionType; chipKey: string; labelKey: string }[] = [
+const TYPE_CHIPS: { key: SessionType; chipKey: MessageKey; labelKey: MessageKey }[] = [
   { key: 'intro', chipKey: 'clientBookingTypeIntro', labelKey: 'clientBookingTypeLabelIntro' },
   { key: 'short', chipKey: 'clientBookingTypeShort', labelKey: 'clientBookingTypeLabelShort' },
   { key: 'standard', chipKey: 'clientBookingTypeStandard', labelKey: 'clientBookingTypeLabelStandard' },
@@ -64,7 +64,7 @@ export default function ClientBooking() {
 
   const AM = isAr ? 'صباحًا' : 'AM';
   const PM = isAr ? 'مساءً' : 'PM';
-  const dayNames = [0, 1, 2, 3, 4, 5, 6].map((i) => t(`dowShort${i}`));
+  const dayNames = [0, 1, 2, 3, 4, 5, 6].map((i) => t(dayKey('dowShort', i)));
   const monthLabel = isAr ? 'أكتوبر' : 'Oct';
   const currency = isAr ? 'جنيه' : 'EGP';
 

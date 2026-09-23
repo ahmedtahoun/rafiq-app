@@ -1,4 +1,5 @@
 import type { ReactNode, MouseEvent } from 'react';
+import { useT } from '../lib/i18n';
 import './BottomSheet.css';
 
 interface BottomSheetProps {
@@ -14,6 +15,7 @@ interface BottomSheetProps {
     flow, etc.) — one implementation instead of every screen rebuilding
     its own overlay. */
 export function BottomSheet({ open, onClose, title, children }: BottomSheetProps) {
+  const t = useT();
   if (!open) return null;
 
   function stop(e: MouseEvent) {
@@ -27,7 +29,7 @@ export function BottomSheet({ open, onClose, title, children }: BottomSheetProps
         {title && (
           <div className="sheet-header">
             <div className="sheet-title">{title}</div>
-            <button className="sheet-close" aria-label="Close" onClick={onClose}>
+            <button className="sheet-close" aria-label={t('close')} onClick={onClose}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round">
                 <path d="M18 6L6 18M6 6l12 12" />
               </svg>

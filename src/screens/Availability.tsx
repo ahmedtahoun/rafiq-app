@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, dayKey } from '../lib/i18n';
 import { ChevronIcon } from '../components/icons';
 import { BottomSheet } from '../components/BottomSheet';
 import { getWeeklyAvailability, setWeeklyAvailability, type WeeklyAvailabilityDay } from '../lib/mockStore';
@@ -88,7 +88,7 @@ export default function Availability() {
   return (
     <div className="phone-frame availability-screen">
       <div className="availability-header">
-        <button type="button" className="availability-back" aria-label="Back to profile" onClick={back}>
+        <button type="button" className="availability-back" aria-label={t('backToProfile')} onClick={back}>
           <ChevronIcon size={16} />
         </button>
         <div className="availability-title">{t('availabilityTitle')}</div>
@@ -101,12 +101,12 @@ export default function Availability() {
         {weekly.map((d, i) => (
           <div key={i} className="availability-day-card">
             <div className="availability-day-row">
-              <div className="availability-day-label">{t(`dowFull${i}`)}</div>
+              <div className="availability-day-label">{t(dayKey('dowFull', i))}</div>
               <button
                 type="button"
                 role="switch"
                 aria-checked={d.enabled}
-                aria-label="Toggle availability"
+                aria-label={t('availabilityToggleDay', { day: t(dayKey('dowFull', i)) })}
                 className={`availability-switch${d.enabled ? ' is-on' : ''}`}
                 onClick={() => toggleDay(i)}
               >
@@ -125,8 +125,8 @@ export default function Availability() {
 
       <BottomSheet open={showEditSheet} onClose={closeEdit}>
         <div className="availability-edit-header">
-          <div className="availability-edit-day-label">{showEditSheet ? t(`dowFull${editingDayIdx}`) : ''}</div>
-          <button type="button" className="availability-edit-close" aria-label="Close" onClick={closeEdit}>
+          <div className="availability-edit-day-label">{showEditSheet ? t(dayKey('dowFull', editingDayIdx)) : ''}</div>
+          <button type="button" className="availability-edit-close" aria-label={t('close')} onClick={closeEdit}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
           </button>
         </div>

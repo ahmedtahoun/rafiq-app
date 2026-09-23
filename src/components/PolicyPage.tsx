@@ -1,14 +1,22 @@
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, type MessageKey } from '../lib/i18n';
 import { ChevronIcon } from '../components/icons';
 import './PolicyPage.css';
 
+/** The four policy documents this page renders. Naming them as a union
+    rather than taking any `string` lets the compiler expand
+    `${prefix}${n}Heading` into real keys and check every one of them. */
+type SectionPrefix = 'privacySection' | 'termsSection' | 'clientPrivacySection' | 'clientTermsSection';
+
+const SECTION_NUMBERS = [1, 2, 3, 4, 5, 6] as const;
+type SectionNumber = (typeof SECTION_NUMBERS)[number];
+
 interface PolicyPageProps {
-  titleKey: string;
-  updatedKey: string;
+  titleKey: MessageKey;
+  updatedKey: MessageKey;
   /** Section copy lives at `${sectionPrefix}{n}Heading` / `...Body`, 1-based. */
-  sectionPrefix: string;
-  sectionCount: number;
+  sectionPrefix: SectionPrefix;
+  sectionCount: SectionNumber;
 }
 
 /**
@@ -27,7 +35,7 @@ export function PolicyPage({ titleKey, updatedKey, sectionPrefix, sectionCount }
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
 
-  const sections = Array.from({ length: sectionCount }, (_, i) => i + 1);
+  const sections = SECTION_NUMBERS.slice(0, sectionCount);
 
   return (
     <div className="phone-frame policy-page">

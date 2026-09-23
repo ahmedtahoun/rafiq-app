@@ -13,6 +13,7 @@
  * and keeping it in one place stops a late-arriving auth event from yanking
  * a user off whatever screen they are on for reasons the store cannot see.
  */
+import type { MessageKey } from './i18n';
 import { useAppStore } from '../store/appStore';
 import { getSession, onAuthStateChange } from './auth';
 import { isSupabaseConfigured } from './supabase';
@@ -62,7 +63,7 @@ function routeAfterSignOut() {
  * rather than being handed the generic entry screen. Welcome, where a
  * cold start otherwise lands, has nowhere to show a message at all.
  */
-function routeAfterFailedReturn(key: string, detail: string) {
+function routeAfterFailedReturn(key: MessageKey, detail: string) {
   const { setAuthError, nav } = useAppStore.getState();
   setAuthError(key, detail);
   nav(takeAuthOrigin() === 'clientAuth' ? 'clientAuth' : 'auth');

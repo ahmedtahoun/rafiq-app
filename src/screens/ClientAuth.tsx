@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, type MessageKey } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { getCoachProfile } from '../lib/mockStore';
 import { signInWithOAuth, type OAuthProvider } from '../lib/auth';
@@ -53,7 +53,7 @@ export default function ClientAuth() {
   const setLang = useAppStore((s) => s.setLang);
   const setRole = useAppStore((s) => s.setRole);
   const [pending, setPending] = useState<OAuthProvider | null>(null);
-  const [errorKey, setErrorKey] = useState('');
+  const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
 
   // Same split as Auth: local state for failing to leave for the
   // provider, the store for failing to come back. A return that started
@@ -61,7 +61,7 @@ export default function ClientAuth() {
   const returnErrorKey = useAppStore((s) => s.authErrorKey);
   const returnErrorDetail = useAppStore((s) => s.authErrorDetail);
   const clearAuthError = useAppStore((s) => s.clearAuthError);
-  const shownErrorKey = errorKey || returnErrorKey || '';
+  const shownErrorKey: MessageKey | null = errorKey ?? returnErrorKey ?? null;
   const shownDetail = errorKey ? '' : returnErrorDetail;
 
   // The inviting coach. The prototype hardcoded "Yasmin El-Sayed" because
@@ -88,7 +88,7 @@ export default function ClientAuth() {
     }
 
     setPending(provider);
-    setErrorKey('');
+    setErrorKey(null);
     clearAuthError();
     rememberAuthOrigin('clientAuth');
     const result = await signInWithOAuth(provider);

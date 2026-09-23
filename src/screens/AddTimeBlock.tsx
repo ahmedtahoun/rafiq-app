@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, dayKey, type MessageKey } from '../lib/i18n';
 import { addCustomBlock, type TimeBlockKind } from '../lib/mockStore';
 import './AddTimeBlock.css';
 
 const DAY_KEYS = [0, 1, 2, 3, 4, 5, 6];
 
-const TYPE_DEFS: { kind: TimeBlockKind; labelKey: string; color: string; bg: string }[] = [
+const TYPE_DEFS: { kind: TimeBlockKind; labelKey: MessageKey; color: string; bg: string }[] = [
   { kind: 'available', labelKey: 'scheduleLegendPreferred', color: 'var(--green)', bg: 'var(--green-bg)' },
   { kind: 'busy', labelKey: 'scheduleLegendUnavailable', color: 'var(--red)', bg: 'var(--red-bg)' },
 ];
@@ -90,7 +90,7 @@ export default function AddTimeBlock() {
                 className={`add-time-block-day-chip${day === i ? ' is-selected' : ''}`}
                 onClick={() => setDay(i)}
               >
-                {t(`dowShort${i}`)}
+                {t(dayKey('dowShort', i))}
               </button>
             ))}
           </div>
@@ -160,7 +160,7 @@ export default function AddTimeBlock() {
         </div>
         {repeat && (
           <p className="add-time-block-recurring-note">
-            {t('addTimeBlockRepeatNote', { day: t(`dowShort${day}`) })}
+            {t('addTimeBlockRepeatNote', { day: t(dayKey('dowShort', day)) })}
           </p>
         )}
       </div>

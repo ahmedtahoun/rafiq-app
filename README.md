@@ -22,7 +22,7 @@ The approved UX lives as a Claude Artifact "Design" canvas prototype (~90 screen
 
 Phase 0 shared infra: the router supports per-screen params (`nav({screen, params})`, restored on `back()`), the shared UI kit has `Button`/`Card`/`TextField`/`BottomSheet`/`BottomNav`, and `src/lib/mockStore.ts` holds the full data layer (clients, tasks, packages, scheduling, payments, messages, offerings, subscriptions, notifications, ratings) written as drop-in Supabase seams.
 
-See **[WORK-SPLIT.md](WORK-SPLIT.md)** for exactly what's left, in order, and the current working agreement (branch + PR, not direct pushes).
+See **[WORK-SPLIT.md](WORK-SPLIT.md)** for exactly what's left, in order, and the current working agreement (branch + PR, not direct pushes), and **[CLAUDE.md](CLAUDE.md)** for the conventions and traps worth knowing before touching a screen.
 
 ## Getting started
 
@@ -31,6 +31,14 @@ npm install
 cp .env.local.example .env.local   # fill in a Supabase project's URL + anon key
 npm run dev
 ```
+
+Before pushing, run what CI runs:
+
+```bash
+npm run build && npm run lint && npm test
+```
+
+`npm test` is the Playwright browser suite in `tests/` — it starts its own dev server and takes ~3 minutes. It is the only check that looks at a rendered screen. See [tests/README.md](tests/README.md).
 
 ## Project structure
 

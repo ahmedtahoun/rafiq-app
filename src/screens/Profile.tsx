@@ -165,7 +165,7 @@ export default function Profile() {
             ) : (
               <div className="profile-avatar-fallback">{avatarInitials}</div>
             )}
-            <button type="button" aria-label="Edit profile" className="profile-avatar-edit-btn" onClick={() => nav('editProfile')}>
+            <button type="button" aria-label={t('profileEditProfile')} className="profile-avatar-edit-btn" onClick={() => nav('editProfile')}>
               <PencilIcon size={11} color="var(--accent)" />
             </button>
           </div>
@@ -173,7 +173,7 @@ export default function Profile() {
             <div className="profile-name-row">
               <div className="profile-name">{profile.name}</div>
               {credentialVerified && (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none" aria-label="Verified pro">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none" aria-label={t('profileVerifiedPro')}>
                   <circle cx="12" cy="12" r="10" />
                   <path d="M9 12.5l2 2 4-4.5" stroke="var(--accent)" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
                 </svg>
@@ -416,7 +416,7 @@ export default function Profile() {
               <div className="profile-rate-expand">
                 <div className="profile-rate-stars">
                   {[1, 2, 3, 4, 5].map((n) => (
-                    <button key={n} type="button" aria-label="Rate star" onClick={() => setRafiqRating(n)}>
+                    <button key={n} type="button" aria-label={t('profileRateStarLabel', { n })} onClick={() => setRafiqRating(n)}>
                       <StarIcon size={24} color="var(--amber)" filled={n <= rafiqRating} />
                     </button>
                   ))}
@@ -532,7 +532,7 @@ export default function Profile() {
             <path d="M20 6L9 17l-5-5" />
           </svg>
           <div className="profile-toast-text">{supportToastMsg}</div>
-          <button type="button" aria-label="Dismiss" className="profile-toast-close" onClick={() => setShowSupportToast(false)}>
+          <button type="button" aria-label={t('dismiss')} className="profile-toast-close" onClick={() => setShowSupportToast(false)}>
             <CloseIcon size={12} color="#FFFFFF" />
           </button>
         </div>

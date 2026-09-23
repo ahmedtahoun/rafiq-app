@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, dayKey, type MessageKey } from '../lib/i18n';
 import { darken } from '../lib/color';
 import {
   MessageIcon, ScheduleIcon, TasksIcon, CheckIcon, StarIcon, WarningIcon,
@@ -44,7 +44,7 @@ function hourLabel(h: number, am: string, pm: string): string {
 type TrustStep = 'reason' | 'reported';
 type SubscribeStep = 'pick' | 'done';
 
-const REPORT_REASONS: { key: ProReportReason; labelKey: string }[] = [
+const REPORT_REASONS: { key: ProReportReason; labelKey: MessageKey }[] = [
   { key: 'no_show', labelKey: 'clientCoachReasonNoShow' },
   { key: 'inappropriate', labelKey: 'clientCoachReasonInappropriate' },
   { key: 'payment', labelKey: 'clientCoachReasonPayment' },
@@ -122,8 +122,8 @@ export default function ClientCoach() {
 
   const AM = isAr ? 'صباحًا' : 'AM';
   const PM = isAr ? 'مساءً' : 'PM';
-  const dayNamesShort = [0, 1, 2, 3, 4, 5, 6].map((i) => t(`dowShort${i}`));
-  const dayNamesFull = [0, 1, 2, 3, 4, 5, 6].map((i) => t(`dowFull${i}`));
+  const dayNamesShort = [0, 1, 2, 3, 4, 5, 6].map((i) => t(dayKey('dowShort', i)));
+  const dayNamesFull = [0, 1, 2, 3, 4, 5, 6].map((i) => t(dayKey('dowFull', i)));
 
   // Which weekdays the Pro is actually open on, straight from their own
   // weekly availability — so a member can never pick a standing time the
@@ -240,7 +240,7 @@ export default function ClientCoach() {
             <button
               type="button"
               className="client-coach-hero-btn"
-              aria-label={t('discoverToggleTheme')}
+              aria-label={t('toggleDarkMode')}
               onClick={() => setDark(!dark)}
             >
               {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}

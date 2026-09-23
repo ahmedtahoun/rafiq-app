@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, type MessageKey } from '../lib/i18n';
 import { COUNTRIES, DEFAULT_COUNTRY } from '../lib/countries';
 import { SpecialtyIcon, type SpecialtyIconKey } from '../components/specialtyIcons';
 import { CountryPicker } from '../components/CountryPicker';
@@ -14,7 +14,7 @@ import './ClientOnboarding.css';
 // member picks one focus here, a coach can offer several specialties.
 // Icon identity is zipped by position with the label, same as the design's
 // own focusIconKeys/focusList arrays kept separate.
-const FOCUS_OPTIONS: { labelKey: string; icon: SpecialtyIconKey }[] = [
+const FOCUS_OPTIONS: { labelKey: MessageKey; icon: SpecialtyIconKey }[] = [
   { labelKey: 'clientFocusLife', icon: 'life' },
   { labelKey: 'clientFocusMeditation', icon: 'meditation' },
   { labelKey: 'clientFocusBreathwork', icon: 'breathwork' },
@@ -81,7 +81,7 @@ export default function ClientOnboarding() {
     <div className="phone-frame">
       <div className="client-onboarding-header">
         <div className="client-onboarding-progress-dot" />
-        <button className="client-onboarding-lang-toggle" aria-label="Toggle language" onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}>
+        <button className="client-onboarding-lang-toggle" aria-label={t('switchLanguage')} onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}>
           {lang === 'en' ? 'ع' : 'EN'}
         </button>
       </div>

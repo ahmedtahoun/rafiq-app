@@ -131,16 +131,16 @@ export default function ClientHome() {
             </div>
           </div>
           <div className="client-home-hero-actions">
-            <button type="button" className="client-home-icon-btn" aria-label="Switch language" onClick={() => setLang(isAr ? 'en' : 'ar')}>
+            <button type="button" className="client-home-icon-btn" aria-label={t('switchLanguage')} onClick={() => setLang(isAr ? 'en' : 'ar')}>
               <span style={{ fontSize: 12, fontWeight: 700 }}>{isAr ? 'EN' : 'ع'}</span>
             </button>
-            <button type="button" className="client-home-icon-btn" aria-label="Toggle dark mode" onClick={() => setDark(!dark)}>
+            <button type="button" className="client-home-icon-btn" aria-label={t('toggleDarkMode')} onClick={() => setDark(!dark)}>
               {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}
             </button>
             <button
               type="button"
               className="client-home-icon-btn"
-              aria-label="Notifications"
+              aria-label={t('notifications')}
               onClick={() => nav('clientNotifications')}
             >
               <BellIcon size={16} color="#FFFFFF" />
@@ -149,7 +149,7 @@ export default function ClientHome() {
             <button
               type="button"
               className="client-home-avatar-btn"
-              aria-label="Your profile"
+              aria-label={t('clientHomeYourProfile')}
               onClick={() => nav('clientProfile')}
             >
               {initials}
@@ -318,7 +318,7 @@ export default function ClientHome() {
               {hasTasksToday &&
                 taskPreview.map((tk) => (
                   <div className="client-home-task-row" key={tk.id}>
-                    <button type="button" aria-label="Toggle task complete" className={`client-home-task-check${tk.done ? ' is-done' : ''}`} onClick={() => toggleTaskDone(tk.id)}>
+                    <button type="button" aria-label={t('toggleTaskComplete', { task: tk.title })} className={`client-home-task-check${tk.done ? ' is-done' : ''}`} onClick={() => toggleTaskDone(tk.id)}>
                       {tk.done && <CheckIcon size={12} color="#FFFFFF" />}
                     </button>
                     <div className="client-home-task-text">

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, dayKey, type MessageKey } from '../lib/i18n';
 import { darken } from '../lib/color';
 import {
   MoonIcon, SunIcon, ArrowForwardIcon, CheckIcon, ScheduleIcon, WarningIcon,
@@ -29,7 +29,7 @@ const SLOT_STEP = 0.75;
 
 const ACCENT_HEX = '#B75C3D';
 
-const TYPE_LABEL_KEYS: Record<SessionType, string> = {
+const TYPE_LABEL_KEYS: Record<SessionType, MessageKey> = {
   intro: 'clientBookingTypeLabelIntro',
   short: 'clientBookingTypeLabelShort',
   standard: 'clientBookingTypeLabelStandard',
@@ -109,7 +109,7 @@ export default function ClientSchedule() {
   // a data-model change across every screen that reads the field, not
   // something to fake here.
   const upcomingDay = isPending && pendingBlock
-    ? t(`dowFull${blockDayIndex(pendingBlock)}`)
+    ? t(dayKey('dowFull', blockDayIndex(pendingBlock)))
     : hasConfirmedSession ? nextSessionRaw.replace(/^Next:\s*/, '') : '';
   const upcomingStart = isPending && pendingBlock ? hourLabel(blockStartH(pendingBlock), AM, PM) : '';
   const upcomingEnd = isPending && pendingBlock ? hourLabel(blockEndH(pendingBlock), AM, PM) : '';
@@ -244,7 +244,7 @@ export default function ClientSchedule() {
             <button
               type="button"
               className="client-schedule-hero-btn"
-              aria-label={t('discoverToggleTheme')}
+              aria-label={t('toggleDarkMode')}
               onClick={() => setDark(!dark)}
             >
               {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}
@@ -343,7 +343,7 @@ export default function ClientSchedule() {
                     {t('clientScheduleRate')}
                   </button>
                 ) : (
-                  <span className="client-schedule-rated" aria-label={`${s.rated}/5`}>
+                  <span className="client-schedule-rated" aria-label={t('rateCoachStarLabel', { n: s.rated })}>
                     {'★'.repeat(s.rated)}
                   </span>
                 )}
@@ -408,7 +408,7 @@ export default function ClientSchedule() {
                     aria-pressed={selected}
                     onClick={() => { setRescheduleDay(i); setRescheduleSlot(null); }}
                   >
-                    <span className="client-schedule-day-dow">{t(`dowShort${i}`)}</span>
+                    <span className="client-schedule-day-dow">{t(dayKey('dowShort', i))}</span>
                     <span className="client-schedule-day-num">{DATE_NUMS[i]}</span>
                   </button>
                 );

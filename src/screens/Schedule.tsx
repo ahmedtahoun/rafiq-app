@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, dayKey } from '../lib/i18n';
 import {
   ArrowForwardIcon,
   ClientsIcon,
@@ -477,8 +477,8 @@ export default function Schedule() {
     const kindsPresent = [...new Set(dayBlocks.map((b) => b.kind))].slice(0, 3);
     return {
       i,
-      dow: t(`dowShort${i}`),
-      dowFull: t(`dowFull${i}`),
+      dow: t(dayKey('dowShort', i)),
+      dowFull: t(dayKey('dowFull', i)),
       date: DATE_NUMS[i],
       summary,
       dots: kindsPresent.map((k) => KIND_STYLE[k].bar),
@@ -495,7 +495,7 @@ export default function Schedule() {
 
   const bookedToday = blocks.filter((b) => b.kind === 'booked').length;
   const pendingToday = blocks.filter((b) => b.kind === 'pending').length;
-  const scheduleSummary = `${t(`dowFull${selectedDay}`)} · ${bookedToday} ${bookedToday === 1 ? t('scheduleSessionBookedOne').split(' ')[0] : t('scheduleSessionBookedMany').split(' ')[0]}${pendingToday ? ` · ${t('schedulePendingSuffix', { n: pendingToday })}` : ''}`;
+  const scheduleSummary = `${t(dayKey('dowFull', selectedDay))} · ${bookedToday} ${bookedToday === 1 ? t('scheduleSessionBookedOne').split(' ')[0] : t('scheduleSessionBookedMany').split(' ')[0]}${pendingToday ? ` · ${t('schedulePendingSuffix', { n: pendingToday })}` : ''}`;
   const cancelConfirmBody = t('scheduleCancelConfirmBody', { name: activeBlock?.name || t('scheduleThisMember') });
 
   const navItems: BottomNavItem[] = [
@@ -516,16 +516,16 @@ export default function Schedule() {
             <div className="schedule-title">{t('scheduleTitle')}</div>
           </div>
           <div className="schedule-hero-actions">
-            <button type="button" className="schedule-hero-icon-btn" aria-label="Edit availability" onClick={() => nav('availability')}>
+            <button type="button" className="schedule-hero-icon-btn" aria-label={t('scheduleEditAvailability')} onClick={() => nav('availability')}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="9" />
                 <path d="M12 7v5l3.5 2" />
               </svg>
             </button>
-            <button type="button" className="schedule-hero-icon-btn" aria-label="Switch language" onClick={() => setLang(isAr ? 'en' : 'ar')}>
+            <button type="button" className="schedule-hero-icon-btn" aria-label={t('switchLanguage')} onClick={() => setLang(isAr ? 'en' : 'ar')}>
               <span className="schedule-lang-label">{isAr ? 'EN' : 'ع'}</span>
             </button>
-            <button type="button" className="schedule-hero-icon-btn" aria-label="Toggle dark mode" onClick={() => setDark(!dark)}>
+            <button type="button" className="schedule-hero-icon-btn" aria-label={t('toggleDarkMode')} onClick={() => setDark(!dark)}>
               {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}
             </button>
           </div>
@@ -549,7 +549,7 @@ export default function Schedule() {
                   className={`schedule-day-chip${i === selectedDay ? ' is-selected' : ''}`}
                   onClick={() => setSelectedDay(i)}
                 >
-                  <span className="schedule-day-chip-dow">{t(`dowShort${i}`)}</span>
+                  <span className="schedule-day-chip-dow">{t(dayKey('dowShort', i))}</span>
                   <span className="schedule-day-chip-date">{date}</span>
                 </button>
               ))}
@@ -582,7 +582,7 @@ export default function Schedule() {
             </div>
 
             <div className="schedule-selected-label">
-              {t(`dowFull${selectedDay}`)}, {t('scheduleMonthName')} {DATE_NUMS[selectedDay]}
+              {t(dayKey('dowFull', selectedDay))}, {t('scheduleMonthName')} {DATE_NUMS[selectedDay]}
             </div>
 
             <div className="schedule-timeline" style={{ height: timelineHeight }}>
@@ -674,7 +674,7 @@ export default function Schedule() {
             <div className="schedule-month-card">
               <div className="schedule-month-weekdays">
                 {Array.from({ length: 7 }, (_, i) => (
-                  <div key={i} className="schedule-month-weekday">{t(`dowShort${i}`).charAt(0)}</div>
+                  <div key={i} className="schedule-month-weekday">{t(dayKey('dowShort', i)).charAt(0)}</div>
                 ))}
               </div>
               <div className="schedule-month-grid">
@@ -713,7 +713,7 @@ export default function Schedule() {
                 <div className="schedule-sheet-name">{activeBlock.name}</div>
                 <div className="schedule-sheet-range" dir="ltr">{activeBlock.range}</div>
               </div>
-              <button type="button" className="schedule-sheet-close" aria-label="Close" onClick={closeBlockSheet}>
+              <button type="button" className="schedule-sheet-close" aria-label={t('close')} onClick={closeBlockSheet}>
                 <CloseIcon size={14} />
               </button>
             </div>
@@ -780,7 +780,7 @@ export default function Schedule() {
       <BottomSheet open={showRescheduleSheet} onClose={closeRescheduleSheet}>
         <div className="schedule-reschedule-header">
           <div className="schedule-reschedule-title">{t('scheduleRescheduleTitle')}</div>
-          <button type="button" className="schedule-sheet-close" aria-label="Close" onClick={closeRescheduleSheet}>
+          <button type="button" className="schedule-sheet-close" aria-label={t('close')} onClick={closeRescheduleSheet}>
             <CloseIcon size={14} />
           </button>
         </div>
@@ -797,7 +797,7 @@ export default function Schedule() {
                 disabled={isPast}
                 onClick={() => { setRescheduleDay(i); setRescheduleSlot(null); }}
               >
-                <span className="schedule-day-chip-dow">{t(`dowShort${i}`)}</span>
+                <span className="schedule-day-chip-dow">{t(dayKey('dowShort', i))}</span>
                 <span className="schedule-day-chip-date">{date}</span>
               </button>
             );

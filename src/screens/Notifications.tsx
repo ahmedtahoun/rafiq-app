@@ -59,7 +59,7 @@ export default function Notifications() {
             </button>
             <button
               className="notifications-icon-btn"
-              aria-label={t('notificationsToggleTheme')}
+              aria-label={t('toggleDarkMode')}
               onClick={() => setDark(!dark)}
             >
               {dark ? <SunIcon size={18} /> : <MoonIcon size={18} />}

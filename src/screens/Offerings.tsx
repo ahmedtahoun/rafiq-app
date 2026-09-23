@@ -47,7 +47,7 @@ export default function Offerings() {
   return (
     <div className="phone-frame offerings-screen">
       <div className="offerings-header">
-        <button type="button" className="offerings-back" aria-label="Back" onClick={back}>
+        <button type="button" className="offerings-back" aria-label={t('back')} onClick={back}>
           <ChevronIcon size={16} />
         </button>
         <div className="offerings-title">{t('offeringsTitle')}</div>

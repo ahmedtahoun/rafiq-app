@@ -18,7 +18,7 @@ export default function AccountDetails() {
   return (
     <div className="phone-frame">
       <div className="account-header">
-        <button type="button" className="account-back" aria-label="Back" onClick={back}>
+        <button type="button" className="account-back" aria-label={t('back')} onClick={back}>
           <ChevronIcon size={16} />
         </button>
         <div className="account-title">{t('profileAccountDetails')}</div>

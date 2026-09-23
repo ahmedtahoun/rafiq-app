@@ -127,7 +127,7 @@ export default function ClientNotifications() {
             <button
               type="button"
               className="client-notifications-icon-btn"
-              aria-label={t('discoverToggleTheme')}
+              aria-label={t('toggleDarkMode')}
               onClick={() => setDark(!dark)}
             >
               {dark ? <SunIcon size={18} color="currentColor" /> : <MoonIcon size={18} color="currentColor" />}

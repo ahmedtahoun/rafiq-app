@@ -1,16 +1,16 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, type MessageKey } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { ChevronIcon, ArrowForwardIcon } from '../components/icons';
 import './Welcome.css';
 
 interface Slide {
   accent: string;
-  eyebrowKey: string;
-  preKey: string;
-  boldKey: string;
-  subKey: string;
+  eyebrowKey: MessageKey;
+  preKey: MessageKey;
+  boldKey: MessageKey;
+  subKey: MessageKey;
   illustration: (accent: string) => React.ReactNode;
 }
 
@@ -113,7 +113,7 @@ export default function Welcome() {
         <div className="welcome-blob welcome-blob-b" />
 
         {step > 0 && (
-          <button className="welcome-back" aria-label="Back" onClick={() => setStep((s) => s - 1)}>
+          <button className="welcome-back" aria-label={t('back')} onClick={() => setStep((s) => s - 1)}>
             <ChevronIcon size={15} color="#FFFFFF" />
           </button>
         )}

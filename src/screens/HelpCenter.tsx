@@ -4,7 +4,9 @@ import { useT } from '../lib/i18n';
 import { ChevronIcon } from '../components/icons';
 import './HelpCenter.css';
 
-const FAQ_COUNT = 6;
+// Const tuple, not a count, so `helpCenterQ${n}` resolves to real i18n
+// keys the compiler can check rather than `helpCenterQ${number}`.
+const FAQ_IDS = [1, 2, 3, 4, 5, 6] as const;
 
 // 1:1 port of HelpCenter.dc.html — an accordion of pro-facing FAQs, with
 // the first one open by default as the design has it.
@@ -25,7 +27,7 @@ export default function HelpCenter() {
       <p className="help-center-intro">{t('helpCenterIntro')}</p>
 
       <div className="help-center-list">
-        {Array.from({ length: FAQ_COUNT }, (_, i) => i + 1).map((n) => {
+        {FAQ_IDS.map((n) => {
           const open = openId === n;
           return (
             <div key={n} className="help-center-item">

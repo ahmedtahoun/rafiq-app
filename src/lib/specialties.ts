@@ -1,3 +1,4 @@
+import type { MessageKey } from './i18n';
 import type { SpecialtyIconKey } from '../components/specialtyIcons';
 
 export type SpecialtyCategory = 'mind' | 'body' | 'relationships' | 'career';
@@ -8,7 +9,7 @@ export interface SpecialtyDef {
   value: string;
   icon: SpecialtyIconKey;
   category: SpecialtyCategory;
-  labelKey: string;
+  labelKey: MessageKey;
 }
 
 // Ported 1:1 from the design's Onboarding.dc.html specialtyDefs — same
@@ -31,7 +32,7 @@ export const SPECIALTIES: SpecialtyDef[] = [
   { value: 'Career coaching', icon: 'career', category: 'career', labelKey: 'specCareer' },
 ];
 
-export const SPECIALTY_CATEGORIES: { key: SpecialtyCategory; titleKey: string }[] = [
+export const SPECIALTY_CATEGORIES: { key: SpecialtyCategory; titleKey: MessageKey }[] = [
   { key: 'mind', titleKey: 'categoryMind' },
   { key: 'body', titleKey: 'categoryBody' },
   { key: 'relationships', titleKey: 'categoryRelationships' },

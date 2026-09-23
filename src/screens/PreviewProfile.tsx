@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, type MessageKey } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { CheckIcon, ChevronIcon, ShieldIcon, StarIcon } from '../components/icons';
 import {
@@ -21,7 +21,7 @@ const REVIEW_TRUNCATE_LEN = 90;
 const TYPE_BADGE_COLOR: Record<OfferingType, string> = {
   session: ACCENT, consultation: '#2A8F8F', group: '#3E6FB0', workshop: '#7A6BAE', program: '#3F7D58', event: '#B98900',
 };
-const TYPE_LABEL_KEY: Record<OfferingType, string> = {
+const TYPE_LABEL_KEY: Record<OfferingType, MessageKey> = {
   session: 'offeringTypeSession', consultation: 'offeringTypeConsultation', group: 'offeringTypeGroup',
   workshop: 'offeringTypeWorkshop', program: 'offeringTypeProgram', event: 'offeringTypeEvent',
 };

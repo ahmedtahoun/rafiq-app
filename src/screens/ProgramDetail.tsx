@@ -46,7 +46,7 @@ export default function ProgramDetail() {
         <button
           type="button"
           className="program-detail-theme"
-          aria-label={t('discoverToggleTheme')}
+          aria-label={t('toggleDarkMode')}
           onClick={() => setDark(!dark)}
         >
           {dark ? <SunIcon size={16} color="currentColor" /> : <MoonIcon size={16} color="currentColor" />}

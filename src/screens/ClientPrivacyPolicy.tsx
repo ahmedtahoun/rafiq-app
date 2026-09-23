@@ -8,8 +8,8 @@ import { PolicyPage } from '../components/PolicyPage';
 // WhatsApp's privacy policy; in-app messaging has since shipped, so
 // messages are stored by Rafiq and covered by this policy. A privacy
 // policy that misstates where a member's messages go is not a copy nit,
-// so it describes what the app actually does. See WORK-SPLIT: the
-// coach-side equivalent still carries the original claim.
+// so it describes what the app actually does. The coach-side policy was
+// corrected to match.
 export default function ClientPrivacyPolicy() {
   return (
     <PolicyPage

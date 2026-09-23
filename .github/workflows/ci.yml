@@ -2,8 +2,9 @@
 #
 # Three accounts push straight to main on this repo, so a red tree blocks two
 # people who didn't break it. This runs the same checks WORK-SPLIT.md asks for
-# before every push — typecheck, build, lint, and the schema's own test suite —
-# on every branch, so whoever broke it finds out rather than the next person.
+# before every push — typecheck, build, lint, the app's own browser suite, and
+# the schema's test suite — on every branch, so whoever broke it finds out
+# rather than the next person.
 name: CI
 
 on:
@@ -46,6 +47,56 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+  app-tests:
+    name: app browser tests
+    runs-on: ubuntu-latest
+
+    # These drive the real app in Chromium. They are the only check here that
+    # can catch a rendering regression: typecheck, build and lint all pass on
+    # a screen that renders Arabic in the wrong order, writes a rating to the
+    # wrong row, or mirrors an icon twice.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # Only Chromium: the app ships inside a WebView on both platforms, so a
+      # second desktop engine would cost minutes without covering anything the
+      # product actually runs on.
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+
+      # playwright.config.ts starts the Vite dev server itself and waits for
+      # it, so there is nothing to launch or tear down here.
+      #
+      # The auth suites need getSupabase() to construct a client — they then
+      # replace every method on it with a recorder, so nothing reaches the
+      # network. These are placeholders, not credentials, and they exist only
+      # so the constructor does not throw where there is no .env.local. Real
+      # values would give the suite a live backend to talk to, which is the
+      # opposite of what these tests want.
+      - name: Run browser tests
+        env:
+          VITE_SUPABASE_URL: https://placeholder.supabase.co
+          VITE_SUPABASE_ANON_KEY: placeholder-anon-key
+        run: npm test
+
+      - name: Upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
 
   schema:
     name: database schema

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, type MessageKey } from '../lib/i18n';
 import {
   ArrowForwardIcon,
   CheckIcon,
@@ -49,7 +49,7 @@ const DEMO_SESSIONS: { id: string; dateKey: 'clientDetailFallbackNote1' | 'clien
   { id: 'sess2', dateKey: 'clientDetailFallbackNote2', date: 'Oct 11, 2025' },
 ];
 
-const EDIT_DUE_OPTIONS: { key: string; labelKey: string; due: string }[] = [
+const EDIT_DUE_OPTIONS: { key: string; labelKey: MessageKey; due: string }[] = [
   { key: 'today', labelKey: 'clientDetailDueToday', due: 'Due today' },
   { key: 'tomorrow', labelKey: 'clientDetailDueTomorrow', due: 'Due tomorrow' },
   { key: 'week', labelKey: 'clientDetailDueNextWeek', due: 'Due next week' },
@@ -210,19 +210,19 @@ export default function ClientDetail() {
     <div className="phone-frame client-detail-screen">
       <div className="client-detail-header">
         <div className="client-detail-header-left">
-          <button type="button" className="client-detail-back" aria-label="Back to members" onClick={() => nav('clients')}>
+          <button type="button" className="client-detail-back" aria-label={t('backToMembers')} onClick={() => nav('clients')}>
             <ChevronIcon size={16} />
           </button>
           <div className="client-detail-header-title">{t('clientDetailTitle')}</div>
         </div>
         <div className="client-detail-header-actions">
-          <button type="button" className="client-detail-icon-btn" aria-label="Edit member" onClick={() => nav(editHref)}>
+          <button type="button" className="client-detail-icon-btn" aria-label={t('clientDetailEditMember')} onClick={() => nav(editHref)}>
             <PencilIcon size={16} />
           </button>
-          <button type="button" className="client-detail-lang-btn" aria-label="Switch language" onClick={() => setLang(isAr ? 'en' : 'ar')}>
+          <button type="button" className="client-detail-lang-btn" aria-label={t('switchLanguage')} onClick={() => setLang(isAr ? 'en' : 'ar')}>
             {isAr ? 'EN' : 'ع'}
           </button>
-          <button type="button" className="client-detail-icon-btn" aria-label="Toggle dark mode" onClick={() => setDark(!dark)}>
+          <button type="button" className="client-detail-icon-btn" aria-label={t('toggleDarkMode')} onClick={() => setDark(!dark)}>
             {dark ? <SunIcon size={16} /> : <MoonIcon size={16} />}
           </button>
         </div>
@@ -290,7 +290,7 @@ export default function ClientDetail() {
                 <button
                   type="button"
                   className={`client-detail-task-check${task.done ? ' is-done' : ''}${!task.done && task.overdue ? ' is-overdue' : ''}`}
-                  aria-label="Toggle task complete"
+                  aria-label={t('toggleTaskComplete', { task: task.title })}
                   onClick={() => {
                     toggleTask(clientId, task.id);
                     refresh();
@@ -310,7 +310,7 @@ export default function ClientDetail() {
                   </div>
                 </button>
                 {task.overdue && (
-                  <button type="button" className="client-detail-task-remind" aria-label="Remind via message" onClick={() => nav(messagesHref)}>
+                  <button type="button" className="client-detail-task-remind" aria-label={t('remindAboutTask', { task: task.title })} onClick={() => nav(messagesHref)}>
                     <MessageIcon size={14} color="#FFFFFF" />
                   </button>
                 )}
@@ -345,7 +345,7 @@ export default function ClientDetail() {
             </div>
             {!paid && (
               <div className="client-detail-payment-actions">
-                <button type="button" className="client-detail-remind-icon" aria-label="Remind via message" onClick={() => nav(messagesHref)}>
+                <button type="button" className="client-detail-remind-icon" aria-label={t('remindAboutPayment')} onClick={() => nav(messagesHref)}>
                   <MessageIcon size={16} color="#FFFFFF" />
                 </button>
                 <button
