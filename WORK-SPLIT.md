@@ -336,16 +336,24 @@ Two collisions already happened early in the build from skipping this.
    lines from every track, so two PRs opened around the same time will
    conflict even though neither is wrong — rebase resolves it, it's not a
    sign anything's broken.
-3. **`npm run build && npm run lint` clean before every push.** CI enforces
-   this on every branch and PR now (typecheck, build, lint, plus the schema
-   test suite for anything touching `supabase/`).
+3. **`npm run build && npm run lint && npm test` clean before every push.**
+   CI enforces all of it on every branch and PR (typecheck, build, lint,
+   the browser suite in `tests/`, and the schema suite). `npm test` is the
+   slow one at ~3 minutes and the only check that looks at a rendered
+   screen — see `tests/README.md`.
 4. **Delete the stub you replace** — its `comingSoon` route and any
    `TODO: route to ...` comment, in the same commit that lands the screen.
 5. **Test in-browser before calling anything done** — light/dark, EN/AR
    with RTL, golden path + edge cases. Several real bugs (a raw-English
    string leaking into Arabic UI, a CSS-specificity bug breaking a dark
    screen, dead-end back buttons, a bidi-reordering bug on time ranges)
-   were only caught this way, not by typecheck/lint/build.
+   were only caught this way, not by typecheck/lint/build. Those checks now
+   live in `tests/` and run in CI — add to them rather than only checking by
+   hand, so the next person's regression is caught too.
+
+See **[CLAUDE.md](CLAUDE.md)** for the conventions and traps behind these
+rules (RTL and bidi, i18n keys, the fixed fictional week, the stale Vite
+cache that makes a screen render blank).
 
 ## Shared files — where tracks touch the same lines
 
