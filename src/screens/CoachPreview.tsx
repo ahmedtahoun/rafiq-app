@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, dayKey, type MessageKey } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { ChevronIcon, CheckIcon, StarIcon, MessageIcon, ScheduleIcon } from '../components/icons';
 import { SPECIALTIES } from '../lib/specialties';
@@ -77,7 +77,7 @@ function idHash(id: string): number {
 
 /** Directory languages reuse Discover's filter labels, so a language
     reads the same wherever a member meets it. */
-function languageKey(language: string): string {
+function languageKey(language: string): MessageKey {
   if (language === 'Arabic') return 'discoverLanguageArabic';
   if (language === 'French') return 'discoverLanguageFrench';
   return 'discoverLanguageEnglish';
@@ -178,10 +178,10 @@ function CoachPreviewBody({ coach }: { coach: DirectoryCoach }) {
 
   const monthLabel = isAr ? MONTH.ar : MONTH.en;
   const weekLabel = `${monthLabel} ${dates[0]}–${dates[dates.length - 1]}`;
-  const whenLabel = validSelection ? `${t(`dowShort${day}`)} ${dates[day]} — ${TIMES[time!]}` : '';
+  const whenLabel = validSelection ? `${t(dayKey('dowShort', day))} ${dates[day]} — ${TIMES[time!]}` : '';
 
   const nextLabel = nextAvailable
-    ? `${t(`dowShort${nextAvailable.day}`)} ${WEEKS[nextAvailable.week].dates[nextAvailable.day]} — ${TIMES[nextAvailable.time]}`
+    ? `${t(dayKey('dowShort', nextAvailable.day))} ${WEEKS[nextAvailable.week].dates[nextAvailable.day]} — ${TIMES[nextAvailable.time]}`
     : '';
   const nextIsSelected = !!nextAvailable
     && week === nextAvailable.week && day === nextAvailable.day && time === nextAvailable.time;
@@ -448,7 +448,7 @@ function CoachPreviewBody({ coach }: { coach: DirectoryCoach }) {
                   aria-pressed={i === day}
                   onClick={() => { setDay(i); setTime(null); }}
                 >
-                  <span className="coach-preview-dow">{t(`dowShort${i}`)}</span>
+                  <span className="coach-preview-dow">{t(dayKey('dowShort', i))}</span>
                   <span className="coach-preview-date">{date}</span>
                 </button>
               ))}

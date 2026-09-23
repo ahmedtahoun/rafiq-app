@@ -1,3 +1,4 @@
+import type { MessageKey } from './i18n';
 import type { Screen, ScreenParams } from '../store/appStore';
 import { COUNTRIES } from './countries';
 
@@ -1862,7 +1863,7 @@ export interface Template {
   /** Matches a SPECIALTIES value — English and stable, never translated. */
   specialty: string;
   plan: string;
-  cadence: string;
+  cadence: TemplateCadence;
   icon: string;
   bg: string;
   tasks: string[];
@@ -1887,13 +1888,21 @@ const DEFAULT_TEMPLATES: Template[] = [
 
 /** The cadences the design offers, in its order. Stored English and stable,
     like a SPECIALTIES value — only the displayed label is translated. */
-export const TEMPLATE_CADENCES = ['Weekly', 'Bi-weekly', '2x/week', '3x/week'];
+export const TEMPLATE_CADENCES = ['Weekly', 'Bi-weekly', '2x/week', '3x/week'] as const;
+export type TemplateCadence = (typeof TEMPLATE_CADENCES)[number];
 
 /** i18n key for a stored cadence, e.g. 'Bi-weekly' -> templateCadenceBiweekly.
     Lives beside the values so the list and the detail chips cannot drift —
     they did: the list rendered the raw English while the chips translated. */
-export function cadenceLabelKey(cadence: string): string {
-  return `templateCadence${cadence.replace(/[^A-Za-z0-9]/g, '')}`;
+const CADENCE_LABEL_KEYS: Record<TemplateCadence, MessageKey> = {
+  Weekly: 'templateCadenceWeekly',
+  'Bi-weekly': 'templateCadenceBiweekly',
+  '2x/week': 'templateCadence2xweek',
+  '3x/week': 'templateCadence3xweek',
+};
+
+export function cadenceLabelKey(cadence: TemplateCadence): MessageKey {
+  return CADENCE_LABEL_KEYS[cadence];
 }
 /** Same two plans Client.plan uses. */
 export const TEMPLATE_PLANS = ['Basic', 'Full Access'];
@@ -2262,7 +2271,7 @@ export function getClientProgramProgressList(clientId: string): ProgramProgress[
     holds display copy. */
 export interface OfferingTypeInfo {
   key: OfferingType;
-  labelKey: string;
+  labelKey: MessageKey;
   icon: string;
   color: string;
 }

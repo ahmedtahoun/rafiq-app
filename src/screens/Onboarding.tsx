@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, type MessageKey } from '../lib/i18n';
 import { COUNTRIES, DEFAULT_COUNTRY } from '../lib/countries';
 import { SPECIALTIES, SPECIALTY_CATEGORIES } from '../lib/specialties';
 import { CountryPicker } from '../components/CountryPicker';
@@ -9,7 +9,7 @@ import { Button } from '../components/Button';
 import { TextField } from '../components/TextField';
 import './Onboarding.css';
 
-const EXPERIENCE_OPTIONS: { value: string; labelKey: string }[] = [
+const EXPERIENCE_OPTIONS: { value: string; labelKey: MessageKey }[] = [
   { value: '<1 year', labelKey: 'expLt1' },
   { value: '1-2 years', labelKey: 'exp1to2' },
   { value: '3-5 years', labelKey: 'exp3to5' },

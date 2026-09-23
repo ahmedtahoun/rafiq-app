@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, type MessageKey } from '../lib/i18n';
 import { ChevronIcon, CheckIcon } from '../components/icons';
 import { darken } from '../lib/color';
 import { BottomSheet } from '../components/BottomSheet';
 import { formatDate, getSubscription, logSubscriptionCancelFeedback, setSubscriptionTier, type CancelReason } from '../lib/mockStore';
 import './Subscription.css';
 
-const CANCEL_REASONS: { key: CancelReason; labelKey: string }[] = [
+const CANCEL_REASONS: { key: CancelReason; labelKey: MessageKey }[] = [
   { key: 'too_expensive', labelKey: 'subscriptionReasonExpensive' },
   { key: 'not_using', labelKey: 'subscriptionReasonNotUsing' },
   { key: 'missing_features', labelKey: 'subscriptionReasonMissingFeatures' },

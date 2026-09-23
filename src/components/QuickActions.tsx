@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, type MessageKey } from '../lib/i18n';
 import {
   ArrowForwardIcon,
   CheckCircleIcon,
@@ -69,7 +69,7 @@ const PRIORITY: Record<QuickActionsContext, string[]> = {
   member: ['viewProfile', 'sendMessage', 'scheduleSession', 'assignTask', 'logSession', 'recordPayment'],
 };
 
-function buildActionDefs(memberId: string, t: (key: string) => string): ActionDef[] {
+function buildActionDefs(memberId: string, t: (key: MessageKey) => string): ActionDef[] {
   const rosterFallback: NavTarget = { screen: 'clients', params: {} };
   const defs: ActionDef[] = [];
 

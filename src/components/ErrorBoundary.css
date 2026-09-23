@@ -1,0 +1,71 @@
+.error-boundary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding-inline: 32px;
+  text-align: center;
+  background: var(--bg-grad);
+  color: var(--ink);
+}
+
+.error-boundary-mark {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--red-bg);
+  color: var(--red);
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.error-boundary-title {
+  margin: 0;
+  font-family: var(--font-display-en);
+  font-size: 21px;
+  font-weight: 700;
+}
+
+[dir='rtl'] .error-boundary-title {
+  font-family: var(--font-display-ar);
+}
+
+.error-boundary-body {
+  margin: 0;
+  max-width: 30ch;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.error-boundary-detail {
+  margin: 0;
+  max-width: 34ch;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  opacity: 0.75;
+  overflow-wrap: anywhere;
+}
+
+.error-boundary-action {
+  margin-block-start: 6px;
+  min-height: 46px;
+  padding-inline: 30px;
+  border: none;
+  border-radius: 23px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.error-boundary-action:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}

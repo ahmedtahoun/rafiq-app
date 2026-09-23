@@ -6,7 +6,7 @@ import { getCoachProfile } from '../lib/mockStore';
 import './ClientHelpCenter.css';
 
 // Six FAQs, keyed so the copy lives in i18n like everything else.
-const FAQ_IDS = [1, 2, 3, 4, 5, 6];
+const FAQ_IDS = [1, 2, 3, 4, 5, 6] as const;
 
 export default function ClientHelpCenter() {
   const t = useT();

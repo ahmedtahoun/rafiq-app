@@ -1,3 +1,4 @@
+import type { MessageKey } from '../lib/i18n';
 import { create } from 'zustand';
 import { completeCoachSignup as storeCompleteCoachSignup, type CoachSignupFields, completeClientSignup as storeCompleteClientSignup, type ClientSignupFields } from '../lib/mockStore';
 
@@ -165,7 +166,7 @@ interface AppState {
    * is no Auth component left holding the error when it lands — it has to
    * be here for Auth to find once it mounts.
    */
-  authErrorKey: string | null;
+  authErrorKey: MessageKey | null;
   /** The provider's own words for that failure, untranslated. */
   authErrorDetail: string | null;
   screen: Screen;
@@ -176,7 +177,7 @@ interface AppState {
   setRole: (role: Role) => void;
   setSession: (userId: string | null) => void;
   setAuthDisabled: () => void;
-  setAuthError: (key: string, detail?: string) => void;
+  setAuthError: (key: MessageKey, detail?: string) => void;
   clearAuthError: () => void;
   nav: (patch: Screen | NavPatch) => void;
   back: () => void;

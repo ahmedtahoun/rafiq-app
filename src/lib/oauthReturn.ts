@@ -1,3 +1,4 @@
+import type { MessageKey } from './i18n';
 /**
  * Reading what an OAuth round-trip came back with.
  *
@@ -31,7 +32,7 @@ export interface OAuthReturn {
 
 /** An i18n key for what went wrong, plus the provider's own words. */
 export interface OAuthFailure {
-  key: string;
+  key: MessageKey;
   detail: string;
 }
 
@@ -92,7 +93,7 @@ export function classifyOAuthReturn(ret: OAuthReturn, exchanged: boolean): OAuth
   return null;
 }
 
-function errorKeyFor(ret: OAuthReturn): string {
+function errorKeyFor(ret: OAuthReturn): MessageKey {
   // Classify on the structured slugs only. error_description is free text
   // that changes between providers and Supabase releases, so matching on
   // its wording would quietly mis-label failures the first time someone

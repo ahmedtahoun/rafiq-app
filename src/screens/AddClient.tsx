@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, type MessageKey } from '../lib/i18n';
 import { COUNTRIES, DEFAULT_COUNTRY } from '../lib/countries';
 import { SPECIALTIES, SPECIALTY_CATEGORIES } from '../lib/specialties';
 import { CountryPicker } from '../components/CountryPicker';
@@ -10,7 +10,7 @@ import { PersonIcon } from '../components/icons';
 import { addClient } from '../lib/mockStore';
 import './AddClient.css';
 
-const PLANS: { value: string; labelKey: string }[] = [
+const PLANS: { value: string; labelKey: MessageKey }[] = [
   { value: 'Basic', labelKey: 'addClientPlanBasic' },
   { value: 'Full Access', labelKey: 'addClientPlanFullAccess' },
 ];

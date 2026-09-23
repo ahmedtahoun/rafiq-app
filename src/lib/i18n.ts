@@ -8,8 +8,11 @@ export const RTL_LANGS: Lang[] = ['ar'];
 // ported 1:1 from each screen's own translations() in the Claude Artifact
 // design prototype. Add keys here as each further screen is built for
 // real, rather than pre-populating copy for screens that don't exist yet.
-const dict: Record<Lang, Record<string, string>> = {
-  en: {
+const en = {
+    errorBoundaryTitle: 'Something went wrong',
+    errorBoundaryBody: 'The app hit an unexpected error. Reloading usually clears it — your saved data is not affected.',
+    errorBoundaryReload: 'Reload',
+
     skip: 'Skip',
     next: 'Next',
     getStarted: 'Get Started',
@@ -20,9 +23,9 @@ const dict: Record<Lang, Record<string, string>> = {
     welcome1Subtext: 'Manage members, schedule sessions, and assign tasks — no more juggling spreadsheets and scattered chats.',
 
     welcome2Eyebrow: 'Stay close',
-    welcome2HeadlinePre: 'Right where your ',
-    welcome2HeadlineBold: 'chats already happen',
-    welcome2Subtext: 'Confirm bookings, send reminders, and nudge members to check in — all over WhatsApp, no new app for them to learn.',
+    welcome2HeadlinePre: 'Every message ',
+    welcome2HeadlineBold: 'in one thread',
+    welcome2Subtext: 'Confirm bookings, send reminders, and nudge members to check in — it all stays in Rafiq, next to the session it belongs to.',
 
     welcome3Eyebrow: 'Every specialty',
     welcome3HeadlinePre: 'Track real progress, ',
@@ -455,7 +458,7 @@ const dict: Record<Lang, Record<string, string>> = {
     helpCenterTitle: 'Get Help',
     helpCenterIntro: "Common questions from pros using Rafiq. Can't find your answer? Reach out from Profile → Contact Us.",
     helpCenterQ1: 'How do I add a new member?',
-    helpCenterA1: 'Go to the Members tab and tap the + button. Fill in their name, WhatsApp number, specialty, and plan — a starter task list is applied automatically based on your Session Templates.',
+    helpCenterA1: 'Go to the Members tab and tap the + button. Fill in their name, phone number, specialty, and plan — a starter task list is applied automatically based on your Session Templates.',
     helpCenterQ2: 'How does my member get reminded about sessions?',
     helpCenterA2: 'Rafiq shows session reminders in your own Notifications feed today. Member-side reminders are on our roadmap as we build out the member experience.',
     helpCenterQ3: "Can I change a member's plan after adding them?",
@@ -894,8 +897,21 @@ const dict: Record<Lang, Record<string, string>> = {
     clientTermsSection5Body: 'Don\u2019t use Rafiq for anything illegal, abusive, or to harass your pro or other users. We may suspend accounts that violate this.',
     clientTermsSection6Heading: 'Changes',
     clientTermsSection6Body: 'We may update these terms occasionally. Continued use of Rafiq after a change means you accept the updated terms.',
-  },
-  ar: {
+};
+
+/** Every key the app can translate, derived from the English dictionary.
+    `t()` and `translate()` accept nothing else, so a mistyped key is a
+    compile error instead of a raw key rendered on screen at runtime. */
+export type MessageKey = keyof typeof en;
+
+/** Annotating `ar` with the full key set makes EN/AR parity a `tsc` error:
+    a key added to `en` and forgotten here fails to compile, and a key here
+    that `en` lacks is rejected as an excess property. */
+const ar: Record<MessageKey, string> = {
+    errorBoundaryTitle: 'حدث خطأ ما',
+    errorBoundaryBody: 'واجه التطبيق خطأً غير متوقع. إعادة التحميل تحلّ المشكلة عادة — وبياناتك المحفوظة لم تتأثر.',
+    errorBoundaryReload: 'إعادة التحميل',
+
     skip: 'تخطي',
     next: 'التالي',
     getStarted: 'ابدأ الآن',
@@ -906,9 +922,9 @@ const dict: Record<Lang, Record<string, string>> = {
     welcome1Subtext: 'أدر الأعضاء، جدول الجلسات، وحدد المهام — دون التنقل بين جداول بيانات ومحادثات متفرقة.',
 
     welcome2Eyebrow: 'ابقَ قريبًا',
-    welcome2HeadlinePre: 'في نفس المكان ',
-    welcome2HeadlineBold: 'الذي تتم فيه محادثاتك',
-    welcome2Subtext: 'أكّد الجلسات، أرسل التذكيرات، وذكّر الأعضاء بالمتابعة — كل ذلك عبر واتساب، دون تطبيق جديد يتعلمونه.',
+    welcome2HeadlinePre: 'كل رسالة ',
+    welcome2HeadlineBold: 'في مكان واحد',
+    welcome2Subtext: 'أكّد الجلسات، أرسل التذكيرات، وذكّر الأعضاء بالمتابعة — يبقى كل ذلك داخل رفيق، بجانب الجلسة التي تخصّها.',
 
     welcome3Eyebrow: 'كل التخصصات',
     welcome3HeadlinePre: 'تابعوا تقدمًا حقيقيًا، ',
@@ -1341,7 +1357,7 @@ const dict: Record<Lang, Record<string, string>> = {
     helpCenterTitle: 'المساعدة',
     helpCenterIntro: 'أسئلة شائعة من المحترفين الذين يستخدمون رفيق. لم تجد إجابتك؟ تواصل معنا من الملف الشخصي ← تواصل معنا.',
     helpCenterQ1: 'كيف أضيف عضوًا جديدًا؟',
-    helpCenterA1: 'اذهب إلى تبويب الأعضاء واضغط زر +. أدخل الاسم ورقم واتساب والتخصص والخطة — وستُطبَّق قائمة مهام بداية تلقائيًا حسب قوالب الجلسات لديك.',
+    helpCenterA1: 'اذهب إلى تبويب الأعضاء واضغط زر +. أدخل الاسم ورقم الهاتف والتخصص والخطة — وستُطبَّق قائمة مهام بداية تلقائيًا حسب قوالب الجلسات لديك.',
     helpCenterQ2: 'كيف يتم تذكير العضو بالجلسات؟',
     helpCenterA2: 'يعرض رفيق تذكيرات الجلسات في صفحة الإشعارات الخاصة بك اليوم. تذكيرات جانب العضو ضمن خططنا القادمة مع تطوير تجربة الأعضاء.',
     helpCenterQ3: 'هل يمكنني تغيير خطة العضو بعد إضافته؟',
@@ -1755,8 +1771,9 @@ const dict: Record<Lang, Record<string, string>> = {
     clientTermsSection5Body: 'لا تستخدمي رفيق لأي غرض غير قانوني أو مسيء أو لمضايقة محترفتك أو المستخدمين الآخرين. قد نعلّق الحسابات التي تخالف ذلك.',
     clientTermsSection6Heading: 'التغييرات',
     clientTermsSection6Body: 'قد نحدّث هذه الشروط من حين لآخر. استمرار استخدامك لرفيق بعد أي تغيير يعني موافقتك على الشروط المحدثة.',
-  },
 };
+
+const dict: Record<Lang, Record<MessageKey, string>> = { en, ar };
 
 type Params = Record<string, string | number>;
 
@@ -1766,9 +1783,11 @@ function interpolate(template: string, params?: Params): string {
 }
 
 /** Translate a key in the currently active language, outside a component (e.g. in a store action). */
-export function translate(lang: Lang, key: string, params?: Params): string {
+export function translate(lang: Lang, key: MessageKey, params?: Params): string {
   const value = dict[lang][key];
   if (value === undefined) {
+    // Unreachable through the type system — only a hand-built key cast to
+    // MessageKey, or a dictionary edited at runtime, can land here.
     console.warn(`Missing i18n key "${key}" for lang "${lang}"`);
     return key;
   }
@@ -1778,7 +1797,21 @@ export function translate(lang: Lang, key: string, params?: Params): string {
 /** Translate a key against the app's current language, reactive inside a component. */
 export function useT() {
   const lang = useAppStore((s) => s.lang);
-  return (key: string, params?: Params) => translate(lang, key, params);
+  return (key: MessageKey, params?: Params) => translate(lang, key, params);
+}
+
+/** Monday-first day index as a literal union rather than `number`, so a
+    day-name key resolves to real entries instead of the open-ended
+    `dowShort${number}` the compiler cannot check. */
+type DayIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+
+/** Builds a day-name key from an index that arrives as a plain `number` —
+    component state, an array position — and wraps it into range. Callers get
+    a key the compiler has checked without threading `DayIndex` through every
+    day picker's state. */
+export function dayKey(kind: 'dowShort' | 'dowFull', index: number): MessageKey {
+  const i = (((Math.trunc(index) % 7) + 7) % 7) as DayIndex;
+  return `${kind}${i}`;
 }
 
 export function isRtl(lang: Lang): boolean {

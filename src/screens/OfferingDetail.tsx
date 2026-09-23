@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, type MessageKey } from '../lib/i18n';
 import { TrashIcon } from '../components/icons';
 import {
   OFFERING_TYPE_KEYS,
@@ -14,12 +14,12 @@ import {
 } from '../lib/mockStore';
 import './OfferingDetail.css';
 
-const TYPE_KEY: Record<OfferingType, string> = {
+const TYPE_KEY: Record<OfferingType, MessageKey> = {
   session: 'offeringTypeSession', consultation: 'offeringTypeConsultation', group: 'offeringTypeGroup',
   workshop: 'offeringTypeWorkshop', program: 'offeringTypeProgram', event: 'offeringTypeEvent',
 };
 
-const FORMAT_DEFS: { key: OfferingFormat; labelKey: string }[] = [
+const FORMAT_DEFS: { key: OfferingFormat; labelKey: MessageKey }[] = [
   { key: 'online', labelKey: 'offeringDetailFormatOnline' },
   { key: 'in_person', labelKey: 'offeringDetailFormatInPerson' },
   { key: 'both', labelKey: 'offeringDetailFormatBoth' },

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, type MessageKey } from '../lib/i18n';
 import { darken } from '../lib/color';
 import {
   MoonIcon, SunIcon, CheckIcon,
@@ -23,7 +23,7 @@ const ACCENT_HEX = '#B75C3D';
 const MOOD_EMOJI: Record<MoodKey, string> = {
   great: '😄', good: '🙂', okay: '😐', low: '😕', hard: '😣',
 };
-const MOOD_LABEL_KEYS: Record<MoodKey, string> = {
+const MOOD_LABEL_KEYS: Record<MoodKey, MessageKey> = {
   great: 'clientTasksMoodGreat',
   good: 'clientTasksMoodGood',
   okay: 'clientTasksMoodOkay',
@@ -33,7 +33,7 @@ const MOOD_LABEL_KEYS: Record<MoodKey, string> = {
 
 type TaskFilter = 'all' | 'pending' | 'overdue' | 'completed';
 
-const FILTERS: { key: TaskFilter; labelKey: string }[] = [
+const FILTERS: { key: TaskFilter; labelKey: MessageKey }[] = [
   { key: 'all', labelKey: 'clientTasksFilterAll' },
   { key: 'pending', labelKey: 'clientTasksFilterPending' },
   { key: 'overdue', labelKey: 'clientTasksFilterOverdue' },

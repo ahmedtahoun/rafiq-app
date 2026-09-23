@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, type MessageKey } from '../lib/i18n';
 import {
   ArrowForwardIcon,
   CheckIcon,
@@ -49,7 +49,7 @@ const DEMO_SESSIONS: { id: string; dateKey: 'clientDetailFallbackNote1' | 'clien
   { id: 'sess2', dateKey: 'clientDetailFallbackNote2', date: 'Oct 11, 2025' },
 ];
 
-const EDIT_DUE_OPTIONS: { key: string; labelKey: string; due: string }[] = [
+const EDIT_DUE_OPTIONS: { key: string; labelKey: MessageKey; due: string }[] = [
   { key: 'today', labelKey: 'clientDetailDueToday', due: 'Due today' },
   { key: 'tomorrow', labelKey: 'clientDetailDueTomorrow', due: 'Due tomorrow' },
   { key: 'week', labelKey: 'clientDetailDueNextWeek', due: 'Due next week' },

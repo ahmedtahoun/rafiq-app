@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, type MessageKey } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { COUNTRIES, DEFAULT_COUNTRY } from '../lib/countries';
 import { SPECIALTIES, SPECIALTY_CATEGORIES } from '../lib/specialties';
@@ -12,7 +12,7 @@ import { Button } from '../components/Button';
 import { getCoachProfile, isVerified, updateCoachProfile, type SessionMode } from '../lib/mockStore';
 import './EditProfile.css';
 
-const SESSION_MODES: { key: SessionMode; labelKey: string }[] = [
+const SESSION_MODES: { key: SessionMode; labelKey: MessageKey }[] = [
   { key: 'online', labelKey: 'editProfileOnline' },
   { key: 'in_person', labelKey: 'editProfileInPerson' },
   { key: 'both', labelKey: 'editProfileBoth' },

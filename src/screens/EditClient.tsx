@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, type MessageKey } from '../lib/i18n';
 import { COUNTRIES, DEFAULT_COUNTRY } from '../lib/countries';
 import { SPECIALTIES } from '../lib/specialties';
 import { CountryPicker } from '../components/CountryPicker';
@@ -11,7 +11,7 @@ import { darken } from '../lib/color';
 import { getClient, getClientDetailHref, updateClient } from '../lib/mockStore';
 import './EditClient.css';
 
-const PLANS: { value: string; labelKey: string }[] = [
+const PLANS: { value: string; labelKey: MessageKey }[] = [
   { value: 'Basic', labelKey: 'addClientPlanBasic' },
   { value: 'Full Access', labelKey: 'addClientPlanFullAccess' },
 ];

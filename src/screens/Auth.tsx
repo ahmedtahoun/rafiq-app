@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, type MessageKey } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { ChevronIcon } from '../components/icons';
 import { signInWithOAuth, type OAuthProvider } from '../lib/auth';
@@ -47,7 +47,7 @@ export default function Auth() {
   const nav = useAppStore((s) => s.nav);
   const back = useAppStore((s) => s.back);
   const [pending, setPending] = useState<OAuthProvider | null>(null);
-  const [errorKey, setErrorKey] = useState('');
+  const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
 
   // A failed provider return is reported by lib/session.ts, not by this
   // component: it happens while the app is away, so the attempt outlives
@@ -56,7 +56,7 @@ export default function Auth() {
   const returnErrorKey = useAppStore((s) => s.authErrorKey);
   const returnErrorDetail = useAppStore((s) => s.authErrorDetail);
   const clearAuthError = useAppStore((s) => s.clearAuthError);
-  const shownErrorKey = errorKey || returnErrorKey || '';
+  const shownErrorKey: MessageKey | null = errorKey ?? returnErrorKey ?? null;
   const shownDetail = errorKey ? '' : returnErrorDetail;
 
   async function signIn(provider: OAuthProvider) {
@@ -71,7 +71,7 @@ export default function Auth() {
     }
 
     setPending(provider);
-    setErrorKey('');
+    setErrorKey(null);
     clearAuthError();
     rememberAuthOrigin('auth');
     const result = await signInWithOAuth(provider);
