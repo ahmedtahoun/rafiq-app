@@ -75,7 +75,17 @@ jobs:
 
       # playwright.config.ts starts the Vite dev server itself and waits for
       # it, so there is nothing to launch or tear down here.
+      #
+      # The auth suites need getSupabase() to construct a client — they then
+      # replace every method on it with a recorder, so nothing reaches the
+      # network. These are placeholders, not credentials, and they exist only
+      # so the constructor does not throw where there is no .env.local. Real
+      # values would give the suite a live backend to talk to, which is the
+      # opposite of what these tests want.
       - name: Run browser tests
+        env:
+          VITE_SUPABASE_URL: https://placeholder.supabase.co
+          VITE_SUPABASE_ANON_KEY: placeholder-anon-key
         run: npm test
 
       - name: Upload report on failure

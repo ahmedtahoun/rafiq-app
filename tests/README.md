@@ -89,3 +89,24 @@ npm run dev
 ```
 
 CI never hits this because it starts a fresh server every run.
+
+## Supabase configuration
+
+The auth suites call `getSupabase()`, which throws when
+`VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` are unset. They then
+replace every method on the returned client with a recorder, so no
+request ever leaves the process — the client only has to *construct*.
+
+Locally your `.env.local` already satisfies that. CI has no `.env.local`,
+so the workflow passes placeholder values. If you want to reproduce a CI
+run exactly:
+
+```sh
+VITE_SUPABASE_URL=https://placeholder.supabase.co \
+VITE_SUPABASE_ANON_KEY=placeholder-anon-key \
+npm test
+```
+
+Never point the suite at a real project. These tests seed and mutate
+state freely, and they are written on the assumption that nothing they do
+leaves the browser.
