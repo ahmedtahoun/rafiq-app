@@ -55,6 +55,7 @@ export default function AddClient() {
         <button
           type="button"
           className={`add-client-header-btn add-client-save${canSave ? '' : ' is-disabled'}`}
+          disabled={!canSave}
           onClick={save}
         >
           {t('addClientSave')}
@@ -134,7 +135,7 @@ export default function AddClient() {
       </div>
 
       <div className="add-client-footer">
-        <button type="button" className={`add-client-submit${canSave ? '' : ' is-disabled'}`} onClick={save}>
+        <button type="button" className={`add-client-submit${canSave ? '' : ' is-disabled'}`} disabled={!canSave} onClick={save}>
           {t('addClientSubmit')}
         </button>
       </div>
