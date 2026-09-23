@@ -75,6 +75,14 @@ way they are checked is by running.
 - **When a test fails, work out which side is wrong.** Several times the
   expectation was wrong and the app was right; fix the test in that case,
   and say so.
+- **Break it against a cold dev server.** Checking that a new test can
+  actually fail means editing a source file, and doing that under a
+  running dev server leaves its module graph half-updated. The suite then
+  reports a far wider blast radius than the change caused: twice here a
+  one-line mutation "failed 9 tests" in 1.8 minutes, when a clean restart
+  showed it failed exactly the one it should, in 16 seconds. The slow run
+  is the tell — a real failure is fast, a cache failure times out. Kill
+  the server, `rm -rf node_modules/.vite`, restart, then measure.
 
 ## If every test suddenly fails with nothing rendered
 
