@@ -138,7 +138,10 @@ behaviour, not a bug, and tests have to pass the params.
 Two rules worth repeating here:
 
 - **A test that cannot fail is not a test.** After writing one, break the
-  thing it covers and watch it go red.
+  thing it covers and watch it go red — against a freshly restarted dev
+  server. Mutating a file under a running one leaves its module graph
+  half-updated and the suite reports a far wider blast radius than the
+  change caused. A run that takes minutes instead of seconds is the tell.
 - **When a test fails, work out which side is wrong.** Several times the
   expectation was wrong and the app was right. Fix the test in that case,
   and say so rather than quietly changing the assertion.
