@@ -80,7 +80,7 @@ export default function Subscription() {
   return (
     <div className="phone-frame subscription-screen">
       <div className="subscription-header">
-        <button type="button" className="subscription-back" aria-label="Back" onClick={back}>
+        <button type="button" className="subscription-back" aria-label={t('back')} onClick={back}>
           <ChevronIcon size={16} />
         </button>
         <div className="subscription-title">{t('subscriptionTitle')}</div>

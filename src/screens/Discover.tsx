@@ -217,7 +217,7 @@ export default function Discover() {
             <button
               type="button"
               className="discover-hero-btn"
-              aria-label={t('discoverToggleTheme')}
+              aria-label={t('toggleDarkMode')}
               onClick={() => setDark(!dark)}
             >
               {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}
@@ -225,7 +225,7 @@ export default function Discover() {
             <button
               type="button"
               className="discover-hero-btn"
-              aria-label={t('discoverNotifications')}
+              aria-label={t('notifications')}
               onClick={() => nav('clientNotifications')}
             >
               <BellIcon size={16} color="#FFFFFF" />
@@ -248,7 +248,7 @@ export default function Discover() {
             <button
               type="button"
               className="discover-search-clear"
-              aria-label={t('discoverClearSearch')}
+              aria-label={t('clearSearch')}
               onClick={() => patch({ search: '' })}
             >
               <CloseIcon size={9} color="var(--ink-soft)" />

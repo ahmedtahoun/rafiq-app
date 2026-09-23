@@ -76,7 +76,7 @@ export default function MyPrograms() {
             <button
               type="button"
               className="my-programs-hero-btn"
-              aria-label={t('discoverToggleTheme')}
+              aria-label={t('toggleDarkMode')}
               onClick={() => setDark(!dark)}
             >
               {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}

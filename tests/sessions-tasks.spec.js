@@ -88,7 +88,6 @@ test('ClientSchedule: a real pending request', async ({ browser }) => {
   await page.locator('.client-schedule-slot').nth(1).click();
   await page.waitForTimeout(150);
   expect.soft(String(await page.locator('.client-schedule-sheet-confirm').isDisabled()), 'confirm enabled after picking').toBe('false');
-  const pickedLabel = await txt(page, '.client-schedule-slot-on');
   await page.locator('.client-schedule-sheet-confirm').click();
   await page.waitForTimeout(350);
 

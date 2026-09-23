@@ -9,7 +9,6 @@ async function open(browser, { lang = 'en', dark = false, member = true } = {}) 
   page.on('pageerror', (e) => errs.push(e.message));
   // Two console errors are sandbox artefacts, not app faults: the agent
   // proxy's CA blocks Google Fonts, and there is no favicon in dev.
-  const IGNORE = /ERR_CERT_AUTHORITY_INVALID|favicon\.ico/;
   page.on('console', (m) => {
     if (m.type() === 'error' && !IGNORED_CONSOLE.test(m.text() + m.location().url)) errs.push(m.text());
   });

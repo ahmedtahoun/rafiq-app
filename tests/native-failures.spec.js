@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { IGNORED_CONSOLE } from './helpers.js';
 
 
 // Drives the native branch: CapacitorCustomPlatform makes isNativePlatform()
@@ -35,23 +34,6 @@ const state = (page) => page.evaluate(async () => {
   return { screen: s.screen, key: s.authErrorKey, detail: s.authErrorDetail };
 });
 
-// Delivers a deep link straight to the handler the app registered, which is
-// what the App plugin's appUrlOpen does on a device.
-const deliver = (page, url) => page.evaluate(async (u) => {
-  const { CapacitorApp } = await import('/src/lib/nativeAuth.ts').then(() => ({ CapacitorApp: null })).catch(() => ({ CapacitorApp: null }));
-  // The listener lives inside @capacitor/app's web shim; instead exercise
-  // the same code path the listener calls.
-  const na = await import('/src/lib/nativeAuth.ts');
-  const auth = await import('/src/lib/auth.ts');
-  const cb = na.parseAuthCallback(u);
-  if (!cb) return 'not-a-callback';
-  const res = await auth.finishOAuthCallback(cb);
-  if (!res.ok) {
-    // mirror initOAuthDeepLinks' failure branch via the real exported fn
-    window.__lastError = res.message;
-  }
-  return cb.kind;
-}, url);
 
 test('the promised follow-up: a failed native return is now shown', async ({ browser }) => {
   const { page, ctx, errs } = await nativePage(browser);
@@ -64,10 +46,6 @@ test('the promised follow-up: a failed native return is now shown', async ({ bro
     // Re-create exactly what the listener does on an error callback.
     const cb = na.parseAuthCallback('app.rafiq.coach://auth-callback?error=access_denied&error_description=User+denied');
     const before = { key: store.useAppStore.getState().authErrorKey };
-    // initOAuthDeepLinks wires parse -> finish -> setAuthError; drive it by
-    // registering it and invoking the captured handler.
-    let captured = null;
-    const origAdd = na.initDeepLinkAuth;
     // Call the exported handler chain directly: finish then classify.
     const res = await auth.finishOAuthCallback(cb);
     return { cbKind: cb.kind, ok: res.ok, message: res.message, before };

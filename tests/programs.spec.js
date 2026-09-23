@@ -66,7 +66,6 @@ test('Milestones: the stub is now real', async ({ browser }) => {
   // ClientHome's milestone card was dead code until now.
   await page.evaluate(async () => (await import('/src/store/appStore.ts')).useAppStore.getState().nav('clientHome'));
   await page.waitForTimeout(400);
-  const milestoneCards = await n(page, '[class*="milestone"]');
 
   await page.close();
 }

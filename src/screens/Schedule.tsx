@@ -516,16 +516,16 @@ export default function Schedule() {
             <div className="schedule-title">{t('scheduleTitle')}</div>
           </div>
           <div className="schedule-hero-actions">
-            <button type="button" className="schedule-hero-icon-btn" aria-label="Edit availability" onClick={() => nav('availability')}>
+            <button type="button" className="schedule-hero-icon-btn" aria-label={t('scheduleEditAvailability')} onClick={() => nav('availability')}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="12" cy="12" r="9" />
                 <path d="M12 7v5l3.5 2" />
               </svg>
             </button>
-            <button type="button" className="schedule-hero-icon-btn" aria-label="Switch language" onClick={() => setLang(isAr ? 'en' : 'ar')}>
+            <button type="button" className="schedule-hero-icon-btn" aria-label={t('switchLanguage')} onClick={() => setLang(isAr ? 'en' : 'ar')}>
               <span className="schedule-lang-label">{isAr ? 'EN' : 'ع'}</span>
             </button>
-            <button type="button" className="schedule-hero-icon-btn" aria-label="Toggle dark mode" onClick={() => setDark(!dark)}>
+            <button type="button" className="schedule-hero-icon-btn" aria-label={t('toggleDarkMode')} onClick={() => setDark(!dark)}>
               {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}
             </button>
           </div>
@@ -713,7 +713,7 @@ export default function Schedule() {
                 <div className="schedule-sheet-name">{activeBlock.name}</div>
                 <div className="schedule-sheet-range" dir="ltr">{activeBlock.range}</div>
               </div>
-              <button type="button" className="schedule-sheet-close" aria-label="Close" onClick={closeBlockSheet}>
+              <button type="button" className="schedule-sheet-close" aria-label={t('close')} onClick={closeBlockSheet}>
                 <CloseIcon size={14} />
               </button>
             </div>
@@ -780,7 +780,7 @@ export default function Schedule() {
       <BottomSheet open={showRescheduleSheet} onClose={closeRescheduleSheet}>
         <div className="schedule-reschedule-header">
           <div className="schedule-reschedule-title">{t('scheduleRescheduleTitle')}</div>
-          <button type="button" className="schedule-sheet-close" aria-label="Close" onClick={closeRescheduleSheet}>
+          <button type="button" className="schedule-sheet-close" aria-label={t('close')} onClick={closeRescheduleSheet}>
             <CloseIcon size={14} />
           </button>
         </div>

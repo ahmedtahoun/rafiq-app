@@ -299,16 +299,16 @@ export default function Main() {
             </div>
           </div>
           <div className="main-hero-actions">
-            <button type="button" className="main-hero-icon-btn" aria-label="Switch language" onClick={() => setLang(isAr ? 'en' : 'ar')}>
+            <button type="button" className="main-hero-icon-btn" aria-label={t('switchLanguage')} onClick={() => setLang(isAr ? 'en' : 'ar')}>
               <span className="main-lang-label">{isAr ? 'EN' : 'ع'}</span>
             </button>
-            <button type="button" className="main-hero-icon-btn" aria-label="Toggle dark mode" onClick={() => setDark(!dark)}>
+            <button type="button" className="main-hero-icon-btn" aria-label={t('toggleDarkMode')} onClick={() => setDark(!dark)}>
               {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}
             </button>
             <button
               type="button"
               className="main-hero-icon-btn main-hero-bell"
-              aria-label="Notifications"
+              aria-label={t('notifications')}
               onClick={() => nav('notifications')}
             >
               <BellIcon size={16} color="#FFFFFF" />
@@ -450,7 +450,7 @@ export default function Main() {
                     {t('mainJoinChip')}
                   </button>
                 ) : (
-                  <button type="button" className="main-session-chevron" aria-label={s.client.name} onClick={() => goTo(getClientDetailHref(s.client.id))}>
+                  <button type="button" className="main-session-chevron" aria-label={t('mainOpenMember', { name: s.client.name })} onClick={() => goTo(getClientDetailHref(s.client.id))}>
                     <ArrowForwardIcon size={16} color="var(--ink-soft)" />
                   </button>
                 )}
@@ -502,7 +502,7 @@ export default function Main() {
                         <CheckIcon size={15} color="var(--green)" />
                       </span>
                     ) : (
-                      <button type="button" className="main-remind-btn" aria-label="Remind via message" onClick={() => remindAndGo(a)}>
+                      <button type="button" className="main-remind-btn" aria-label={t('remindMemberViaMessage', { name: a.name })} onClick={() => remindAndGo(a)}>
                         <MessageIcon size={16} color="#FFFFFF" />
                       </button>
                     ))}
@@ -555,7 +555,7 @@ export default function Main() {
                   {t('mainNudged')}
                 </span>
               ) : (
-                <button type="button" className="main-nudge-btn" aria-label="Nudge via message" onClick={() => remindAndGo(a)}>
+                <button type="button" className="main-nudge-btn" aria-label={t('nudgeMemberViaMessage', { name: a.name })} onClick={() => remindAndGo(a)}>
                   <MessageIcon size={16} color="#FFFFFF" />
                 </button>
               )}

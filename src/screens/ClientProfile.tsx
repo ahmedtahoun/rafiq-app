@@ -138,7 +138,7 @@ export default function ClientProfile() {
   return (
     <div className="phone-frame client-profile-screen">
       <div className="client-profile-header">
-        <button type="button" className="client-profile-back" aria-label="Back to home" onClick={back}>
+        <button type="button" className="client-profile-back" aria-label={t('backToHome')} onClick={back}>
           <ChevronIcon size={16} />
         </button>
         <div className="client-profile-title">{t('clientProfileTitle')}</div>

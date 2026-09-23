@@ -53,12 +53,12 @@ export default function Earnings() {
     <div className="phone-frame earnings-screen">
       <div className="earnings-header">
         <div className="earnings-header-left">
-          <button type="button" className="earnings-back" aria-label="Back" onClick={back}>
+          <button type="button" className="earnings-back" aria-label={t('back')} onClick={back}>
             <ChevronIcon size={16} />
           </button>
           <div className="earnings-title">{t('earningsTitle')}</div>
         </div>
-        <button type="button" className="earnings-dark-toggle" aria-label="Toggle dark mode" onClick={() => setDark(!dark)}>
+        <button type="button" className="earnings-dark-toggle" aria-label={t('toggleDarkMode')} onClick={() => setDark(!dark)}>
           {dark ? <SunIcon size={16} /> : <MoonIcon size={16} />}
         </button>
       </div>

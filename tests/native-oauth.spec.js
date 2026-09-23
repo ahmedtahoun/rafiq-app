@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { IGNORED_CONSOLE } from './helpers.js';
 
 
 // `platform: null` = a real browser. Anything else installs Capacitor's

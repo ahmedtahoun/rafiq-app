@@ -150,13 +150,13 @@ export default function Clients() {
             <div className="clients-title">{t('clientsTitle')}</div>
           </div>
           <div className="clients-hero-actions">
-            <button type="button" className="clients-hero-icon-btn" aria-label="Switch language" onClick={() => setLang(isAr ? 'en' : 'ar')}>
+            <button type="button" className="clients-hero-icon-btn" aria-label={t('switchLanguage')} onClick={() => setLang(isAr ? 'en' : 'ar')}>
               <span className="clients-lang-label">{isAr ? 'EN' : 'ع'}</span>
             </button>
-            <button type="button" className="clients-hero-icon-btn" aria-label="Toggle dark mode" onClick={() => setDark(!dark)}>
+            <button type="button" className="clients-hero-icon-btn" aria-label={t('toggleDarkMode')} onClick={() => setDark(!dark)}>
               {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}
             </button>
-            <button type="button" className="clients-add-btn" aria-label="Add member" onClick={() => nav('addClient')}>
+            <button type="button" className="clients-add-btn" aria-label={t('clientsAddMember')} onClick={() => nav('addClient')}>
               <PlusIcon size={18} color="var(--accent)" />
             </button>
           </div>
@@ -198,12 +198,12 @@ export default function Clients() {
           <input
             type="text"
             placeholder={t('clientsSearchPlaceholder')}
-            aria-label="Search members"
+            aria-label={t('clientsSearchMembers')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           {searchQuery && (
-            <button type="button" className="clients-search-clear" aria-label="Clear search" onClick={() => setSearchQuery('')}>
+            <button type="button" className="clients-search-clear" aria-label={t('clearSearch')} onClick={() => setSearchQuery('')}>
               ×
             </button>
           )}
@@ -211,7 +211,7 @@ export default function Clients() {
         <button
           type="button"
           className={`clients-filter-btn${hasActiveFilters ? ' has-filters' : ''}`}
-          aria-label="Filter members"
+          aria-label={t('clientsFilterMembers')}
           onClick={() => setShowFilterSheet(true)}
         >
           <FilterIcon size={18} color={hasActiveFilters ? 'var(--accent)' : 'var(--ink-soft)'} />
@@ -244,7 +244,7 @@ export default function Clients() {
                 <button
                   type="button"
                   className="clients-fav-btn"
-                  aria-label="Toggle favorite"
+                  aria-label={t('clientsToggleFavourite', { name: row.client.name })}
                   onClick={() => {
                     toggleFavorite(row.client.id);
                     refresh();
@@ -252,7 +252,7 @@ export default function Clients() {
                 >
                   <StarIcon size={12} color={row.isFav ? 'var(--accent)' : 'var(--ink-soft)'} filled={row.isFav} />
                 </button>
-                <button type="button" className="clients-progress-ring" aria-label="View progress" onClick={() => nav(row.detailHref)}>
+                <button type="button" className="clients-progress-ring" aria-label={t('clientsViewProgress', { name: row.client.name })} onClick={() => nav(row.detailHref)}>
                   <svg width="40" height="40" viewBox="0 0 40 40" style={{ transform: 'rotate(-90deg)' }}>
                     <circle cx="20" cy="20" r="16" fill="none" stroke="var(--line)" strokeWidth="4" />
                     <circle cx="20" cy="20" r="16" fill="none" stroke={row.progressColor} strokeWidth="4" strokeLinecap="round" strokeDasharray={row.dash} />

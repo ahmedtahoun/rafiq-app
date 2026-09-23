@@ -244,7 +244,7 @@ export default function ClientSchedule() {
             <button
               type="button"
               className="client-schedule-hero-btn"
-              aria-label={t('discoverToggleTheme')}
+              aria-label={t('toggleDarkMode')}
               onClick={() => setDark(!dark)}
             >
               {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}
@@ -343,7 +343,7 @@ export default function ClientSchedule() {
                     {t('clientScheduleRate')}
                   </button>
                 ) : (
-                  <span className="client-schedule-rated" aria-label={`${s.rated}/5`}>
+                  <span className="client-schedule-rated" aria-label={t('rateCoachStarLabel', { n: s.rated })}>
                     {'★'.repeat(s.rated)}
                   </span>
                 )}

@@ -88,7 +88,7 @@ export default function Availability() {
   return (
     <div className="phone-frame availability-screen">
       <div className="availability-header">
-        <button type="button" className="availability-back" aria-label="Back to profile" onClick={back}>
+        <button type="button" className="availability-back" aria-label={t('backToProfile')} onClick={back}>
           <ChevronIcon size={16} />
         </button>
         <div className="availability-title">{t('availabilityTitle')}</div>
@@ -106,7 +106,7 @@ export default function Availability() {
                 type="button"
                 role="switch"
                 aria-checked={d.enabled}
-                aria-label="Toggle availability"
+                aria-label={t('availabilityToggleDay', { day: t(dayKey('dowFull', i)) })}
                 className={`availability-switch${d.enabled ? ' is-on' : ''}`}
                 onClick={() => toggleDay(i)}
               >
@@ -126,7 +126,7 @@ export default function Availability() {
       <BottomSheet open={showEditSheet} onClose={closeEdit}>
         <div className="availability-edit-header">
           <div className="availability-edit-day-label">{showEditSheet ? t(dayKey('dowFull', editingDayIdx)) : ''}</div>
-          <button type="button" className="availability-edit-close" aria-label="Close" onClick={closeEdit}>
+          <button type="button" className="availability-edit-close" aria-label={t('close')} onClick={closeEdit}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
           </button>
         </div>

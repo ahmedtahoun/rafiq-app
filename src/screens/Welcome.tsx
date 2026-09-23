@@ -113,7 +113,7 @@ export default function Welcome() {
         <div className="welcome-blob welcome-blob-b" />
 
         {step > 0 && (
-          <button className="welcome-back" aria-label="Back" onClick={() => setStep((s) => s - 1)}>
+          <button className="welcome-back" aria-label={t('back')} onClick={() => setStep((s) => s - 1)}>
             <ChevronIcon size={15} color="#FFFFFF" />
           </button>
         )}

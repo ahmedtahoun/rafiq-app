@@ -151,11 +151,11 @@ export default function EditProfile() {
               </div>
             )}
             {isPro ? (
-              <label htmlFor="avatarFileInput" aria-label="Change photo" className="edit-profile-avatar-edit-btn">
+              <label htmlFor="avatarFileInput" aria-label={t('editProfileChangePhoto')} className="edit-profile-avatar-edit-btn">
                 <CameraIcon size={14} color="var(--accent)" />
               </label>
             ) : (
-              <button type="button" aria-label="Change photo (Rafiq Pro feature)" className="edit-profile-avatar-edit-btn" onClick={openPhotoLocked}>
+              <button type="button" aria-label={t('editProfileCustomPhotoLocked')} className="edit-profile-avatar-edit-btn" onClick={openPhotoLocked}>
                 <LockIcon size={13} color="var(--ink-soft)" />
               </button>
             )}
@@ -326,7 +326,7 @@ export default function EditProfile() {
           {certifications.map((label, i) => (
             <div className="edit-profile-cert-row" key={`${label}-${i}`}>
               <div className="edit-profile-cert-label">{label}</div>
-              <button type="button" aria-label="Remove certification" className="edit-profile-cert-remove" onClick={() => removeCert(i)}>
+              <button type="button" aria-label={t('editProfileRemoveCert', { name: label })} className="edit-profile-cert-remove" onClick={() => removeCert(i)}>
                 <CloseIcon size={13} color="var(--ink-soft)" />
               </button>
             </div>
@@ -339,7 +339,7 @@ export default function EditProfile() {
               onChange={(e) => setNewCert(e.target.value)}
               className="edit-profile-cert-input"
             />
-            <button type="button" aria-label="Add certification" className="edit-profile-cert-add-btn" onClick={addCert}>
+            <button type="button" aria-label={t('editProfileAddCert')} className="edit-profile-cert-add-btn" onClick={addCert}>
               <PlusIcon size={14} color="#FFFFFF" />
             </button>
           </div>

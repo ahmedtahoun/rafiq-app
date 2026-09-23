@@ -80,7 +80,7 @@ export default function Onboarding() {
     <div className="phone-frame">
       <div className="onboarding-header">
         <div className="onboarding-progress-dot" />
-        <button className="onboarding-lang-toggle" aria-label="Toggle language" onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}>
+        <button className="onboarding-lang-toggle" aria-label={t('switchLanguage')} onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}>
           {lang === 'en' ? 'ع' : 'EN'}
         </button>
       </div>

@@ -44,7 +44,7 @@ export default function RoleSelect() {
   return (
     <div className="phone-frame">
       <div className="role-select-header">
-        <button className="role-select-back" aria-label="Back" onClick={back}>
+        <button className="role-select-back" aria-label={t('back')} onClick={back}>
           <ChevronIcon size={16} />
         </button>
         <div className="role-select-mark" style={{ background: 'linear-gradient(135deg, var(--accent), #7A3D26)' }}>
