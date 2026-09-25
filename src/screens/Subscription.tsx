@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT, type MessageKey } from '../lib/i18n';
+import { useFormat } from '../lib/format';
 import { ChevronIcon, CheckIcon } from '../components/icons';
 import { darken } from '../lib/color';
 import { BottomSheet } from '../components/BottomSheet';
-import { formatDate, getSubscription, logSubscriptionCancelFeedback, setSubscriptionTier, type CancelReason } from '../lib/mockStore';
+import { getSubscription, logSubscriptionCancelFeedback, setSubscriptionTier, type CancelReason } from '../lib/mockStore';
 import './Subscription.css';
 
 const CANCEL_REASONS: { key: CancelReason; labelKey: MessageKey }[] = [
@@ -21,6 +22,7 @@ type Stage = 'plans' | 'survey' | 'confirmed';
 // exit survey before a downgrade actually takes effect.
 export default function Subscription() {
   const t = useT();
+  const fmt = useFormat();
   const back = useAppStore((s) => s.back);
 
   const [stage, setStage] = useState<Stage>('plans');
@@ -34,7 +36,7 @@ export default function Subscription() {
   const currentPlanName = isPro ? t('subscriptionPlanLabelPro') : t('subscriptionPlanLabelFree');
   // setSubscriptionTier always pairs tier: 'pro' with a real renewsAtMs, so
   // this is never null when isPro is true.
-  const currentPlanSub = isPro ? t('subscriptionRenewsOn', { date: formatDate(sub.renewsAtMs as number) }) : t('subscriptionFreeSub');
+  const currentPlanSub = isPro ? t('subscriptionRenewsOn', { date: fmt.date(sub.renewsAtMs as number) }) : t('subscriptionFreeSub');
 
   const freeFeatures = [t('subscriptionFreeFeature1'), t('subscriptionFreeFeature2'), t('subscriptionFreeFeature3'), t('subscriptionFreeFeature4')];
   const proFeatures = [t('subscriptionProFeature1'), t('subscriptionProFeature2'), t('subscriptionProFeature3'), t('subscriptionProFeature4'), t('subscriptionProFeature5')];
@@ -58,7 +60,7 @@ export default function Subscription() {
     setConfirmedKind(null);
   }
 
-  const proConfirmedBody = t('subscriptionProConfirmedBodyTemplate', { date: formatDate(getSubscription().renewsAtMs as number) });
+  const proConfirmedBody = t('subscriptionProConfirmedBodyTemplate', { date: fmt.date(getSubscription().renewsAtMs as number) });
   const confirmedTitle = confirmedKind === 'pro' ? t('subscriptionProConfirmedTitle') : t('subscriptionFreeConfirmedTitle');
   const confirmedBody = confirmedKind === 'pro' ? proConfirmedBody : t('subscriptionFreeConfirmedBody');
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT, dayKey, type MessageKey } from '../lib/i18n';
+import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import {
   MoonIcon, SunIcon, ArrowForwardIcon, CheckIcon, ScheduleIcon, WarningIcon,
@@ -44,6 +45,7 @@ function hourLabel(h: number, am: string, pm: string): string {
 
 export default function ClientSchedule() {
   const t = useT();
+  const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
   const dark = useAppStore((s) => s.dark);
@@ -138,7 +140,7 @@ export default function ClientSchedule() {
     const rated = ratings[s.id];
     return {
       id: s.id,
-      date: s.date,
+      date: fmt.date(s.atMs),
       note: recap || t('clientScheduleDefaultNote'),
       rated: rated ? rated.rating : null,
     };

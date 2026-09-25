@@ -66,7 +66,7 @@ export default function ClientBooking() {
   const PM = isAr ? 'مساءً' : 'PM';
   const dayNames = [0, 1, 2, 3, 4, 5, 6].map((i) => t(dayKey('dowShort', i)));
   const monthLabel = isAr ? 'أكتوبر' : 'Oct';
-  const currency = isAr ? 'جنيه' : 'EGP';
+  const currency = t('currency');
 
   // Checked before the picker renders, not only at confirm: a blocked
   // relationship or a suspended account on either side must never get as
@@ -163,7 +163,9 @@ export default function ClientBooking() {
         amount: SESSION_PRICE,
         method: 'Card',
         status: 'pending',
-        date: formatDate(Date.now()),
+        // Stored on the payment row, so it stays language-independent:
+      // see formatDate's note in mockStore.
+      date: formatDate(Date.now()),
       });
     } else {
       // Spend the credit the confirmation says this session uses. Without

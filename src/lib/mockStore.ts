@@ -22,6 +22,20 @@ import { COUNTRIES } from './countries';
  * ever saved), the only path this app can currently exercise.
  */
 
+const DAY_MS = 86400000;
+const HOUR_MS = DAY_MS / 24;
+
+// store.js's fixed "now" anchor for every calendar/expiry calculation in
+// the prototype (its own comment: "this prototype's fixed now for all
+// calendar math"), not the real wall clock — ported as-is so a freshly
+// seeded client's package (no renewPackage/chargeCredit override yet) always
+// reads as a deterministic "30 days to expiry", matching the prototype's
+// own demo data exactly rather than drifting with the real date.
+//
+// Declared up here because the seed data below is anchored to it: a task due
+// "today" is TODAY_MS plus an hour offset, not a sentence saying "today".
+export const TODAY_MS = Date.UTC(2025, 9, 22);
+
 const PREFIX = 'rafiq_';
 
 function readLocal<T>(key: string, fallback: T): T {
@@ -203,44 +217,67 @@ export const FREE_MEMBER_CAP = 5;
 export interface Task {
   id: string;
   title: string;
-  due: string;
+  /**
+   * When it is due, as a timestamp anchored to the fixed week.
+   *
+   * This used to be a pre-composed English sentence ("Due Fri, Oct 24"),
+   * which had two consequences. It rendered in English on an Arabic
+   * screen, and once AddTask started composing it through `t()` a task
+   * added in Arabic was stored in Arabic and then shown to English users
+   * that way. Worse, `isTaskOverdue` decided overdue-ness by looking for
+   * the word "today" inside that sentence, so an Arabic task due today was
+   * never overdue and never reached the Pro's attention list at all.
+   */
+  dueAtMs: number;
+  /** Whether a time of day was set, or only a date. */
+  dueHasTime?: boolean;
   done: boolean;
   recurring?: boolean;
   /** Why this task helps their goal — AddTask.dc.html collects it. */
   description?: string;
 }
 
-// Same as store.js's DEFAULT_TASKS.
+// Same tasks as store.js's DEFAULT_TASKS, with the due dates the design's
+// own strings described, expressed against the fixed week (Wed 22 Oct) so
+// they cannot drift from the rest of the calendar maths.
+//
+// Mona's third task was written as "Due Thu, Oct 23", which is the same day
+// as her second task's "Due tomorrow"; both now render as tomorrow, which
+// is what they always were.
+//
+// Nour's three carried the string "Completed" rather than a date at all.
+// Her program is finished and every task is done, so they get the real past
+// dates they would have had instead of a status masquerading as a due date.
 const DEFAULT_TASKS: Record<string, Task[]> = {
   sara: [
-    { id: 't1', title: 'Log post-session mood rating', due: 'Due today, 6:00 PM', done: true },
-    { id: 't2', title: 'Write one gratitude note', due: 'Due tomorrow', done: false },
-    { id: 't3', title: '10-minute evening walk', due: 'Due Fri, Oct 24', done: false },
+    { id: 't1', title: 'Log post-session mood rating', dueAtMs: TODAY_MS + 18 * HOUR_MS, dueHasTime: true, done: true },
+    { id: 't2', title: 'Write one gratitude note', dueAtMs: TODAY_MS + DAY_MS, done: false },
+    { id: 't3', title: '10-minute evening walk', dueAtMs: TODAY_MS + 2 * DAY_MS, done: false },
   ],
   omar: [
-    { id: 't1', title: 'Food log', due: 'Due today, 8:00 PM', done: true },
-    { id: 't2', title: 'Water intake check-in', due: 'Due tomorrow', done: false },
-    { id: 't3', title: 'Meal prep plan', due: 'Due Sun, Oct 26', done: false },
+    { id: 't1', title: 'Food log', dueAtMs: TODAY_MS + 20 * HOUR_MS, dueHasTime: true, done: true },
+    { id: 't2', title: 'Water intake check-in', dueAtMs: TODAY_MS + DAY_MS, done: false },
+    { id: 't3', title: 'Meal prep plan', dueAtMs: TODAY_MS + 4 * DAY_MS, done: false },
   ],
   mona: [
-    { id: 't1', title: 'Morning stretch routine', due: 'Due today, 7:00 AM', done: true },
-    { id: 't2', title: 'Posture check-in', due: 'Due tomorrow', done: false },
-    { id: 't3', title: 'Flexibility log', due: 'Due Thu, Oct 23', done: false },
+    { id: 't1', title: 'Morning stretch routine', dueAtMs: TODAY_MS + 7 * HOUR_MS, dueHasTime: true, done: true },
+    { id: 't2', title: 'Posture check-in', dueAtMs: TODAY_MS + DAY_MS, done: false },
+    { id: 't3', title: 'Flexibility log', dueAtMs: TODAY_MS + DAY_MS, done: false },
   ],
   khaled: [
-    { id: 't1', title: '10-minute guided meditation', due: 'Due today, 9:00 PM', done: false },
-    { id: 't2', title: 'Breathing exercise', due: 'Due tomorrow', done: false },
-    { id: 't3', title: 'Sleep log', due: 'Due Fri, Oct 24', done: false },
+    { id: 't1', title: '10-minute guided meditation', dueAtMs: TODAY_MS + 21 * HOUR_MS, dueHasTime: true, done: false },
+    { id: 't2', title: 'Breathing exercise', dueAtMs: TODAY_MS + DAY_MS, done: false },
+    { id: 't3', title: 'Sleep log', dueAtMs: TODAY_MS + 2 * DAY_MS, done: false },
   ],
   laila: [
-    { id: 't1', title: 'Journal entry', due: 'Due today, 6:00 PM', done: false },
-    { id: 't2', title: 'Self-care activity', due: 'Due tomorrow', done: false },
-    { id: 't3', title: 'Weekly reflection', due: 'Due Sun, Oct 26', done: false },
+    { id: 't1', title: 'Journal entry', dueAtMs: TODAY_MS + 18 * HOUR_MS, dueHasTime: true, done: false },
+    { id: 't2', title: 'Self-care activity', dueAtMs: TODAY_MS + DAY_MS, done: false },
+    { id: 't3', title: 'Weekly reflection', dueAtMs: TODAY_MS + 4 * DAY_MS, done: false },
   ],
   nour: [
-    { id: 't1', title: 'Log post-session mood rating', due: 'Completed', done: true },
-    { id: 't2', title: 'Write one gratitude note', due: 'Completed', done: true },
-    { id: 't3', title: '10-minute evening walk', due: 'Completed', done: true },
+    { id: 't1', title: 'Log post-session mood rating', dueAtMs: TODAY_MS - 30 * DAY_MS, done: true },
+    { id: 't2', title: 'Write one gratitude note', dueAtMs: TODAY_MS - 23 * DAY_MS, done: true },
+    { id: 't3', title: '10-minute evening walk', dueAtMs: TODAY_MS - 16 * DAY_MS, done: true },
   ],
 };
 
@@ -275,27 +312,38 @@ export function toggleTask(clientId: string, taskId: string): Task[] {
 // Exact rule from store.js: not done, and its human-readable `due` string
 // mentions "today" (case-insensitive) — a substring check on the same
 // display string the UI renders, not a real date comparison.
+/**
+ * Overdue means still open and due no later than the end of today.
+ *
+ * The old rule tested the due *string* for the word "today", so it only
+ * ever worked for English tasks, missed anything genuinely past its date,
+ * and silently answered "no" for every task created while the app was in
+ * Arabic. Comparing timestamps keeps the same answer for every seeded task
+ * and starts giving the right one for the rest.
+ */
 export function isTaskOverdue(task: Task): boolean {
-  return !task.done && /today/i.test(task.due || '');
+  if (task.done) return false;
+  return task.dueAtMs < TODAY_MS + DAY_MS;
 }
 
 // ---------------------------------------------------------------------------
 // Session packages / credits
 // ---------------------------------------------------------------------------
 
-const DAY_MS = 86400000;
-// Short display date matching the format literal session/payment entries
-// already use elsewhere in this file (e.g. "Oct 18, 2025").
+/**
+ * The *stored* date form: stable, language-independent, matching the
+ * literal session/payment entries already in this file ("Oct 18, 2025").
+ *
+ * Deliberately pinned to en-US rather than the active language. Payment
+ * rows keep their date as a string, so a refund recorded while the UI was
+ * in Arabic would otherwise burn an Arabic date into the ledger and then
+ * show it in Arabic to an English user forever. Anything rendered to the
+ * screen should go through `formatDisplayDate` / `useFormat().date` in
+ * lib/format.ts instead, which follows the language the user picked.
+ */
 export function formatDate(ms: number): string {
   return new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
-// store.js's fixed "now" anchor for every calendar/expiry calculation in
-// the prototype (its own comment: "this prototype's fixed now for all
-// calendar math"), not the real wall clock — ported as-is so a freshly
-// seeded client's package (no renewPackage/chargeCredit override yet) always
-// reads as a deterministic "30 days to expiry", matching the prototype's
-// own demo data exactly rather than drifting with the real date.
-const TODAY_MS = Date.UTC(2025, 9, 22);
 /** Sessions a plan includes. Exported because ClientCoach's upgrade sheet
     has to tell a member what Full Access actually buys, and a second copy
     of the number would drift from the one getPackageStatus uses. */
@@ -480,7 +528,6 @@ function getReadNotifications(): Record<string, boolean> {
 // time_blocks itself stores) without inventing a second calendar.
 // ---------------------------------------------------------------------------
 
-const HOUR_MS = DAY_MS / 24;
 const WEEK_START_MS = TODAY_MS - 2 * DAY_MS;
 
 function msFromDayHour(dayIndex: number, hour: number): number {
@@ -2129,16 +2176,21 @@ export function setStandingSlot(clientId: string, slot: Omit<StandingSlot, 'setA
  */
 export interface MemberSession {
   id: string;
-  date: string;
+  /** When it happened. The screen formats it — the store used to hand out
+      an already-formatted English string, which no screen could localise. */
+  atMs: number;
 }
 
+// The same two dates the fallback used to carry as literals ("Oct 18, 2025"
+// and "Oct 11, 2025"), as offsets from the fixed week so they cannot drift
+// away from the rest of the calendar maths.
 const FALLBACK_MEMBER_SESSIONS: MemberSession[] = [
-  { id: 'sess1', date: 'Oct 18, 2025' },
-  { id: 'sess2', date: 'Oct 11, 2025' },
+  { id: 'sess1', atMs: TODAY_MS - 4 * DAY_MS },
+  { id: 'sess2', atMs: TODAY_MS - 11 * DAY_MS },
 ];
 
 export function getMemberSessions(clientId: string): MemberSession[] {
-  const logged = getSessionLogs(clientId).map((s) => ({ id: s.id, date: formatDate(s.atMs) }));
+  const logged = getSessionLogs(clientId).map((s) => ({ id: s.id, atMs: s.atMs }));
   return [...logged, ...FALLBACK_MEMBER_SESSIONS];
 }
 

@@ -15,9 +15,7 @@ export default function Offerings() {
   const t = useT();
   const back = useAppStore((s) => s.back);
   const nav = useAppStore((s) => s.nav);
-  const lang = useAppStore((s) => s.lang);
-  const isAr = lang === 'ar';
-  const currency = isAr ? 'جنيه' : 'EGP';
+  const currency = t('currency');
 
   const TYPE_LABEL: Record<OfferingType, string> = {
     session: t('offeringTypeSession'), consultation: t('offeringTypeConsultation'), group: t('offeringTypeGroup'),

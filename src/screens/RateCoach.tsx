@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
+import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import { CheckIcon, StarIcon } from '../components/icons';
 import {
@@ -16,6 +17,7 @@ const STARS = [1, 2, 3, 4, 5];
 
 export default function RateCoach() {
   const t = useT();
+  const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
   const nav = useAppStore((s) => s.nav);
@@ -63,7 +65,7 @@ export default function RateCoach() {
   const recap = targetSession ? getRecapForMember(CLIENT_ID, targetSession.id).trim() : '';
   const subheading = isMilestone
     ? milestoneTypeLabel
-    : targetSession ? (recap ? `${recap} · ${targetSession.date}` : targetSession.date) : '';
+    : targetSession ? (recap ? `${recap} · ${fmt.date(targetSession.atMs)}` : fmt.date(targetSession.atMs)) : '';
 
   const title = isMilestone ? t('rateCoachMilestoneTitle') : t('rateCoachTitle');
   const heading = isMilestone && milestone

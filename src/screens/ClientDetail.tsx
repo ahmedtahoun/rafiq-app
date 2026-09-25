@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT, type MessageKey } from '../lib/i18n';
+import { useFormat } from '../lib/format';
 import {
   ArrowForwardIcon,
   CheckIcon,
@@ -31,6 +32,7 @@ import {
   renewPackage,
   setRecap,
   toggleTask,
+  TODAY_MS,
   updateClient,
   updateTask,
   deleteTask,
@@ -49,14 +51,19 @@ const DEMO_SESSIONS: { id: string; dateKey: 'clientDetailFallbackNote1' | 'clien
   { id: 'sess2', dateKey: 'clientDetailFallbackNote2', date: 'Oct 11, 2025' },
 ];
 
-const EDIT_DUE_OPTIONS: { key: string; labelKey: MessageKey; due: string }[] = [
-  { key: 'today', labelKey: 'clientDetailDueToday', due: 'Due today' },
-  { key: 'tomorrow', labelKey: 'clientDetailDueTomorrow', due: 'Due tomorrow' },
-  { key: 'week', labelKey: 'clientDetailDueNextWeek', due: 'Due next week' },
+// Days from the fixed "today", not sentences. These used to hold English
+// strings like 'Due today', which never matched what the seed actually
+// stored ('Due today, 6:00 PM'), so no chip ever showed as selected.
+const EDIT_DUE_OPTIONS: { key: string; labelKey: MessageKey; offsetDays: number }[] = [
+  { key: 'today', labelKey: 'clientDetailDueToday', offsetDays: 0 },
+  { key: 'tomorrow', labelKey: 'clientDetailDueTomorrow', offsetDays: 1 },
+  { key: 'week', labelKey: 'clientDetailDueNextWeek', offsetDays: 7 },
 ];
+const DAY_MS = 86400000;
 
 export default function ClientDetail() {
   const t = useT();
+  const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
   const dark = useAppStore((s) => s.dark);
@@ -80,7 +87,7 @@ export default function ClientDetail() {
   const [showEditTaskSheet, setShowEditTaskSheet] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
-  const [editDue, setEditDue] = useState('');
+  const [editDueAtMs, setEditDueAtMs] = useState(0);
   const [editRecurring, setEditRecurring] = useState(false);
   const [, setTick] = useState(0);
   const refresh = () => setTick((v) => v + 1);
@@ -90,7 +97,7 @@ export default function ClientDetail() {
 
   const editHref = getEditClientHref(clientId);
   const messagesHref = getMessagesHref(clientId);
-  const currency = t('clientDetailCurrency');
+  const currency = t('currency');
 
   const pkgStatus = getPackageStatus(clientId);
   const pkgPct = pkgStatus.total > 0 ? Math.min(100, Math.round((pkgStatus.used / pkgStatus.total) * 100)) : 0;
@@ -157,7 +164,7 @@ export default function ClientDetail() {
   function openEditTask(task: Task) {
     setEditingTaskId(task.id);
     setEditTitle(task.title);
-    setEditDue(task.due);
+    setEditDueAtMs(task.dueAtMs);
     setEditRecurring(!!task.recurring);
     setShowEditTaskSheet(true);
   }
@@ -165,7 +172,7 @@ export default function ClientDetail() {
   function saveEditTask() {
     const title = editTitle.trim();
     if (!title || !editingTaskId) return;
-    updateTask(clientId, editingTaskId, { title, due: editDue, recurring: editRecurring });
+    updateTask(clientId, editingTaskId, { title, dueAtMs: editDueAtMs, recurring: editRecurring });
     setShowEditTaskSheet(false);
     refresh();
   }
@@ -301,7 +308,7 @@ export default function ClientDetail() {
                 <button type="button" className="client-detail-task-main" onClick={() => openEditTask(task)}>
                   <div className={`client-detail-task-title${task.done ? ' is-done' : ''}${!task.done && task.overdue ? ' is-overdue' : ''}`}>{task.title}</div>
                   <div className="client-detail-task-due-row">
-                    <span className={`client-detail-task-due${task.overdue ? ' is-overdue' : ''}`}>{task.due}</span>
+                    <span className={`client-detail-task-due${task.overdue ? ' is-overdue' : ''}`}><bdi>{fmt.taskDue(task.dueAtMs, task.dueHasTime)}</bdi></span>
                     {task.recurring && (
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
                         <path d="M17 2.1l4 4-4 4" /><path d="M3 12.7V12a9 9 0 0 1 15-6.7l3 3" /><path d="M7 21.9l-4-4 4-4" /><path d="M21 11.3V12a9 9 0 0 1-15 6.7l-3-3" />
@@ -385,7 +392,7 @@ export default function ClientDetail() {
           <div className="client-detail-progress-track">
             <div className="client-detail-progress-fill" style={{ width: `${pkgPct}%` }} />
           </div>
-          <div className="client-detail-pkg-expiry">{t('clientDetailExpiresPrefix')}{new Date(pkgStatus.expiresAtMs).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+          <div className="client-detail-pkg-expiry">{t('clientDetailExpiresPrefix')}{fmt.date(pkgStatus.expiresAtMs)}</div>
         </div>
 
         <div className="client-detail-section">
@@ -527,8 +534,8 @@ export default function ClientDetail() {
               <button
                 key={d.key}
                 type="button"
-                className={`client-detail-due-chip${editDue === d.due ? ' is-selected' : ''}`}
-                onClick={() => setEditDue(d.due)}
+                className={`client-detail-due-chip${editDueAtMs === TODAY_MS + d.offsetDays * DAY_MS ? ' is-selected' : ''}`}
+                onClick={() => setEditDueAtMs(TODAY_MS + d.offsetDays * DAY_MS)}
               >
                 {t(d.labelKey)}
               </button>

@@ -142,7 +142,7 @@ function CoachPreviewBody({ coach }: { coach: DirectoryCoach }) {
 
   const specDef = SPECIALTIES.find((s) => s.value === coach.specialty);
   const specialtyLabel = specDef ? t(specDef.labelKey) : coach.specialty;
-  const currency = isAr ? 'جنيه' : 'EGP';
+  const currency = t('currency');
   const hash = idHash(coach.id);
   const reviewCount = 20 + (hash % 40);
   const memberCount = reviewCount + 8 + (hash % 15);
