@@ -32,6 +32,7 @@ import {
   getSessionLogs,
   getSessionRoomHref,
   getTasks,
+  isSessionToday,
   isTaskOverdue,
   markNudged,
   markSessionFollowedUp,
@@ -61,20 +62,6 @@ const LAST_WEEK_TOTAL = 27;
 const RING_PROGRESS = 3 / 5;
 const RING_R = 27;
 const RING_CIRC = 2 * Math.PI * RING_R;
-
-// Today's Schedule reads the same real per-client `nextSession` field
-// every other screen would write to (a member whose real next session
-// isn't today can't drift out of sync with a separate hardcoded list) —
-// same comment/intent as Main.dc.html's own renderVals().
-function parseTodayMinutes(nextSession: string): number | null {
-  const m = /Today,\s*(\d+):(\d+)\s*(AM|PM)/i.exec(nextSession || '');
-  if (!m) return null;
-  let h = parseInt(m[1], 10);
-  const period = m[3].toUpperCase();
-  if (period === 'PM' && h !== 12) h += 12;
-  if (period === 'AM' && h === 12) h = 0;
-  return h * 60 + parseInt(m[2], 10);
-}
 
 function firstName(c: Client): string {
   return c.name.split(' ')[0];
@@ -174,12 +161,18 @@ export default function Main() {
         : t('mainEarningsDueMany', { n: earnings.dueCount });
 
   // --- Today's Schedule ------------------------------------------------------
+  // Reads the same real per-client `nextSessionAtMs` field every other
+  // screen writes to (a member whose real next session isn't today can't
+  // drift out of sync with a separate hardcoded list) — same comment/intent
+  // as Main.dc.html's own renderVals(). Was a regex against a pre-composed
+  // English sentence until this fix: it could only ever match "Today," in
+  // English, so a session confirmed while the app was in Arabic never
+  // showed up here at all.
   const sessions = activeRoster
-    .filter((c) => /^Next:\s*Today,/.test(c.nextSession || ''))
+    .filter((c) => c.nextSessionAtMs != null && isSessionToday(c.nextSessionAtMs))
     .map((c) => {
-      const timeStr = (c.nextSession || '').replace(/^Next:\s*Today,\s*/, '');
-      const [timeNum, timePeriod] = timeStr.split(' ');
-      return { client: c, timeNum, timePeriod, sortKey: parseTodayMinutes(c.nextSession) ?? 0 };
+      const { num: timeNum, period: timePeriod } = fmt.timeParts(c.nextSessionAtMs!);
+      return { client: c, timeNum, timePeriod, sortKey: c.nextSessionAtMs! };
     })
     .sort((a, b) => a.sortKey - b.sortKey)
     .map((s, idx) => ({ ...s, isNext: idx === 0, showJoinChip: idx === 0 }));
@@ -194,7 +187,7 @@ export default function Main() {
   const attention: AttentionItem[] = activeRoster
     .map((c): AttentionItem | null => {
       const overdueTask = getTasks(c.id).find((task) => isTaskOverdue(task)) || null;
-      const noSession = c.nextSession === 'No upcoming session';
+      const noSession = c.nextSessionAtMs == null && !c.programCompleted;
       const pkgStatus = getPackageStatus(c.id);
       const latestSession = getSessionLogs(c.id)[0] || null;
       const hasUnfollowedSession = !!(latestSession && latestSession.followedUp === false);

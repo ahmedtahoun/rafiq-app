@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
+import { useFormat } from '../lib/format';
 import {
   ChevronIcon, MoonIcon, SunIcon, ScheduleIcon, TasksIcon, PaymentIcon, MessageIcon, BellIcon,
 } from '../components/icons';
@@ -40,6 +41,7 @@ function iconFor(family: IconFamily) {
 
 export default function ClientNotifications() {
   const t = useT();
+  const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
   const dark = useAppStore((s) => s.dark);
@@ -79,7 +81,7 @@ export default function ClientNotifications() {
     const d = n.data;
     switch (n.kind) {
       case 'session-pending': return d.range ?? '';
-      case 'session-confirmed': return d.sessionDisplay ?? '';
+      case 'session-confirmed': return d.sessionAtMs != null ? fmt.nextSession(d.sessionAtMs) : '';
       case 'task-overdue': return d.firstTitle ?? '';
       case 'feedback': return d.recapText ?? '';
       case 'payment-overdue':

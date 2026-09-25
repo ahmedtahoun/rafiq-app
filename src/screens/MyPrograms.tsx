@@ -1,5 +1,6 @@
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
+import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import {
   MoonIcon, SunIcon, ArrowForwardIcon, ProgramsIcon,
@@ -16,6 +17,7 @@ const ACCENT_HEX = '#B75C3D';
 
 export default function MyPrograms() {
   const t = useT();
+  const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
   const dark = useAppStore((s) => s.dark);
@@ -34,11 +36,9 @@ export default function MyPrograms() {
   // a per-program claim the data can't back. Shown on every row for the
   // same reason: it is the same session in each case.
   const client = getClient(CLIENT_ID);
-  const nextSessionRaw = client?.nextSession || '';
-  const hasNextSession = !!nextSessionRaw
-    && nextSessionRaw !== 'No upcoming session'
-    && nextSessionRaw !== 'Program completed';
-  const nextSessionDisplay = hasNextSession ? nextSessionRaw.replace(/^Next:\s*/, '') : '';
+  const nextSessionAtMs = client?.nextSessionAtMs ?? null;
+  const hasNextSession = nextSessionAtMs != null;
+  const nextSessionDisplay = hasNextSession ? fmt.nextSession(nextSessionAtMs) : '';
 
   function openProgram(offeringId: string) {
     // The same selected-offering handoff Offerings/OfferingDetail and

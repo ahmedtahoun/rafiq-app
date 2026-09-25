@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
+import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import {
   ArrowForwardIcon,
@@ -42,6 +43,7 @@ function specialtyOf(c: Client): string {
 
 export default function Clients() {
   const t = useT();
+  const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
   const dark = useAppStore((s) => s.dark);
@@ -109,7 +111,12 @@ export default function Clients() {
       dash: `${((circ * c.progress) / 100).toFixed(1)} ${circ.toFixed(1)}`,
       avatarGrad: `linear-gradient(135deg, ${c.avatarBg} 0%, ${darken(c.avatarBg, 35)} 100%)`,
       avatarGlow: `${c.avatarBg}66`,
-      nextColor: c.nextSession.startsWith('Next') ? 'var(--accent)' : 'var(--ink-soft)',
+      nextColor: c.nextSessionAtMs != null ? 'var(--accent)' : 'var(--ink-soft)',
+      nextText: c.nextSessionAtMs != null
+        ? t('clientsNextAt', { session: fmt.nextSession(c.nextSessionAtMs) })
+        : c.programCompleted
+          ? t('clientsProgramCompleted')
+          : t('mainNoSessionNote'),
       isFav,
       status,
       isPaymentStatus: statusKind === 'paymentOverdue' || statusKind === 'paymentDue',
@@ -230,7 +237,7 @@ export default function Clients() {
                 <div className="clients-card-text">
                   <div className="clients-card-name">{row.client.name}</div>
                   <div className="clients-card-program" style={{ color: row.client.avatarBg }}>{row.client.program}</div>
-                  <div className="clients-card-next" style={{ color: row.nextColor }}>{row.client.nextSession}</div>
+                  <div className="clients-card-next" style={{ color: row.nextColor }}>{row.nextText}</div>
                   {row.status && (
                     <div className="clients-status-badge" style={{ background: row.status.bg }}>
                       {row.isPaymentStatus && <PaymentIcon size={9} color={row.status.color} />}

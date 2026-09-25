@@ -70,11 +70,11 @@ export default function ClientHome() {
   const allCaughtUp = baseTasks.length > 0 && pendingTasks.length === 0;
   const noTasksReturning = baseTasks.length === 0;
 
-  const nextSessionRaw = client?.nextSession || '';
-  const hasNextSession = !!nextSessionRaw && nextSessionRaw !== 'No upcoming session' && nextSessionRaw !== 'Program completed';
-  const nextSessionDisplay = hasNextSession ? nextSessionRaw.replace(/^Next:\s*/, '') : '';
+  const nextSessionAtMs = client?.nextSessionAtMs ?? null;
+  const hasNextSession = nextSessionAtMs != null;
+  const nextSessionDisplay = hasNextSession ? fmt.nextSession(nextSessionAtMs) : '';
   const noNextSession = !hasNextSession;
-  const showJoinBadge = hasNextSession && isSessionToday(nextSessionRaw);
+  const showJoinBadge = hasNextSession && isSessionToday(nextSessionAtMs);
   const sessionIsLive = getActiveSession(CLIENT_ID).active;
   const joinBadgeLabel = sessionIsLive ? t('clientHomeRejoinSession') : t('clientHomeJoinSession');
 

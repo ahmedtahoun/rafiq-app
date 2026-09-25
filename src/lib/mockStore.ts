@@ -85,7 +85,20 @@ export interface Client {
   active: boolean;
   progress: number;
   needsCheckin: boolean;
-  nextSession: string;
+  /** Real epoch ms of the next confirmed session, or null if there isn't
+      one. Was a pre-composed English sentence ("Next: Today, 10:00 AM")
+      until this fix — the same class of bug as Task.due before it: the
+      string could only ever be true in English (isSessionToday tested it
+      with an English regex), and it showed English text on Arabic screens.
+      Render it with format.ts's formatNextSession / useFormat().nextSession
+      instead of reading this directly. */
+  nextSessionAtMs: number | null;
+  /** True once the whole coaching program has finished (distinct from just
+      not having a session booked right now) — was folded into the same
+      string as a third sentinel value ("Program completed"), which is why
+      it needed splitting out as its own field rather than becoming a
+      boolean derived from nextSessionAtMs being null. */
+  programCompleted: boolean;
   /** Which session length is booked next — SessionRoom titles itself from
       it. Absent on the seeded six, so it falls back to 'standard'. */
   nextSessionType?: SessionType;
@@ -118,12 +131,12 @@ export interface Client {
 // prior completion, same as the coach side, so this is read but never
 // gates navigation).
 const DEFAULT_CLIENTS: Client[] = [
-  { id: 'sara', name: 'Sara Ahmed', age: 29, phone: '10 234 5678', countryCode: '+20', email: 'sara.ahmed@example.com', city: 'Cairo', program: 'Life coaching · Basic', specialty: 'Life coaching', focus: 'Life coaching', plan: 'Basic', initials: 'SA', avatarBg: '#B75C3D', active: true, progress: 63, needsCheckin: false, nextSession: 'Next: Today, 10:00 AM', paymentStatus: 'overdue', goal: 'Build a consistent morning routine', notes: '', signupCompletedAtMs: null },
-  { id: 'omar', name: 'Omar Fathy', age: 34, phone: '11 345 6789', countryCode: '+20', email: 'omar.fathy@example.com', city: 'Giza', program: 'Nutrition · Full Access', specialty: 'Nutrition coaching', focus: 'Nutrition', plan: 'Full Access', initials: 'OF', avatarBg: '#3E6FB0', active: true, progress: 40, needsCheckin: false, nextSession: 'Next: Today, 1:30 PM', paymentStatus: 'due', goal: 'Improve energy levels through better nutrition', notes: '', signupCompletedAtMs: null },
-  { id: 'mona', name: 'Mona Reda', age: 26, phone: '12 456 7890', countryCode: '+20', email: 'mona.reda@example.com', city: 'Alexandria', program: 'Yoga coaching · Basic', specialty: 'Yoga coaching', focus: 'Yoga', plan: 'Basic', initials: 'MR', avatarBg: '#3F7D58', active: true, progress: 78, needsCheckin: false, nextSession: 'Next: Thu, 10:00 AM', paymentStatus: 'paid', goal: 'Increase flexibility and reduce back pain', notes: '', signupCompletedAtMs: null },
-  { id: 'khaled', name: 'Khaled Ibrahim', age: 41, phone: '10 567 8901', countryCode: '+20', email: 'khaled.ibrahim@example.com', city: 'Cairo', program: 'Meditation coaching · Basic', specialty: 'Meditation coaching', focus: 'Meditation', plan: 'Basic', initials: 'KI', avatarBg: '#96472D', active: true, progress: 22, needsCheckin: true, nextSession: 'No upcoming session', paymentStatus: 'overdue', goal: 'Manage work stress through daily meditation', notes: 'Prefers evening sessions', signupCompletedAtMs: null },
-  { id: 'laila', name: 'Laila Youssef', age: 24, phone: '11 678 9012', countryCode: '+20', email: 'laila.youssef@example.com', city: 'Mansoura', program: 'Breakup coaching · Basic', specialty: 'Breakup coaching', focus: 'Relationships', plan: 'Basic', initials: 'LY', avatarBg: '#B98900', active: true, progress: 55, needsCheckin: true, nextSession: 'No upcoming session', paymentStatus: 'due', goal: 'Rebuild confidence after a difficult breakup', notes: '', signupCompletedAtMs: null },
-  { id: 'nour', name: 'Nour Hassan', age: 31, phone: '12 789 0123', countryCode: '+20', email: 'nour.hassan@example.com', city: 'Cairo', program: 'Life coaching · Completed', specialty: 'Life coaching', focus: 'Life coaching', plan: 'Basic', initials: 'NH', avatarBg: '#7A7166', active: false, progress: 100, needsCheckin: false, nextSession: 'Program completed', paymentStatus: 'paid', goal: 'Transitioned into a new role', notes: '', signupCompletedAtMs: null },
+  { id: 'sara', name: 'Sara Ahmed', age: 29, phone: '10 234 5678', countryCode: '+20', email: 'sara.ahmed@example.com', city: 'Cairo', program: 'Life coaching · Basic', specialty: 'Life coaching', focus: 'Life coaching', plan: 'Basic', initials: 'SA', avatarBg: '#B75C3D', active: true, progress: 63, needsCheckin: false, nextSessionAtMs: TODAY_MS + 10 * HOUR_MS, programCompleted: false, paymentStatus: 'overdue', goal: 'Build a consistent morning routine', notes: '', signupCompletedAtMs: null },
+  { id: 'omar', name: 'Omar Fathy', age: 34, phone: '11 345 6789', countryCode: '+20', email: 'omar.fathy@example.com', city: 'Giza', program: 'Nutrition · Full Access', specialty: 'Nutrition coaching', focus: 'Nutrition', plan: 'Full Access', initials: 'OF', avatarBg: '#3E6FB0', active: true, progress: 40, needsCheckin: false, nextSessionAtMs: TODAY_MS + 13.5 * HOUR_MS, programCompleted: false, paymentStatus: 'due', goal: 'Improve energy levels through better nutrition', notes: '', signupCompletedAtMs: null },
+  { id: 'mona', name: 'Mona Reda', age: 26, phone: '12 456 7890', countryCode: '+20', email: 'mona.reda@example.com', city: 'Alexandria', program: 'Yoga coaching · Basic', specialty: 'Yoga coaching', focus: 'Yoga', plan: 'Basic', initials: 'MR', avatarBg: '#3F7D58', active: true, progress: 78, needsCheckin: false, nextSessionAtMs: TODAY_MS + DAY_MS + 10 * HOUR_MS, programCompleted: false, paymentStatus: 'paid', goal: 'Increase flexibility and reduce back pain', notes: '', signupCompletedAtMs: null },
+  { id: 'khaled', name: 'Khaled Ibrahim', age: 41, phone: '10 567 8901', countryCode: '+20', email: 'khaled.ibrahim@example.com', city: 'Cairo', program: 'Meditation coaching · Basic', specialty: 'Meditation coaching', focus: 'Meditation', plan: 'Basic', initials: 'KI', avatarBg: '#96472D', active: true, progress: 22, needsCheckin: true, nextSessionAtMs: null, programCompleted: false, paymentStatus: 'overdue', goal: 'Manage work stress through daily meditation', notes: 'Prefers evening sessions', signupCompletedAtMs: null },
+  { id: 'laila', name: 'Laila Youssef', age: 24, phone: '11 678 9012', countryCode: '+20', email: 'laila.youssef@example.com', city: 'Mansoura', program: 'Breakup coaching · Basic', specialty: 'Breakup coaching', focus: 'Relationships', plan: 'Basic', initials: 'LY', avatarBg: '#B98900', active: true, progress: 55, needsCheckin: true, nextSessionAtMs: null, programCompleted: false, paymentStatus: 'due', goal: 'Rebuild confidence after a difficult breakup', notes: '', signupCompletedAtMs: null },
+  { id: 'nour', name: 'Nour Hassan', age: 31, phone: '12 789 0123', countryCode: '+20', email: 'nour.hassan@example.com', city: 'Cairo', program: 'Life coaching · Completed', specialty: 'Life coaching', focus: 'Life coaching', plan: 'Basic', initials: 'NH', avatarBg: '#7A7166', active: false, progress: 100, needsCheckin: false, nextSessionAtMs: null, programCompleted: true, paymentStatus: 'paid', goal: 'Transitioned into a new role', notes: '', signupCompletedAtMs: null },
 ];
 
 export function getClients(): Client[] {
@@ -175,7 +188,8 @@ export function addClient(fields: NewClientFields): Client {
     active: true,
     progress: 0,
     needsCheckin: false,
-    nextSession: 'No upcoming session',
+    nextSessionAtMs: null,
+    programCompleted: false,
     paymentStatus: 'due',
     goal: fields.goal.trim(),
     notes: fields.notes.trim(),
@@ -530,7 +544,12 @@ function getReadNotifications(): Record<string, boolean> {
 
 const WEEK_START_MS = TODAY_MS - 2 * DAY_MS;
 
-function msFromDayHour(dayIndex: number, hour: number): number {
+// Exported for Schedule.tsx's confirmBlock: it needs the same (dayIndex,
+// hour) -> real ms conversion to stamp a confirmed booking's nextSessionAtMs,
+// for both a real block (backed by this same conversion already) and the
+// fixed seed/demo blocks (which only ever carry dayIndex/startH, never a
+// real timestamp).
+export function msFromDayHour(dayIndex: number, hour: number): number {
   return WEEK_START_MS + dayIndex * DAY_MS + hour * HOUR_MS;
 }
 // Rounded to the nearest quarter-hour — every block in this app (fixed demo
@@ -737,13 +756,14 @@ export function cancelBooking(clientId: string, opts: CancelBookingOptions): Can
   writeLocal(`cancellations_${clientId}`, [record, ...getCancellations(clientId)]);
 
   // Look up the block's kind BEFORE removing it — a 'booked' block is what
-  // populated this client's nextSession, so cancelling it must clear that
-  // too, or the member keeps seeing a session the coach just cancelled. A
-  // still-'pending' request never touched nextSession, so leave it alone.
+  // populated this client's nextSessionAtMs, so cancelling it must clear
+  // that too, or the member keeps seeing a session the coach just
+  // cancelled. A still-'pending' request never touched nextSessionAtMs, so
+  // leave it alone.
   const cancelledBlock = blockId ? getCustomBlocks().find((b) => b.id === blockId) : null;
   if (blockId) removeCustomBlock(blockId);
   if (cancelledBlock?.kind === 'booked') {
-    updateClient(clientId, { nextSession: 'No upcoming session' });
+    updateClient(clientId, { nextSessionAtMs: null });
   }
 
   if (opts.cancelledByRole === 'client' && !withinGrace) {
@@ -784,8 +804,16 @@ export function rescheduleBooking(
   if (!eligibility.eligible) return { error: 'too_late', hoursUntilSession: eligibility.hoursUntilSession };
   const nextKind: TimeBlockKind = block.kind === 'booked' && actorRole === 'client' ? 'pending' : block.kind;
   updateCustomBlock(blockId, { startsAtMs: msFromDayHour(newDayIndex, newStartH), endsAtMs: msFromDayHour(newDayIndex, newEndH), kind: nextKind });
+  // A member moving a coach-confirmed session reopens it to pending, so the
+  // stale confirmed time must not keep showing — cleared, same as a cancel.
+  // A pro moving their own confirmed session stays 'booked', and previously
+  // left nextSessionAtMs pointing at the OLD time indefinitely (this
+  // function only ever cleared it, never re-stamped it) — now re-stamped to
+  // the new time, since it is still the same confirmed session.
   if (nextKind === 'pending' && block.kind === 'booked') {
-    updateClient(clientId, { nextSession: 'No upcoming session' });
+    updateClient(clientId, { nextSessionAtMs: null });
+  } else if (nextKind === 'booked') {
+    updateClient(clientId, { nextSessionAtMs: msFromDayHour(newDayIndex, newStartH) });
   }
   return getCustomBlocks().find((b) => b.id === blockId)!;
 }
@@ -1435,8 +1463,7 @@ function getActiveObligations(clientId: string): ActiveObligations {
   const client = getClients().find((c) => c.id === clientId);
   const pkgStatus = getPackageStatus(clientId);
   const hasUnusedCredits = pkgStatus.remaining > 0;
-  const nextSessionRaw = client?.nextSession || '';
-  const hasConfirmedUpcoming = !!nextSessionRaw && nextSessionRaw !== 'No upcoming session' && nextSessionRaw !== 'Program completed';
+  const hasConfirmedUpcoming = client?.nextSessionAtMs != null;
   const hasPendingRequest = client
     ? getCustomBlocks().some((b) => b.kind === 'pending' && b.clientId === client.id)
     : false;
@@ -1529,10 +1556,12 @@ export function getRecapForMember(clientId: string, sessionId: string): string {
   return getRecaps(clientId)[sessionId] || '';
 }
 
-// Same string convention every other screen's `nextSession` field already
-// uses ("Next: Today, 10:00 AM" vs "Next: Thu, 10:00 AM" etc.).
-export function isSessionToday(nextSessionRaw: string): boolean {
-  return /^Next:\s*Today,/.test(nextSessionRaw || '');
+// Was a regex against the pre-composed English sentence nextSession used to
+// be ("Next: Today, ..."), which could only ever be true in English — same
+// class of bug isTaskOverdue had before the Task.due fix. Compares the real
+// timestamp against TODAY_MS's day boundary instead.
+export function isSessionToday(nextSessionAtMs: number | null): boolean {
+  return nextSessionAtMs != null && nextSessionAtMs >= TODAY_MS && nextSessionAtMs < TODAY_MS + DAY_MS;
 }
 
 export interface ActiveSessionState {
@@ -1663,8 +1692,11 @@ export interface ClientNotificationData {
   range?: string;
   /** session-confirmed / feedback: who it's with. */
   coachName?: string;
-  /** session-confirmed: the client's own nextSession display string. */
-  sessionDisplay?: string;
+  /** session-confirmed: the client's own next-session timestamp, for the
+      screen to format with useFormat().nextSession() in its own language —
+      carried as a raw ms rather than a pre-formatted string so it renders
+      correctly regardless of which language is active when it's read. */
+  sessionAtMs?: number;
   /** task-overdue: how many, and the first one's title. */
   count?: number;
   firstTitle?: string;
@@ -1709,8 +1741,7 @@ export function getClientNotifications(clientId: string): ClientNotification[] {
   const client = getClients().find((c) => c.id === clientId);
   const list: { id: string; kind: ClientNotificationKind; data: ClientNotificationData }[] = [];
 
-  const nextSessionRaw = client?.nextSession || '';
-  const hasConfirmed = !!nextSessionRaw && nextSessionRaw !== 'No upcoming session' && nextSessionRaw !== 'Program completed';
+  const hasConfirmed = client?.nextSessionAtMs != null;
   const pendingBlock = getCustomBlocks().find((b) => b.kind === 'pending' && b.clientId === clientId);
   const coachName = getCoachProfile().name;
   if (pendingBlock) {
@@ -1719,7 +1750,7 @@ export function getClientNotifications(clientId: string): ClientNotification[] {
     list.push({
       id: 'session-confirmed',
       kind: 'session-confirmed',
-      data: { coachName, sessionDisplay: nextSessionRaw.replace(/^Next:\s*/, '') },
+      data: { coachName, sessionAtMs: client!.nextSessionAtMs! },
     });
   }
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
+import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import { ChevronIcon, PencilIcon, ArrowForwardIcon, ScheduleIcon, TasksIcon, PaymentIcon, WarningIcon } from '../components/icons';
 import { signOut } from '../lib/auth';
@@ -35,6 +36,7 @@ type NotifTypeKey = 'session' | 'task' | 'messages';
 // as the design source itself.
 export default function ClientProfile() {
   const t = useT();
+  const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
   const dark = useAppStore((s) => s.dark);
@@ -63,9 +65,8 @@ export default function ClientProfile() {
   const ringOffset = RING_CIRC * (1 - progress / 100);
   const goalDisplay = client?.goal || t('clientHomeGoalFallback');
 
-  const nextSessionRaw = client?.nextSession || '';
-  const hasNextSession = !!nextSessionRaw && nextSessionRaw !== 'No upcoming session' && nextSessionRaw !== 'Program completed';
-  const nextSessionQuick = hasNextSession ? nextSessionRaw.replace(/^Next:\s*/, '') : t('clientProfileNoSessionLabel');
+  const nextSessionAtMs = client?.nextSessionAtMs ?? null;
+  const nextSessionQuick = nextSessionAtMs != null ? fmt.nextSession(nextSessionAtMs) : t('clientProfileNoSessionLabel');
 
   const pendingTaskCount = getTasks(CLIENT_ID).filter((tk) => !tk.done).length;
   const tasksQuickText = pendingTaskCount > 0 ? t('clientProfileTasksPending', { n: pendingTaskCount }) : t('clientProfileTasksDone');

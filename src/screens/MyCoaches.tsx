@@ -1,5 +1,6 @@
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
+import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import { SPECIALTIES } from '../lib/specialties';
 import {
@@ -16,6 +17,7 @@ const ACCENT_HEX = '#B75C3D';
 
 export default function MyCoaches() {
   const t = useT();
+  const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
   const nav = useAppStore((s) => s.nav);
@@ -34,12 +36,9 @@ export default function MyCoaches() {
   const aggregate = getProAggregateRating();
 
   const client = getClient(CLIENT_ID);
-  const nextSessionRaw = client?.nextSession || '';
-  const hasNextSession = !!nextSessionRaw
-    && nextSessionRaw !== 'No upcoming session'
-    && nextSessionRaw !== 'Program completed';
-  const nextSessionQuick = hasNextSession
-    ? nextSessionRaw.replace(/^Next:\s*/, '')
+  const nextSessionAtMs = client?.nextSessionAtMs ?? null;
+  const nextSessionQuick = nextSessionAtMs != null
+    ? fmt.nextSession(nextSessionAtMs)
     : t('myCoachesNoSession');
 
   const pendingTaskCount = getTasks(CLIENT_ID).filter((tk) => !tk.done).length;
