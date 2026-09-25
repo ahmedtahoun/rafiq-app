@@ -1,5 +1,6 @@
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
+import { useFormat } from '../lib/format';
 import { ChevronIcon, SunIcon, MoonIcon } from '../components/icons';
 import { darken } from '../lib/color';
 import { getClient, getEarningsSummary, type PaymentStatus } from '../lib/mockStore';
@@ -9,19 +10,20 @@ import './Earnings.css';
 // the roster, with a per-member breakdown.
 export default function Earnings() {
   const t = useT();
+  const fmt = useFormat();
   const back = useAppStore((s) => s.back);
   const dark = useAppStore((s) => s.dark);
   const setDark = useAppStore((s) => s.setDark);
   const nav = useAppStore((s) => s.nav);
 
   const summary = getEarningsSummary();
-  const totalReceivedLabel = `${summary.totalReceived.toLocaleString()} EGP`;
+  const totalReceivedLabel = fmt.money(summary.totalReceived);
   const paidPct = summary.totalClients > 0 ? Math.round((summary.paidCount / summary.totalClients) * 100) : 0;
   const paidCountLabel = `${summary.paidCount}/${summary.totalClients} ${t('earningsPaid')}`;
   const hasDue = summary.dueCount > 0;
   const dueCountLabel = `${summary.dueCount} ${t('earningsDue')}`;
   const hasPending = summary.pendingCount > 0;
-  const pendingSummaryLabel = `${summary.pendingCount} ${t('earningsPendingConfirmation')} · ${summary.pendingTotal.toLocaleString()} EGP`;
+  const pendingSummaryLabel = `${summary.pendingCount} ${t('earningsPendingConfirmation')} · ${fmt.money(summary.pendingTotal)}`;
 
   const statusDefs: Record<PaymentStatus, { label: string; color: string }> = {
     paid: { label: t('earningsStatusPaid'), color: 'var(--green)' },
@@ -41,11 +43,11 @@ export default function Earnings() {
         name: r.clientName,
         initials: client?.initials || r.clientName.split(' ').map((w) => w[0]).join('').toUpperCase(),
         avatarGrad: `linear-gradient(135deg, ${clientColor} 0%, ${darken(clientColor, 35)} 100%)`,
-        totalLabel: `${r.total.toLocaleString()} EGP`,
+        totalLabel: fmt.money(r.total),
         statusLabel: statusDef.label,
         statusColor: statusDef.color,
         hasPending: isPending,
-        pendingLabel: isPending ? t('earningsPendingSuffix', { amount: r.pending.toLocaleString() }) : '',
+        pendingLabel: isPending ? t('earningsPendingSuffix', { amount: fmt.amount(r.pending) }) : '',
       };
     });
 

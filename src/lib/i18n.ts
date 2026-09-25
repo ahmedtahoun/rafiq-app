@@ -10,6 +10,7 @@ export const RTL_LANGS: Lang[] = ['ar'];
 // real, rather than pre-populating copy for screens that don't exist yet.
 const en = {
     close: 'Close',
+    currency: 'EGP',
     dismiss: 'Dismiss',
     notifications: 'Notifications',
     clearSearch: 'Clear search',
@@ -235,7 +236,7 @@ const en = {
     clientDetailGoalPrefix: 'Goal: ', clientDetailNoGoalSet: 'No goal set yet', clientDetailPctTasksDone: 'tasks done',
     clientDetailRecord: 'Record', clientDetailViewPaymentHistory: 'View payment history',
     clientDetailPlanSuffix: '{plan} plan',
-    clientDetailMethodCash: 'Cash', clientDetailMethodCard: 'Card', clientDetailMethodTransfer: 'Transfer', clientDetailCurrency: 'EGP',
+    clientDetailMethodCash: 'Cash', clientDetailMethodCard: 'Card', clientDetailMethodTransfer: 'Transfer',
     clientDetailPaymentUpToDate: 'Payment up to date', clientDetailPaymentDue: 'Payment due', clientDetailPaymentOverdue: 'Payment overdue',
     clientDetailSessionPackage: 'Session Package', clientDetailRenew: 'Renew',
     clientDetailExpired: 'Expired', clientDetailNoSessionsLeft: 'No sessions left',
@@ -935,6 +936,7 @@ export type MessageKey = keyof typeof en;
     that `en` lacks is rejected as an excess property. */
 const ar: Record<MessageKey, string> = {
     close: 'إغلاق',
+    currency: 'جنيه',
     dismiss: 'تجاهل',
     notifications: 'الإشعارات',
     clearSearch: 'مسح البحث',
@@ -1160,7 +1162,7 @@ const ar: Record<MessageKey, string> = {
     clientDetailGoalPrefix: 'الهدف: ', clientDetailNoGoalSet: 'لم يتم تحديد هدف بعد', clientDetailPctTasksDone: 'من المهام مكتملة',
     clientDetailRecord: 'تسجيل', clientDetailViewPaymentHistory: 'عرض سجل المدفوعات',
     clientDetailPlanSuffix: 'خطة {plan}',
-    clientDetailMethodCash: 'نقدًا', clientDetailMethodCard: 'بطاقة', clientDetailMethodTransfer: 'تحويل', clientDetailCurrency: 'جنيه',
+    clientDetailMethodCash: 'نقدًا', clientDetailMethodCard: 'بطاقة', clientDetailMethodTransfer: 'تحويل',
     clientDetailPaymentUpToDate: 'الدفع محدث', clientDetailPaymentDue: 'الدفع مستحق', clientDetailPaymentOverdue: 'الدفع متأخر',
     clientDetailSessionPackage: 'باقة الجلسات', clientDetailRenew: 'تجديد',
     clientDetailExpired: 'منتهية', clientDetailNoSessionsLeft: 'لا توجد جلسات متبقية',

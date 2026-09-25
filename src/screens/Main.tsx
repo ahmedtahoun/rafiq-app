@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
+import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import {
   ArrowForwardIcon,
@@ -124,6 +125,7 @@ const MESSAGE_TEMPLATES: Record<AttentionKind, (c: Client, overdueTaskTitle: str
 
 export default function Main() {
   const t = useT();
+  const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
   const dark = useAppStore((s) => s.dark);
@@ -162,7 +164,7 @@ export default function Main() {
 
   // --- Earnings summary card ------------------------------------------------
   const earnings = getEarningsSummary();
-  const earningsPaid = earnings.totalReceived.toLocaleString();
+  const earningsPaid = fmt.money(earnings.totalReceived);
   const earningsPct = earnings.totalClients > 0 ? Math.round((earnings.paidCount / earnings.totalClients) * 100) : 0;
   const earningsDueLabel =
     earnings.dueCount === 0
@@ -400,7 +402,7 @@ export default function Main() {
             </div>
             <div className="main-earnings-text">
               <div className="main-earnings-amount">
-                {earningsPaid} EGP <span>{t('mainEarningsReceived')}</span>
+                {earningsPaid} <span>{t('mainEarningsReceived')}</span>
               </div>
               <div className="main-earnings-due">{earningsDueLabel}</div>
             </div>

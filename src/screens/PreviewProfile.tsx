@@ -37,8 +37,6 @@ export default function PreviewProfile() {
   const t = useT();
   const back = useAppStore((s) => s.back);
   const nav = useAppStore((s) => s.nav);
-  const lang = useAppStore((s) => s.lang);
-  const isAr = lang === 'ar';
 
   const profile = getCoachProfile();
   const offerings = getOfferings();
@@ -48,7 +46,7 @@ export default function PreviewProfile() {
   const initials = profile.name.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2);
   const specialties = (profile.title || 'Life coaching').split(' · ').filter(Boolean);
   const verified = isCredentialVerified();
-  const currency = isAr ? 'جنيه' : 'EGP';
+  const currency = t('currency');
 
   const experienceYears = profile.experienceYears === '' ? 0 : profile.experienceYears ?? 0;
   const experienceLabel = experienceYears === 1

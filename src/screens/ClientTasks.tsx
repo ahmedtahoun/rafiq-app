@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT, type MessageKey } from '../lib/i18n';
+import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import {
   MoonIcon, SunIcon, CheckIcon,
@@ -42,6 +43,7 @@ const FILTERS: { key: TaskFilter; labelKey: MessageKey }[] = [
 
 export default function ClientTasks() {
   const t = useT();
+  const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
   const dark = useAppStore((s) => s.dark);
@@ -197,7 +199,7 @@ export default function ClientTasks() {
             <span className="client-tasks-feedback-body">
               <span className="client-tasks-feedback-label">{t('clientTasksFeedbackLabel', { coach: coachName })}</span>
               <span className="client-tasks-feedback-text"><bdi>{recentFeedback.text}</bdi></span>
-              <span className="client-tasks-feedback-date"><bdi>{recentFeedback.session.date}</bdi></span>
+              <span className="client-tasks-feedback-date"><bdi>{fmt.date(recentFeedback.session.atMs)}</bdi></span>
             </span>
           </button>
         )}

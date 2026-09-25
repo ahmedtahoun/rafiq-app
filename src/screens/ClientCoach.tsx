@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT, dayKey, type MessageKey } from '../lib/i18n';
+import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import {
   MessageIcon, ScheduleIcon, TasksIcon, CheckIcon, StarIcon, WarningIcon,
@@ -53,6 +54,7 @@ const REPORT_REASONS: { key: ProReportReason; labelKey: MessageKey }[] = [
 
 export default function ClientCoach() {
   const t = useT();
+  const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
   const dark = useAppStore((s) => s.dark);
@@ -110,7 +112,7 @@ export default function ClientCoach() {
   const plan = client?.plan || 'Basic';
   const showUpgrade = plan !== 'Full Access';
   const fullAccessTotal = PACKAGE_DEFAULT_TOTAL['Full Access'] ?? 12;
-  const currency = isAr ? 'جنيه' : 'EGP';
+  const currency = t('currency');
 
   const paymentStatus = client?.paymentStatus ?? 'due';
   const paymentLabel = paymentStatus === 'paid'
@@ -118,7 +120,7 @@ export default function ClientCoach() {
     : paymentStatus === 'overdue' ? t('clientCoachPaymentOverdue') : t('clientCoachPaymentDue');
   const paymentDetail = paymentStatus === 'paid'
     ? t('clientCoachPlanLine', { plan })
-    : t('clientCoachPlanRenews', { plan, date: formatDate(pkg.expiresAtMs) });
+    : t('clientCoachPlanRenews', { plan, date: fmt.date(pkg.expiresAtMs) });
 
   const AM = isAr ? 'صباحًا' : 'AM';
   const PM = isAr ? 'مساءً' : 'PM';
@@ -184,6 +186,8 @@ export default function ClientCoach() {
       amount: FULL_ACCESS_PRICE,
       method: 'Card',
       status: 'pending',
+      // Stored on the payment row, so it stays language-independent:
+      // see formatDate's note in mockStore.
       date: formatDate(Date.now()),
     });
 

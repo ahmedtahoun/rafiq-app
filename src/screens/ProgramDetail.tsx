@@ -1,12 +1,13 @@
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
+import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import {
   MoonIcon, SunIcon, ChevronIcon, ArrowForwardIcon, CheckIcon, ScheduleIcon, PlusIcon, ProgramsIcon,
 } from '../components/icons';
 import {
   getClient, getSelectedOfferingId, getClientProgramProgress, getOfferingTypeInfo,
-  getMilestoneReviewStatus, formatDate,
+  getMilestoneReviewStatus,
 } from '../lib/mockStore';
 import './ProgramDetail.css';
 
@@ -17,6 +18,7 @@ const RING_CIRC = 2 * Math.PI * RING_R;
 
 export default function ProgramDetail() {
   const t = useT();
+  const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
   const dark = useAppStore((s) => s.dark);
@@ -101,7 +103,7 @@ export default function ProgramDetail() {
   // would be fabricated. What is genuinely known is when they enrolled and
   // whether they have reached this program's milestone.
   const history: { key: string; label: string; detail: string }[] = [
-    { key: 'enrolled', label: t('programDetailHistoryEnrolled'), detail: formatDate(progress.enrolledAtMs) },
+    { key: 'enrolled', label: t('programDetailHistoryEnrolled'), detail: fmt.date(progress.enrolledAtMs) },
   ];
   if (progress.isComplete) {
     history.push({

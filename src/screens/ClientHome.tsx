@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
+import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import { BellIcon, MoonIcon, SunIcon, CheckIcon, TasksIcon, ScheduleIcon, ArrowForwardIcon, SearchIcon, ProgramsIcon, PersonIcon, HomeIcon } from '../components/icons';
 import { BottomNav, type BottomNavItem } from '../components/BottomNav';
@@ -30,6 +31,7 @@ const ACCENT_HEX = '#B75C3D';
 
 export default function ClientHome() {
   const t = useT();
+  const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
   const dark = useAppStore((s) => s.dark);
@@ -81,7 +83,7 @@ export default function ClientHome() {
   const recentFeedback = getMemberSessions(CLIENT_ID).map((s) => ({ session: s, text: getRecapForMember(CLIENT_ID, s.id) })).find((r) => r.text.trim());
   const hasRecentFeedback = !!recentFeedback;
   const recentFeedbackText = recentFeedback?.text ?? '';
-  const recentFeedbackDate = recentFeedback?.session.date ?? '';
+  const recentFeedbackDate = recentFeedback ? fmt.date(recentFeedback.session.atMs) : '';
 
   const hasUnreadNotifications = getClientNotifications(CLIENT_ID).some((n) => n.unread);
 

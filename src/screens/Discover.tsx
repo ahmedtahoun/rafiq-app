@@ -162,7 +162,7 @@ export default function Discover() {
                 <StarIcon size={10} color="var(--amber)" />
                 {coach.rating.toFixed(1)}
               </span>
-              <span className="discover-meta-text">{coach.price} {isAr ? 'جنيه' : 'EGP'}</span>
+              <span className="discover-meta-text">{coach.price} {t('currency')}</span>
               <span className="discover-meta-text">{t('discoverYearsExp', { n: coach.years })}</span>
               {coach.availability === 'today' && (
                 <span className="discover-pill discover-pill-green">
@@ -374,7 +374,7 @@ export default function Discover() {
                       <StarIcon size={10} color="var(--amber)" />
                       {coach.rating.toFixed(1)}
                     </span>
-                    <span className="discover-meta-text">{coach.price} {isAr ? 'جنيه' : 'EGP'}</span>
+                    <span className="discover-meta-text">{coach.price} {t('currency')}</span>
                   </div>
                 </div>
               </button>

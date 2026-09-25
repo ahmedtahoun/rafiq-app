@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT, type MessageKey } from '../lib/i18n';
+import { useFormat } from '../lib/format';
 import {
   ArrowForwardIcon,
   CheckIcon,
@@ -57,6 +58,7 @@ const EDIT_DUE_OPTIONS: { key: string; labelKey: MessageKey; due: string }[] = [
 
 export default function ClientDetail() {
   const t = useT();
+  const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
   const dark = useAppStore((s) => s.dark);
@@ -90,7 +92,7 @@ export default function ClientDetail() {
 
   const editHref = getEditClientHref(clientId);
   const messagesHref = getMessagesHref(clientId);
-  const currency = t('clientDetailCurrency');
+  const currency = t('currency');
 
   const pkgStatus = getPackageStatus(clientId);
   const pkgPct = pkgStatus.total > 0 ? Math.min(100, Math.round((pkgStatus.used / pkgStatus.total) * 100)) : 0;
@@ -385,7 +387,7 @@ export default function ClientDetail() {
           <div className="client-detail-progress-track">
             <div className="client-detail-progress-fill" style={{ width: `${pkgPct}%` }} />
           </div>
-          <div className="client-detail-pkg-expiry">{t('clientDetailExpiresPrefix')}{new Date(pkgStatus.expiresAtMs).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+          <div className="client-detail-pkg-expiry">{t('clientDetailExpiresPrefix')}{fmt.date(pkgStatus.expiresAtMs)}</div>
         </div>
 
         <div className="client-detail-section">

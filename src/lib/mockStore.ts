@@ -284,8 +284,17 @@ export function isTaskOverdue(task: Task): boolean {
 // ---------------------------------------------------------------------------
 
 const DAY_MS = 86400000;
-// Short display date matching the format literal session/payment entries
-// already use elsewhere in this file (e.g. "Oct 18, 2025").
+/**
+ * The *stored* date form: stable, language-independent, matching the
+ * literal session/payment entries already in this file ("Oct 18, 2025").
+ *
+ * Deliberately pinned to en-US rather than the active language. Payment
+ * rows keep their date as a string, so a refund recorded while the UI was
+ * in Arabic would otherwise burn an Arabic date into the ledger and then
+ * show it in Arabic to an English user forever. Anything rendered to the
+ * screen should go through `formatDisplayDate` / `useFormat().date` in
+ * lib/format.ts instead, which follows the language the user picked.
+ */
 export function formatDate(ms: number): string {
   return new Date(ms).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
@@ -2129,16 +2138,21 @@ export function setStandingSlot(clientId: string, slot: Omit<StandingSlot, 'setA
  */
 export interface MemberSession {
   id: string;
-  date: string;
+  /** When it happened. The screen formats it — the store used to hand out
+      an already-formatted English string, which no screen could localise. */
+  atMs: number;
 }
 
+// The same two dates the fallback used to carry as literals ("Oct 18, 2025"
+// and "Oct 11, 2025"), as offsets from the fixed week so they cannot drift
+// away from the rest of the calendar maths.
 const FALLBACK_MEMBER_SESSIONS: MemberSession[] = [
-  { id: 'sess1', date: 'Oct 18, 2025' },
-  { id: 'sess2', date: 'Oct 11, 2025' },
+  { id: 'sess1', atMs: TODAY_MS - 4 * DAY_MS },
+  { id: 'sess2', atMs: TODAY_MS - 11 * DAY_MS },
 ];
 
 export function getMemberSessions(clientId: string): MemberSession[] {
-  const logged = getSessionLogs(clientId).map((s) => ({ id: s.id, date: formatDate(s.atMs) }));
+  const logged = getSessionLogs(clientId).map((s) => ({ id: s.id, atMs: s.atMs }));
   return [...logged, ...FALLBACK_MEMBER_SESSIONS];
 }
 
