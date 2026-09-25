@@ -87,9 +87,8 @@ test('Main: an overdue payment outranks an overdue task', async ({ browser }) =>
   // Sara is seeded payment-overdue. Give her an overdue task too: the row
   // must still say payment, because money outranks homework.
   const { page, ctx } = await open(browser, {
-    // isTaskOverdue looks for the word "today" in the due string rather
-    // than comparing a timestamp, so that is what makes a task overdue.
-    seed: `(m) => m.addTask('sara', { id: 'tz', title: 'Very late thing', due: 'Due today, 9:00 AM', done: false })`,
+    // Due today and still open, which is what makes a task overdue.
+    seed: `(m) => m.addTask('sara', { id: 'tz', title: 'Very late thing', dueAtMs: m.TODAY_MS + 9 * 3600000, dueHasTime: true, done: false })`,
   });
 
   const note = await noteFor(page, 'Sara Ahmed');
@@ -110,9 +109,8 @@ test('Main: an overdue payment outranks an overdue task', async ({ browser }) =>
 
 test('Main: clearing the payment lets the next reason through', async ({ browser }) => {
   const { page, ctx } = await open(browser, {
-    // isTaskOverdue looks for the word "today" in the due string rather
-    // than comparing a timestamp, so that is what makes a task overdue.
-    seed: `(m) => m.addTask('sara', { id: 'tz', title: 'Very late thing', due: 'Due today, 9:00 AM', done: false })`,
+    // Due today and still open, which is what makes a task overdue.
+    seed: `(m) => m.addTask('sara', { id: 'tz', title: 'Very late thing', dueAtMs: m.TODAY_MS + 9 * 3600000, dueHasTime: true, done: false })`,
   });
 
   const expected = await page.evaluate(async () => {

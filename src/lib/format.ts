@@ -1,5 +1,6 @@
 import { useAppStore } from '../store/appStore';
 import { translate, type Lang } from './i18n';
+import { TODAY_MS } from './mockStore';
 
 /**
  * Number, money and date formatting that follows the app's language
@@ -46,6 +47,44 @@ export function formatDisplayDate(lang: Lang, ms: number): string {
   });
 }
 
+/** A time of day: "6:00 PM" / "6:00 م". */
+export function formatTime(lang: Lang, ms: number): string {
+  return new Date(ms).toLocaleTimeString(LOCALE[lang], { hour: 'numeric', minute: '2-digit' });
+}
+
+/**
+ * When a task is due, relative where that reads better and absolute
+ * otherwise: "Due today, 6:00 PM", "Due tomorrow", "Due Fri, Oct 24".
+ *
+ * Everything before this lived in the stored string, which is why a task
+ * could only ever be due in the language it was written in.
+ */
+export function formatTaskDue(lang: Lang, dueAtMs: number, hasTime = false, todayMs: number): string {
+  const DAY = 86400000;
+  const dayStart = todayMs;
+  const time = hasTime ? formatTime(lang, dueAtMs) : '';
+
+  if (dueAtMs >= dayStart && dueAtMs < dayStart + DAY) {
+    return hasTime
+      ? translate(lang, 'taskDueTodayAt', { time })
+      : translate(lang, 'taskDueToday');
+  }
+  if (dueAtMs >= dayStart + DAY && dueAtMs < dayStart + 2 * DAY) {
+    return hasTime
+      ? translate(lang, 'taskDueTomorrowAt', { time })
+      : translate(lang, 'taskDueTomorrow');
+  }
+  // Weekday included, as the design's own "Due Fri, Oct 24" had it.
+  const date = new Date(dueAtMs).toLocaleDateString(LOCALE[lang], {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  });
+  return hasTime
+    ? translate(lang, 'taskDueOnAt', { date, time })
+    : translate(lang, 'taskDueOn', { date });
+}
+
 /** The same three, bound to the active language, for use inside a component. */
 export function useFormat() {
   const lang = useAppStore((s) => s.lang);
@@ -53,5 +92,7 @@ export function useFormat() {
     amount: (value: number) => formatAmount(lang, value),
     money: (value: number) => formatMoney(lang, value),
     date: (ms: number) => formatDisplayDate(lang, ms),
+    time: (ms: number) => formatTime(lang, ms),
+    taskDue: (dueAtMs: number, hasTime = false) => formatTaskDue(lang, dueAtMs, hasTime, TODAY_MS),
   };
 }

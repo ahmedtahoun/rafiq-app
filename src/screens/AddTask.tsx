@@ -3,7 +3,7 @@ import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { ScheduleIcon } from '../components/icons';
-import { addTask, getClient } from '../lib/mockStore';
+import { addTask, getClient, TODAY_MS } from '../lib/mockStore';
 import './AddTask.css';
 
 type DueKey = 'today' | 'tomorrow' | 'week';
@@ -32,21 +32,39 @@ export default function AddTask() {
 
   const canSave = title.trim().length > 0;
 
+  const DAY_MS = 86400000;
+  const CHIP_OFFSET_DAYS: Record<DueKey, number> = { today: 0, tomorrow: 1, week: 7 };
+
   function save() {
     if (!canSave) return;
-    const date = exactDate.trim();
-    const time = exactTime.trim();
-    // An exact date wins over the chip, and only then is the time appended —
+
+    // An exact date wins over the chip, and only then does the time apply —
     // a time with no date has nothing to qualify, same as the design.
-    const dueLabel = date
-      ? t('addTaskDueExact', { date, time: time ? t('addTaskDueTimeSuffix', { time }) : '' })
-      : t(`addTaskDueLabel_${due}`);
+    //
+    // Both fields are real date/time inputs, so their values are ISO and
+    // parse the same way whatever language the app is in. They used to be
+    // free text, which is why the due date had to be stored as an
+    // already-written sentence.
+    let dueAtMs: number;
+    let dueHasTime = false;
+    if (exactDate) {
+      const [y, m, d] = exactDate.split('-').map(Number);
+      dueAtMs = Date.UTC(y, m - 1, d);
+      if (exactTime) {
+        const [hh, mm] = exactTime.split(':').map(Number);
+        dueAtMs += hh * 60 * 60 * 1000 + mm * 60 * 1000;
+        dueHasTime = true;
+      }
+    } else {
+      dueAtMs = TODAY_MS + CHIP_OFFSET_DAYS[due] * DAY_MS;
+    }
 
     addTask(clientId, {
       id: `t${Date.now().toString(36)}`,
       title: title.trim(),
       description: description.trim(),
-      due: dueLabel,
+      dueAtMs,
+      dueHasTime,
       recurring,
       done: false,
     });
@@ -139,8 +157,7 @@ export default function AddTask() {
               <span className="add-task-input-icon"><ScheduleIcon size={14} color="var(--accent)" /></span>
               <input
                 id="task-date"
-                type="text"
-                placeholder={t('addTaskExactDatePlaceholder')}
+                type="date"
                 value={exactDate}
                 onChange={(e) => setExactDate(e.target.value)}
               />
@@ -152,8 +169,7 @@ export default function AddTask() {
               <span className="add-task-input-icon"><ClockGlyph /></span>
               <input
                 id="task-time"
-                type="text"
-                placeholder={t('addTaskDueTimePlaceholder')}
+                type="time"
                 value={exactTime}
                 onChange={(e) => setExactTime(e.target.value)}
               />

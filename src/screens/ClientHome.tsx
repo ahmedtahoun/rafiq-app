@@ -325,7 +325,7 @@ export default function ClientHome() {
                     </button>
                     <div className="client-home-task-text">
                       <div className={`client-home-task-title${tk.done ? ' is-done' : ''}`}>{tk.title}</div>
-                      <div className="client-home-task-due">{tk.due}</div>
+                      <div className="client-home-task-due"><bdi>{fmt.taskDue(tk.dueAtMs, tk.dueHasTime)}</bdi></div>
                     </div>
                   </div>
                 ))}

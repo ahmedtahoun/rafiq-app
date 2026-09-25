@@ -235,7 +235,7 @@ export default function ClientTasks() {
                   <bdi>{task.title}</bdi>
                 </div>
                 <div className="client-tasks-row-meta">
-                  <span className={`client-tasks-due${task.overdue ? ' client-tasks-due-overdue' : ''}`}><bdi>{task.due}</bdi></span>
+                  <span className={`client-tasks-due${task.overdue ? ' client-tasks-due-overdue' : ''}`}><bdi>{fmt.taskDue(task.dueAtMs, task.dueHasTime)}</bdi></span>
                   {task.recurring && (
                     <svg
                       width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)"
