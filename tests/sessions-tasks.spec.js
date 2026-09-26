@@ -134,7 +134,7 @@ test('ClientSchedule: inside the grace window', async ({ browser }) => {
 });
 
 test('ClientSchedule: no upcoming session', async ({ browser }) => {
-  const seed = `(m) => m.updateClient('sara', { nextSession: 'No upcoming session' })`;
+  const seed = `(m) => m.updateClient('sara', { nextSessionAtMs: null })`;
   const { page, errs } = await open(browser, { seed });
   expect.soft(String(errs.length), 'no console/page errors').toBe('0');
   expect.soft(String(await n(page, '.client-schedule-upcoming-card')), 'upcoming card hidden').toBe('0');

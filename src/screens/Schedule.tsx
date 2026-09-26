@@ -39,6 +39,7 @@ import {
   getSessionTypeInfo,
   hourRangeLabel,
   isRelationshipBlocked,
+  msFromDayHour,
   rescheduleBooking,
   setAttendance,
   updateClient,
@@ -434,14 +435,10 @@ export default function Schedule() {
       if (activeBlock.name) patch.label = `Session · ${activeBlock.name}`;
       updateCustomBlock(activeBlock.id, patch);
       if (activeBlock.clientId) {
-        const dowNamesEn = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        const dowLabel = activeBlock.dayIndex === TODAY_INDEX ? 'Today' : dowNamesEn[activeBlock.dayIndex];
-        // Always English regardless of UI language — nextSession is a
-        // shared cross-screen data format (ClientHome etc. match against
-        // 'No upcoming session'/'Program completed' literally), not
-        // display text, so it must not follow the Pro's own lang toggle.
-        const startLabel = fmtHour(activeBlock.startH, 'AM', 'PM');
-        updateClient(activeBlock.clientId, { nextSession: `Next: ${dowLabel}, ${startLabel}`, nextSessionType: activeBlock.sessionType });
+        // A real epoch ms now, not a pre-composed English sentence — the
+        // exact bug format.ts's formatNextSession/isSessionToday exist to
+        // fix. Every consuming screen renders it in its own language.
+        updateClient(activeBlock.clientId, { nextSessionAtMs: msFromDayHour(activeBlock.dayIndex, activeBlock.startH), nextSessionType: activeBlock.sessionType });
       }
     }
     setConfirmedKeys((k) => ({ ...k, [activeBlock.key]: true }));

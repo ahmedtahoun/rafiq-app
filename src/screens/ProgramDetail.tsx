@@ -92,11 +92,9 @@ export default function ProgramDetail() {
   const client = getClient(CLIENT_ID);
   const goalDisplay = client?.goal || t('programDetailGoalFallback');
 
-  const nextSessionRaw = client?.nextSession || '';
-  const hasNextSession = !!nextSessionRaw
-    && nextSessionRaw !== 'No upcoming session'
-    && nextSessionRaw !== 'Program completed';
-  const nextSessionDisplay = hasNextSession ? nextSessionRaw.replace(/^Next:\s*/, '') : '';
+  const nextSessionAtMs = client?.nextSessionAtMs ?? null;
+  const hasNextSession = nextSessionAtMs != null;
+  const nextSessionDisplay = hasNextSession ? fmt.nextSession(nextSessionAtMs) : '';
 
   // History is enrollment-level on purpose: no session log in this data
   // model is attributed to a particular offering, so a per-session list

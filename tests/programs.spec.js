@@ -205,7 +205,7 @@ test('ProgramDetail: no selection / deleted offering', async ({ browser }) => {
 });
 
 test('ProgramDetail: no upcoming session', async ({ browser }) => {
-  const seed = `(m) => { m.updateClient('sara', { nextSession: 'No upcoming session' }); return 1; }`;
+  const seed = `(m) => { m.updateClient('sara', { nextSessionAtMs: null }); return 1; }`;
   const { page } = await open(browser, { seed });
   expect.soft(String(await n(page, '.my-programs-next')), 'no next-session hint on the rows').toBe('0');
   await page.locator('.my-programs-row').first().click();

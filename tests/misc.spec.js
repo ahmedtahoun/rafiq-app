@@ -37,7 +37,8 @@ test('Notification model: data + target', async ({ browser }) => {
   expect.soft(String(list.every((x) => !!x.screen)), 'every row has a destination').toBe('true');
 
   const confirmed = list.find((x) => x.kind === 'session-confirmed');
-  expect.soft(String(confirmed.data.sessionDisplay), 'confirmed session carries its display string').toBe('Today, 10:00 AM');
+  const sara = await store(page, `(m) => m.getClient('sara')`);
+  expect.soft(String(confirmed.data.sessionAtMs), 'confirmed session carries the real timestamp, not a display string').toBe(String(sara.nextSessionAtMs));
   expect.soft(String(confirmed.data.coachName), 'and names the pro').toBe('Yasmin El-Sayed');
   expect.soft(String(confirmed.screen), 'session rows point at the schedule').toBe('clientSchedule');
 

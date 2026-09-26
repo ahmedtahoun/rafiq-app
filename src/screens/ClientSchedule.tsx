@@ -79,10 +79,8 @@ export default function ClientSchedule() {
   const pendingBlock = myBlocks.find((b) => b.kind === 'pending') ?? null;
   const bookedBlock = myBlocks.find((b) => b.kind === 'booked') ?? null;
 
-  const nextSessionRaw = client?.nextSession || '';
-  const hasConfirmedSession = !!nextSessionRaw
-    && nextSessionRaw !== 'No upcoming session'
-    && nextSessionRaw !== 'Program completed';
+  const nextSessionAtMs = client?.nextSessionAtMs ?? null;
+  const hasConfirmedSession = nextSessionAtMs != null;
   const isPending = !!pendingBlock;
   const hasUpcoming = isPending || hasConfirmedSession;
 
@@ -105,14 +103,13 @@ export default function ClientSchedule() {
   // screens. Each end of the range is isolated with <bdi> below so Arabic
   // keeps "10:00 صباحًا" in that order without scrambling the pair.
   //
-  // A confirmed session is `client.nextSession`, which the store holds as a
-  // pre-composed English display string ("Next: Today, 10:00 AM") that
-  // ClientHome and the coach's Main render the same way. Localizing that is
-  // a data-model change across every screen that reads the field, not
-  // something to fake here.
+  // A confirmed session is `client.nextSessionAtMs`, a real timestamp as of
+  // the fix that replaced the store's old pre-composed English sentence
+  // (`Client.nextSession`) — rendered here with the same useFormat().
+  // nextSession() every other screen uses now.
   const upcomingDay = isPending && pendingBlock
     ? t(dayKey('dowFull', blockDayIndex(pendingBlock)))
-    : hasConfirmedSession ? nextSessionRaw.replace(/^Next:\s*/, '') : '';
+    : hasConfirmedSession ? fmt.nextSession(nextSessionAtMs!) : '';
   const upcomingStart = isPending && pendingBlock ? hourLabel(blockStartH(pendingBlock), AM, PM) : '';
   const upcomingEnd = isPending && pendingBlock ? hourLabel(blockEndH(pendingBlock), AM, PM) : '';
 
@@ -121,7 +118,7 @@ export default function ClientSchedule() {
     : (client?.nextSessionType ?? 'standard');
   const sessionTypeLabel = t(TYPE_LABEL_KEYS[getSessionTypeInfo(sessionTypeKey).key]);
 
-  const sessionToday = isSessionToday(nextSessionRaw);
+  const sessionToday = isSessionToday(nextSessionAtMs);
   const showJoin = hasConfirmedSession && !isPending && sessionToday;
   const sessionIsLive = getActiveSession(CLIENT_ID).active;
 
@@ -211,7 +208,7 @@ export default function ClientSchedule() {
       // Seeded session with no block behind it: still record the
       // cancellation, then clear the display it was shown from.
       cancelBooking(CLIENT_ID, { blockId: null, cancelledByRole: 'client' });
-      updateClient(CLIENT_ID, { nextSession: 'No upcoming session' });
+      updateClient(CLIENT_ID, { nextSessionAtMs: null });
     }
     setShowCancelConfirm(false);
     refresh();

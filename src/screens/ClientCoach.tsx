@@ -79,14 +79,12 @@ export default function ClientCoach() {
   const coachName = profile.name || 'Yasmin El-Sayed';
   const coachInitials = coachName.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2);
 
-  const nextSessionRaw = client?.nextSession ?? '';
-  const hasNextSession = !!nextSessionRaw
-    && nextSessionRaw !== 'No upcoming session'
-    && nextSessionRaw !== 'Program completed';
+  const nextSessionAtMs = client?.nextSessionAtMs ?? null;
+  const hasNextSession = nextSessionAtMs != null;
   const nextSessionText = hasNextSession
-    ? nextSessionRaw.replace(/^Next:\s*/, '')
+    ? fmt.nextSession(nextSessionAtMs)
     : t('clientCoachNoSession');
-  const sessionToday = hasNextSession && isSessionToday(nextSessionRaw);
+  const sessionToday = hasNextSession && isSessionToday(nextSessionAtMs);
 
   const pendingTasks = getTasks(CLIENT_ID).filter((task) => !task.done).length;
   const tasksText = pendingTasks > 0

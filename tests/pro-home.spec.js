@@ -191,7 +191,7 @@ test('Main: a roster with nothing wrong shows the caught-up state', async ({ bro
   // Clear every reason the cascade can find.
   const seed = `(m) => {
     m.getClients().forEach((c) => {
-      m.updateClient(c.id, { paymentStatus: 'paid', needsCheckin: false, nextSession: 'Next: Today, 10:00 AM' });
+      m.updateClient(c.id, { paymentStatus: 'paid', needsCheckin: false, nextSessionAtMs: m.TODAY_MS + 10 * 3600000 });
       m.getTasks(c.id).forEach((t) => m.updateTask(c.id, t.id, { done: true }));
       m.renewPackage(c.id, 10);
     });
