@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Applies supabase/migrations/0001_init.sql to a throwaway Postgres and asserts
+# Applies every supabase/migrations/*.sql to a throwaway Postgres and asserts
 # that the RLS policies and constraints actually behave. No Supabase project
 # and no network needed — 00_supabase_shim.sql stands in for the auth schema
 # and roles a real project provides.
@@ -14,7 +14,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PGBIN="${PGBIN:-/usr/lib/postgresql/16/bin}"
 PGROOT="${PGROOT:-/var/tmp/rafiq-pgtest}"
-MIN_ASSERTIONS=79
+MIN_ASSERTIONS=89
 
 OUT=""
 OWN_CLUSTER=""

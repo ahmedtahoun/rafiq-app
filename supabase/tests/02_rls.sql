@@ -52,8 +52,8 @@ select pg_temp.expect('memberM sees own payments',
   pg_temp.as_user(:memberM, 'select count(*)::text from public.payments'), '1');
 select pg_temp.expect('a token with no subject sees nothing',
   pg_temp.as_user('', 'select count(*)::text from public.clients'), '0');
--- And a genuinely signed-out caller: 0001 grants anon nothing at all, so this
--- is refused a step earlier, at the grant.
+-- And a genuinely signed-out caller: 0004 revokes Supabase's default grants
+-- to anon, so this is refused a step earlier, at the grant.
 reset role;
 set role anon;
 select pg_temp.expect('signed-out is refused outright',
@@ -86,3 +86,26 @@ select pg_temp.expect('nobody can delete a payment',
   pg_temp.as_user(:coachA, 'with d as (delete from public.payments returning 1) select count(*)::text from d'), 'DENIED(42501)');
 select pg_temp.expect('coach cannot change own subscription tier',
   pg_temp.as_user(:coachA, 'with u as (update public.subscriptions set tier = ''pro'' returning 1) select count(*)::text from u'), 'DENIED(42501)');
+
+-- 0004: holes found in the pre-launch review. Each denial below fails without
+-- that migration; each allowed case beside it proves the fix is not a blanket ban.
+select pg_temp.expect('coach cannot self-verify',
+  pg_temp.as_user(:coachA, 'with u as (update public.coach_profiles set verification_status = ''verified'' returning 1) select count(*)::text from u'), 'DENIED(42501)');
+select pg_temp.expect('coach can still edit own bio',
+  pg_temp.as_user(:coachA, 'with u as (update public.coach_profiles set bio = ''hello'' returning 1) select count(*)::text from u'), '1');
+select pg_temp.expect('member cannot rename own task',
+  pg_temp.as_user(:memberM, 'with u as (update public.tasks set title = ''renamed'' returning 1) select count(*)::text from u'), 'DENIED(42501)');
+select pg_temp.expect('coach can still rename a task',
+  pg_temp.as_user(:coachA, 'with u as (update public.tasks set title = ''Journal daily'' where client_id = ' || quote_literal(:clientM) || ' returning 1) select count(*)::text from u'), '1');
+select pg_temp.expect('member cannot move rating to other coach',
+  pg_temp.as_user(:memberM, 'with u as (update public.ratings set coach_id = ' || quote_literal(:coachB) || ' returning 1) select count(*)::text from u'), 'DENIED(42501)');
+select pg_temp.expect('member cannot rate a coach not theirs',
+  pg_temp.as_user(:memberN, 'with i as (insert into public.ratings (client_id, coach_id, rating) values (''bbbbbbbb-0000-0000-0000-000000000001'', ' || quote_literal(:coachA) || ', 1) returning 1) select count(*)::text from i'), 'DENIED(42501)');
+select pg_temp.expect('member cannot request on other calendar',
+  pg_temp.as_user(:memberM, 'with i as (insert into public.time_blocks (coach_id, client_id, kind, starts_at, ends_at) values (' || quote_literal(:coachB) || ', ' || quote_literal(:clientM) || ', ''pending'', now(), now() + interval ''1 hour'') returning 1) select count(*)::text from i'), 'DENIED(42501)');
+select pg_temp.expect('member can request with own coach',
+  pg_temp.as_user(:memberM, 'with i as (insert into public.time_blocks (coach_id, client_id, kind, starts_at, ends_at) values (' || quote_literal(:coachA) || ', ' || quote_literal(:clientM) || ', ''pending'', now(), now() + interval ''1 hour'') returning 1) select count(*)::text from i'), '1');
+select pg_temp.expect('coach cannot block on other coach client',
+  pg_temp.as_user(:coachB, 'with i as (insert into public.time_blocks (coach_id, client_id, kind, starts_at, ends_at) values (' || quote_literal(:coachB) || ', ' || quote_literal(:clientM) || ', ''busy'', now(), now() + interval ''1 hour'') returning 1) select count(*)::text from i'), 'DENIED(42501)');
+select pg_temp.expect('app cannot call push_notification',
+  pg_temp.as_user(:memberM, 'select ''called'' from (select public.push_notification(' || quote_literal(:coachA) || '::uuid, ''message'', null, ''{}''::jsonb)) s'), 'DENIED(42501)');
