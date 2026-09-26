@@ -1831,6 +1831,17 @@ const dict: Record<Lang, Record<MessageKey, string>> = { en, ar };
 
 type Params = Record<string, string | number>;
 
+/**
+ * <bdi> for text that goes into a translated sentence through `t()`, where
+ * no element can be wrapped around it: First Strong Isolate … Pop
+ * Directional Isolate. Without it "8-Week Program" inside an Arabic
+ * sentence rendered as "Week Program-8". Use it on content the app did not
+ * write (names, titles), not on every param.
+ */
+export function isolate(text: string): string {
+  return `⁨${text}⁩`;
+}
+
 function interpolate(template: string, params?: Params): string {
   if (!params) return template;
   return template.replace(/\{(\w+)\}/g, (match, key) => (key in params ? String(params[key]) : match));

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, isolate } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import { CheckIcon, StarIcon } from '../components/icons';
@@ -69,7 +69,7 @@ export default function RateCoach() {
 
   const title = isMilestone ? t('rateCoachMilestoneTitle') : t('rateCoachTitle');
   const heading = isMilestone && milestone
-    ? t('rateCoachMilestoneHeading', { program: milestone.offering.name })
+    ? t('rateCoachMilestoneHeading', { program: isolate(milestone.offering.name) })
     : t('rateCoachHeading', { coach: coachName });
 
   const canSubmit = rating > 0 && targetId !== null;

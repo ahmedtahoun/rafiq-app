@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT, dayKey, type MessageKey } from '../lib/i18n';
+import { useT, dayKey, isolate, type MessageKey } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { useFormat } from '../lib/format';
 import { ChevronIcon, CheckIcon, StarIcon, MessageIcon, ScheduleIcon } from '../components/icons';
@@ -259,7 +259,7 @@ function CoachPreviewBody({ coach }: { coach: DirectoryCoach }) {
               <strong>{whenLabel}</strong>
             </div>
             <div className="coach-preview-receipt-row">
-              <span>{selectedOffering.name}</span>
+              <span><bdi>{selectedOffering.name}</bdi></span>
               <strong>
                 {selectedOffering.price > 0
                   ? money(selectedOffering.price)
@@ -386,10 +386,10 @@ function CoachPreviewBody({ coach }: { coach: DirectoryCoach }) {
                       {on && <CheckIcon size={11} color="#FFFFFF" />}
                     </span>
                   </div>
-                  <div className="coach-preview-offering-name">{offering.name}</div>
+                  <div className="coach-preview-offering-name"><bdi>{offering.name}</bdi></div>
                   <div className="coach-preview-offering-desc">{offering.description}</div>
                   <div className="coach-preview-offering-foot">
-                    <span>{offering.duration} · {t('offeringFormatBoth')}</span>
+                    <span><bdi>{offering.duration}</bdi> · {t('offeringFormatBoth')}</span>
                     <strong>
                       {offering.price > 0 ? money(offering.price) : t('offeringsFree')}
                     </strong>
@@ -514,7 +514,7 @@ function CoachPreviewBody({ coach }: { coach: DirectoryCoach }) {
           onClick={confirm}
         >
           {validSelection
-            ? t('coachPreviewBookOffering', { name: selectedOffering.name })
+            ? t('coachPreviewBookOffering', { name: isolate(selectedOffering.name) })
             : t('coachPreviewSelectTime')}
         </button>
       </div>

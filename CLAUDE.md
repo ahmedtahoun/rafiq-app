@@ -60,7 +60,9 @@ and let the class do it.
 member's name, a task title, a pro's specialty — needs `<bdi>` when it sits
 in a translated sentence. Without it, bidi reordering moves it: a task
 called `10-minute evening walk` rendered as `minute evening walk-10` in
-Arabic because it starts with a digit.
+Arabic because it starts with a digit. When the string goes *into* `t()` as
+a param, there is no element to wrap — pass `isolate(value)` from
+`i18n.ts` instead (`t('clientBookingOffering', { name: isolate(o.name) })`).
 
 **Isolate each end of a range separately.** One `dir="ltr"` around a whole
 time range scrambles it once AM/PM is an Arabic word —

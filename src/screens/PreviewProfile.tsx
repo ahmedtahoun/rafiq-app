@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT, type MessageKey } from '../lib/i18n';
+import { useT, isolate, type MessageKey } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { useFormat } from '../lib/format';
 import { CheckIcon, ChevronIcon, ShieldIcon, StarIcon } from '../components/icons';
@@ -192,10 +192,10 @@ export default function PreviewProfile() {
                         {isSelected && <CheckIcon size={11} color="#FFFFFF" />}
                       </span>
                     </div>
-                    <div className="preview-profile-offering-name">{o.name}</div>
-                    {o.description?.trim() && <div className="preview-profile-offering-desc">{o.description}</div>}
+                    <div className="preview-profile-offering-name"><bdi>{o.name}</bdi></div>
+                    {o.description?.trim() && <div className="preview-profile-offering-desc"><bdi>{o.description}</bdi></div>}
                     <div className="preview-profile-offering-foot">
-                      <span>{[o.duration, formatLabel].filter(Boolean).join(' · ')}</span>
+                      <span>{o.duration ? <><bdi>{o.duration}</bdi> · {formatLabel}</> : formatLabel}</span>
                       <span className="preview-profile-price">
                         {o.price > 0 ? money(o.price) : t('previewProfileFree')}
                       </span>
@@ -248,7 +248,7 @@ export default function PreviewProfile() {
 
       <div className="preview-profile-cta">
         <button type="button" className="preview-profile-book" onClick={book} disabled={!selected}>
-          {selected ? t('previewProfileBookOffering', { name: selected.name }) : t('previewProfileTryBooking')}
+          {selected ? t('previewProfileBookOffering', { name: isolate(selected.name) }) : t('previewProfileTryBooking')}
         </button>
       </div>
     </div>
