@@ -116,10 +116,11 @@ select pg_temp.expect('coach sees who is asking',
   pg_temp.as_user(:coachA, 'select full_name from public.profiles where id = ' || quote_literal(:memberN)), 'Member N');
 select pg_temp.expect('member cannot accept own request',
   pg_temp.as_user(:memberN, 'with u as (update public.session_requests set status = ''accepted'' returning 1) select count(*)::text from u'), 'DENIED(42501)');
-select pg_temp.expect('coach cannot change the price',
-  pg_temp.as_user(:coachA, 'with u as (update public.session_requests set price = 1 returning 1) select count(*)::text from u'), 'DENIED(42501)');
 select pg_temp.expect('coach accepts the request',
   pg_temp.as_user(:coachA, 'with u as (update public.session_requests set status = ''accepted'', responded_at = now() returning 1) select count(*)::text from u'), '1');
+-- Now accepted, so the status rule passes and only the scope trigger can refuse this.
+select pg_temp.expect('coach cannot change the price',
+  pg_temp.as_user(:coachA, 'with u as (update public.session_requests set price = 1 returning 1) select count(*)::text from u'), 'DENIED(42501)');
 
 -- Availability is public; writing it is not -----------------------------------------
 select pg_temp.expect('coach sets weekly availability',
