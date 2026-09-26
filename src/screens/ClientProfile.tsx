@@ -6,6 +6,7 @@ import { darken } from '../lib/color';
 import { ChevronIcon, PencilIcon, ArrowForwardIcon, ScheduleIcon, TasksIcon, PaymentIcon, WarningIcon } from '../components/icons';
 import { signOut } from '../lib/auth';
 import { isSupabaseConfigured } from '../lib/supabase';
+import { openExternal, supportMailto } from '../lib/support';
 import {
   getClient,
   getCoachProfile,
@@ -326,19 +327,33 @@ export default function ClientProfile() {
           </div>
         </div>
 
-        <button
-          type="button"
-          className="client-profile-help"
-          onClick={() => nav('clientHelpCenter')}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="9" />
-            <path d="M9.5 9a2.5 2.5 0 0 1 4.7 1.2c0 1.5-2 1.8-2.2 3.3" />
-            <path d="M12 17h.01" />
-          </svg>
-          <div className="client-profile-help-label">{t('profileGetHelp')}</div>
-          <ArrowForwardIcon size={14} color="var(--ink-soft)" />
-        </button>
+        <div className="client-profile-support">
+          <button
+            type="button"
+            className="client-profile-help"
+            onClick={() => nav('clientHelpCenter')}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M9.5 9a2.5 2.5 0 0 1 4.7 1.2c0 1.5-2 1.8-2.2 3.3" />
+              <path d="M12 17h.01" />
+            </svg>
+            <div className="client-profile-help-label">{t('profileGetHelp')}</div>
+            <ArrowForwardIcon size={14} color="var(--ink-soft)" />
+          </button>
+          <button
+            type="button"
+            className="client-profile-help"
+            onClick={() => openExternal(supportMailto(t('supportEmailSubject')))}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="5" width="18" height="14" rx="2" />
+              <path d="M3 7l9 6 9-6" />
+            </svg>
+            <div className="client-profile-help-label">{t('profileContactUs')}</div>
+            <ArrowForwardIcon size={14} color="var(--ink-soft)" />
+          </button>
+        </div>
 
         <button type="button" className="client-profile-logout" onClick={logOut}>
           {t('profileLogOut')}

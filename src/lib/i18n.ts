@@ -45,7 +45,6 @@ const en = {
     clientsViewProgress: 'View progress: {name}',
     profileEditProfile: 'Edit profile',
     profileVerifiedPro: 'Verified pro',
-    profileRateStarLabel: '{n} of 5 stars',
     clientHomeYourProfile: 'Your profile',
     mainOpenMember: 'Open member: {name}',
 
@@ -173,7 +172,8 @@ const en = {
     profileCompletenessTitle: 'Complete your profile', profileCompletenessMissingOne: '1 item left to add', profileCompletenessMissingMany: '{n} items left to add',
     profileDarkMode: 'Dark mode', profileNotifications: 'Notifications', profileSupportRafiq: 'Support Rafiq', profileRateRafiq: 'Rate Rafiq',
     profileNotifSessions: 'New session requests', profileNotifCheckins: 'Member check-in alerts', profileNotifPayments: 'Payment reminders',
-    profileBuyCoffee: 'Buy us a coffee', profileContactUs: 'Contact Us', profileGetHelp: 'Get Help',
+    profileContactUs: 'Contact Us', profileGetHelp: 'Get Help',
+    supportEmailSubject: 'Rafiq support',
     profileLogOut: 'Log out', profilePrivacyPolicy: 'Privacy Policy', profileTermsOfService: 'Terms of Service',
     profileDeleteAccount: 'Delete Account', profileDeleteConfirmTitle: 'Delete your account?',
     profileDeleteConfirmBody: "This removes your pro profile and identity from Rafiq. Each member keeps their own record of the sessions and payments you shared, as they're entitled to. This can't be undone.",
@@ -182,9 +182,6 @@ const en = {
     profileObligationCredits: '{n} unused session credit(s) across your members', profileObligationSessions: '{n} member(s) with an upcoming session',
     profileObligationDisputes: '{n} open dispute(s)', profileDeleteBlockedIntro: 'You still have',
     profileNotEnoughReviews: 'Not enough reviews yet',
-    profileThanksRating: 'Thanks for rating Rafiq!',
-    profileCoffeeToast: 'Thanks for the support! Opening our coffee page…',
-    profileContactToast: 'Your message has been sent to Rafiq support.',
 
     // EditProfile.dc.html
     editProfileTitle: 'Edit Profile', editProfileSave: 'Save',
@@ -521,7 +518,7 @@ const en = {
     privacySection5Heading: 'Your choices',
     privacySection5Body: 'You can review or update your account details anytime from Profile → Account Details, or delete your account from Profile → Delete Account.',
     privacySection6Heading: 'Contact',
-    privacySection6Body: 'Questions about this policy can be sent from Profile → Get Help → Contact Us.',
+    privacySection6Body: 'Questions about this policy can be sent to support@rafiqpro.com, or from Profile → Contact Us.',
 
     // CoachTermsOfService.dc.html — ported, Arabic included.
     termsTitle: 'Terms of Service',
@@ -912,7 +909,7 @@ const en = {
     clientPrivacySection5Heading: 'Your choices',
     clientPrivacySection5Body: 'You can delete your data anytime from Profile → Delete Account, or reach out to your pro with any request.',
     clientPrivacySection6Heading: 'Contact',
-    clientPrivacySection6Body: 'Questions about this policy can be sent to your pro directly, who can escalate to the Rafiq team on your behalf.',
+    clientPrivacySection6Body: 'Questions about this policy can be sent to support@rafiqpro.com, or from Profile → Contact Us. Your pro can also pass a question on to the Rafiq team for you.',
 
     clientTermsTitle: 'Terms of Service', clientTermsUpdated: 'Last updated: October 2025',
     clientTermsSection1Heading: 'Using Rafiq',
@@ -974,7 +971,6 @@ const ar: Record<MessageKey, string> = {
     clientsViewProgress: 'عرض التقدم: {name}',
     profileEditProfile: 'تعديل الملف الشخصي',
     profileVerifiedPro: 'محترف موثّق',
-    profileRateStarLabel: '{n} من 5 نجوم',
     clientHomeYourProfile: 'ملفك الشخصي',
     mainOpenMember: 'فتح العضو: {name}',
 
@@ -1102,7 +1098,8 @@ const ar: Record<MessageKey, string> = {
     profileCompletenessTitle: 'أكمل ملفك الشخصي', profileCompletenessMissingOne: 'عنصر واحد متبقٍ', profileCompletenessMissingMany: '{n} عناصر متبقية',
     profileDarkMode: 'الوضع الداكن', profileNotifications: 'الإشعارات', profileSupportRafiq: 'ادعم رفيق', profileRateRafiq: 'قيّم رفيق',
     profileNotifSessions: 'طلبات جلسات جديدة', profileNotifCheckins: 'تنبيهات متابعة الأعضاء', profileNotifPayments: 'تذكيرات الدفع',
-    profileBuyCoffee: 'اشترِ لنا قهوة', profileContactUs: 'تواصل معنا', profileGetHelp: 'المساعدة',
+    profileContactUs: 'تواصل معنا', profileGetHelp: 'المساعدة',
+    supportEmailSubject: 'دعم رفيق',
     profileLogOut: 'تسجيل الخروج', profilePrivacyPolicy: 'سياسة الخصوصية', profileTermsOfService: 'شروط الخدمة',
     profileDeleteAccount: 'حذف الحساب', profileDeleteConfirmTitle: 'حذف حسابك؟',
     profileDeleteConfirmBody: 'سيؤدي هذا إلى إزالة ملفك كمحترف وهويتك من رفيق. يحتفظ كل عضو بسجله الخاص بالجلسات والمدفوعات التي شاركتموها، وهذا من حقه. لا يمكن التراجع عن هذا الإجراء.',
@@ -1111,9 +1108,6 @@ const ar: Record<MessageKey, string> = {
     profileObligationCredits: '{n} رصيد جلسات غير مستخدم لدى أعضائك', profileObligationSessions: '{n} عضو لديه جلسة قادمة',
     profileObligationDisputes: '{n} نزاع مفتوح', profileDeleteBlockedIntro: 'لا يزال لديك',
     profileNotEnoughReviews: 'لا توجد تقييمات كافية بعد',
-    profileThanksRating: 'شكرًا لتقييمك رفيق!',
-    profileCoffeeToast: 'شكرًا لدعمك! جارٍ فتح صفحة الدعم…',
-    profileContactToast: 'تم إرسال رسالتك إلى دعم رفيق.',
 
     // EditProfile.dc.html
     editProfileTitle: 'تعديل الملف الشخصي', editProfileSave: 'حفظ',
@@ -1445,7 +1439,7 @@ const ar: Record<MessageKey, string> = {
     privacySection5Heading: 'خياراتك',
     privacySection5Body: 'يمكنك مراجعة أو تحديث تفاصيل حسابك في أي وقت من الملف الشخصي ← تفاصيل الحساب، أو حذف حسابك من الملف الشخصي ← حذف الحساب.',
     privacySection6Heading: 'التواصل',
-    privacySection6Body: 'يمكن إرسال الأسئلة حول هذه السياسة من الملف الشخصي ← المساعدة ← تواصل معنا.',
+    privacySection6Body: 'يمكن إرسال الأسئلة حول هذه السياسة إلى support@rafiqpro.com أو من الملف الشخصي ← تواصل معنا.',
 
     // CoachTermsOfService.dc.html — ported 1:1.
     termsTitle: 'شروط الخدمة',
@@ -1816,7 +1810,7 @@ const ar: Record<MessageKey, string> = {
     clientPrivacySection5Heading: 'خياراتك',
     clientPrivacySection5Body: 'يمكنك حذف بياناتك في أي وقت من الملف الشخصي ← حذف الحساب، أو التواصل مع محترفتك لأي طلب.',
     clientPrivacySection6Heading: 'التواصل',
-    clientPrivacySection6Body: 'يمكن إرسال الأسئلة حول هذه السياسة مباشرة إلى محترفتك، والتي يمكنها التصعيد إلى فريق رفيق نيابة عنك.',
+    clientPrivacySection6Body: 'يمكن إرسال الأسئلة حول هذه السياسة إلى support@rafiqpro.com أو من الملف الشخصي ← تواصل معنا. ويمكن لمحترفتك أيضًا إيصال سؤالك إلى فريق رفيق نيابة عنك.',
 
     clientTermsTitle: 'شروط الخدمة', clientTermsUpdated: 'آخر تحديث: أكتوبر 2025',
     clientTermsSection1Heading: 'استخدام رفيق',
