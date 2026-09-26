@@ -428,6 +428,13 @@ html[dir='rtl'] .client-profile-name {
   font-weight: 700;
 }
 
+.client-profile-help-sub {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
 .client-profile-logout {
   display: block;
   width: 100%;

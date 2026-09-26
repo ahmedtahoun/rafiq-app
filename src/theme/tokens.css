@@ -100,7 +100,9 @@ html[dir='rtl'] body {
 }
 
 a { text-decoration: none; color: inherit; }
-button { font-family: inherit; cursor: pointer; border: none; background: none; }
+/* color: inherit — without it the browser's own button text colour (black)
+   applies, and every button that doesn't set its own went invisible in dark mode. */
+button { font-family: inherit; color: inherit; cursor: pointer; border: none; background: none; }
 button, a { transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease; }
 button:active, a:active { transform: scale(0.96); }
 

@@ -81,9 +81,24 @@ test('pro Rate Rafiq sends a browser to the store listing in a new tab', async (
 test('the pro support card has no coffee row', async ({ browser }) => {
   const { page, ctx } = await open(browser, { screen: 'profile' });
   const rows = await page.locator('.profile-support-row').allInnerTexts();
-  expect(rows.map((r) => r.trim())).toEqual(['Rate Rafiq', 'Contact Us', 'Get Help']);
+  expect(rows.map((r) => r.split('\n')[0].trim())).toEqual(['Rate Rafiq', 'Contact Us', 'Get Help']);
   await ctx.close();
 });
+
+// A phone with no mail app does nothing on the tap, so the address has to be
+// readable on the row itself.
+for (const [screen, role, row] of [['profile', 'coach', '.profile-support-row'], ['clientProfile', 'client', '.client-profile-help']]) {
+  for (const lang of ['en', 'ar']) {
+    test(`${screen} shows the support address on Contact Us (${lang})`, async ({ browser }) => {
+      const { page, ctx, errs } = await open(browser, { screen, role, lang });
+      const label = lang === 'en' ? 'Contact Us' : 'تواصل معنا';
+      const contact = page.locator(row, { hasText: label });
+      await expect(contact.getByText(await supportEmail(page), { exact: true })).toBeVisible();
+      expect(errs).toEqual([]);
+      await ctx.close();
+    });
+  }
+}
 
 for (const lang of ['en', 'ar']) {
   test(`member profile has a working Contact Us (${lang})`, async ({ browser }) => {

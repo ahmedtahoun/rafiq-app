@@ -6,7 +6,7 @@ import { darken } from '../lib/color';
 import { ChevronIcon, PencilIcon, ArrowForwardIcon, ScheduleIcon, TasksIcon, PaymentIcon, WarningIcon } from '../components/icons';
 import { signOut } from '../lib/auth';
 import { isSupabaseConfigured } from '../lib/supabase';
-import { openExternal, supportMailto } from '../lib/support';
+import { openExternal, supportMailto, SUPPORT_EMAIL } from '../lib/support';
 import {
   getClient,
   getCoachProfile,
@@ -350,7 +350,11 @@ export default function ClientProfile() {
               <rect x="3" y="5" width="18" height="14" rx="2" />
               <path d="M3 7l9 6 9-6" />
             </svg>
-            <div className="client-profile-help-label">{t('profileContactUs')}</div>
+            <div className="client-profile-help-label">
+              {t('profileContactUs')}
+              {/* Shown as well as linked: with no mail app installed the tap does nothing. */}
+              <div className="client-profile-help-sub"><bdi>{SUPPORT_EMAIL}</bdi></div>
+            </div>
             <ArrowForwardIcon size={14} color="var(--ink-soft)" />
           </button>
         </div>
