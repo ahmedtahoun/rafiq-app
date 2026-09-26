@@ -23,19 +23,28 @@ TypeScript side: `src/lib/database.types.ts` (typed schema),
 
 ## Setting it up
 
-1. Create a project at [supabase.com](https://supabase.com).
-2. Apply the migrations — `supabase db push`, or paste every file in
-   `migrations/` into the SQL editor **in filename order**. `0004` revokes
-   Supabase's default grants; skipping it leaves every table open to the
-   defaults.
-3. Copy the project URL and anon key into `.env.local`
-   (`cp .env.local.example .env.local`).
-4. Regenerate the types against the real project, replacing the hand-written
-   file wholesale:
+The live project is `muikkxccdamtejvheepx`; migrations `0001`–`0005` were
+applied to it on 2026-09-26. For a new migration:
+
+1. `npx supabase login` — the browser must be signed into the Supabase
+   account that owns the project. The CLI answers "does not have the
+   necessary privileges" for a project your logged-in account can't see;
+   `npx supabase projects list` shows which ones it can.
+2. `npx supabase link --project-ref muikkxccdamtejvheepx` (asks for the
+   database password; stored under `supabase/.temp`, which is gitignored).
+3. `npx supabase db push --dry-run`, then `npx supabase db push`. Never paste
+   a migration into the SQL editor instead — the CLI's history table is how
+   the next push knows what has already run.
+4. Regenerate the types from the live schema, overwriting the file wholesale
+   (it is generated — don't hand-edit it):
 
    ```bash
-   npx supabase gen types typescript --project-id <ref> > src/lib/database.types.ts
+   npx supabase gen types typescript --linked > src/lib/database.types.ts
    ```
+
+For a brand-new project, create it at [supabase.com](https://supabase.com),
+link it as above, push, and copy its URL and anon key into `.env.local`
+(`cp .env.local.example .env.local`).
 
 5. Optionally sign up as a coach, then `psql "$DATABASE_URL" -f supabase/seed.sql`.
 

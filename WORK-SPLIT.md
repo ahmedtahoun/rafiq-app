@@ -198,7 +198,12 @@ query and the screens do not change. Favourites and session requests in
 that file are real localStorage, same `rafiq_` prefix as everything else.
 
 **Auth + Supabase infra: done.** Schema/RLS/storage/CI (PR #1), Auth +
-ClientAuth wired to OAuth with session bootstrap (PR #3). Known follow-up:
+ClientAuth wired to OAuth with session bootstrap (PR #3). Security fixes
+(`0004`, PR #31) and app-parity tables (`0005`, PR #32) followed, and all
+five migrations were **applied to the live project on 2026-09-26** — before
+that it had no tables at all. `src/lib/database.types.ts` is now generated
+from it. **The app still reads and writes `mockStore` (localStorage) only;
+wiring screens to these tables is the next piece of work.** Known follow-up:
 `profiles.role` syncs from `setProfileRole()` now (fixed in PR #6), but a
 second device seeing a stale role before that fix shipped may still have a
 mismatched row — not expected to matter for this app's usage pattern, flag
