@@ -70,7 +70,7 @@ export function formatTime(lang: Lang, ms: number): string {
  * ordering across locales, only that the parts themselves are correct.
  */
 export function formatTimeParts(lang: Lang, ms: number): { num: string; period: string } {
-  const parts = new Intl.DateTimeFormat(LOCALE[lang], { hour: 'numeric', minute: '2-digit' }).formatToParts(new Date(ms));
+  const parts = new Intl.DateTimeFormat(LOCALE[lang], { timeZone: CALENDAR_ZONE, hour: 'numeric', minute: '2-digit' }).formatToParts(new Date(ms));
   const period = parts.find((p) => p.type === 'dayPeriod')?.value ?? '';
   const num = parts.filter((p) => p.type !== 'dayPeriod').map((p) => p.value).join('').trim();
   return { num, period };
@@ -124,7 +124,7 @@ export function formatNextSession(lang: Lang, atMs: number, todayMs: number): st
   const isToday = atMs >= todayMs && atMs < todayMs + DAY;
   const date = isToday
     ? translate(lang, 'today')
-    : new Date(atMs).toLocaleDateString(LOCALE[lang], { weekday: 'short' });
+    : new Date(atMs).toLocaleDateString(LOCALE[lang], { timeZone: CALENDAR_ZONE, weekday: 'short' });
   return translate(lang, 'nextSessionAt', { date, time });
 }
 
