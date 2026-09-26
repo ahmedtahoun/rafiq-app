@@ -444,6 +444,13 @@ html[dir='rtl'] .profile-stat-num {
   font-weight: 700;
 }
 
+.profile-support-sub {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
 .profile-support-divider {
   height: 1px;
   background: var(--line);
