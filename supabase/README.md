@@ -56,8 +56,8 @@ is how CI runs it against a `postgres:16` service container.
 Every assertion prints `PASS`/`FAIL` with its expected and actual value, and
 the script exits non-zero if any fail — or if fewer than 40 assertions ran at
 all, so a test file that quietly failed to load can't read as a clean run.
-Currently 89 assertions across RLS, constraints, notification triggers and
-storage policies, all passing.
+Currently 144 assertions across RLS, constraints, notification triggers,
+storage policies and the 0005 app-parity tables, all passing.
 
 These exist because RLS is the kind of thing that looks right and isn't. The
 first run of this suite caught the migration having no `GRANT`s at all — every
@@ -122,6 +122,24 @@ rendered rather than what the data means:
   cost of a `createSignedUrl` call. It also means `profiles.avatar_photo_url`
   and `coach_profiles.cover_photo_url` hold an object *path*, not a URL — worth
   renaming whenever something else is touching that schema anyway.
-- **A member can only ever mark their own task done**, request a `pending` time
-  block, send messages as themselves, and rate their coach. Everything else on
-  the relationship is the coach's to write.
+- **What a member may write on the relationship is short and enforced.** Mark a
+  task done, dispute a session's attendance, sign the agreement, mark a
+  finished program reviewed, request a `pending` time block, set a standing
+  slot, log a mood, cancel as themselves, message as themselves, and rate their
+  own coach's sessions and programs. Where they may touch only some columns of
+  a row the coach owns, a `member_update_scope` trigger lists them and refuses
+  everything else. The rest of the relationship is the coach's to write.
+- **Ratings are per session or per finished program** (`0005`), not one per
+  relationship — RateCoach rates each session, and the milestone review rates
+  a program.
+- **The marketplace reads through two views.** A member browsing Discover isn't
+  the coach's client, so `profiles` and `ratings` RLS hide both. `coach_directory`
+  publishes a coach card (name, photo, title, languages, from-price, rating
+  count and average) and `coach_reviews` publishes written reviews signed with a
+  first name and last initial only.
+- **Only Rafiq decides some things.** Verification outcome, `featured`,
+  `account_status` and report outcomes are in no column the app can write; the
+  app files a request (`verification_requests`, `pro_reports`,
+  `account_deletion_requests`) and the admin panel resolves it as
+  `service_role`. A coach's private notes on a member live in `client_private`,
+  not on the roster row the member can read.

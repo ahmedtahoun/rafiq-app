@@ -73,9 +73,9 @@ select pg_temp.expect('member cannot post as their coach',
 select pg_temp.expect('member can post as themselves',
   pg_temp.as_user(:memberM, 'with i as (insert into public.messages (client_id, sender_role, sender_id, body) values (' || quote_literal(:clientM) || ', ''client'', ' || quote_literal(:memberM) || ', ''hi'') returning 1) select count(*)::text from i'), '1');
 select pg_temp.expect('member can rate their coach',
-  pg_temp.as_user(:memberM, 'with i as (insert into public.ratings (client_id, coach_id, rating) values (' || quote_literal(:clientM) || ', ' || quote_literal(:coachA) || ', 5) returning 1) select count(*)::text from i'), '1');
+  pg_temp.as_user(:memberM, 'with i as (insert into public.ratings (client_id, coach_id, session_id, rating) values (' || quote_literal(:clientM) || ', ' || quote_literal(:coachA) || ', ''dddddddd-0000-0000-0000-000000000001'', 5) returning 1) select count(*)::text from i'), '1');
 select pg_temp.expect('coach cannot rate themselves',
-  pg_temp.as_user(:coachA, 'with i as (insert into public.ratings (client_id, coach_id, rating) values (' || quote_literal(:walkin) || ', ' || quote_literal(:coachA) || ', 5) returning 1) select count(*)::text from i'), 'DENIED(42501)');
+  pg_temp.as_user(:coachA, 'with i as (insert into public.ratings (client_id, coach_id, session_id, rating) values (' || quote_literal(:walkin) || ', ' || quote_literal(:coachA) || ', ''dddddddd-0000-0000-0000-000000000001'', 5) returning 1) select count(*)::text from i'), 'DENIED(42501)');
 select pg_temp.expect('member cannot delete a roster row',
   pg_temp.as_user(:memberM, 'with d as (delete from public.clients where id = ' || quote_literal(:clientM) || ' returning 1) select count(*)::text from d'), '0');
 select pg_temp.expect('member can tick own task done',
@@ -100,7 +100,7 @@ select pg_temp.expect('coach can still rename a task',
 select pg_temp.expect('member cannot move rating to other coach',
   pg_temp.as_user(:memberM, 'with u as (update public.ratings set coach_id = ' || quote_literal(:coachB) || ' returning 1) select count(*)::text from u'), 'DENIED(42501)');
 select pg_temp.expect('member cannot rate a coach not theirs',
-  pg_temp.as_user(:memberN, 'with i as (insert into public.ratings (client_id, coach_id, rating) values (''bbbbbbbb-0000-0000-0000-000000000001'', ' || quote_literal(:coachA) || ', 1) returning 1) select count(*)::text from i'), 'DENIED(42501)');
+  pg_temp.as_user(:memberN, 'with i as (insert into public.ratings (client_id, coach_id, session_id, rating) values (''bbbbbbbb-0000-0000-0000-000000000001'', ' || quote_literal(:coachA) || ', ''dddddddd-0000-0000-0000-000000000002'', 1) returning 1) select count(*)::text from i'), 'DENIED(42501)');
 select pg_temp.expect('member cannot request on other calendar',
   pg_temp.as_user(:memberM, 'with i as (insert into public.time_blocks (coach_id, client_id, kind, starts_at, ends_at) values (' || quote_literal(:coachB) || ', ' || quote_literal(:clientM) || ', ''pending'', now(), now() + interval ''1 hour'') returning 1) select count(*)::text from i'), 'DENIED(42501)');
 select pg_temp.expect('member can request with own coach',
