@@ -13,7 +13,7 @@
  */
 import type { Session, User, AuthError } from '@supabase/supabase-js';
 import { getSupabase, isSupabaseConfigured } from './supabase';
-import type { Enums, Row } from './database.types';
+import type { Enums, Tables } from './database.types';
 import {
   isNativePlatform, openAuthUrl, initDeepLinkAuth,
   NATIVE_REDIRECT_URL, type AuthCallback,
@@ -22,7 +22,7 @@ import { classifyOAuthReturn, takeAuthOrigin, type OAuthFailure } from './oauthR
 import { useAppStore } from '../store/appStore';
 
 export type AppRole = Enums<'app_role'>;
-export type Profile = Row<'profiles'>;
+export type Profile = Tables<'profiles'>;
 
 /** The providers Auth.dc.html and ClientAuth.dc.html offer. Nothing else. */
 export type OAuthProvider = 'google' | 'apple';
