@@ -28,6 +28,10 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     viewport: { width: 420, height: 900 },
+    // Where the users are, not where CI is. The runners are UTC, which hid
+    // a bug that shifted every task time by three hours in Egypt; pinning
+    // the zone also makes a local run match CI on any machine.
+    timezoneId: 'Africa/Cairo',
   },
 
   projects: [

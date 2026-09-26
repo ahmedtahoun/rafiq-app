@@ -28,6 +28,14 @@ const LOCALE: Record<Lang, string> = {
   ar: 'ar-EG-u-nu-latn',
 };
 
+/**
+ * Calendar values are built with Date.UTC against the fixed week, so their
+ * UTC fields *are* the wall-clock time — AddTask stores a 6 PM task as
+ * 18:00 UTC. Formatting them in the device's zone shifted every time by the
+ * offset: a 6 PM task read "9:00 PM" in Cairo. CI runs in UTC and could not see it.
+ */
+const CALENDAR_ZONE = 'UTC';
+
 /** A grouped number: 5400 -> "5,400". */
 export function formatAmount(lang: Lang, value: number): string {
   return value.toLocaleString(LOCALE[lang]);
@@ -41,6 +49,7 @@ export function formatMoney(lang: Lang, value: number): string {
 /** A short date: "Oct 18, 2025" / "18 أكتوبر 2025". */
 export function formatDisplayDate(lang: Lang, ms: number): string {
   return new Date(ms).toLocaleDateString(LOCALE[lang], {
+    timeZone: CALENDAR_ZONE,
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -49,7 +58,7 @@ export function formatDisplayDate(lang: Lang, ms: number): string {
 
 /** A time of day: "6:00 PM" / "6:00 م". */
 export function formatTime(lang: Lang, ms: number): string {
-  return new Date(ms).toLocaleTimeString(LOCALE[lang], { hour: 'numeric', minute: '2-digit' });
+  return new Date(ms).toLocaleTimeString(LOCALE[lang], { timeZone: CALENDAR_ZONE, hour: 'numeric', minute: '2-digit' });
 }
 
 /**
@@ -61,7 +70,7 @@ export function formatTime(lang: Lang, ms: number): string {
  * ordering across locales, only that the parts themselves are correct.
  */
 export function formatTimeParts(lang: Lang, ms: number): { num: string; period: string } {
-  const parts = new Intl.DateTimeFormat(LOCALE[lang], { hour: 'numeric', minute: '2-digit' }).formatToParts(new Date(ms));
+  const parts = new Intl.DateTimeFormat(LOCALE[lang], { timeZone: CALENDAR_ZONE, hour: 'numeric', minute: '2-digit' }).formatToParts(new Date(ms));
   const period = parts.find((p) => p.type === 'dayPeriod')?.value ?? '';
   const num = parts.filter((p) => p.type !== 'dayPeriod').map((p) => p.value).join('').trim();
   return { num, period };
@@ -91,6 +100,7 @@ export function formatTaskDue(lang: Lang, dueAtMs: number, hasTime = false, toda
   }
   // Weekday included, as the design's own "Due Fri, Oct 24" had it.
   const date = new Date(dueAtMs).toLocaleDateString(LOCALE[lang], {
+    timeZone: CALENDAR_ZONE,
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -114,7 +124,7 @@ export function formatNextSession(lang: Lang, atMs: number, todayMs: number): st
   const isToday = atMs >= todayMs && atMs < todayMs + DAY;
   const date = isToday
     ? translate(lang, 'today')
-    : new Date(atMs).toLocaleDateString(LOCALE[lang], { weekday: 'short' });
+    : new Date(atMs).toLocaleDateString(LOCALE[lang], { timeZone: CALENDAR_ZONE, weekday: 'short' });
   return translate(lang, 'nextSessionAt', { date, time });
 }
 
