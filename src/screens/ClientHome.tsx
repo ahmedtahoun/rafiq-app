@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, isolate } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import { BellIcon, MoonIcon, SunIcon, CheckIcon, TasksIcon, ScheduleIcon, ArrowForwardIcon, SearchIcon, ProgramsIcon, PersonIcon, HomeIcon } from '../components/icons';
@@ -90,7 +90,7 @@ export default function ClientHome() {
   const unreviewedMilestones = getUnreviewedMilestones(CLIENT_ID);
   const milestone = unreviewedMilestones[0] || null;
   const hasMilestone = !!milestone;
-  const milestoneTitle = milestone ? t('clientHomeMilestoneTitleTemplate', { program: milestone.offering.name }) : '';
+  const milestoneTitle = milestone ? t('clientHomeMilestoneTitleTemplate', { program: isolate(milestone.offering.name) }) : '';
 
   function rateMilestone() {
     if (!milestone) return;

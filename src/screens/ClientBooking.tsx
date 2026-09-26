@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT, dayKey, type MessageKey } from '../lib/i18n';
+import { useT, dayKey, isolate, type MessageKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { CheckIcon, CloseIcon, ScheduleIcon, WarningIcon } from '../components/icons';
 import {
@@ -271,7 +271,7 @@ export default function ClientBooking() {
 
         {offering && (
           <div className="client-booking-offering">
-            {t('clientBookingOffering', { name: offering.name })}
+            {t('clientBookingOffering', { name: isolate(offering.name) })}
           </div>
         )}
 

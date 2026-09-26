@@ -28,7 +28,8 @@ export default function Offerings() {
     ...o,
     icon: TYPE_ICON[o.type],
     iconBg: TYPE_COLOR[o.type],
-    meta: `${TYPE_LABEL[o.type]} · ${o.duration || '—'} · ${FORMAT_LABEL[o.format] ?? FORMAT_LABEL.both}`,
+    typeLabel: TYPE_LABEL[o.type],
+    formatLabel: FORMAT_LABEL[o.format] ?? FORMAT_LABEL.both,
     priceLabel: o.price > 0 ? money(o.price) : t('offeringsFree'),
   }));
 
@@ -59,8 +60,10 @@ export default function Offerings() {
           <button key={o.id} type="button" className="offerings-card" onClick={() => openDetail(o.id)}>
             <div className="offerings-icon" style={{ background: o.iconBg }}>{o.icon}</div>
             <div className="offerings-card-text">
-              <div className="offerings-card-name">{o.name}</div>
-              <div className="offerings-card-meta">{o.meta}</div>
+              <div className="offerings-card-name"><bdi>{o.name}</bdi></div>
+              <div className="offerings-card-meta">
+                {o.typeLabel} · <bdi>{o.duration || '—'}</bdi> · {o.formatLabel}
+              </div>
             </div>
             <div className="offerings-card-price">{o.priceLabel}</div>
             <ArrowForwardIcon size={15} color="var(--ink-soft)" />
