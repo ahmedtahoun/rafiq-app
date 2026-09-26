@@ -110,6 +110,17 @@ and today sits at index 2. Screens hardcode `const TODAY_INDEX = 2`
 locally. Anything date-dependent must anchor to these, or it drifts with
 the real date and the seeded demo data stops making sense.
 
+**Display every date and time through `src/lib/format.ts`.** Calendar
+values are built with `Date.UTC`, so their UTC fields *are* the wall-clock
+time — a 6 PM task is stored as 18:00 UTC. `format.ts` formats in UTC and
+in the app's language. A bare `toLocaleTimeString()` / `toLocaleDateString()`
+/ `Intl.DateTimeFormat` without `timeZone: 'UTC'` renders in the device's
+zone instead, and every time in Egypt comes out three hours late ("9:00 PM"
+for a 6 PM task). This shipped twice before it was caught. The browser
+tests run in `Africa/Cairo` (`playwright.config.ts`) so it shows up there,
+not only on a phone. Store timestamps, never display strings — `Task.due`
+and `Client.nextSession` were both English sentences once.
+
 **`readLocal` does not validate shape.** It parses whatever is stored and
 casts it to the expected type, so a value written by an older version
 crashes the first screen that iterates it. Worth knowing when you change a
