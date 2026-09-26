@@ -80,3 +80,12 @@ grant select on storage.buckets to authenticated;
 -- the way production denies it, rather than by a grant this shim forgot.
 grant select, insert, update, delete on storage.objects to anon;
 grant select on storage.buckets to anon;
+
+-- What a real Supabase project has before any migration runs: default
+-- privileges handing anon and authenticated everything created in public.
+-- Without this the suite tested a stricter database than production — a
+-- migration's GRANTs looked like they narrowed access, when on Supabase they
+-- were added on top of ALL.
+alter default privileges in schema public grant all on tables    to anon, authenticated, service_role;
+alter default privileges in schema public grant all on functions to anon, authenticated, service_role;
+alter default privileges in schema public grant all on sequences to anon, authenticated, service_role;

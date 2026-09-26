@@ -24,8 +24,10 @@ TypeScript side: `src/lib/database.types.ts` (typed schema),
 ## Setting it up
 
 1. Create a project at [supabase.com](https://supabase.com).
-2. Apply the migration — `supabase db push`, or paste
-   `migrations/0001_init.sql` into the SQL editor.
+2. Apply the migrations — `supabase db push`, or paste every file in
+   `migrations/` into the SQL editor **in filename order**. `0004` revokes
+   Supabase's default grants; skipping it leaves every table open to the
+   defaults.
 3. Copy the project URL and anon key into `.env.local`
    (`cp .env.local.example .env.local`).
 4. Regenerate the types against the real project, replacing the hand-written
@@ -54,14 +56,19 @@ is how CI runs it against a `postgres:16` service container.
 Every assertion prints `PASS`/`FAIL` with its expected and actual value, and
 the script exits non-zero if any fail — or if fewer than 40 assertions ran at
 all, so a test file that quietly failed to load can't read as a clean run.
-Currently 74 assertions across RLS, constraints, notification triggers and
+Currently 89 assertions across RLS, constraints, notification triggers and
 storage policies, all passing.
 
 These exist because RLS is the kind of thing that looks right and isn't. The
 first run of this suite caught the migration having no `GRANT`s at all — every
-query failed with `42501`. A real Supabase project's default privileges would
-have hidden that by handing `authenticated` blanket access to every table,
-which is both broader than this app needs and invisible in the schema.
+query failed with `42501`. A real Supabase project's default privileges hand
+`anon` and `authenticated` blanket access to every table and function in
+`public` — and adding GRANTs on top of that narrows nothing, which the suite
+could not see until the shim reproduced those defaults. `0004` revokes them
+and turns them off for future objects, so **a new table or function starts
+with no access: its migration must GRANT what the app needs**, and a
+security-definer function must not be granted to the app at all unless the
+app is meant to call it.
 
 `.github/workflows/ci.yml` runs this suite on every push, alongside the app's
 typecheck, build and lint.
