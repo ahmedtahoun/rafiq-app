@@ -89,7 +89,7 @@ export default function ClientNotifications() {
         return d.plan ? t('clientNotifPlanLabel', { plan: d.plan }) : '';
       case 'payment-received':
         return d.amount !== undefined && d.date
-          ? t('clientNotifPaymentSub', { amount: d.amount, date: d.date })
+          ? t('clientNotifPaymentSub', { amount: fmt.amount(d.amount), date: d.date })
           : '';
       default: return '';
     }

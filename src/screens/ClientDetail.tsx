@@ -125,7 +125,7 @@ export default function ClientDetail() {
   const planLabel = t('clientDetailPlanSuffix', { plan: client.plan });
   const paymentSubtitle = paid
     ? lastPayment
-      ? `${lastPayment.amount} ${currency} · ${methodLabel(lastPayment.method)} · ${lastPayment.date}`
+      ? `${fmt.money(lastPayment.amount)} · ${methodLabel(lastPayment.method)} · ${lastPayment.date}`
       : planLabel
     : planLabel;
 
@@ -475,7 +475,7 @@ export default function ClientDetail() {
               const isRefundEntry = p.amount < 0;
               const isPending = !isRefundEntry && p.status === 'pending';
               const alreadyRefunded = !isRefundEntry && isPaymentRefunded(clientId, p.id);
-              const amountLabel = `${isRefundEntry ? '-' : ''}${Math.abs(p.amount)} ${currency} · ${isRefundEntry ? t('clientDetailRefund') : methodLabel(p.method)}`;
+              const amountLabel = `${isRefundEntry ? '-' : ''}${fmt.money(Math.abs(p.amount))} · ${isRefundEntry ? t('clientDetailRefund') : methodLabel(p.method)}`;
               const statusTag = isPending ? t('clientDetailPendingTag') : alreadyRefunded ? t('clientDetailRefundedTag') : '';
               return (
                 <div key={p.id} className="client-detail-payment-history-row">

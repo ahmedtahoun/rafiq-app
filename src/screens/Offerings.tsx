@@ -1,5 +1,6 @@
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
+import { useFormat } from '../lib/format';
 import { ChevronIcon, ArrowForwardIcon, PlusIcon } from '../components/icons';
 import { createOffering, getOfferings, setSelectedOfferingId, type OfferingType } from '../lib/mockStore';
 import './Offerings.css';
@@ -15,7 +16,7 @@ export default function Offerings() {
   const t = useT();
   const back = useAppStore((s) => s.back);
   const nav = useAppStore((s) => s.nav);
-  const currency = t('currency');
+  const { money } = useFormat();
 
   const TYPE_LABEL: Record<OfferingType, string> = {
     session: t('offeringTypeSession'), consultation: t('offeringTypeConsultation'), group: t('offeringTypeGroup'),
@@ -28,7 +29,7 @@ export default function Offerings() {
     icon: TYPE_ICON[o.type],
     iconBg: TYPE_COLOR[o.type],
     meta: `${TYPE_LABEL[o.type]} · ${o.duration || '—'} · ${FORMAT_LABEL[o.format] ?? FORMAT_LABEL.both}`,
-    priceLabel: o.price > 0 ? `${o.price} ${currency}` : t('offeringsFree'),
+    priceLabel: o.price > 0 ? money(o.price) : t('offeringsFree'),
   }));
 
   function openDetail(id: string) {

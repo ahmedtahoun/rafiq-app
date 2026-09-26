@@ -180,3 +180,32 @@ test('every screen that shows money agrees on the currency word', async ({ brows
     await ctx.close();
   }
 });
+
+test('every amount over 999 is grouped, in both languages', async ({ browser }) => {
+  // Offerings, Discover, CoachPreview, PreviewProfile, ClientCoach,
+  // ClientBooking, ClientDetail and both notification feeds each glued
+  // `${price} ${currency}` together themselves, so an offering read
+  // "5400 EGP" while Earnings said "5,400 EGP".
+  // The last column is a control to tap first, for amounts shown in a sheet.
+  const screens = [
+    ['offerings', 'coach', null, '5,400', null],
+    ['previewProfile', 'coach', null, '5,400', null],
+    ['clientDetail', 'coach', { clientId: 'sara' }, '5,400', '.client-detail-view-history'],
+    ['notifications', 'coach', null, '5,400', null],
+    ['clientCoach', 'client', null, '7,200', '.client-coach-upgrade'],
+  ];
+  for (const lang of ['en', 'ar']) {
+    for (const [screen, role, params, grouped, reveal] of screens) {
+      const { page, ctx, errs } = await open(browser, { screen, lang, role, params, seed: PAID });
+      if (reveal) {
+        await page.locator(reveal).click();
+        await page.waitForTimeout(400);
+      }
+      const text = await frame(page);
+      expect.soft(text, `${screen} (${lang}) shows ${grouped}`).toContain(grouped);
+      expect.soft(text.match(/\d{4,}\s*(EGP|جنيه)/)?.[0] ?? null, `${screen} (${lang}) has no ungrouped amount`).toBe(null);
+      expect.soft(errs, `${screen} (${lang}) no page errors`).toEqual([]);
+      await ctx.close();
+    }
+  }
+});
