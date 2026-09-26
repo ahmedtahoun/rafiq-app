@@ -16,3 +16,8 @@ insert into public.clients (id, coach_id, member_id, full_name) values
 
 insert into public.tasks (client_id, title) values ('aaaaaaaa-0000-0000-0000-000000000001','Journal');
 insert into public.payments (client_id, amount) values ('aaaaaaaa-0000-0000-0000-000000000001', 500);
+
+-- one past session each, so a rating has a session to belong to (0005)
+insert into public.sessions (id, client_id, scheduled_at) values
+  ('dddddddd-0000-0000-0000-000000000001','aaaaaaaa-0000-0000-0000-000000000001', now() - interval '1 day'),
+  ('dddddddd-0000-0000-0000-000000000002','bbbbbbbb-0000-0000-0000-000000000001', now() - interval '1 day');
