@@ -110,7 +110,6 @@ export default function ClientCoach() {
   const plan = client?.plan || 'Basic';
   const showUpgrade = plan !== 'Full Access';
   const fullAccessTotal = PACKAGE_DEFAULT_TOTAL['Full Access'] ?? 12;
-  const currency = t('currency');
 
   const paymentStatus = client?.paymentStatus ?? 'due';
   const paymentLabel = paymentStatus === 'paid'
@@ -432,7 +431,7 @@ export default function ClientCoach() {
               </div>
               <div className="client-coach-plan-row client-coach-plan-price">
                 <span>{t('clientCoachPriceLabel')}</span>
-                <strong>{FULL_ACCESS_PRICE} {currency}</strong>
+                <strong>{fmt.money(FULL_ACCESS_PRICE)}</strong>
               </div>
             </div>
 

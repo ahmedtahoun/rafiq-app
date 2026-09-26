@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
 import { darken } from '../lib/color';
+import { useFormat } from '../lib/format';
 import {
   SearchIcon, FilterIcon, BellIcon, SunIcon, MoonIcon, CloseIcon,
   StarIcon, CheckIcon, HomeIcon, ProgramsIcon, TasksIcon, ScheduleIcon, PersonIcon,
@@ -62,6 +63,7 @@ const STORY_QUOTES: Record<string, { en: string; ar: string }> = {
 
 export default function Discover() {
   const t = useT();
+  const { money } = useFormat();
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
   const dark = useAppStore((s) => s.dark);
@@ -162,7 +164,7 @@ export default function Discover() {
                 <StarIcon size={10} color="var(--amber)" />
                 {coach.rating.toFixed(1)}
               </span>
-              <span className="discover-meta-text">{coach.price} {t('currency')}</span>
+              <span className="discover-meta-text">{money(coach.price)}</span>
               <span className="discover-meta-text">{t('discoverYearsExp', { n: coach.years })}</span>
               {coach.availability === 'today' && (
                 <span className="discover-pill discover-pill-green">
@@ -374,7 +376,7 @@ export default function Discover() {
                       <StarIcon size={10} color="var(--amber)" />
                       {coach.rating.toFixed(1)}
                     </span>
-                    <span className="discover-meta-text">{coach.price} {t('currency')}</span>
+                    <span className="discover-meta-text">{money(coach.price)}</span>
                   </div>
                 </div>
               </button>

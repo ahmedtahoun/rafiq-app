@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT, dayKey, type MessageKey } from '../lib/i18n';
+import { useFormat } from '../lib/format';
 import { CheckIcon, CloseIcon, ScheduleIcon, WarningIcon } from '../components/icons';
 import {
   getClient, getCoachProfile, getAvailabilityForDayIndex, getCustomBlocks,
@@ -66,7 +67,7 @@ export default function ClientBooking() {
   const PM = isAr ? 'مساءً' : 'PM';
   const dayNames = [0, 1, 2, 3, 4, 5, 6].map((i) => t(dayKey('dowShort', i)));
   const monthLabel = isAr ? 'أكتوبر' : 'Oct';
-  const currency = t('currency');
+  const { money } = useFormat();
 
   // Checked before the picker renders, not only at confirm: a blocked
   // relationship or a suspended account on either side must never get as
@@ -391,7 +392,7 @@ export default function ClientBooking() {
                 </div>
               ) : (
                 <button type="button" className="client-booking-pay" onClick={() => setPaid(true)}>
-                  {t('clientBookingPayWithCard')} · {SESSION_PRICE} {currency}
+                  {t('clientBookingPayWithCard')} · {money(SESSION_PRICE)}
                 </button>
               )}
               <p className="client-booking-demo-note">{t('clientBookingPaymentDemoNote')}</p>

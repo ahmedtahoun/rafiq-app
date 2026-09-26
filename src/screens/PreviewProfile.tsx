@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT, type MessageKey } from '../lib/i18n';
 import { darken } from '../lib/color';
+import { useFormat } from '../lib/format';
 import { CheckIcon, ChevronIcon, ShieldIcon, StarIcon } from '../components/icons';
 import {
   getClients,
@@ -46,7 +47,7 @@ export default function PreviewProfile() {
   const initials = profile.name.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2);
   const specialties = (profile.title || 'Life coaching').split(' · ').filter(Boolean);
   const verified = isCredentialVerified();
-  const currency = t('currency');
+  const { money } = useFormat();
 
   const experienceYears = profile.experienceYears === '' ? 0 : profile.experienceYears ?? 0;
   const experienceLabel = experienceYears === 1
@@ -196,7 +197,7 @@ export default function PreviewProfile() {
                     <div className="preview-profile-offering-foot">
                       <span>{[o.duration, formatLabel].filter(Boolean).join(' · ')}</span>
                       <span className="preview-profile-price">
-                        {o.price > 0 ? `${o.price} ${currency}` : t('previewProfileFree')}
+                        {o.price > 0 ? money(o.price) : t('previewProfileFree')}
                       </span>
                     </div>
                   </button>

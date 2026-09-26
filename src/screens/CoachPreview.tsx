@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT, dayKey, type MessageKey } from '../lib/i18n';
 import { darken } from '../lib/color';
+import { useFormat } from '../lib/format';
 import { ChevronIcon, CheckIcon, StarIcon, MessageIcon, ScheduleIcon } from '../components/icons';
 import { SPECIALTIES } from '../lib/specialties';
 import {
@@ -142,7 +143,7 @@ function CoachPreviewBody({ coach }: { coach: DirectoryCoach }) {
 
   const specDef = SPECIALTIES.find((s) => s.value === coach.specialty);
   const specialtyLabel = specDef ? t(specDef.labelKey) : coach.specialty;
-  const currency = t('currency');
+  const { money } = useFormat();
   const hash = idHash(coach.id);
   const reviewCount = 20 + (hash % 40);
   const memberCount = reviewCount + 8 + (hash % 15);
@@ -261,7 +262,7 @@ function CoachPreviewBody({ coach }: { coach: DirectoryCoach }) {
               <span>{selectedOffering.name}</span>
               <strong>
                 {selectedOffering.price > 0
-                  ? `${selectedOffering.price} ${currency}`
+                  ? money(selectedOffering.price)
                   : t('offeringsFree')}
               </strong>
             </div>
@@ -390,7 +391,7 @@ function CoachPreviewBody({ coach }: { coach: DirectoryCoach }) {
                   <div className="coach-preview-offering-foot">
                     <span>{offering.duration} · {t('offeringFormatBoth')}</span>
                     <strong>
-                      {offering.price > 0 ? `${offering.price} ${currency}` : t('offeringsFree')}
+                      {offering.price > 0 ? money(offering.price) : t('offeringsFree')}
                     </strong>
                   </div>
                 </button>

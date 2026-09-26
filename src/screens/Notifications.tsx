@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
+import { useFormat } from '../lib/format';
 import { BellIcon, ChevronIcon, MoonIcon, PaymentIcon, ScheduleIcon, SunIcon } from '../components/icons';
 import {
   getProNotifications,
@@ -16,6 +17,7 @@ import './Notifications.css';
 // fresh install rather than seeded demo rows.
 export default function Notifications() {
   const t = useT();
+  const fmt = useFormat();
   const nav = useAppStore((s) => s.nav);
   const back = useAppStore((s) => s.back);
   const lang = useAppStore((s) => s.lang);
@@ -80,7 +82,7 @@ export default function Notifications() {
             const title = t(isSession ? 'notificationsSessionRequest' : 'notificationsPaymentReceived', { name: n.data.clientName });
             const sub = isSession
               ? n.data.range ?? ''
-              : t('notificationsPaymentSub', { amount: n.data.amount ?? 0, date: n.data.date ?? '' });
+              : t('notificationsPaymentSub', { amount: fmt.amount(n.data.amount ?? 0), date: n.data.date ?? '' });
 
             return (
               <button
