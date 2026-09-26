@@ -7,6 +7,7 @@ import { BottomNav, type BottomNavItem } from '../components/BottomNav';
 import { QuickActions } from '../components/QuickActions';
 import { signOut } from '../lib/auth';
 import { isSupabaseConfigured } from '../lib/supabase';
+import { openExternal, storeReviewUrl, supportMailto } from '../lib/support';
 import {
   getClients,
   getCoachProfile,
@@ -48,12 +49,12 @@ export default function Profile() {
   const refresh = () => setTick((v) => v + 1);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showRateExpand, setShowRateExpand] = useState(false);
-  const [rafiqRating, setRafiqRating] = useState(0);
   const [showSupportToast, setShowSupportToast] = useState(false);
   const [supportToastMsg, setSupportToastMsg] = useState('');
   const [notif, setNotif] = useState(true);
   const [notifSub, setNotifSub] = useState<Record<NotifTypeKey, boolean>>({ sessions: true, checkins: true, payments: true });
+
+  const reviewUrl = storeReviewUrl();
 
   const profile = getCoachProfile();
   const avatarInitials = profile.name.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2) || 'YE';
@@ -395,64 +396,24 @@ export default function Profile() {
         <div className="profile-section">
           <div className="profile-section-label">{t('profileSupportRafiq')}</div>
           <div className="profile-support-card">
-            <button type="button" className="profile-support-row" onClick={() => setShowRateExpand((v) => !v)}>
-              <StarIcon size={17} color="var(--accent)" />
-              <div className="profile-support-title">{t('profileRateRafiq')}</div>
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="var(--ink-soft)"
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{ transform: `rotate(${showRateExpand ? '180deg' : '0deg'})`, transition: 'transform .15s' }}
-              >
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </button>
-            {showRateExpand && (
-              <div className="profile-rate-expand">
-                <div className="profile-rate-stars">
-                  {[1, 2, 3, 4, 5].map((n) => (
-                    <button key={n} type="button" aria-label={t('profileRateStarLabel', { n })} onClick={() => setRafiqRating(n)}>
-                      <StarIcon size={24} color="var(--amber)" filled={n <= rafiqRating} />
-                    </button>
-                  ))}
-                </div>
-                {rafiqRating > 0 && <div className="profile-rate-thanks">{t('profileThanksRating')}</div>}
-              </div>
+            {reviewUrl && (
+              <>
+                <button type="button" className="profile-support-row" onClick={() => openExternal(reviewUrl)}>
+                  <StarIcon size={17} color="var(--accent)" />
+                  <div className="profile-support-title">{t('profileRateRafiq')}</div>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                    <path d="M15 3h6v6" />
+                    <path d="M10 14L21 3" />
+                  </svg>
+                </button>
+                <div className="profile-support-divider" />
+              </>
             )}
-            <div className="profile-support-divider" />
             <button
               type="button"
               className="profile-support-row"
-              onClick={() => {
-                setSupportToastMsg(t('profileCoffeeToast'));
-                setShowSupportToast(true);
-              }}
-            >
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 9h13v4a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9z" />
-                <path d="M17 10h1.5a2.5 2.5 0 0 1 0 5H17" />
-                <path d="M8 3.5c-.5 1 .5 1.5 0 2.5M12 3.5c-.5 1 .5 1.5 0 2.5" />
-              </svg>
-              <div className="profile-support-title">{t('profileBuyCoffee')}</div>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                <path d="M15 3h6v6" />
-                <path d="M10 14L21 3" />
-              </svg>
-            </button>
-            <div className="profile-support-divider" />
-            <button
-              type="button"
-              className="profile-support-row"
-              onClick={() => {
-                setSupportToastMsg(t('profileContactToast'));
-                setShowSupportToast(true);
-              }}
+              onClick={() => openExternal(supportMailto(t('supportEmailSubject')))}
             >
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .3 2 .6 2.9a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.5c.9.3 1.9.5 2.9.6a2 2 0 0 1 1.8 2.1z" />

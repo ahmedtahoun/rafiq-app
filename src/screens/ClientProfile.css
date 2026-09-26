@@ -403,6 +403,12 @@ html[dir='rtl'] .client-profile-name {
   color: var(--ink-soft);
 }
 
+.client-profile-support {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
 .client-profile-help {
   display: flex;
   align-items: center;
