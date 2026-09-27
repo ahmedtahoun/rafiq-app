@@ -22,6 +22,23 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<!-- Edit Profile's avatar/cover uploads are a plain <input type="file">;
+	     iOS offers both "Take Photo" and "Photo Library" for it, and asking
+	     for either without the matching usage string here crashes the app
+	     the moment someone taps it, rather than showing a permission
+	     dialog. English text lives here as the development-region
+	     fallback; en.lproj/ar.lproj InfoPlist.strings hold the localized
+	     text the system actually shows. -->
+	<key>NSCameraUsageDescription</key>
+	<string>Rafiq uses your camera to take a profile or cover photo.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Rafiq uses your photo library to choose a profile or cover photo.</string>
+	<!-- The app only ever talks to Supabase and the providers' own OAuth
+	     pages, all over HTTPS — no custom cryptography to declare, so this
+	     skips App Store Connect's export-compliance question on every
+	     upload. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

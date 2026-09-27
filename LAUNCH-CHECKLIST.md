@@ -147,10 +147,10 @@ Nothing native has ever run on a device or simulator (CLAUDE.md, "Not verified")
 ### iOS
 - [x] 🔴 Add `ios/App/App/PrivacyInfo.xcprivacy` — Apple requires a privacy
       manifest, and there isn't one (Capacitor's docs list the entries).
-- [ ] 🔴 Add `NSCameraUsageDescription` and `NSPhotoLibraryUsageDescription`
+- [x] 🔴 Add `NSCameraUsageDescription` and `NSPhotoLibraryUsageDescription`
       to `Info.plist`, in English and Arabic (`InfoPlist.strings`). Edit
       Profile uploads a photo; choosing the camera without these crashes the app.
-- [ ] 🟡 `ITSAppUsesNonExemptEncryption = NO` in `Info.plist` (HTTPS only),
+- [x] 🟡 `ITSAppUsesNonExemptEncryption = NO` in `Info.plist` (HTTPS only),
       so each build skips the export-compliance question.
 - [ ] ⚪ Native Sign in with Apple (capability + entitlement). The current web
       flow in an in-app browser meets guideline 4.8; native is a smoother sign-in.
