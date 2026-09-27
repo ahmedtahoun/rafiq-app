@@ -13,6 +13,10 @@ otherwise).
 Doc link, for reference / whoever can reach it:
 https://claude.ai/artifact/Cp6dmzaZsmMC6t2YcEnKgR
 
+**Getting to the stores:** everything left between here and a published app
+is in [`LAUNCH-CHECKLIST.md`](LAUNCH-CHECKLIST.md), with blockers marked.
+Tick items off there in the PR that does them.
+
 ## Two tracks, not three
 
 Earlier revisions of this file proposed a 3-track split (Coach/Client/Auth).
