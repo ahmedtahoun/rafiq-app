@@ -108,7 +108,7 @@ Nothing native has ever run on a device or simulator (CLAUDE.md, "Not verified")
 - [ ] 🔴 Google and Apple sign-in end to end on both platforms. Confirm
       `app.rafiqie.coach://auth-callback` is in Supabase → Auth → URL
       Configuration → Redirect URLs (listed as a to-do in `WORK-SPLIT.md`).
-- [ ] 🔴 **Android hardware back button.** Nothing listens for it, so it exits
+- [x] 🔴 **Android hardware back button.** Nothing listens for it, so it exits
       the app from any screen. Wire `App.addListener('backButton', …)` from
       `@capacitor/app` to `appStore.back()`, exiting only on a tab root.
 - [ ] 🟡 Safe areas and notch, keyboard covering inputs, status bar in dark

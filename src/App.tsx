@@ -3,6 +3,7 @@ import { useAppStore } from './store/appStore';
 import { isRtl } from './lib/i18n';
 import { initSession } from './lib/session';
 import { initOAuthDeepLinks } from './lib/auth';
+import { initBackButton } from './lib/nativeBack';
 import Welcome from './screens/Welcome';
 import RoleSelect from './screens/RoleSelect';
 import Auth from './screens/Auth';
@@ -67,6 +68,11 @@ export default function App() {
   // an in-app-browser sign-in. A no-op in a browser, where that redirect
   // is an ordinary page load initSession() already picks up.
   useEffect(() => initOAuthDeepLinks(), []);
+
+  // Android only: routes the hardware back button through the same back()
+  // the on-screen arrow uses, instead of Capacitor's default of exiting the
+  // app from wherever it's pressed. A no-op on iOS and in a browser.
+  useEffect(() => initBackButton(), []);
 
   useEffect(() => {
     document.documentElement.lang = lang;
