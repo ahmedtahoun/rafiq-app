@@ -70,8 +70,12 @@ interface HistEntry {
 }
 
 // Screens with no back-history (entering one always clears the stack —
-// bottom-nav destinations, or dead-end/landing screens).
-const ROOTS: Screen[] = ['comingSoon', 'main', 'profile', 'clients', 'clientHome', 'messagesInbox', 'schedule', 'discover', 'clientCoach', 'clientSchedule', 'clientTasks', 'myPrograms'];
+// bottom-nav destinations, or dead-end/landing screens). Exported so the
+// Android hardware back button (nativeBack.ts) can use the same list to
+// decide when "nothing to go back to" means "leave the app" — duplicating
+// it there would drift the day a screen is added to one list and not the
+// other.
+export const ROOTS: Screen[] = ['comingSoon', 'main', 'profile', 'clients', 'clientHome', 'messagesInbox', 'schedule', 'discover', 'clientCoach', 'clientSchedule', 'clientTasks', 'myPrograms'];
 // Screens that shouldn't be pushed onto the NEXT screen's back-stack when
 // LEFT (e.g. splash/entry screens nobody should land back on). Empty for
 // now — extend as screens like that are added.
