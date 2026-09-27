@@ -149,6 +149,13 @@ export default function ClientCoach() {
     ? `${hourLabel(slot, AM, PM)} – ${hourLabel(slot + STANDING_SLOT_LEN, AM, PM)}`
     : '';
 
+  // Still mockStore-only, deliberately: lib/adminQueues.ts's real
+  // fileProReport() needs a real `clients` row id and the signed-in
+  // member's own coach's real profile id, neither of which exist until
+  // CLIENT_ID/DEFAULT_PRO_ID are replaced with the signed-in identity
+  // (LAUNCH-CHECKLIST.md §2, "remove the demo identities") — wiring this
+  // one in first would just fail the insert's RLS check against real
+  // Supabase credentials with nothing gained.
   function submitReport(reason: ProReportReason) {
     reportPro(CLIENT_ID, reason);
     setTrustStep('reported');

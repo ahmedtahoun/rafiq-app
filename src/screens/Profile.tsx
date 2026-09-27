@@ -7,6 +7,7 @@ import { BottomNav, type BottomNavItem } from '../components/BottomNav';
 import { QuickActions } from '../components/QuickActions';
 import { signOut } from '../lib/auth';
 import { isSupabaseConfigured } from '../lib/supabase';
+import { fileVerificationRequest, fileAccountDeletionRequest } from '../lib/adminQueues';
 import { openExternal, storeReviewUrl, supportMailto, SUPPORT_EMAIL } from '../lib/support';
 import {
   getClients,
@@ -49,6 +50,10 @@ export default function Profile() {
   const refresh = () => setTick((v) => v + 1);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  // Disables the verification row / delete button while a real Supabase
+  // request is in flight — there is nothing to wait on in the mockStore
+  // fallback branch, which stays synchronous.
+  const [busy, setBusy] = useState(false);
   const [showSupportToast, setShowSupportToast] = useState(false);
   const [supportToastMsg, setSupportToastMsg] = useState('');
   const [notif, setNotif] = useState(true);
@@ -109,12 +114,36 @@ export default function Profile() {
   const completenessSub = missingCount === 1 ? t('profileCompletenessMissingOne') : t('profileCompletenessMissingMany', { n: missingCount });
 
   function tapVerification() {
-    if (verificationStatus === 'unverified') {
+    if (verificationStatus !== 'unverified' || busy) return;
+
+    if (!isSupabaseConfigured()) {
       requestVerification();
       setSupportToastMsg(t('profileVerificationRequestedToast'));
       setShowSupportToast(true);
       refresh();
+      return;
     }
+
+    // Real path: files verification_requests for real (the admin queue
+    // this exists for), rather than mockStore's local-only status flag.
+    // coach_profiles.verification_status itself isn't read from Supabase
+    // yet — that's the "profile and onboarding" step LAUNCH-CHECKLIST.md
+    // §2 lists after this one — so the on-screen badge still comes from
+    // requestVerification()'s local mirror, kept in sync here so the UI
+    // reads the same as it does unconfigured.
+    setBusy(true);
+    void fileVerificationRequest().then((result) => {
+      setBusy(false);
+      if (result.ok || result.code === 'already_pending') {
+        requestVerification();
+        setSupportToastMsg(t('profileVerificationRequestedToast'));
+        setShowSupportToast(true);
+        refresh();
+      } else {
+        setSupportToastMsg(t('requestFailedRetry'));
+        setShowSupportToast(true);
+      }
+    });
   }
 
   function toggleNotifType(key: NotifTypeKey) {
@@ -136,9 +165,34 @@ export default function Profile() {
   }
 
   function confirmDelete() {
-    requestProAccountDeletion();
-    setShowDeleteConfirm(false);
-    logOut();
+    if (busy) return;
+
+    if (!isSupabaseConfigured()) {
+      requestProAccountDeletion();
+      setShowDeleteConfirm(false);
+      logOut();
+      return;
+    }
+
+    // Real path: files account_deletion_requests and signs out. It
+    // deliberately does not also run mockStore's requestProAccountDeletion
+    // (which anonymizes immediately) — that local demo profile isn't this
+    // real signed-in account, and processing a real request is the admin
+    // queue's job (supabase/README.md), not something filing it does.
+    setBusy(true);
+    void fileAccountDeletionRequest().then((result) => {
+      setBusy(false);
+      if (result.ok || result.code === 'already_pending') {
+        setShowDeleteConfirm(false);
+        logOut();
+      } else {
+        // Sheet stays open — same "let them retry without re-opening it"
+        // choice ClientProfile.tsx's inline error makes, just surfaced
+        // through this screen's existing toast instead.
+        setSupportToastMsg(t('requestFailedRetry'));
+        setShowSupportToast(true);
+      }
+    });
   }
 
   const notifTypeDefs: { key: NotifTypeKey; label: string }[] = [
@@ -281,7 +335,7 @@ export default function Profile() {
             <div className="profile-row-badge">{subscriptionBadge}</div>
             <ArrowForwardIcon size={15} color="var(--ink-soft)" />
           </button>
-          <button type="button" className="profile-row" onClick={tapVerification}>
+          <button type="button" className="profile-row" onClick={tapVerification} disabled={busy}>
             <ShieldIcon size={17} color="var(--accent)" />
             <div className="profile-row-text">
               <div className="profile-row-title">{t('profileVerification')}</div>
@@ -481,8 +535,8 @@ export default function Profile() {
                   <button type="button" className="profile-modal-btn profile-modal-btn-neutral" onClick={() => setShowDeleteConfirm(false)}>
                     {t('profileCancel')}
                   </button>
-                  <button type="button" className="profile-modal-btn profile-modal-btn-danger" onClick={confirmDelete}>
-                    {t('profileDelete')}
+                  <button type="button" className="profile-modal-btn profile-modal-btn-danger" onClick={confirmDelete} disabled={busy}>
+                    {busy ? t('submittingEllipsis') : t('profileDelete')}
                   </button>
                 </div>
               </>

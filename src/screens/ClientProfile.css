@@ -510,6 +510,12 @@ html[dir='rtl'] .client-profile-name {
   line-height: 1.5;
 }
 
+.client-profile-modal-error {
+  font-size: 13px;
+  color: var(--red);
+  line-height: 1.5;
+}
+
 .client-profile-modal-actions {
   display: flex;
   gap: 10px;
