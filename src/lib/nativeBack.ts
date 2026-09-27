@@ -1,14 +1,11 @@
 /**
  * The Android hardware back button.
  *
- * Nothing listens for it today, so Capacitor's own default behavior wins:
- * it exits the app immediately, from whatever screen is on screen — a
- * task-detail sheet, a form mid-edit, anywhere. Route it through the app's
- * own back() instead, so it behaves exactly like the on-screen back arrow,
- * and only let it exit the app on a screen back() itself treats as a dead
- * end (ROOTS in appStore.ts — the bottom-nav tab roots and landing
- * screens), same as a user tapping a tab root's own back arrow would find
- * nowhere further to go.
+ * Without a listener, Capacitor's default wins: it exits the app from
+ * whatever screen is open — a form mid-edit, anywhere. This routes it
+ * through the app's own back() instead, so it behaves like the on-screen
+ * back arrow, and only exits where back() has nowhere to go (see
+ * shouldExitOnBack).
  *
  * iOS has no hardware back button and never fires this event. Guarding on
  * isNativePlatform() is only to skip registering it in a plain browser tab,
@@ -16,15 +13,20 @@
  */
 import { App as CapacitorApp } from '@capacitor/app';
 import { isNativePlatform } from './nativeAuth';
-import { useAppStore, ROOTS, type Screen } from '../store/appStore';
+import { useAppStore, ROOTS, hasBackParent, type Screen } from '../store/appStore';
 
 /**
  * Pure, so the routing decision is testable without a device: exported the
  * same way nativeAuth.ts's parseAuthCallback is, since nothing about
  * *which* screens exit vs. navigate depends on the real hardware event.
+ *
+ * Exits whenever back() has nowhere to go: no history, and either a tab
+ * root or a screen with no PARENT at all. Welcome is the second kind — the
+ * app's first screen, where Android users expect back to leave the app,
+ * and where back() alone would silently do nothing.
  */
 export function shouldExitOnBack(screen: Screen, histLength: number): boolean {
-  return histLength === 0 && ROOTS.includes(screen);
+  return histLength === 0 && (ROOTS.includes(screen) || !hasBackParent(screen));
 }
 
 /**

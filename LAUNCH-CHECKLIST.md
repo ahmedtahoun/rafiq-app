@@ -184,7 +184,11 @@ Waits on the name decision (§1).
       `CFBundleDisplayName` in `ios/App/App/Info.plist`, `app_name` in
       `android/app/src/main/res/values/strings.xml`, ~40 "Rafiq"/"رفيق"
       strings in `src/lib/i18n.ts`, `index.html` `<title>`, `package.json`,
-      README.
+      README. Also the camera/photo-library permission text, which names
+      the app: `NSCameraUsageDescription`/`NSPhotoLibraryUsageDescription`
+      in `ios/App/App/Info.plist` (the English fallback) and in
+      `ios/App/App/en.lproj/InfoPlist.strings` and
+      `ios/App/App/ar.lproj/InfoPlist.strings`.
 - [ ] 🔴 **App icon** — both platforms still ship Capacitor's placeholder.
       iOS 1024×1024 into `ios/App/App/Assets.xcassets/AppIcon.appiconset/`;
       Android adaptive icon (foreground + background) into
