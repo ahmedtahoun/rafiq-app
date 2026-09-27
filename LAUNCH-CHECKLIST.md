@@ -145,7 +145,7 @@ Nothing native has ever run on a device or simulator (CLAUDE.md, "Not verified")
 ## 6. Store requirements the code must meet (Dev)
 
 ### iOS
-- [ ] 🔴 Add `ios/App/App/PrivacyInfo.xcprivacy` — Apple requires a privacy
+- [x] 🔴 Add `ios/App/App/PrivacyInfo.xcprivacy` — Apple requires a privacy
       manifest, and there isn't one (Capacitor's docs list the entries).
 - [ ] 🔴 Add `NSCameraUsageDescription` and `NSPhotoLibraryUsageDescription`
       to `Info.plist`, in English and Arabic (`InfoPlist.strings`). Edit
