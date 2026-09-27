@@ -6,6 +6,7 @@ import { darken } from '../lib/color';
 import { ChevronIcon, PencilIcon, ArrowForwardIcon, ScheduleIcon, TasksIcon, PaymentIcon, WarningIcon } from '../components/icons';
 import { signOut } from '../lib/auth';
 import { isSupabaseConfigured } from '../lib/supabase';
+import { fileAccountDeletionRequest } from '../lib/adminQueues';
 import { openExternal, supportMailto, SUPPORT_EMAIL } from '../lib/support';
 import {
   getClient,
@@ -47,6 +48,11 @@ export default function ClientProfile() {
 
   const [showAgreementExpand, setShowAgreementExpand] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  // Disables the Delete button while a real Supabase request is in
+  // flight, and keeps the confirm sheet open with an inline error on
+  // failure rather than closing as if it had gone through.
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState(false);
   // Bumped after a mutation (sign agreement, toggle notif prefs, delete) to
   // force the derived reads below to recompute from localStorage —
   // mockStore is plain functions over localStorage, not reactive state.
@@ -126,9 +132,32 @@ export default function ClientProfile() {
   }
 
   function confirmDelete() {
-    requestAccountDeletion(CLIENT_ID);
-    setShowDeleteConfirm(false);
-    nav('clientAuth');
+    if (deleteBusy) return;
+
+    if (!isSupabaseConfigured()) {
+      requestAccountDeletion(CLIENT_ID);
+      setShowDeleteConfirm(false);
+      nav('clientAuth');
+      return;
+    }
+
+    // Real path: files account_deletion_requests and signs out, through
+    // the same logOut() the rest of this screen uses. Deliberately does
+    // not also run mockStore's requestAccountDeletion (which anonymizes
+    // the mock 'sara' record immediately) — that local demo record isn't
+    // this real signed-in account, and processing a real request is the
+    // admin queue's job (supabase/README.md), not something filing it does.
+    setDeleteBusy(true);
+    setDeleteError(false);
+    void fileAccountDeletionRequest().then((result) => {
+      setDeleteBusy(false);
+      if (result.ok || result.code === 'already_pending') {
+        setShowDeleteConfirm(false);
+        void logOut();
+      } else {
+        setDeleteError(true);
+      }
+    });
   }
 
   const notifTypeDefs: { key: NotifTypeKey; label: string }[] = [
@@ -396,12 +425,13 @@ export default function ClientProfile() {
               <>
                 <div className="client-profile-modal-title">{t('profileDeleteConfirmTitle')}</div>
                 <div className="client-profile-modal-body">{deleteBody}</div>
+                {deleteError && <div className="client-profile-modal-error">{t('requestFailedRetry')}</div>}
                 <div className="client-profile-modal-actions">
-                  <button type="button" className="client-profile-modal-btn client-profile-modal-btn-neutral" onClick={() => setShowDeleteConfirm(false)}>
+                  <button type="button" className="client-profile-modal-btn client-profile-modal-btn-neutral" onClick={() => setShowDeleteConfirm(false)} disabled={deleteBusy}>
                     {t('profileCancel')}
                   </button>
-                  <button type="button" className="client-profile-modal-btn client-profile-modal-btn-danger" onClick={confirmDelete}>
-                    {t('profileDelete')}
+                  <button type="button" className="client-profile-modal-btn client-profile-modal-btn-danger" onClick={confirmDelete} disabled={deleteBusy}>
+                    {deleteBusy ? t('submittingEllipsis') : t('profileDelete')}
                   </button>
                 </div>
               </>
