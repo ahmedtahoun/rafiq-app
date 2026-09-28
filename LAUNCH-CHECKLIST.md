@@ -108,8 +108,12 @@ Apple's App Review Guidelines decide what may be paid outside the App Store:
 - [ ] 🟡 *Ahmed:* push `0007`, set the Paymob secrets, deploy the function, add
       yourself to `admin_users`, and run a staging payout (README, "Testing on
       staging").
-- [ ] 🟡 *Dev:* the coach's payout-account screen and payout history (Earnings),
-      and an admin screen to create, send and sync payouts (§9).
+- [x] 🟡 *Dev:* the coach's payout-account screen (Profile → Payout account,
+      and a link from Earnings). Signed-in only; saved numbers show last 4.
+- [ ] 🟡 *Ahmed:* check `src/lib/paymobBanks.ts` against the bank codes table
+      in Paymob's Instant Cashin docs — it was written without access to them.
+- [ ] 🟡 *Dev:* payout history on Earnings.
+- [ ] 🟡 *Dev:* an admin screen to create, send and sync payouts (§9).
 - [ ] 🔴 *Ahmed:* production Paymob Payouts credentials — new ones, never the
       staging set, and shared through a password manager, not email.
 

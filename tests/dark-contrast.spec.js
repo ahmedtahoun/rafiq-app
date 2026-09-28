@@ -18,7 +18,7 @@ const SCREENS = [
   'clientTermsOfService', 'clients', 'coachMessages', 'coachPreview', 'coachPrivacyPolicy',
   'coachTermsOfService', 'discover', 'earnings', 'editClient', 'editClientProfile', 'editProfile',
   'helpCenter', 'main', 'messages', 'messagesInbox', 'myCoaches', 'myPrograms', 'notifications',
-  'offeringDetail', 'offerings', 'onboarding', 'previewProfile', 'profile', 'programDetail', 'rateCoach',
+  'offeringDetail', 'offerings', 'onboarding', 'payoutAccount', 'previewProfile', 'profile', 'programDetail', 'rateCoach',
   'roleSelect', 'schedule', 'sessionRoom', 'shareProfile', 'subscription', 'templateDetail', 'templates',
   'welcome',
 ];
