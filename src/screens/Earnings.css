@@ -136,82 +136,6 @@ html[dir='rtl'] .earnings-summary-value {
   gap: 10px;
 }
 
-.earnings-row {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  background: var(--surface);
-  border-radius: 18px;
-  padding: 14px 15px;
-  box-shadow: var(--shadow);
-  text-align: start;
-  width: 100%;
-  animation: fadeInUp 0.45s ease both;
-}
-
-.earnings-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 13px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.earnings-row-text {
-  flex: 1;
-  min-width: 0;
-}
-
-.earnings-row-name {
-  font-size: 13.5px;
-  font-weight: 700;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.earnings-row-status {
-  font-size: 11px;
-  font-weight: 700;
-  margin-top: 1px;
-}
-
-.earnings-row-pending {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--amber);
-  margin-top: 1px;
-}
-
-.earnings-row-total {
-  font-size: 13.5px;
-  font-weight: 800;
-  flex-shrink: 0;
-}
-
-.earnings-empty {
-  text-align: center;
-  font-size: 12.5px;
-  color: var(--ink-soft);
-  padding: 24px;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 h2.earnings-list-label {
   margin: 0;
 }
@@ -290,4 +214,80 @@ h2.earnings-list-label {
   color: var(--red);
   text-decoration: underline;
   flex-shrink: 0;
+}
+
+.earnings-row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  background: var(--surface);
+  border-radius: 18px;
+  padding: 14px 15px;
+  box-shadow: var(--shadow);
+  text-align: start;
+  width: 100%;
+  animation: fadeInUp 0.45s ease both;
+}
+
+.earnings-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.earnings-row-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.earnings-row-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.earnings-row-status {
+  font-size: 11px;
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+.earnings-row-pending {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--amber);
+  margin-top: 1px;
+}
+
+.earnings-row-total {
+  font-size: 13.5px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.earnings-empty {
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  padding: 24px;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
