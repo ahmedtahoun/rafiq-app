@@ -98,6 +98,16 @@ Apple's App Review Guidelines decide what may be paid outside the App Store:
 - [ ] 🔴 *Dev:* remove or replace every "demo" payment button (ClientBooking
       "Pay with card", Subscription upgrade, ClientCoach upgrade).
 - [ ] 🟡 *Ahmed:* coach payouts and Rafiq's commission, if any.
+- [x] 🟡 *Dev:* payouts backend — Paymob Payouts client, admin-only
+      `payouts` Edge Function, `coach_payout_accounts` / `payouts` /
+      `admin_users` tables (`0007`). See `supabase/functions/payouts/README.md`.
+- [ ] 🟡 *Ahmed:* push `0007`, set the Paymob secrets, deploy the function, add
+      yourself to `admin_users`, and run a staging payout (README, "Testing on
+      staging").
+- [ ] 🟡 *Dev:* the coach's payout-account screen and payout history (Earnings),
+      and an admin screen to create, send and sync payouts (§9).
+- [ ] 🔴 *Ahmed:* production Paymob Payouts credentials — new ones, never the
+      staging set, and shared through a password manager, not email.
 
 ## 4. Native builds and device testing (Dev)
 
@@ -212,7 +222,9 @@ Waits on the name decision (§1).
       sensitive — say how they're protected.
 - [ ] 🔴 **App Privacy (Apple) and Data safety (Google) forms** — list what's
       collected: name, email, phone, photos, messages, mood check-ins, ratings,
-      payment status, plus crash data once §10 lands.
+      payment status, plus crash data once §10 lands. For coaches who set up
+      payouts: **national ID and wallet number or bank account** — financial
+      info, and it must be in the privacy policy too.
 - [ ] 🔴 Apple requires apps where users message each other to have reporting
       (✓ exists), blocking (✓ exists) and **timely action on reports** (§9),
       and terms users accept that forbid objectionable content.
