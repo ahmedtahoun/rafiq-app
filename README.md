@@ -1,4 +1,4 @@
-# Rafiq
+# Rafiq Pro
 
 [![CI](https://github.com/ahmedtahoun/rafiq-app/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ahmedtahoun/rafiq-app/actions/workflows/ci.yml)
 

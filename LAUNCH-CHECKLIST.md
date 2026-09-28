@@ -21,13 +21,17 @@ calendar time no matter how fast the code moves:
 
 ## 1. Decisions (Ahmed)
 
-- [ ] 🔴 **Name: Rafiq or Rafiqie.** Bundle IDs are already `app.rafiqie.coach`;
-      every display string still says "Rafiq". Blocks the icon, screenshots,
-      store listing and the rename in §7.
-- [ ] 🔴 **One domain for the brand.** Support email is `support@rafiqpro.com`
-      while the app IDs say `rafiqie`. The domain hosts the privacy policy,
-      terms, support page and account-deletion page (§8), and Google's OAuth
-      consent screen needs it as an authorized domain (§5).
+- [x] 🔴 **Name: Rafiq or Rafiqie.** Decided: **Rafiq Pro** in English,
+      **رفيق** in Arabic; the coach subscription is **Rafiq Pro Plus**
+      (رفيق برو بلس). Bundle IDs stay `app.rafiqie.coach` — never shown to
+      users, and changing them would mean new store listings.
+- [ ] 🔴 **One domain for the brand.** Decided: **rafiqpro.com** (matches
+      the name and `support@rafiqpro.com`). **Not registered yet — buy it
+      first:** the app already sends users to `support@rafiqpro.com`, which
+      bounces until the domain and a mailbox exist. Then it hosts the privacy
+      policy, terms, support page and account-deletion page (§8), and goes
+      on Google's OAuth consent screen as an authorized domain (§5). The app
+      IDs saying `rafiqie` don't matter: they are never shown.
 - [ ] 🔴 **Payments model** — see §3 before deciding. Includes whether Rafiq
       takes a commission on sessions and how coaches get paid out.
 - [ ] 🟡 **Company / legal entity** that owns the developer accounts, receives
@@ -190,15 +194,16 @@ Nothing native has ever run on a device or simulator (CLAUDE.md, "Not verified")
 
 Waits on the name decision (§1).
 
-- [ ] 🔴 Rename the display name everywhere: `capacitor.config.ts` `appName`,
+- [x] 🔴 Rename the display name everywhere: `capacitor.config.ts` `appName`,
       `CFBundleDisplayName` in `ios/App/App/Info.plist`, `app_name` in
       `android/app/src/main/res/values/strings.xml`, ~40 "Rafiq"/"رفيق"
       strings in `src/lib/i18n.ts`, `index.html` `<title>`, `package.json`,
-      README. Also the camera/photo-library permission text, which names
-      the app: `NSCameraUsageDescription`/`NSPhotoLibraryUsageDescription`
-      in `ios/App/App/Info.plist` (the English fallback) and in
-      `ios/App/App/en.lproj/InfoPlist.strings` and
-      `ios/App/App/ar.lproj/InfoPlist.strings`.
+      README. Done, including the camera/photo permission text
+      (`NSCameraUsageDescription`/`NSPhotoLibraryUsageDescription` in
+      `Info.plist` and `en.lproj`/`ar.lproj` `InfoPlist.strings`) and the
+      Arabic home-screen names (`ar.lproj/InfoPlist.strings`,
+      `values-ar/strings.xml`). `package.json`'s `name` stays `rafiq-app`:
+      it is an internal id, never shown.
 - [ ] 🔴 **App icon** — both platforms still ship Capacitor's placeholder.
       iOS 1024×1024 into `ios/App/App/Assets.xcassets/AppIcon.appiconset/`;
       Android adaptive icon (foreground + background) into

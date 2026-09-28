@@ -69,7 +69,7 @@ export default function ClientAuth() {
   // result without inventing a name. Once invites are real this becomes
   // the inviting coach's row, looked up from the invite token.
   const coach = getCoachProfile();
-  const coachName = coach.name || 'Rafiq';
+  const coachName = coach.name || t('appName');
   const coachFirstName = coachName.split(/\s+/)[0] || coachName;
 
   function goOnward() {

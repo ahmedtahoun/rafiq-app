@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='utf-8'?>
+<!-- The app is رفيق in Arabic, Rafiq Pro in English (values/strings.xml). -->
+<resources>
+    <string name="app_name">رفيق</string>
+    <string name="title_activity_main">رفيق</string>
+</resources>

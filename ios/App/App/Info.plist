@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>Rafiq</string>
+        <string>Rafiq Pro</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -30,9 +30,9 @@
 	     fallback; en.lproj/ar.lproj InfoPlist.strings hold the localized
 	     text the system actually shows. -->
 	<key>NSCameraUsageDescription</key>
-	<string>Rafiq uses your camera to take a profile or cover photo.</string>
+	<string>Rafiq Pro uses your camera to take a profile or cover photo.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Rafiq uses your photo library to choose a profile or cover photo.</string>
+	<string>Rafiq Pro uses your photo library to choose a profile or cover photo.</string>
 	<!-- The app only ever talks to Supabase and the providers' own OAuth
 	     pages, all over HTTPS — no custom cryptography to declare, so this
 	     skips App Store Connect's export-compliance question on every

@@ -316,13 +316,14 @@ next step and it needs a machine with the SDKs.
   in both native projects, so a build installed before the rename can
   still complete a sign-in.
 
-  **Deliberately NOT renamed:** `appName` ("Rafiq"), Android's
-  `app_name`/`title_activity_main`, `index.html`'s `<title>`,
-  `package.json`'s `name`, and every user-facing "Rafiq" / "رفيق" string
-  in `i18n.ts` (~40 in each language). Ahmed chose identifiers-only; the
-  brand wording is still his call, and the Arabic form in particular is
-  not a mechanical transliteration (رفيق means "companion"; رفيقي would
-  read as "my companion").
+  **Brand name, decided 2026-09-28:** **Rafiq Pro** in English, **رفيق**
+  in Arabic. The coach subscription, previously "Rafiq Pro", is now
+  **Rafiq Pro Plus** (رفيق برو بلس) so it doesn't share the app's name.
+  Renamed everywhere users see it: `appName`, iOS `CFBundleDisplayName`
+  (Arabic via `ar.lproj/InfoPlist.strings`), Android `app_name`
+  (Arabic via `values-ar/strings.xml`), `index.html`'s `<title>`, the
+  permission text, and every English brand string in `i18n.ts`. Code that
+  needs the name in a sentence uses the `appName` key, never a literal.
 
   **The Apple Services ID is unchanged at `app.rafiqie.coach.web`** —
   confirmed by Ahmed against the console. `scripts/generate-apple-oauth-secret.mjs`
