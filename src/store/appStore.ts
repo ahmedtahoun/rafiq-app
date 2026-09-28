@@ -38,7 +38,7 @@ export type Screen =
   | 'main' // coach home dashboard
   | 'profile' | 'editProfile' | 'accountDetails'
   | 'clients' | 'addClient' | 'clientDetail' | 'editClient'
-  | 'offerings' | 'offeringDetail' | 'subscription' | 'earnings'
+  | 'offerings' | 'offeringDetail' | 'subscription' | 'earnings' | 'payoutAccount'
   | 'templates' | 'templateDetail'
   | 'addTask' | 'sessionRoom'
   | 'messages' | 'messagesInbox'
@@ -117,6 +117,8 @@ const PARENT: Partial<Record<Screen, Screen | typeof RET>> = {
   offeringDetail: 'offerings',
   subscription: 'profile',
   earnings: 'main',
+  // Reached from Profile and from Earnings; Profile is where it lives.
+  payoutAccount: 'profile',
   clientProfile: 'clientHome',
   editClientProfile: 'clientProfile',
   // Discover is a bottom-nav root, so it is normally entered with an

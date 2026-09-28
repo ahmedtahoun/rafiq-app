@@ -211,3 +211,32 @@ html[dir='rtl'] .earnings-summary-value {
     transform: translateY(0);
   }
 }
+
+.earnings-payout-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 15px 16px;
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  color: inherit;
+  text-align: start;
+}
+
+.earnings-payout-link-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.earnings-payout-link-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.earnings-payout-link-sub {
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 1px;
+}

@@ -20,7 +20,7 @@
  * then read back with dbRows(page, 'profiles') / dbCalls(page).
  */
 
-const KEYS = { profiles: 'id', coach_profiles: 'profile_id', member_profiles: 'profile_id' };
+const KEYS = { profiles: 'id', coach_profiles: 'profile_id', member_profiles: 'profile_id', coach_payout_accounts: 'coach_id' };
 
 // A 1×1 PNG, so a signed photo URL renders without a network request.
 export const TINY_PNG_DATA_URL =

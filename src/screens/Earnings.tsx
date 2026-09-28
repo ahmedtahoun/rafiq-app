@@ -1,7 +1,7 @@
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
 import { useFormat } from '../lib/format';
-import { ChevronIcon, SunIcon, MoonIcon } from '../components/icons';
+import { ChevronIcon, SunIcon, MoonIcon, ArrowForwardIcon } from '../components/icons';
 import { darken } from '../lib/color';
 import { getClient, getEarningsSummary, type PaymentStatus } from '../lib/mockStore';
 import './Earnings.css';
@@ -80,6 +80,14 @@ export default function Earnings() {
           </div>
           {hasPending && <div className="earnings-pending-summary">{pendingSummaryLabel}</div>}
         </div>
+
+        <button type="button" className="earnings-payout-link" onClick={() => nav('payoutAccount')}>
+          <div className="earnings-payout-link-text">
+            <div className="earnings-payout-link-title">{t('payoutAccountTitle')}</div>
+            <div className="earnings-payout-link-sub">{t('payoutAccountSub')}</div>
+          </div>
+          <ArrowForwardIcon size={15} color="var(--ink-soft)" />
+        </button>
 
         <div className="earnings-list-section">
           <div className="earnings-list-label">{t('earningsByMember')}</div>

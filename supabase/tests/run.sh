@@ -14,7 +14,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PGBIN="${PGBIN:-/usr/lib/postgresql/16/bin}"
 PGROOT="${PGROOT:-/var/tmp/rafiq-pgtest}"
-MIN_ASSERTIONS=184
+MIN_ASSERTIONS=208
 
 OUT=""
 OWN_CLUSTER=""
@@ -93,6 +93,9 @@ OUT="$(mktemp)"
   echo
   echo "=== PAYOUTS ==="
   psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/08_payouts.sql"
+  echo
+  echo "=== PAYOUT ACCOUNT (APP) ==="
+  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/09_payout_account_app.sql"
 } | grep -v '^$' | tee "$OUT"
 
 PASSED="$(grep -c '^PASS' "$OUT" || true)"

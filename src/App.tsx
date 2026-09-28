@@ -21,6 +21,7 @@ import Offerings from './screens/Offerings';
 import OfferingDetail from './screens/OfferingDetail';
 import Subscription from './screens/Subscription';
 import Earnings from './screens/Earnings';
+import PayoutAccount from './screens/PayoutAccount';
 import ClientOnboarding from './screens/ClientOnboarding';
 import ClientHome from './screens/ClientHome';
 import ClientProfile from './screens/ClientProfile';
@@ -148,6 +149,8 @@ export default function App() {
       return <Subscription />;
     case 'earnings':
       return <Earnings />;
+    case 'payoutAccount':
+      return <PayoutAccount />;
     case 'clientOnboarding':
       return <ClientOnboarding />;
     case 'clientHome':
