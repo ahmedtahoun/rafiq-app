@@ -36,16 +36,18 @@ language sql immutable as $$
 $$;
 
 \set coachA '''11111111-1111-1111-1111-111111111111'''
-\set coachB '''22222222-2222-2222-2222-222222222222'''
+-- Coach B was deleted in 03_constraints; coach C (07_profiles) has a coach
+-- profile and nothing else, so it stands in as "the other coach".
+\set coachC '''55555555-5555-5555-5555-555555555555'''
 \set memberM '''33333333-3333-3333-3333-333333333333'''
 
 -- A payout for coach A, as the Edge Function (service_role) would create it.
 insert into public.payouts (id, coach_id, amount, issuer, destination) values
   ('ffffffff-0000-4000-8000-000000000001', :coachA, 500, 'vodafone',
    '{"msisdn":"01012345678","full_name":"Coach A","national_id":"29005270102927"}'),
-  -- Coach B has no payments, so only this payout can block erasing them.
-  ('ffffffff-0000-4000-8000-000000000002', :coachB, 200, 'orange',
-   '{"msisdn":"01212345678","full_name":"Coach B","national_id":"29005270102927"}');
+  -- Coach C has no payments, so only this payout can block erasing them.
+  ('ffffffff-0000-4000-8000-000000000002', :coachC, 200, 'orange',
+   '{"msisdn":"01212345678","full_name":"Coach C","national_id":"29005270102927"}');
 
 set role authenticated;
 
@@ -53,7 +55,7 @@ set role authenticated;
 select pg_temp.expect('coach saves own wallet account',
   pg_temp.as_user(:coachA, 'with i as (insert into public.coach_payout_accounts (coach_id, issuer, msisdn, full_name, national_id) values (' || quote_literal(:coachA) || ', ''vodafone'', ''01012345678'', ''Coach A'', ''29005270102927'') returning 1) select count(*)::text from i'), '1');
 select pg_temp.expect('coach cannot set another coach account',
-  pg_temp.as_user(:coachA, 'with i as (insert into public.coach_payout_accounts (coach_id, issuer, msisdn, full_name, national_id) values (' || quote_literal(:coachB) || ', ''vodafone'', ''01099999999'', ''Thief'', ''29005270102927'') returning 1) select count(*)::text from i'), 'DENIED(42501)');
+  pg_temp.as_user(:coachA, 'with i as (insert into public.coach_payout_accounts (coach_id, issuer, msisdn, full_name, national_id) values (' || quote_literal(:coachC) || ', ''vodafone'', ''01099999999'', ''Thief'', ''29005270102927'') returning 1) select count(*)::text from i'), 'DENIED(42501)');
 select pg_temp.expect('wallet needs an 11-digit mobile',
   pg_temp.as_user(:coachA, 'with u as (update public.coach_payout_accounts set msisdn = ''1012345678'' returning 1) select count(*)::text from u'), 'DENIED(23514)');
 select pg_temp.expect('wallet account cannot carry bank fields',
@@ -63,7 +65,7 @@ select pg_temp.expect('national id must be 14 digits',
 select pg_temp.expect('coach switches to an instant bank IBAN',
   pg_temp.as_user(:coachA, 'with u as (update public.coach_payout_accounts set issuer = ''instant_bank'', msisdn = null, bank_code = ''AAIB'', account_number = ''EG187277769381221446527989011'' returning 1) select count(*)::text from u'), '1');
 select pg_temp.expect('other coach cannot read the account',
-  pg_temp.as_user(:coachB, 'select count(*)::text from public.coach_payout_accounts'), '0');
+  pg_temp.as_user(:coachC, 'select count(*)::text from public.coach_payout_accounts'), '0');
 select pg_temp.expect('member cannot read payout accounts',
   pg_temp.as_user(:memberM, 'select count(*)::text from public.coach_payout_accounts'), '0');
 
@@ -71,7 +73,7 @@ select pg_temp.expect('member cannot read payout accounts',
 select pg_temp.expect('coach reads own payouts',
   pg_temp.as_user(:coachA, 'select count(*)::text from public.payouts'), '1');
 select pg_temp.expect('other coach cannot read them',
-  pg_temp.as_user(:coachB, 'select count(*)::text from public.payouts where coach_id = ' || quote_literal(:coachA)), '0');
+  pg_temp.as_user(:coachC, 'select count(*)::text from public.payouts where coach_id = ' || quote_literal(:coachA)), '0');
 select pg_temp.expect('app cannot create a payout',
   pg_temp.as_user(:coachA, 'with i as (insert into public.payouts (coach_id, amount, issuer, destination) values (' || quote_literal(:coachA) || ', 99999, ''vodafone'', ''{}'') returning 1) select count(*)::text from i'), 'DENIED(42501)');
 select pg_temp.expect('coach cannot mark own payout paid',
@@ -95,4 +97,4 @@ reset role;
 select pg_temp.expect('a payout must be positive',
   pg_temp.try('insert into public.payouts (coach_id, amount, issuer, destination) values (' || quote_literal(:coachA) || ', 0, ''vodafone'', ''{}'')'), 'REJECTED(23514)');
 select pg_temp.expect('a paid coach cannot be erased',
-  pg_temp.try('delete from public.coach_profiles where profile_id = ' || quote_literal(:coachB)), 'REJECTED(23503)');
+  pg_temp.try('delete from public.coach_profiles where profile_id = ' || quote_literal(:coachC)), 'REJECTED(23503)');
