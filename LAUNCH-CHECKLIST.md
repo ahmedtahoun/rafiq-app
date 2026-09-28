@@ -21,9 +21,10 @@ calendar time no matter how fast the code moves:
 
 ## 1. Decisions (Ahmed)
 
-- [ ] 🔴 **Name: Rafiq or Rafiqie.** Bundle IDs are already `app.rafiqie.coach`;
-      every display string still says "Rafiq". Blocks the icon, screenshots,
-      store listing and the rename in §7.
+- [x] 🔴 **Name: Rafiq or Rafiqie.** Decided: **Rafiq Pro** in English,
+      **رفيق** in Arabic; the coach subscription is **Rafiq Pro Plus**
+      (رفيق برو بلس). Bundle IDs stay `app.rafiqie.coach` — never shown to
+      users, and changing them would mean new store listings.
 - [ ] 🔴 **One domain for the brand.** Support email is `support@rafiqpro.com`
       while the app IDs say `rafiqie`. The domain hosts the privacy policy,
       terms, support page and account-deletion page (§8), and Google's OAuth
@@ -180,11 +181,14 @@ Nothing native has ever run on a device or simulator (CLAUDE.md, "Not verified")
 
 Waits on the name decision (§1).
 
-- [ ] 🔴 Rename the display name everywhere: `capacitor.config.ts` `appName`,
+- [x] 🔴 Rename the display name everywhere: `capacitor.config.ts` `appName`,
       `CFBundleDisplayName` in `ios/App/App/Info.plist`, `app_name` in
       `android/app/src/main/res/values/strings.xml`, ~40 "Rafiq"/"رفيق"
       strings in `src/lib/i18n.ts`, `index.html` `<title>`, `package.json`,
-      README.
+      README. Done, including the camera/photo permission text and Arabic
+      home-screen names (`ar.lproj/InfoPlist.strings`, `values-ar/strings.xml`).
+      `package.json`'s `name` stays `rafiq-app`: it is an internal id, never
+      shown.
 - [ ] 🔴 **App icon** — both platforms still ship Capacitor's placeholder.
       iOS 1024×1024 into `ios/App/App/Assets.xcassets/AppIcon.appiconset/`;
       Android adaptive icon (foreground + background) into

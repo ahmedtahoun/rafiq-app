@@ -66,10 +66,10 @@ export default function SessionRoom() {
     );
   }
 
-  const otherName = isPro ? client.name : coach.name || 'Rafiq';
-  const otherInitials = isPro ? client.initials || initialsOf(client.name) : initialsOf(coach.name || 'Rafiq');
+  const otherName = isPro ? client.name : coach.name || t('appName');
+  const otherInitials = isPro ? client.initials || initialsOf(client.name) : initialsOf(coach.name || t('appName'));
   const otherColor = isPro ? client.avatarBg || ACCENT : ACCENT;
-  const selfInitials = isPro ? initialsOf(coach.name || 'Rafiq') : client.initials || initialsOf(client.name);
+  const selfInitials = isPro ? initialsOf(coach.name || t('appName')) : client.initials || initialsOf(client.name);
   const selfColor = isPro ? ACCENT : client.avatarBg || ACCENT;
 
   const sessionType: SessionType = client.nextSessionType ?? 'standard';

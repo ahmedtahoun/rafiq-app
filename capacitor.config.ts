@@ -10,12 +10,13 @@ import type { CapacitorConfig } from '@capacitor/cli';
  *
  * `appId` below is the bundle id, which is a different thing. It is
  * app.rafiqie.coach, matching what is registered in Apple Developer.
- * `appName` is still "Rafiq": only the identifiers were renamed, not the
- * brand — see WORK-SPLIT.md, "App rename".
+ * `appName` is the brand, Rafiq Pro. The bundle id kept its earlier
+ * `rafiqie` spelling: it is never shown to anyone, and changing it would
+ * mean a new App Store / Play listing.
  */
 const config: CapacitorConfig = {
   appId: 'app.rafiqie.coach',
-  appName: 'Rafiq',
+  appName: 'Rafiq Pro',
   webDir: 'dist'
 };
 

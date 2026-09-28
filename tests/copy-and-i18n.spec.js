@@ -44,7 +44,7 @@ test('onboarding slide 2 describes in-app messaging, not WhatsApp (EN)', async (
 
   const text = (await frame(page)).replace(/\s+/g, ' ');
   expect.soft(/whatsapp/i.test(text), 'slide 2 does not name WhatsApp').toBe(false);
-  expect.soft(text, 'slide 2 says messages stay in Rafiq').toContain('stays in Rafiq');
+  expect.soft(text, 'slide 2 says messages stay in Rafiq Pro').toContain('stays in Rafiq Pro,');
   // The eyebrow and the headline are different lines of copy; when the
   // headline changed they briefly said the same thing.
   expect.soft(/Stay close\s+Stay close/i.test(text), 'eyebrow is not echoed by the headline').toBe(false);

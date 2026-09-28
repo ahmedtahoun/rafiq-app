@@ -180,7 +180,7 @@ test('Policy screens', async ({ browser }) => {
   const body = await page.evaluate(() => document.querySelector('.policy-page-body').innerText);
   // The design's copy claimed messages go through WhatsApp. They don't.
   expect.soft(String(/WhatsApp/i.test(body)), 'does NOT claim messages go through WhatsApp').toBe('false');
-  expect.soft(String(/stored in Rafiq/.test(body)), 'says messages are stored in Rafiq').toBe('true');
+  expect.soft(String(/stored in Rafiq Pro\b/.test(body)), 'says messages are stored in Rafiq Pro').toBe('true');
   expect.soft(String(/covered by this policy/.test(body)), 'and that this policy covers them').toBe('true');
   await page.close();
 }

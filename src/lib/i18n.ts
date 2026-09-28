@@ -9,6 +9,7 @@ export const RTL_LANGS: Lang[] = ['ar'];
 // design prototype. Add keys here as each further screen is built for
 // real, rather than pre-populating copy for screens that don't exist yet.
 const en = {
+    appName: 'Rafiq Pro',
     close: 'Close',
     currency: 'EGP',
     taskDueToday: 'Due today',
@@ -58,7 +59,7 @@ const en = {
     next: 'Next',
     getStarted: 'Get Started',
 
-    welcome1Eyebrow: 'Welcome to Rafiq',
+    welcome1Eyebrow: 'Welcome to Rafiq Pro',
     welcome1HeadlinePre: 'Run your whole practice ',
     welcome1HeadlineBold: 'from one place',
     welcome1Subtext: 'Manage members, schedule sessions, and assign tasks — no more juggling spreadsheets and scattered chats.',
@@ -66,7 +67,7 @@ const en = {
     welcome2Eyebrow: 'Stay close',
     welcome2HeadlinePre: 'Every message ',
     welcome2HeadlineBold: 'in one thread',
-    welcome2Subtext: 'Confirm bookings, send reminders, and nudge members to check in — it all stays in Rafiq, next to the session it belongs to.',
+    welcome2Subtext: 'Confirm bookings, send reminders, and nudge members to check in — it all stays in Rafiq Pro, next to the session it belongs to.',
 
     welcome3Eyebrow: 'Every specialty',
     welcome3HeadlinePre: 'Track real progress, ',
@@ -126,7 +127,7 @@ const en = {
     validationPrefix: 'Please add ',
     validationSuffix: ' to continue.',
     listSeparator: ', ',
-    welcomePrefix: 'Welcome to Rafiq, ',
+    welcomePrefix: 'Welcome to Rafiq Pro, ',
     // QuickActions.dc.html
     quickActionsTitle: 'Quick actions', quickActionsClose: 'Close',
     qaAddMember: 'Add member', qaAddMemberSub: 'Bring a new member onboard',
@@ -161,7 +162,7 @@ const en = {
     profileVerificationSubUnverified: 'Tap to request verification', profileVerificationSubPending: 'Under review', profileVerificationSubVerified: 'Your credentials are verified',
     profileVerificationBadgeUnverified: 'Unverified', profileVerificationBadgePending: 'Pending', profileVerificationBadgeVerified: 'Verified',
     profileVerificationRequestedToast: 'Verification requested — under review',
-    profileSubscription: 'Rafiq Pro', profileSubscriptionSubPro: 'Manage your subscription', profileSubscriptionSubFree: 'Upgrade for unlimited members & more',
+    profileSubscription: 'Rafiq Pro Plus', profileSubscriptionSubPro: 'Manage your subscription', profileSubscriptionSubFree: 'Upgrade for unlimited members & more',
     profileSubscriptionBadgePro: 'PRO', profileSubscriptionBadgeFree: 'Upgrade',
     profileCoaching: 'Coaching',
     profileOfferings: 'Offerings', profileOfferingsSub: 'What members see and can book on your profile',
@@ -172,13 +173,13 @@ const en = {
     profilePreferences: 'Preferences', profileLanguage: 'Language',
     profileReviews: 'Reviews', profileActiveMembers: 'Members', profileCompletion: 'Completion',
     profileCompletenessTitle: 'Complete your profile', profileCompletenessMissingOne: '1 item left to add', profileCompletenessMissingMany: '{n} items left to add',
-    profileDarkMode: 'Dark mode', profileNotifications: 'Notifications', profileSupportRafiq: 'Support Rafiq', profileRateRafiq: 'Rate Rafiq',
+    profileDarkMode: 'Dark mode', profileNotifications: 'Notifications', profileSupportRafiq: 'Support Rafiq Pro', profileRateRafiq: 'Rate Rafiq Pro',
     profileNotifSessions: 'New session requests', profileNotifCheckins: 'Member check-in alerts', profileNotifPayments: 'Payment reminders',
     profileContactUs: 'Contact Us', profileGetHelp: 'Get Help',
-    supportEmailSubject: 'Rafiq support',
+    supportEmailSubject: 'Rafiq Pro support',
     profileLogOut: 'Log out', profilePrivacyPolicy: 'Privacy Policy', profileTermsOfService: 'Terms of Service',
     profileDeleteAccount: 'Delete Account', profileDeleteConfirmTitle: 'Delete your account?',
-    profileDeleteConfirmBody: "This removes your pro profile and identity from Rafiq. Each member keeps their own record of the sessions and payments you shared, as they're entitled to. This can't be undone.",
+    profileDeleteConfirmBody: "This removes your pro profile and identity from Rafiq Pro. Each member keeps their own record of the sessions and payments you shared, as they're entitled to. This can't be undone.",
     profileCancel: 'Cancel', profileDelete: 'Delete',
     profileDeleteBlockedTitle: "Can't delete yet", profileGotIt: 'Got it',
     profileObligationCredits: '{n} unused session credit(s) across your members', profileObligationSessions: '{n} member(s) with an upcoming session',
@@ -187,17 +188,17 @@ const en = {
 
     // EditProfile.dc.html
     editProfileTitle: 'Edit Profile', editProfileSave: 'Save',
-    editProfileChangePhoto: 'Change photo', editProfileRemovePhoto: 'Remove photo', editProfileCustomPhotoLocked: 'Custom photo (Rafiq Pro)',
+    editProfileChangePhoto: 'Change photo', editProfileRemovePhoto: 'Remove photo', editProfileCustomPhotoLocked: 'Custom photo (Rafiq Pro Plus)',
     editProfileCoverPhoto: 'Cover photo', editProfileNoCoverPhoto: 'No cover photo yet',
-    editProfileChangeCover: 'Change', editProfileAddCoverPhoto: 'Add cover photo', editProfileRemoveCover: 'Remove', editProfileCustomCoverLocked: 'Custom cover (Rafiq Pro)',
+    editProfileChangeCover: 'Change', editProfileAddCoverPhoto: 'Add cover photo', editProfileRemoveCover: 'Remove', editProfileCustomCoverLocked: 'Custom cover (Rafiq Pro Plus)',
     editProfileSessionFormat: 'Session format', editProfileOnline: 'Online', editProfileInPerson: 'In-person', editProfileBoth: 'Both',
     editProfileLanguages: 'Languages',
     editProfileCredentials: 'Credentials & certifications', editProfileCredentialsSub: 'The first one shows as your badge',
     editProfileAddCertPlaceholder: 'e.g. ICF Certified',
     editProfileBio: 'Short bio', editProfileBioPlaceholder: 'Tell members a bit about your coaching style',
-    editProfilePhotoLockedTitle: 'Custom photos are a Rafiq Pro feature',
-    editProfilePhotoLockedBody: 'Upgrade to Rafiq Pro to upload your own profile and cover photos, plus get a verified badge and unlimited active members.',
-    editProfileUpgrade: 'Upgrade to Rafiq Pro', editProfileNotNow: 'Not now',
+    editProfilePhotoLockedTitle: 'Custom photos are a Rafiq Pro Plus feature',
+    editProfilePhotoLockedBody: 'Upgrade to Rafiq Pro Plus to upload your own profile and cover photos, plus get a verified badge and unlimited active members.',
+    editProfileUpgrade: 'Upgrade to Rafiq Pro Plus', editProfileNotNow: 'Not now',
 
     // AccountDetails.dc.html
     accountSignInMethod: 'Sign-in method', accountConnected: 'Connected',
@@ -207,7 +208,7 @@ const en = {
     // Clients.dc.html
     clientsTitle: 'Your Members', clientsTotalWord: 'total',
     clientsActive: 'Active', clientsCheckin: 'Check-in', clientsAvgProgress: 'Avg. progress',
-    clientsCapBanner: 'Free plan: {active}/{cap} active members used — upgrade to Rafiq Pro for unlimited',
+    clientsCapBanner: 'Free plan: {active}/{cap} active members used — upgrade to Rafiq Pro Plus for unlimited',
     clientsSearchPlaceholder: 'Search members',
     clientsFilterTitle: 'Filter Members', clientsStatusLabel: 'Status', clientsSpecialtyLabel: 'Specialty',
     clientsClearAll: 'Clear all', clientsShowResults: 'Show results',
@@ -270,7 +271,7 @@ const en = {
     // Auth.dc.html / ClientAuth.dc.html
     back: 'Back',
     switchLanguage: 'Switch language',
-    authEyebrow: 'Welcome to Rafiq',
+    authEyebrow: 'Welcome to Rafiq Pro',
     authHeadline: 'Coaching, made personal.',
     authSubtext: "Whether you're a pro or you're being coached — tasks, schedule, and progress, all in one place.",
     authGoogle: 'Continue with Google',
@@ -293,7 +294,7 @@ const en = {
     clientAuthTerms: 'By continuing you agree to the Terms of Service & Privacy Policy',
 
     // ClientOnboarding.dc.html
-    clientOnboardingHeading: 'What brings you to Rafiq?', clientOnboardingSubheading: 'This helps us recommend the right pros and tasks for you.',
+    clientOnboardingHeading: 'What brings you to Rafiq Pro?', clientOnboardingSubheading: 'This helps us recommend the right pros and tasks for you.',
     clientOnboardingFocusLabel: 'What would you like to work on?', clientOnboardingGoalLabel: 'In your own words, what do you want to change?',
     clientOnboardingGoalPlaceholder: 'e.g. Feel more in control of my daily routine',
     clientOnboardingWhatsappNote: "So your pro can reach you in the app between sessions.",
@@ -362,15 +363,15 @@ const en = {
     offeringDetailDelete: 'Delete',
 
     // Subscription.dc.html
-    subscriptionTitle: 'Rafiq Pro', subscriptionCurrentPlan: 'Current plan',
+    subscriptionTitle: 'Rafiq Pro Plus', subscriptionCurrentPlan: 'Current plan',
     subscriptionFreeName: 'Free', subscriptionFreePrice: 'Free forever',
     subscriptionFreeFeature1: 'Up to 5 active members', subscriptionFreeFeature2: 'Scheduling & session tracking',
     subscriptionFreeFeature3: 'Tasks & check-ins', subscriptionFreeFeature4: 'Session Templates',
-    subscriptionProName: 'Rafiq Pro', subscriptionProPrice: '450 EGP / month',
+    subscriptionProName: 'Rafiq Pro Plus', subscriptionProPrice: '450 EGP / month',
     subscriptionProFeature1: 'Unlimited active members', subscriptionProFeature2: 'Verified badge on your profile',
     subscriptionProFeature3: 'Featured placement in member search', subscriptionProFeature4: 'Priority support', subscriptionProFeature5: 'Everything in Free',
-    subscriptionUpgrade: 'Upgrade to Rafiq Pro', subscriptionDowngrade: 'Downgrade to Free',
-    subscriptionPlanLabelFree: 'Free plan', subscriptionPlanLabelPro: 'Rafiq Pro',
+    subscriptionUpgrade: 'Upgrade to Rafiq Pro Plus', subscriptionDowngrade: 'Downgrade to Free',
+    subscriptionPlanLabelFree: 'Free plan', subscriptionPlanLabelPro: 'Rafiq Pro Plus',
     subscriptionRenewsOn: 'Renews on {date}', subscriptionFreeSub: "You're on the Free plan — up to 5 active members.",
     subscriptionDisclaimer: 'This is a demo — no real payment is processed when you switch plans.',
     subscriptionDone: 'Done',
@@ -378,9 +379,9 @@ const en = {
     subscriptionReasonExpensive: 'Too expensive', subscriptionReasonNotUsing: "I'm not using it enough",
     subscriptionReasonMissingFeatures: "It's missing features I need", subscriptionReasonSwitching: "I'm switching to another tool", subscriptionReasonOther: 'Other',
     subscriptionSurveyNoteLabel: 'Anything else? (optional)', subscriptionSurveyNotePlaceholder: 'Tell us more…',
-    subscriptionSurveySubmit: 'Switch to Free', subscriptionSurveyKeepPro: 'Never mind, keep Rafiq Pro',
-    subscriptionProConfirmedTitle: "You're now on Rafiq Pro!", subscriptionProConfirmedBodyTemplate: 'Unlimited members, your verified badge, and featured placement are live now. Renews on {date}.',
-    subscriptionFreeConfirmedTitle: "You're on the Free plan", subscriptionFreeConfirmedBody: 'Thanks for the feedback — it genuinely helps us improve Rafiq. You can upgrade again anytime.',
+    subscriptionSurveySubmit: 'Switch to Free', subscriptionSurveyKeepPro: 'Never mind, keep Rafiq Pro Plus',
+    subscriptionProConfirmedTitle: "You're now on Rafiq Pro Plus!", subscriptionProConfirmedBodyTemplate: 'Unlimited members, your verified badge, and featured placement are live now. Renews on {date}.',
+    subscriptionFreeConfirmedTitle: "You're on the Free plan", subscriptionFreeConfirmedBody: 'Thanks for the feedback — it genuinely helps us improve Rafiq Pro. You can upgrade again anytime.',
 
     // Earnings.dc.html
     earningsTitle: 'Earnings', earningsTotalReceived: 'Total received', earningsByMember: 'By member',
@@ -487,11 +488,11 @@ const en = {
 
     // HelpCenter.dc.html — English-only in the prototype; Arabic authored.
     helpCenterTitle: 'Get Help',
-    helpCenterIntro: "Common questions from pros using Rafiq. Can't find your answer? Reach out from Profile → Contact Us.",
+    helpCenterIntro: "Common questions from pros using Rafiq Pro. Can't find your answer? Reach out from Profile → Contact Us.",
     helpCenterQ1: 'How do I add a new member?',
     helpCenterA1: 'Go to the Members tab and tap the + button. Fill in their name, phone number, specialty, and plan. Add their tasks from their profile afterwards — Session Templates keep a reusable list you can work from.',
     helpCenterQ2: 'How does my member get reminded about sessions?',
-    helpCenterA2: 'Rafiq shows session reminders in your own Notifications feed today. Member-side reminders are on our roadmap as we build out the member experience.',
+    helpCenterA2: 'Rafiq Pro shows session reminders in your own Notifications feed today. Member-side reminders are on our roadmap as we build out the member experience.',
     helpCenterQ3: "Can I change a member's plan after adding them?",
     helpCenterA3: "Yes — open the member's profile, tap the edit (pencil) icon, and update their specialty or plan there.",
     helpCenterQ4: 'How do I mark a payment as received?',
@@ -505,7 +506,7 @@ const en = {
     privacyTitle: 'Privacy Policy',
     privacyUpdated: 'Last updated: October 2025',
     privacySection1Heading: 'What we collect',
-    privacySection1Body: 'We collect your name, contact details, and the member, task, and schedule information you enter to run your coaching practice on Rafiq.',
+    privacySection1Body: 'We collect your name, contact details, and the member, task, and schedule information you enter to run your coaching practice on Rafiq Pro.',
     privacySection2Heading: "Your members' data",
     privacySection2Body: 'Member names, progress, and mood check-ins you record are visible only to you and that member — never shared with other pros or members.',
     privacySection3Heading: 'How we use it',
@@ -513,10 +514,10 @@ const en = {
     privacySection4Heading: 'Messaging',
     // Was: conversations happen over WhatsApp, governed by WhatsApp's
     // privacy policy. In-app messaging shipped, so messages are written by
-    // sendMessage() into Rafiq's own store and never reach a third party.
+    // sendMessage() into Rafiq Pro's own store and never reach a third party.
     // The member-facing clientPrivacySection4Body says the same thing from
     // the other side; these two must not disagree.
-    privacySection4Body: 'Conversations with members are sent and stored in Rafiq, and are covered by this policy. No third-party messaging service is involved.',
+    privacySection4Body: 'Conversations with members are sent and stored in Rafiq Pro, and are covered by this policy. No third-party messaging service is involved.',
     privacySection5Heading: 'Your choices',
     privacySection5Body: 'You can review or update your account details anytime from Profile → Account Details, or delete your account from Profile → Delete Account.',
     privacySection6Heading: 'Contact',
@@ -525,18 +526,18 @@ const en = {
     // CoachTermsOfService.dc.html — ported, Arabic included.
     termsTitle: 'Terms of Service',
     termsUpdated: 'Last updated: October 2025',
-    termsSection1Heading: 'Using Rafiq',
-    termsSection1Body: 'Rafiq is a platform that helps you run your independent coaching practice — scheduling, member tasks, progress tracking, and payment status. Rafiq is not a party to your coaching relationship with your members.',
+    termsSection1Heading: 'Using Rafiq Pro',
+    termsSection1Body: 'Rafiq Pro is a platform that helps you run your independent coaching practice — scheduling, member tasks, progress tracking, and payment status. Rafiq Pro is not a party to your coaching relationship with your members.',
     termsSection2Heading: 'Your account',
     termsSection2Body: "Keep your account details accurate and don't share your login with others. You're responsible for activity under your account, including member data you enter.",
     termsSection3Heading: 'Member relationships',
     termsSection3Body: 'You are solely responsible for the coaching services you provide, your pricing, and your cancellation policy communicated to members.',
     termsSection4Heading: 'Payments',
-    termsSection4Body: 'Rafiq helps you track payment status. Actual payment collection methods and any related fees are between you and your member unless otherwise stated.',
+    termsSection4Body: 'Rafiq Pro helps you track payment status. Actual payment collection methods and any related fees are between you and your member unless otherwise stated.',
     termsSection5Heading: 'Acceptable use',
-    termsSection5Body: "Don't use Rafiq for anything illegal, abusive, or to harass members or other users. We may suspend accounts that violate this.",
+    termsSection5Body: "Don't use Rafiq Pro for anything illegal, abusive, or to harass members or other users. We may suspend accounts that violate this.",
     termsSection6Heading: 'Changes',
-    termsSection6Body: 'We may update these terms occasionally. Continued use of Rafiq after a change means you accept the updated terms.',
+    termsSection6Body: 'We may update these terms occasionally. Continued use of Rafiq Pro after a change means you accept the updated terms.',
 
     // ShareProfile.dc.html — English-only in the prototype; Arabic authored.
     shareProfileTitle: 'Share Profile',
@@ -878,14 +879,14 @@ const en = {
     clientNotifPaymentSub: '{amount} EGP · {date}',
 
     clientHelpTitle: 'Get Help',
-    clientHelpSubtitle: "Common questions from members using Rafiq. Can't find your answer? Message your pro directly.",
+    clientHelpSubtitle: "Common questions from members using Rafiq Pro. Can't find your answer? Message your pro directly.",
     clientHelpContact: 'Message {coach}',
     clientHelpQ1: 'How do I book a session?',
     clientHelpA1: 'Go to the Sessions tab and tap "Request a session," or open your pro\u2019s profile and tap "Book a Session." Pick an open time slot and your pro will confirm.',
     clientHelpQ2: 'Can I cancel or reschedule a session?',
     clientHelpA2: 'Yes — open the Sessions tab, and use the Reschedule or Cancel buttons on your upcoming session. Cancelling within 12 hours of the start time uses one session from your package.',
     clientHelpQ3: 'How do I message my pro?',
-    clientHelpA3: 'Tap "Message" from your pro\u2019s profile to open your in-app chat — it stays right here in Rafiq, so your conversation history is always at hand.',
+    clientHelpA3: 'Tap "Message" from your pro\u2019s profile to open your in-app chat — it stays right here in Rafiq Pro, so your conversation history is always at hand.',
     clientHelpQ4: 'How does the daily check-in work?',
     clientHelpA4: 'On the Tasks tab, you can log a quick mood rating each day. Your pro can see your check-in trend to better support you between sessions.',
     clientHelpQ5: 'Can I switch to a different pro?',
@@ -899,33 +900,33 @@ const en = {
     clientPrivacySection2Heading: 'How we use it',
     clientPrivacySection2Body: 'Your information is used only to connect you with your pro and personalize your tasks and recommendations — never sold to third parties.',
     clientPrivacySection3Heading: 'Who can see it',
-    clientPrivacySection3Body: 'Only you and your pro can see your progress, tasks, and mood history. Anonymized session counts may be used to improve Rafiq.',
+    clientPrivacySection3Body: 'Only you and your pro can see your progress, tasks, and mood history. Anonymized session counts may be used to improve Rafiq Pro.',
     clientPrivacySection4Heading: 'Messaging',
     // The design's copy said conversations happen over WhatsApp and are
     // governed by WhatsApp's privacy policy. That stopped being true when
-    // in-app messaging shipped: messages are stored by Rafiq and covered by
+    // in-app messaging shipped: messages are stored by Rafiq Pro and covered by
     // this policy. A privacy policy that misstates where a member's
     // messages go is not a copy nit, so this one describes what the app
     // actually does.
-    clientPrivacySection4Body: 'Messages with your pro are sent and stored in Rafiq, and are covered by this policy. No third-party messaging service is involved.',
+    clientPrivacySection4Body: 'Messages with your pro are sent and stored in Rafiq Pro, and are covered by this policy. No third-party messaging service is involved.',
     clientPrivacySection5Heading: 'Your choices',
     clientPrivacySection5Body: 'You can delete your data anytime from Profile → Delete Account, or reach out to your pro with any request.',
     clientPrivacySection6Heading: 'Contact',
-    clientPrivacySection6Body: 'Questions about this policy can be sent to support@rafiqpro.com, or from Profile → Contact Us. Your pro can also pass a question on to the Rafiq team for you.',
+    clientPrivacySection6Body: 'Questions about this policy can be sent to support@rafiqpro.com, or from Profile → Contact Us. Your pro can also pass a question on to the Rafiq Pro team for you.',
 
     clientTermsTitle: 'Terms of Service', clientTermsUpdated: 'Last updated: October 2025',
-    clientTermsSection1Heading: 'Using Rafiq',
-    clientTermsSection1Body: 'Rafiq connects you with your independent pro for scheduling, tasks, and progress tracking. Rafiq is a platform, not a licensed healthcare or medical provider.',
+    clientTermsSection1Heading: 'Using Rafiq Pro',
+    clientTermsSection1Body: 'Rafiq Pro connects you with your independent pro for scheduling, tasks, and progress tracking. Rafiq Pro is a platform, not a licensed healthcare or medical provider.',
     clientTermsSection2Heading: 'Your account',
     clientTermsSection2Body: 'Keep your account details accurate and don\u2019t share your login with others. You\u2019re responsible for activity under your account.',
     clientTermsSection3Heading: 'Sessions & payments',
-    clientTermsSection3Body: 'Session pricing and cancellation policies are set by your pro. Rafiq facilitates scheduling and payment but is not a party to the coaching relationship itself.',
+    clientTermsSection3Body: 'Session pricing and cancellation policies are set by your pro. Rafiq Pro facilitates scheduling and payment but is not a party to the coaching relationship itself.',
     clientTermsSection4Heading: 'Cancellations',
     clientTermsSection4Body: 'You can cancel or reschedule an upcoming session from the Sessions tab. Cancelling or moving a session within 12 hours of its start time uses one session from your package.',
     clientTermsSection5Heading: 'Acceptable use',
-    clientTermsSection5Body: 'Don\u2019t use Rafiq for anything illegal, abusive, or to harass your pro or other users. We may suspend accounts that violate this.',
+    clientTermsSection5Body: 'Don\u2019t use Rafiq Pro for anything illegal, abusive, or to harass your pro or other users. We may suspend accounts that violate this.',
     clientTermsSection6Heading: 'Changes',
-    clientTermsSection6Body: 'We may update these terms occasionally. Continued use of Rafiq after a change means you accept the updated terms.',
+    clientTermsSection6Body: 'We may update these terms occasionally. Continued use of Rafiq Pro after a change means you accept the updated terms.',
 };
 
 /** Every key the app can translate, derived from the English dictionary.
@@ -937,6 +938,7 @@ export type MessageKey = keyof typeof en;
     a key added to `en` and forgotten here fails to compile, and a key here
     that `en` lacks is rejected as an excess property. */
 const ar: Record<MessageKey, string> = {
+    appName: 'رفيق',
     close: 'إغلاق',
     currency: 'جنيه',
     taskDueToday: 'مستحقة اليوم',
@@ -1089,7 +1091,7 @@ const ar: Record<MessageKey, string> = {
     profileVerificationSubUnverified: 'اضغط لطلب التوثيق', profileVerificationSubPending: 'قيد المراجعة', profileVerificationSubVerified: 'تم توثيق بيانات اعتمادك',
     profileVerificationBadgeUnverified: 'غير موثّق', profileVerificationBadgePending: 'قيد المراجعة', profileVerificationBadgeVerified: 'موثّق',
     profileVerificationRequestedToast: 'تم طلب التوثيق — قيد المراجعة',
-    profileSubscription: 'رفيق برو', profileSubscriptionSubPro: 'إدارة اشتراكك', profileSubscriptionSubFree: 'قم بالترقية لعدد غير محدود من الأعضاء والمزيد',
+    profileSubscription: 'رفيق برو بلس', profileSubscriptionSubPro: 'إدارة اشتراكك', profileSubscriptionSubFree: 'قم بالترقية لعدد غير محدود من الأعضاء والمزيد',
     profileSubscriptionBadgePro: 'برو', profileSubscriptionBadgeFree: 'ترقية',
     profileCoaching: 'التدريب',
     profileOfferings: 'ما تقدّمه', profileOfferingsSub: 'ما يراه الأعضاء ويمكنهم حجزه من ملفك',
@@ -1115,17 +1117,17 @@ const ar: Record<MessageKey, string> = {
 
     // EditProfile.dc.html
     editProfileTitle: 'تعديل الملف الشخصي', editProfileSave: 'حفظ',
-    editProfileChangePhoto: 'تغيير الصورة', editProfileRemovePhoto: 'إزالة الصورة', editProfileCustomPhotoLocked: 'صورة مخصصة (رفيق برو)',
+    editProfileChangePhoto: 'تغيير الصورة', editProfileRemovePhoto: 'إزالة الصورة', editProfileCustomPhotoLocked: 'صورة مخصصة (رفيق برو بلس)',
     editProfileCoverPhoto: 'صورة الغلاف', editProfileNoCoverPhoto: 'لا توجد صورة غلاف بعد',
-    editProfileChangeCover: 'تغيير', editProfileAddCoverPhoto: 'إضافة صورة غلاف', editProfileRemoveCover: 'إزالة', editProfileCustomCoverLocked: 'غلاف مخصص (رفيق برو)',
+    editProfileChangeCover: 'تغيير', editProfileAddCoverPhoto: 'إضافة صورة غلاف', editProfileRemoveCover: 'إزالة', editProfileCustomCoverLocked: 'غلاف مخصص (رفيق برو بلس)',
     editProfileSessionFormat: 'صيغة الجلسات', editProfileOnline: 'عبر الإنترنت', editProfileInPerson: 'حضوريًا', editProfileBoth: 'كلاهما',
     editProfileLanguages: 'اللغات',
     editProfileCredentials: 'الشهادات والاعتمادات', editProfileCredentialsSub: 'الأولى تظهر كشارتك',
     editProfileAddCertPlaceholder: 'مثال: معتمد ICF',
     editProfileBio: 'نبذة قصيرة', editProfileBioPlaceholder: 'أخبر الأعضاء قليلًا عن أسلوبك في التدريب',
-    editProfilePhotoLockedTitle: 'الصور المخصصة ميزة حصرية لرفيق برو',
-    editProfilePhotoLockedBody: 'قم بالترقية إلى رفيق برو لرفع صور ملفك الشخصي وغلافك الخاصة، بالإضافة إلى شارة موثّقة وعدد غير محدود من الأعضاء النشطين.',
-    editProfileUpgrade: 'الترقية إلى رفيق برو', editProfileNotNow: 'ليس الآن',
+    editProfilePhotoLockedTitle: 'الصور المخصصة ميزة حصرية لرفيق برو بلس',
+    editProfilePhotoLockedBody: 'قم بالترقية إلى رفيق برو بلس لرفع صور ملفك الشخصي وغلافك الخاصة، بالإضافة إلى شارة موثّقة وعدد غير محدود من الأعضاء النشطين.',
+    editProfileUpgrade: 'الترقية إلى رفيق برو بلس', editProfileNotNow: 'ليس الآن',
 
     // AccountDetails.dc.html
     accountSignInMethod: 'طريقة تسجيل الدخول', accountConnected: 'متصل',
@@ -1135,7 +1137,7 @@ const ar: Record<MessageKey, string> = {
     // Clients.dc.html
     clientsTitle: 'أعضاؤك', clientsTotalWord: 'إجمالي',
     clientsActive: 'نشط', clientsCheckin: 'المتابعة', clientsAvgProgress: 'متوسط التقدم',
-    clientsCapBanner: 'الباقة المجانية: تم استخدام {active}/{cap} من الأعضاء النشطين — قم بالترقية إلى رفيق برو لعدد غير محدود',
+    clientsCapBanner: 'الباقة المجانية: تم استخدام {active}/{cap} من الأعضاء النشطين — قم بالترقية إلى رفيق برو بلس لعدد غير محدود',
     clientsSearchPlaceholder: 'ابحث عن الأعضاء',
     clientsFilterTitle: 'تصفية الأعضاء', clientsStatusLabel: 'الحالة', clientsSpecialtyLabel: 'التخصص',
     clientsClearAll: 'مسح الكل', clientsShowResults: 'عرض النتائج',
@@ -1291,15 +1293,15 @@ const ar: Record<MessageKey, string> = {
     offeringDetailDelete: 'حذف',
 
     // Subscription.dc.html
-    subscriptionTitle: 'رفيق برو', subscriptionCurrentPlan: 'الباقة الحالية',
+    subscriptionTitle: 'رفيق برو بلس', subscriptionCurrentPlan: 'الباقة الحالية',
     subscriptionFreeName: 'مجانية', subscriptionFreePrice: 'مجانية دائمًا',
     subscriptionFreeFeature1: 'حتى 5 أعضاء نشطين', subscriptionFreeFeature2: 'الجدولة ومتابعة الجلسات',
     subscriptionFreeFeature3: 'المهام والمتابعة اليومية', subscriptionFreeFeature4: 'قوالب الجلسات',
-    subscriptionProName: 'رفيق برو', subscriptionProPrice: '450 جنيه / شهريًا',
+    subscriptionProName: 'رفيق برو بلس', subscriptionProPrice: '450 جنيه / شهريًا',
     subscriptionProFeature1: 'عدد غير محدود من الأعضاء النشطين', subscriptionProFeature2: 'علامة موثّق على ملفك الشخصي',
     subscriptionProFeature3: 'ظهور مميز في نتائج بحث الأعضاء', subscriptionProFeature4: 'دعم ذو أولوية', subscriptionProFeature5: 'كل ما في الباقة المجانية',
-    subscriptionUpgrade: 'الترقية إلى رفيق برو', subscriptionDowngrade: 'الرجوع إلى الباقة المجانية',
-    subscriptionPlanLabelFree: 'الباقة المجانية', subscriptionPlanLabelPro: 'رفيق برو',
+    subscriptionUpgrade: 'الترقية إلى رفيق برو بلس', subscriptionDowngrade: 'الرجوع إلى الباقة المجانية',
+    subscriptionPlanLabelFree: 'الباقة المجانية', subscriptionPlanLabelPro: 'رفيق برو بلس',
     subscriptionRenewsOn: 'يتجدد في {date}', subscriptionFreeSub: 'أنت على الباقة المجانية — حتى 5 أعضاء نشطين.',
     subscriptionDisclaimer: 'هذه نسخة تجريبية — لا يتم تنفيذ أي دفع فعلي عند تبديل الباقة.',
     subscriptionDone: 'تم',
@@ -1307,8 +1309,8 @@ const ar: Record<MessageKey, string> = {
     subscriptionReasonExpensive: 'السعر مرتفع', subscriptionReasonNotUsing: 'لا أستخدمه بما يكفي',
     subscriptionReasonMissingFeatures: 'تنقصه ميزات أحتاجها', subscriptionReasonSwitching: 'سأنتقل إلى أداة أخرى', subscriptionReasonOther: 'سبب آخر',
     subscriptionSurveyNoteLabel: 'أي شيء آخر؟ (اختياري)', subscriptionSurveyNotePlaceholder: 'أخبرنا بالمزيد…',
-    subscriptionSurveySubmit: 'الرجوع إلى الباقة المجانية', subscriptionSurveyKeepPro: 'لا، أريد البقاء على رفيق برو',
-    subscriptionProConfirmedTitle: 'أصبحت الآن على رفيق برو!', subscriptionProConfirmedBodyTemplate: 'أصبح الآن متاحًا: عدد غير محدود من الأعضاء، علامة التوثيق، والظهور المميز. يتجدد في {date}.',
+    subscriptionSurveySubmit: 'الرجوع إلى الباقة المجانية', subscriptionSurveyKeepPro: 'لا، أريد البقاء على رفيق برو بلس',
+    subscriptionProConfirmedTitle: 'أصبحت الآن على رفيق برو بلس!', subscriptionProConfirmedBodyTemplate: 'أصبح الآن متاحًا: عدد غير محدود من الأعضاء، علامة التوثيق، والظهور المميز. يتجدد في {date}.',
     subscriptionFreeConfirmedTitle: 'أنت الآن على الباقة المجانية', subscriptionFreeConfirmedBody: 'شكرًا لملاحظاتك — فعلًا تساعدنا على تحسين رفيق. يمكنك الترقية مرة أخرى في أي وقت.',
 
     // Earnings.dc.html

@@ -58,7 +58,7 @@ for (const lang of ['en', 'ar']) {
     const url = new URL(links[0].href);
     expect(url.protocol).toBe('mailto:');
     expect(url.pathname).toBe(await supportEmail(page));
-    expect(url.searchParams.get('subject')).toBe(lang === 'en' ? 'Rafiq support' : 'دعم رفيق');
+    expect(url.searchParams.get('subject')).toBe(lang === 'en' ? 'Rafiq Pro support' : 'دعم رفيق');
 
     expect(await page.locator('.profile-toast').count(), 'no "message sent" toast').toBe(0);
     expect(errs).toEqual([]);
@@ -66,9 +66,9 @@ for (const lang of ['en', 'ar']) {
   });
 }
 
-test('pro Rate Rafiq sends a browser to the store listing in a new tab', async ({ browser }) => {
+test('pro Rate Rafiq Pro sends a browser to the store listing in a new tab', async ({ browser }) => {
   const { page, ctx, errs } = await open(browser, { screen: 'profile' });
-  await page.locator('.profile-support-row', { hasText: 'Rate Rafiq' }).click();
+  await page.locator('.profile-support-row', { hasText: 'Rate Rafiq Pro' }).click();
 
   const links = await opened(page);
   expect(links).toHaveLength(1);
@@ -81,7 +81,7 @@ test('pro Rate Rafiq sends a browser to the store listing in a new tab', async (
 test('the pro support card has no coffee row', async ({ browser }) => {
   const { page, ctx } = await open(browser, { screen: 'profile' });
   const rows = await page.locator('.profile-support-row').allInnerTexts();
-  expect(rows.map((r) => r.split('\n')[0].trim())).toEqual(['Rate Rafiq', 'Contact Us', 'Get Help']);
+  expect(rows.map((r) => r.split('\n')[0].trim())).toEqual(['Rate Rafiq Pro', 'Contact Us', 'Get Help']);
   await ctx.close();
 });
 
