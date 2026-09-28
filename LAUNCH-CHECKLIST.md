@@ -73,7 +73,7 @@ reading and setting the user's role at sign-in, every screen reads and writes
       last initial**; the app currently shows the reviewer's full name
       publicly — that must go.
 - [ ] 🟡 Messaging updates live (Supabase Realtime on `messages`).
-- [ ] 🟡 Profile and cover photo upload through `src/lib/storage.ts` to the
+- [x] 🟡 Profile and cover photo upload through `src/lib/storage.ts` to the
       private `avatars` / `covers` buckets.
 - [ ] 🟡 Run `npx supabase gen types typescript --linked > src/lib/database.types.ts`
       after every migration (`supabase/README.md`).
@@ -188,10 +188,12 @@ Waits on the name decision (§1).
       `CFBundleDisplayName` in `ios/App/App/Info.plist`, `app_name` in
       `android/app/src/main/res/values/strings.xml`, ~40 "Rafiq"/"رفيق"
       strings in `src/lib/i18n.ts`, `index.html` `<title>`, `package.json`,
-      README. Done, including the camera/photo permission text and Arabic
-      home-screen names (`ar.lproj/InfoPlist.strings`, `values-ar/strings.xml`).
-      `package.json`'s `name` stays `rafiq-app`: it is an internal id, never
-      shown.
+      README. Done, including the camera/photo permission text
+      (`NSCameraUsageDescription`/`NSPhotoLibraryUsageDescription` in
+      `Info.plist` and `en.lproj`/`ar.lproj` `InfoPlist.strings`) and the
+      Arabic home-screen names (`ar.lproj/InfoPlist.strings`,
+      `values-ar/strings.xml`). `package.json`'s `name` stays `rafiq-app`:
+      it is an internal id, never shown.
 - [ ] 🔴 **App icon** — both platforms still ship Capacitor's placeholder.
       iOS 1024×1024 into `ios/App/App/Assets.xcassets/AppIcon.appiconset/`;
       Android adaptive icon (foreground + background) into

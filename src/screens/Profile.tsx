@@ -8,15 +8,14 @@ import { QuickActions } from '../components/QuickActions';
 import { signOut } from '../lib/auth';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { fileVerificationRequest, fileAccountDeletionRequest } from '../lib/adminQueues';
+import { useOwnCoachProfile, type OwnProfileView } from '../store/ownProfileStore';
+import { LoadState } from '../components/LoadState';
 import { openExternal, storeReviewUrl, supportMailto, SUPPORT_EMAIL } from '../lib/support';
 import {
   getClients,
-  getCoachProfile,
   getProActiveObligations,
   getProAggregateRating,
   getUnreadMessageCount,
-  getVerificationStatus,
-  isCredentialVerified,
   isVerified,
   requestProAccountDeletion,
   requestVerification,
@@ -35,6 +34,13 @@ type NotifTypeKey = (typeof NOTIF_TYPE_KEYS)[number];
 // renderVals() never persists them through the store either), so they
 // reset on every visit rather than sticking.
 export default function Profile() {
+  const own = useOwnCoachProfile();
+  if (own.status === 'loading') return <LoadState status="loading" />;
+  if (own.status === 'error') return <LoadState status="error" onRetry={own.retry} />;
+  return <ProfileView own={own} />;
+}
+
+function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }> }) {
   const t = useT();
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
@@ -61,7 +67,7 @@ export default function Profile() {
 
   const reviewUrl = storeReviewUrl();
 
-  const profile = getCoachProfile();
+  const profile = own.profile;
   const avatarInitials = profile.name.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2) || 'YE';
   const hasAvatarPhoto = !!profile.avatarPhotoUrl;
   const heroBackground = profile.coverPhotoUrl
@@ -70,8 +76,8 @@ export default function Profile() {
   const specialtyChips = (profile.title || 'Life coaching').split(' · ').filter(Boolean);
   const hasBio = !!(profile.bio && profile.bio.trim());
 
-  const verificationStatus = getVerificationStatus();
-  const credentialVerified = isCredentialVerified();
+  const verificationStatus = own.verificationStatus;
+  const credentialVerified = verificationStatus === 'verified';
   const verificationSub =
     verificationStatus === 'verified' ? t('profileVerificationSubVerified') : verificationStatus === 'pending' ? t('profileVerificationSubPending') : t('profileVerificationSubUnverified');
   const verificationBadgeLabel =
@@ -116,7 +122,7 @@ export default function Profile() {
   function tapVerification() {
     if (verificationStatus !== 'unverified' || busy) return;
 
-    if (!isSupabaseConfigured()) {
+    if (!own.remote) {
       requestVerification();
       setSupportToastMsg(t('profileVerificationRequestedToast'));
       setShowSupportToast(true);
@@ -124,25 +130,19 @@ export default function Profile() {
       return;
     }
 
-    // Real path: files verification_requests for real (the admin queue
-    // this exists for), rather than mockStore's local-only status flag.
-    // coach_profiles.verification_status itself isn't read from Supabase
-    // yet — that's the "profile and onboarding" step LAUNCH-CHECKLIST.md
-    // §2 lists after this one — so the on-screen badge still comes from
-    // requestVerification()'s local mirror, kept in sync here so the UI
-    // reads the same as it does unconfigured.
+    // Filing the request is all the app does: 0005's own trigger flips
+    // coach_profiles.verification_status to 'pending', and the badge reads
+    // that column back rather than a local copy of what we think it is.
     setBusy(true);
-    void fileVerificationRequest().then((result) => {
-      setBusy(false);
+    void fileVerificationRequest().then(async (result) => {
       if (result.ok || result.code === 'already_pending') {
-        requestVerification();
+        await own.reload();
         setSupportToastMsg(t('profileVerificationRequestedToast'));
-        setShowSupportToast(true);
-        refresh();
       } else {
         setSupportToastMsg(t('requestFailedRetry'));
-        setShowSupportToast(true);
       }
+      setBusy(false);
+      setShowSupportToast(true);
     });
   }
 
@@ -167,7 +167,7 @@ export default function Profile() {
   function confirmDelete() {
     if (busy) return;
 
-    if (!isSupabaseConfigured()) {
+    if (!own.remote) {
       requestProAccountDeletion();
       setShowDeleteConfirm(false);
       logOut();

@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useOwnCoachProfile, type OwnProfileView } from '../store/ownProfileStore';
+import { LoadState } from '../components/LoadState';
 import { useAppStore } from '../store/appStore';
 import { useT, isolate, type MessageKey } from '../lib/i18n';
 import { darken } from '../lib/color';
@@ -6,11 +8,9 @@ import { useFormat } from '../lib/format';
 import { CheckIcon, ChevronIcon, ShieldIcon, StarIcon } from '../components/icons';
 import {
   getClients,
-  getCoachProfile,
   getOfferings,
   getProAggregateRating,
   getRatings,
-  isCredentialVerified,
   setSelectedOfferingId,
   type OfferingType,
 } from '../lib/mockStore';
@@ -31,22 +31,29 @@ const TYPE_LABEL_KEY: Record<OfferingType, MessageKey> = {
 // this coach's profile.
 //
 // Every field comes from the same sources the rest of the Pro side reads
-// (getCoachProfile, getOfferings, getProAggregateRating, getRatings), so the
+// (useOwnCoachProfile, getOfferings, getProAggregateRating, getRatings), so the
 // preview can never drift from the real profile. Nothing on this screen is
 // illustrative: no sample reviews, no stand-in rating.
 export default function PreviewProfile() {
+  const own = useOwnCoachProfile();
+  if (own.status === 'loading') return <LoadState status="loading" />;
+  if (own.status === 'error') return <LoadState status="error" onRetry={own.retry} showBack />;
+  return <PreviewProfileView own={own} />;
+}
+
+function PreviewProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }> }) {
   const t = useT();
   const back = useAppStore((s) => s.back);
   const nav = useAppStore((s) => s.nav);
 
-  const profile = getCoachProfile();
+  const profile = own.profile;
   const offerings = getOfferings();
   const [selectedId, setSelectedId] = useState<string | null>(offerings[0]?.id ?? null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const initials = profile.name.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2);
   const specialties = (profile.title || 'Life coaching').split(' · ').filter(Boolean);
-  const verified = isCredentialVerified();
+  const verified = own.verificationStatus === 'verified';
   const { money } = useFormat();
 
   const experienceYears = profile.experienceYears === '' ? 0 : profile.experienceYears ?? 0;

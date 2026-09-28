@@ -1,0 +1,74 @@
+.load-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding-inline: 32px;
+  text-align: center;
+  background: var(--bg-grad);
+  color: var(--ink);
+}
+
+.load-state-spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid var(--line);
+  border-block-start-color: var(--accent);
+  animation: load-state-spin 0.8s linear infinite;
+}
+
+@keyframes load-state-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .load-state-spinner {
+    animation-duration: 2.4s;
+  }
+}
+
+.load-state-mark {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--red-bg);
+  color: var(--red);
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.load-state-title {
+  margin: 0;
+  font-family: var(--font-display-en);
+  font-size: 21px;
+  font-weight: 700;
+}
+
+[dir='rtl'] .load-state-title {
+  font-family: var(--font-display-ar);
+}
+
+.load-state-body {
+  margin: 0;
+  max-width: 30ch;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.load-state-back {
+  background: none;
+  border: none;
+  color: var(--ink-soft);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  padding-block: 6px;
+  cursor: pointer;
+}

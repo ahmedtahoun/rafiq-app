@@ -7,6 +7,9 @@ import { CountryPicker } from '../components/CountryPicker';
 import { SpecialtyIcon } from '../components/specialtyIcons';
 import { Button } from '../components/Button';
 import { TextField } from '../components/TextField';
+import { useRemoteSession } from '../lib/remoteSession';
+import { completeCoachSignupRemote } from '../lib/profileData';
+import { useOwnProfileStore } from '../store/ownProfileStore';
 import './Onboarding.css';
 
 const EXPERIENCE_OPTIONS: { value: string; labelKey: MessageKey }[] = [
@@ -25,6 +28,12 @@ export default function Onboarding() {
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
   const completeCoachSignup = useAppStore((s) => s.completeCoachSignup);
+  const setRole = useAppStore((s) => s.setRole);
+  const nav = useAppStore((s) => s.nav);
+  const invalidateOwnProfile = useOwnProfileStore((s) => s.invalidate);
+  const remote = useRemoteSession();
+  const [saving, setSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -63,8 +72,8 @@ export default function Onboarding() {
     : '';
 
   function finish() {
-    if (!canFinish) return;
-    completeCoachSignup({
+    if (!canFinish || saving) return;
+    const fields = {
       name: name.trim(),
       phone: phone.trim(),
       countryDial: dialCountry.dial,
@@ -73,6 +82,22 @@ export default function Onboarding() {
       country: countryDef.name,
       specialties,
       experience,
+    };
+    if (!remote) {
+      completeCoachSignup(fields);
+      return;
+    }
+    setSaving(true);
+    setSaveFailed(false);
+    void completeCoachSignupRemote(fields).then((result) => {
+      setSaving(false);
+      if (!result.ok) {
+        setSaveFailed(true);
+        return;
+      }
+      invalidateOwnProfile();
+      setRole('coach');
+      nav('main');
     });
   }
 
@@ -170,7 +195,10 @@ export default function Onboarding() {
 
       <div className="onboarding-footer">
         {canFinish ? (
-          <Button onClick={finish}>{t('getStarted')}</Button>
+          <>
+            <Button onClick={finish} disabled={saving}>{saving ? t('savingEllipsis') : t('getStarted')}</Button>
+            {saveFailed && <div className="onboarding-validation" role="alert">{t('requestFailedRetry')}</div>}
+          </>
         ) : (
           <>
             <Button variant="secondary" onClick={() => setShowValidation(true)}>{t('getStarted')}</Button>

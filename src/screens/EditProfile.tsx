@@ -9,7 +9,11 @@ import { CameraIcon, CloseIcon, LockIcon, PlusIcon } from '../components/icons';
 import { CountryPicker } from '../components/CountryPicker';
 import { BottomSheet } from '../components/BottomSheet';
 import { Button } from '../components/Button';
-import { getCoachProfile, isVerified, updateCoachProfile, type SessionMode } from '../lib/mockStore';
+import { isVerified, updateCoachProfile, type SessionMode } from '../lib/mockStore';
+import { saveOwnCoachProfile, type CoachProfileEdits, type ProfileErrorCode } from '../lib/profileData';
+import { useOwnCoachProfile, useOwnProfileStore, type OwnProfileView } from '../store/ownProfileStore';
+import { LoadState } from '../components/LoadState';
+import { photoProblem } from '../lib/storage';
 import './EditProfile.css';
 
 const SESSION_MODES: { key: SessionMode; labelKey: MessageKey }[] = [
@@ -39,9 +43,29 @@ function readImageFile(file: File): Promise<string> {
 // state until Save writes it all to the store at once — Cancel simply
 // navigates away, discarding the draft, same as the design.
 export default function EditProfile() {
+  const own = useOwnCoachProfile();
+  if (own.status === 'loading') return <LoadState status="loading" />;
+  if (own.status === 'error') return <LoadState status="error" onRetry={own.retry} showBack />;
+  return <EditProfileForm own={own} />;
+}
+
+const SAVE_ERROR_KEY: Record<ProfileErrorCode, MessageKey> = {
+  photo_too_large: 'photoTooLarge',
+  photo_wrong_type: 'photoWrongType',
+  photo_failed: 'requestFailedRetry',
+  not_configured: 'requestFailedRetry',
+  not_signed_in: 'requestFailedRetry',
+  unknown: 'requestFailedRetry',
+};
+
+function EditProfileForm({ own }: { own: Extract<OwnProfileView, { status: 'ready' }> }) {
   const t = useT();
   const nav = useAppStore((s) => s.nav);
-  const profile = getCoachProfile();
+  const userId = useAppStore((s) => s.userId);
+  const setOwnProfile = useOwnProfileStore((s) => s.setData);
+  const profile = own.profile;
+  // Still mockStore's tier, signed in or not: the real one arrives with
+  // payments (LAUNCH-CHECKLIST.md §3), which hasn't been decided yet.
   const isPro = isVerified();
 
   const [name, setName] = useState(profile.name);
@@ -57,6 +81,12 @@ export default function EditProfile() {
   const [bio, setBio] = useState(profile.bio);
   const [avatarPhotoUrl, setAvatarPhotoUrl] = useState(profile.avatarPhotoUrl);
   const [coverPhotoUrl, setCoverPhotoUrl] = useState(profile.coverPhotoUrl);
+  // The picked files themselves, for the real save to upload. undefined =
+  // untouched, null = removed. The *PhotoUrl states above are the previews.
+  const [avatarFile, setAvatarFile] = useState<File | null | undefined>(undefined);
+  const [coverFile, setCoverFile] = useState<File | null | undefined>(undefined);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<MessageKey | null>(null);
 
   const [showDialPicker, setShowDialPicker] = useState(false);
   const [showResidencyPicker, setShowResidencyPicker] = useState(false);
@@ -84,15 +114,40 @@ export default function EditProfile() {
     setCertifications((prev) => prev.filter((_, idx) => idx !== i));
   }
 
-  async function handleAvatarFile(e: ChangeEvent<HTMLInputElement>) {
+  // Refused at pick time, so the current photo stays on screen rather
+  // than being replaced by one the save is going to reject.
+  function acceptPhoto(e: ChangeEvent<HTMLInputElement>): File | null {
     const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return null;
+    const problem = photoProblem(file);
+    if (problem) {
+      setSaveError(problem === 'too_large' ? 'photoTooLarge' : 'photoWrongType');
+      return null;
+    }
+    setSaveError(null);
+    return file;
+  }
+
+  async function handleAvatarFile(e: ChangeEvent<HTMLInputElement>) {
+    const file = acceptPhoto(e);
     if (!file) return;
+    setAvatarFile(file);
     setAvatarPhotoUrl(await readImageFile(file));
   }
   async function handleCoverFile(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
+    const file = acceptPhoto(e);
     if (!file) return;
+    setCoverFile(file);
     setCoverPhotoUrl(await readImageFile(file));
+  }
+  function removeAvatar() {
+    setAvatarFile(null);
+    setAvatarPhotoUrl('');
+  }
+  function removeCover() {
+    setCoverFile(null);
+    setCoverPhotoUrl('');
   }
 
   function openPhotoLocked() {
@@ -100,7 +155,8 @@ export default function EditProfile() {
   }
 
   function save() {
-    updateCoachProfile({
+    if (saving) return;
+    const edits: CoachProfileEdits = {
       name: name.trim() || profile.name,
       phone: phone.trim() || profile.phone,
       countryCode: dialCountry.dial,
@@ -115,14 +171,29 @@ export default function EditProfile() {
       sessionMode,
       languages,
       bio,
-      // Only a Pro can actually change these (the UI locks the picker/
+    };
+
+    if (!own.remote) {
+      // Only a Pro can actually change the photos (the UI locks the picker/
       // remove controls behind isPro), but writing them unconditionally is
       // harmless: a free account's state never diverges from its existing
       // values, so this is a no-op save for them.
-      avatarPhotoUrl,
-      coverPhotoUrl,
+      updateCoachProfile({ ...edits, avatarPhotoUrl, coverPhotoUrl });
+      nav('profile');
+      return;
+    }
+
+    setSaving(true);
+    setSaveError(null);
+    void saveOwnCoachProfile(edits, { avatar: avatarFile, cover: coverFile }).then((result) => {
+      setSaving(false);
+      if (!result.ok) {
+        setSaveError(SAVE_ERROR_KEY[result.code]);
+        return;
+      }
+      if (userId) setOwnProfile(userId, result.data);
+      nav('profile');
     });
-    nav('profile');
   }
 
   return (
@@ -132,10 +203,15 @@ export default function EditProfile() {
           {t('profileCancel')}
         </button>
         <div className="edit-profile-title">{t('editProfileTitle')}</div>
-        <button type="button" className="edit-profile-save" onClick={save}>
-          {t('editProfileSave')}
+        <button type="button" className="edit-profile-save" onClick={save} disabled={saving}>
+          {saving ? t('savingEllipsis') : t('editProfileSave')}
         </button>
       </div>
+      {saveError && (
+        <div className="edit-profile-error" role="alert">
+          {t(saveError)}
+        </div>
+      )}
 
       <div className="edit-profile-body">
         <div className="edit-profile-avatar-block">
@@ -163,7 +239,7 @@ export default function EditProfile() {
           </div>
           {isPro ? (
             hasAvatarPhoto ? (
-              <button type="button" className="edit-profile-link" onClick={() => setAvatarPhotoUrl('')}>
+              <button type="button" className="edit-profile-link" onClick={removeAvatar}>
                 {t('editProfileRemovePhoto')}
               </button>
             ) : (
@@ -200,7 +276,7 @@ export default function EditProfile() {
               </button>
             )}
             {isPro && hasCoverPhoto && (
-              <button type="button" className="edit-profile-cover-btn edit-profile-cover-remove" onClick={() => setCoverPhotoUrl('')}>
+              <button type="button" className="edit-profile-cover-btn edit-profile-cover-remove" onClick={removeCover}>
                 {t('editProfileRemoveCover')}
               </button>
             )}

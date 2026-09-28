@@ -38,6 +38,15 @@ function fail(code: StorageErrorCode, message: string): StorageResult<never> {
   return { ok: false, code, message };
 }
 
+/** Why a file can't be used as a photo, or null if it can. Exported so a
+    picker can refuse a file the moment it's chosen, by the same rule the
+    upload applies. */
+export function photoProblem(file: File): 'too_large' | 'wrong_type' | null {
+  if (file.size > MAX_PHOTO_BYTES) return 'too_large';
+  if (!ALLOWED_TYPES.includes(file.type)) return 'wrong_type';
+  return null;
+}
+
 /**
  * The object path for a user's photo. The first segment must be their uid —
  * that segment IS the storage policy's ownership check, so it is derived from
@@ -62,8 +71,9 @@ async function currentUid(supabase: SupabaseClient<Database>): Promise<string | 
  */
 export async function uploadProfilePhoto(kind: PhotoKind, file: File): Promise<StorageResult<string>> {
   if (!isSupabaseConfigured()) return fail('not_configured', 'Supabase credentials are missing.');
-  if (file.size > MAX_PHOTO_BYTES) return fail('too_large', `Photo is ${file.size} bytes; the limit is ${MAX_PHOTO_BYTES}.`);
-  if (!ALLOWED_TYPES.includes(file.type)) return fail('wrong_type', `Unsupported type ${file.type || 'unknown'}.`);
+  const problem = photoProblem(file);
+  if (problem === 'too_large') return fail('too_large', `Photo is ${file.size} bytes; the limit is ${MAX_PHOTO_BYTES}.`);
+  if (problem === 'wrong_type') return fail('wrong_type', `Unsupported type ${file.type || 'unknown'}.`);
 
   const supabase = getSupabase();
   const uid = await currentUid(supabase);
