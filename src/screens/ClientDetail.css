@@ -522,6 +522,9 @@
   justify-content: center;
   flex-shrink: 0;
 }
+.client-detail-session-icon.is-neutral {
+  background: var(--line);
+}
 .client-detail-session-text {
   flex: 1;
   min-width: 0;
@@ -779,4 +782,19 @@
 }
 .client-detail-edit-task-actions .client-detail-sheet-submit {
   flex: 1;
+}
+
+.client-detail-action-error {
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--red-bg);
+  color: var(--red);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.client-detail-pkg-none {
+  font-size: 12.5px;
+  color: var(--ink-soft);
 }

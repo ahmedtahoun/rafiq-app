@@ -22,17 +22,9 @@ import {
 import { BottomNav, type BottomNavItem } from '../components/BottomNav';
 import { QuickActions } from '../components/QuickActions';
 import { BottomSheet } from '../components/BottomSheet';
-import {
-  FREE_MEMBER_CAP,
-  getClientDetailHref,
-  getClients,
-  getFavorites,
-  getTasks,
-  isTaskOverdue,
-  isVerified,
-  toggleFavorite,
-  type Client,
-} from '../lib/mockStore';
+import { LoadState } from '../components/LoadState';
+import { useRoster, type RosterView } from '../store/rosterStore';
+import { FREE_MEMBER_CAP, getClientDetailHref, isTaskOverdue, isVerified, type Client } from '../lib/mockStore';
 import './Clients.css';
 
 type StatusFilter = 'all' | 'active' | 'needs' | 'payment' | 'task' | 'inactive';
@@ -42,6 +34,13 @@ function specialtyOf(c: Client): string {
 }
 
 export default function Clients() {
+  const roster = useRoster();
+  if (roster.status === 'loading') return <LoadState status="loading" />;
+  if (roster.status === 'error') return <LoadState status="error" onRetry={roster.retry} />;
+  return <ClientsView roster={roster} />;
+}
+
+function ClientsView({ roster }: { roster: Extract<RosterView, { status: 'ready' }> }) {
   const t = useT();
   const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
@@ -55,11 +54,10 @@ export default function Clients() {
   const [filter, setFilter] = useState<StatusFilter>('all');
   const [specialtyFilter, setSpecialtyFilter] = useState('all');
   const [showFilterSheet, setShowFilterSheet] = useState(false);
-  const [, setTick] = useState(0);
-  const refresh = () => setTick((v) => v + 1);
+  const [favBusy, setFavBusy] = useState<string | null>(null);
 
-  const baseClients = getClients();
-  const favorites = getFavorites();
+  const baseClients = roster.clients;
+  const favorites = roster.favourites;
   const isPro = isVerified();
 
   const activeRoster = baseClients.filter((c) => c.active);
@@ -69,7 +67,7 @@ export default function Clients() {
   const statAvg = activeRoster.length ? Math.round(activeRoster.reduce((sum, c) => sum + c.progress, 0) / activeRoster.length) : 0;
 
   function overdueTaskOf(id: string) {
-    return getTasks(id).find((task) => isTaskOverdue(task)) || null;
+    return roster.tasksOf(id).find((task) => isTaskOverdue(task, roster.todayMs)) || null;
   }
 
   const q = searchQuery.trim().toLowerCase();
@@ -113,7 +111,7 @@ export default function Clients() {
       avatarGlow: `${c.avatarBg}66`,
       nextColor: c.nextSessionAtMs != null ? 'var(--accent)' : 'var(--ink-soft)',
       nextText: c.nextSessionAtMs != null
-        ? t('clientsNextAt', { session: fmt.nextSession(c.nextSessionAtMs) })
+        ? t('clientsNextAt', { session: fmt.nextSession(c.nextSessionAtMs, roster.todayMs) })
         : c.programCompleted
           ? t('clientsProgramCompleted')
           : t('mainNoSessionNote'),
@@ -252,9 +250,11 @@ export default function Clients() {
                   type="button"
                   className="clients-fav-btn"
                   aria-label={t('clientsToggleFavourite', { name: row.client.name })}
+                  aria-pressed={row.isFav}
+                  disabled={favBusy === row.client.id}
                   onClick={() => {
-                    toggleFavorite(row.client.id);
-                    refresh();
+                    setFavBusy(row.client.id);
+                    void roster.actions.toggleFavourite(row.client.id).finally(() => setFavBusy(null));
                   }}
                 >
                   <StarIcon size={12} color={row.isFav ? 'var(--accent)' : 'var(--ink-soft)'} filled={row.isFav} />
@@ -275,8 +275,14 @@ export default function Clients() {
             <div className="clients-empty-icon">
               <SearchIcon size={24} color="var(--ink-soft)" />
             </div>
-            <div className="clients-empty-title">{t('clientsNoResultsTitle')}</div>
-            <div className="clients-empty-sub">{t('clientsNoResultsSub')}</div>
+            <div className="clients-empty-title">{baseClients.length === 0 ? t('clientsNoMembersTitle') : t('clientsNoResultsTitle')}</div>
+            <div className="clients-empty-sub">{baseClients.length === 0 ? t('clientsNoMembersSub') : t('clientsNoResultsSub')}</div>
+            {baseClients.length === 0 && (
+              <button type="button" className="clients-empty-add" onClick={() => nav('addClient')}>
+                <PlusIcon size={14} color="#FFFFFF" />
+                {t('clientsAddMember')}
+              </button>
+            )}
           </div>
         )}
       </div>

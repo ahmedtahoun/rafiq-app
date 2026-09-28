@@ -7,7 +7,8 @@ import { CountryPicker } from '../components/CountryPicker';
 import { SpecialtyIcon } from '../components/specialtyIcons';
 import { TextField, TextAreaField } from '../components/TextField';
 import { PersonIcon } from '../components/icons';
-import { addClient } from '../lib/mockStore';
+import { LoadState } from '../components/LoadState';
+import { useRoster, type RosterView } from '../store/rosterStore';
 import './AddClient.css';
 
 const PLANS: { value: string; labelKey: MessageKey }[] = [
@@ -16,6 +17,13 @@ const PLANS: { value: string; labelKey: MessageKey }[] = [
 ];
 
 export default function AddClient() {
+  const roster = useRoster();
+  if (roster.status === 'loading') return <LoadState status="loading" />;
+  if (roster.status === 'error') return <LoadState status="error" onRetry={roster.retry} showBack />;
+  return <AddClientView roster={roster} />;
+}
+
+function AddClientView({ roster }: { roster: Extract<RosterView, { status: 'ready' }> }) {
   const t = useT();
   const nav = useAppStore((s) => s.nav);
 
@@ -28,13 +36,17 @@ export default function AddClient() {
   const [goal, setGoal] = useState('');
   const [notes, setNotes] = useState('');
   const [showDialPicker, setShowDialPicker] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
 
   const dialCountry = COUNTRIES.find((c) => c.code === dialCode) ?? DEFAULT_COUNTRY;
-  const canSave = name.trim().length > 0;
+  const canSave = name.trim().length > 0 && !saving;
 
-  function save() {
+  async function save() {
     if (!canSave) return;
-    addClient({
+    setSaving(true);
+    setSaveFailed(false);
+    const added = await roster.actions.addClient({
       name,
       age: age === '' ? null : Number(age),
       phone,
@@ -44,7 +56,9 @@ export default function AddClient() {
       goal,
       notes,
     });
-    nav('clients');
+    setSaving(false);
+    if (added) nav('clients');
+    else setSaveFailed(true);
   }
 
   return (
@@ -56,11 +70,17 @@ export default function AddClient() {
           type="button"
           className={`add-client-header-btn add-client-save${canSave ? '' : ' is-disabled'}`}
           disabled={!canSave}
-          onClick={save}
+          onClick={() => void save()}
         >
           {t('addClientSave')}
         </button>
       </div>
+
+      {saveFailed && (
+        <div className="add-client-error" role="alert">
+          {t('requestFailedRetry')}
+        </div>
+      )}
 
       <div className="add-client-body">
         <div className="add-client-avatar-row">
@@ -135,7 +155,7 @@ export default function AddClient() {
       </div>
 
       <div className="add-client-footer">
-        <button type="button" className={`add-client-submit${canSave ? '' : ' is-disabled'}`} disabled={!canSave} onClick={save}>
+        <button type="button" className={`add-client-submit${canSave ? '' : ' is-disabled'}`} disabled={!canSave} onClick={() => void save()}>
           {t('addClientSubmit')}
         </button>
       </div>

@@ -137,6 +137,15 @@ came from, not on what it looks like:
 The test suite runs in `Africa/Cairo`, so mixing them up shows as a wrong
 date there (`tests/payout-history.spec.js` checks one across midnight).
 
+**Real rows a screen treats as calendar values** — a task's `due_at`, a
+session's `scheduled_at` — are converted at the data layer's edge by
+`src/lib/wallClock.ts` (`toWallMs` reading, `fromWallMs` writing), so the
+calendar formatters and comparisons work on them unchanged. What changes is
+"today": such a screen takes `todayMs` from `useRoster()` (the real day
+signed in, `TODAY_MS` signed out) and passes it to `isTaskOverdue`,
+`fmt.taskDue` and `fmt.nextSession`. Never mix `TODAY_MS` with real rows —
+every real task would read as not due until 2025's fixed week catches up.
+
 **`readLocal` does not validate shape.** It parses whatever is stored and
 casts it to the expected type, so a value written by an older version
 crashes the first screen that iterates it. Worth knowing when you change a

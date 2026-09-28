@@ -3,7 +3,8 @@ import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { ScheduleIcon } from '../components/icons';
-import { addTask, getClient, TODAY_MS } from '../lib/mockStore';
+import { LoadState } from '../components/LoadState';
+import { useRoster, type RosterView } from '../store/rosterStore';
 import './AddTask.css';
 
 type DueKey = 'today' | 'tomorrow' | 'week';
@@ -16,12 +17,19 @@ const DUE_KEYS: DueKey[] = ['today', 'tomorrow', 'week'];
 // per member (AddTask-omar, AddTask-mona, …) because it has no way to pass
 // one, which is exactly what the router's params exist for.
 export default function AddTask() {
+  const roster = useRoster();
+  if (roster.status === 'loading') return <LoadState status="loading" />;
+  if (roster.status === 'error') return <LoadState status="error" onRetry={roster.retry} showBack />;
+  return <AddTaskView roster={roster} />;
+}
+
+function AddTaskView({ roster }: { roster: Extract<RosterView, { status: 'ready' }> }) {
   const t = useT();
   const nav = useAppStore((s) => s.nav);
   const back = useAppStore((s) => s.back);
   const clientId = useAppStore((s) => s.params).clientId ?? '';
 
-  const client = getClient(clientId);
+  const client = roster.client(clientId);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -29,13 +37,15 @@ export default function AddTask() {
   const [exactDate, setExactDate] = useState('');
   const [exactTime, setExactTime] = useState('');
   const [recurring, setRecurring] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
 
-  const canSave = title.trim().length > 0;
+  const canSave = title.trim().length > 0 && !saving;
 
   const DAY_MS = 86400000;
   const CHIP_OFFSET_DAYS: Record<DueKey, number> = { today: 0, tomorrow: 1, week: 7 };
 
-  function save() {
+  async function save() {
     if (!canSave) return;
 
     // An exact date wins over the chip, and only then does the time apply —
@@ -56,11 +66,12 @@ export default function AddTask() {
         dueHasTime = true;
       }
     } else {
-      dueAtMs = TODAY_MS + CHIP_OFFSET_DAYS[due] * DAY_MS;
+      dueAtMs = roster.todayMs + CHIP_OFFSET_DAYS[due] * DAY_MS;
     }
 
-    addTask(clientId, {
-      id: `t${Date.now().toString(36)}`,
+    setSaving(true);
+    setSaveFailed(false);
+    const added = await roster.actions.addTask(clientId, {
       title: title.trim(),
       description: description.trim(),
       dueAtMs,
@@ -68,7 +79,9 @@ export default function AddTask() {
       recurring,
       done: false,
     });
-    nav({ screen: 'clientDetail', params: { clientId } });
+    setSaving(false);
+    if (added) nav({ screen: 'clientDetail', params: { clientId } });
+    else setSaveFailed(true);
   }
 
   if (!client) {
@@ -94,12 +107,18 @@ export default function AddTask() {
         <button
           type="button"
           className={`add-task-save${canSave ? ' is-enabled' : ''}`}
-          onClick={save}
+          onClick={() => void save()}
           disabled={!canSave}
         >
           {t('addTaskSave')}
         </button>
       </div>
+
+      {saveFailed && (
+        <div className="add-task-error" role="alert">
+          {t('requestFailedRetry')}
+        </div>
+      )}
 
       <div className="add-task-body">
         <div className="add-task-for">
@@ -200,7 +219,7 @@ export default function AddTask() {
         <button
           type="button"
           className={`add-task-submit${canSave ? ' is-enabled' : ''}`}
-          onClick={save}
+          onClick={() => void save()}
           disabled={!canSave}
         >
           {t('addTaskSubmit')}
