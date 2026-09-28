@@ -190,7 +190,10 @@ Nothing native has ever run on a device or simulator (CLAUDE.md, "Not verified")
       send from database triggers) or relabel the toggles as in-app only.
 - [ ] 🔴 **Account deletion must actually happen.** The app files a request
       into `account_deletion_requests`; someone has to process it (§9), within
-      a stated time.
+      a stated time. **Stated: within 30 days**, on the public deletion page.
+      Processing a coach must also delete their `coach_payout_accounts` row
+      (the page promises the saved national ID and account number go);
+      `payouts` rows stay as the financial record.
 
 ## 7. Branding and store listing (Design + Ahmed)
 
@@ -256,6 +259,7 @@ only Rafiq can resolve (as `service_role`). Nothing works them yet.
       reports with suspend/block, deletion requests, user lookup), behind an
       admin role. The `service_role` key stays server-side, never in a browser.
 - [ ] 🟡 A written response time for reports and deletions — and meet it.
+      Deletions: 30 days (public deletion page). Reports: not stated yet.
 
 ## 10. Monitoring and performance (Dev)
 
