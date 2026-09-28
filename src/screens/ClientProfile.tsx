@@ -7,6 +7,7 @@ import { ChevronIcon, PencilIcon, ArrowForwardIcon, ScheduleIcon, TasksIcon, Pay
 import { signOut } from '../lib/auth';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { fileAccountDeletionRequest } from '../lib/adminQueues';
+import { useRemoteSession } from '../lib/remoteSession';
 import { openExternal, supportMailto, SUPPORT_EMAIL } from '../lib/support';
 import {
   getClient,
@@ -52,6 +53,7 @@ export default function ClientProfile() {
   // flight, and keeps the confirm sheet open with an inline error on
   // failure rather than closing as if it had gone through.
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const remote = useRemoteSession();
   const [deleteError, setDeleteError] = useState(false);
   // Bumped after a mutation (sign agreement, toggle notif prefs, delete) to
   // force the derived reads below to recompute from localStorage —
@@ -134,7 +136,7 @@ export default function ClientProfile() {
   function confirmDelete() {
     if (deleteBusy) return;
 
-    if (!isSupabaseConfigured()) {
+    if (!remote) {
       requestAccountDeletion(CLIENT_ID);
       setShowDeleteConfirm(false);
       nav('clientAuth');

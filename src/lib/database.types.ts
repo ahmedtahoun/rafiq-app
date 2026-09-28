@@ -440,6 +440,41 @@ export type Database = {
           },
         ]
       }
+      member_profiles: {
+        Row: {
+          created_at: string
+          focus: string
+          goal: string
+          profile_id: string
+          signup_completed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          focus?: string
+          goal?: string
+          profile_id: string
+          signup_completed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          focus?: string
+          goal?: string
+          profile_id?: string
+          signup_completed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_profiles_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_reads: {
         Row: {
           client_id: string

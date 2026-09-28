@@ -1,9 +1,9 @@
 # Supabase backend
 
-The database behind Rafiq. Nothing in `src/` reads from it yet — the app still
-runs entirely on `src/lib/mockStore.ts`'s localStorage layer. This is the
-target that layer gets pointed at, built ahead of the wiring so the schema can
-be reviewed and corrected before screens depend on it.
+The database behind Rafiq. The app is moving onto it in steps
+(`SUPABASE-MIGRATION-PLAN.md` at the repo root): auth, the admin queues, and
+the signed-in user's own profile and onboarding read and write it now;
+everything else still runs on `src/lib/mockStore.ts`'s localStorage layer.
 
 ## Layout
 
@@ -12,6 +12,9 @@ supabase/
   migrations/0001_init.sql   tables, constraints, RLS policies, grants
   migrations/0002_*.sql      triggers that write notification rows
   migrations/0003_storage.sql  profile photo buckets and their policies
+  migrations/0004_*.sql      grants locked down, column-level where it matters
+  migrations/0005_*.sql      tables and columns for parity with the app
+  migrations/0006_*.sql      member_profiles: a member's own onboarding answers
   seed.sql                   the 6 demo members from mockStore, for dev
   tests/                     applies every migration to a throwaway Postgres
                              and asserts the policies really hold
@@ -19,7 +22,9 @@ supabase/
 
 TypeScript side: `src/lib/database.types.ts` (typed schema),
 `src/lib/supabase.ts` (the client), `src/lib/auth.ts` (sign-up/in/out),
-`src/lib/storage.ts` (profile photo upload and signed URLs).
+`src/lib/storage.ts` (profile photo upload and signed URLs),
+`src/lib/adminQueues.ts` and `src/lib/profileData.ts` (the app's reads and
+writes so far).
 
 ## Setting it up
 
@@ -63,10 +68,12 @@ runs every check as a real signed-in user via `auth.uid()`. Given a
 is how CI runs it against a `postgres:16` service container.
 
 Every assertion prints `PASS`/`FAIL` with its expected and actual value, and
-the script exits non-zero if any fail — or if fewer than 40 assertions ran at
-all, so a test file that quietly failed to load can't read as a clean run.
-Currently 144 assertions across RLS, constraints, notification triggers,
-storage policies and the 0005 app-parity tables, all passing.
+the script exits non-zero if any fail — or if fewer assertions ran than
+`MIN_ASSERTIONS` in `run.sh`, so a test file that quietly failed to load can't
+read as a clean run. Currently 166 assertions across RLS, constraints,
+notification triggers, storage policies, the 0005 app-parity tables, and
+(`07_profiles.sql`) 0006's member_profiles plus every profile write the app
+makes, issued as the authenticated role — all passing.
 
 These exist because RLS is the kind of thing that looks right and isn't. The
 first run of this suite caught the migration having no `GRANT`s at all — every

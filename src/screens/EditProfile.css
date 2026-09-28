@@ -6,6 +6,19 @@
   flex-shrink: 0;
 }
 
+.edit-profile-error {
+  margin-inline: 20px;
+  margin-block-end: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--red-bg);
+  color: var(--red);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  flex-shrink: 0;
+}
+
 .edit-profile-cancel {
   font-size: 14px;
   font-weight: 600;

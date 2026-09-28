@@ -69,7 +69,7 @@ reading and setting the user's role at sign-in, every screen reads and writes
       last initial**; the app currently shows the reviewer's full name
       publicly — that must go.
 - [ ] 🟡 Messaging updates live (Supabase Realtime on `messages`).
-- [ ] 🟡 Profile and cover photo upload through `src/lib/storage.ts` to the
+- [x] 🟡 Profile and cover photo upload through `src/lib/storage.ts` to the
       private `avatars` / `covers` buckets.
 - [ ] 🟡 Run `npx supabase gen types typescript --linked > src/lib/database.types.ts`
       after every migration (`supabase/README.md`).

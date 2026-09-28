@@ -115,6 +115,12 @@ VITE_SUPABASE_ANON_KEY=placeholder-anon-key \
 npm test
 ```
 
+Screens that read real rows once someone is signed in (the profile screens,
+so far) use `tests/fakeSupabase.js` instead of one-off recorders: small
+in-memory tables behind the client's own `from()`, `auth` and `storage`, plus
+`signIn()`, so a test can assert on the rows that landed. It does not enforce
+RLS or grants — `supabase/tests/` does, against real Postgres.
+
 Never point the suite at a real project. These tests seed and mutate
 state freely, and they are written on the assumption that nothing they do
 leaves the browser.

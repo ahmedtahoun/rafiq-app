@@ -1,15 +1,13 @@
 # Moving off mockStore — a plan
 
 LAUNCH-CHECKLIST.md §2 is the checklist; this is the *how*. The live
-Supabase project has the full schema (`supabase/migrations/0001`–`0005`,
-144 schema tests in CI). The app doesn't use it yet — every screen reads
-and writes `src/lib/mockStore.ts` / `src/lib/directory.ts`
-(`localStorage`), apart from auth itself (`src/lib/auth.ts`,
-`src/lib/session.ts`), which is already real.
+Supabase project has the full schema (`supabase/migrations/`, with schema
+tests in CI). Most screens still read and write `src/lib/mockStore.ts` /
+`src/lib/directory.ts` (`localStorage`).
 
-This file is the plan; **`src/lib/adminQueues.ts` is the first slice**
-landing in the same PR — see its own section below. Wait for review on
-that slice before converting the rest, per the checklist.
+**Done so far:** auth itself (`auth.ts`, `session.ts`); step 1, the admin
+queues (`adminQueues.ts`); step 2, the signed-in user's own profile and
+onboarding (`profileData.ts`). Each has its own section below.
 
 ## The shape of the problem
 
@@ -23,11 +21,15 @@ that called it synchronously is the real work.
 
 ## Conventions already set, worth reusing rather than reinventing
 
-- **`isSupabaseConfigured()` guards every real call** (`src/lib/
-  supabase.ts`). Screens branch on it today (`Profile.tsx`'s `logOut()`,
-  now also its verification/delete flows) and should keep doing so until
-  every screen converts — there is no flag day, so both branches need to
-  keep working right up until `mockStore`'s fallback is deleted for good.
+- **Real data means configured *and* signed in** — `isRemoteSession()` /
+  `useRemoteSession()` in `src/lib/remoteSession.ts`. Configured alone is
+  not enough: real rows only exist for a signed-in account. Signed out
+  (or unconfigured), screens keep reading `mockStore` exactly as before,
+  which is also why CI — configured with placeholder credentials, never
+  signed in — keeps exercising the same screens it always has. There is
+  no flag day, so both branches keep working until `mockStore`'s fallback
+  is deleted for good. (`isSupabaseConfigured()` still guards each call
+  inside the data modules, and auth's own flows.)
 - **Fallible async calls return `{ ok: true, data } | { ok: false, code,
   message }`**, never a thrown error a screen has to try/catch
   (`auth.ts`'s `AuthResult<T>`, `adminQueues.ts`'s `QueueResult<T>`). Follow
@@ -67,17 +69,18 @@ the two examples so far.
 
 Matches LAUNCH-CHECKLIST.md §2's own list, expanded with why:
 
-1. **Reports, verification, deletion requests** (this PR's slice) — no
+1. ✅ **Reports, verification, deletion requests** — no
    screen *reads* these back (no admin UI in the app; the admin panel is
    `service_role`, `supabase/README.md`), so converting them is pure
    upside: zero risk of a half-migrated screen, and the admin queues have
    real rows to work with immediately, even from Supabase's own table
    editor (§9's suggested stopgap before a real admin app exists).
-2. **Profile and onboarding** — `getCoachProfile()`/`getClient()` and their
-   writers. Everything else reads through these, so screens converted
-   later can start reading real data without a second pass. This is also
-   where `coach_profiles.verification_status` starts being read for real,
-   closing the gap this PR's slice deliberately leaves open (see below).
+2. ✅ **Profile and onboarding** — the signed-in coach's own profile
+   (`getCoachProfile()` on the coach's own screens) and its writers, both
+   signups, and Edit Profile's photos. `coach_profiles.verification_status`
+   is read for real, closing step 1's gap. The member-side screens'
+   `getCoachProfile()` ("my coach") is a different identity and moves with
+   step 3.
 3. **Clients, tasks and sessions** — the coach's own roster. This is also
    where **the demo identities go away**: 14 member screens hardcode
    `const CLIENT_ID = 'sara'`; the coach side hardcodes `DEFAULT_PRO_ID =
@@ -104,7 +107,7 @@ gets replaced with the real wall clock once real bookings exist to test
 against — doing either early just breaks the still-unconverted screens'
 demo data out from under them.
 
-## This PR's slice: `src/lib/adminQueues.ts`
+## Step 1: `src/lib/adminQueues.ts`
 
 Three functions, one per table in `supabase/migrations/0005_app_parity.sql`'s
 "Things only Rafiq resolves" section — `pro_reports`,
@@ -118,7 +121,7 @@ function here is a fire-and-record insert, not a workflow.
 **Wired into screens:**
 
 - `Profile.tsx` (coach): "Request verification" and "Delete Account" now
-  file real rows when Supabase is configured, with a `busy` state
+  file real rows when signed in, with a `busy` state
   disabling the control while in flight and a toast on failure. The
   mockStore fallback (unconfigured) is untouched.
 - `ClientProfile.tsx` (member): "Delete Account" does the same, plus an
@@ -140,14 +143,49 @@ for no benefit. The function is written and tested against a stubbed
 `clientId`/`coachId` so that conversion has nothing left to build here —
 see the comment at the call site in `ClientCoach.tsx`.
 
-**A gap this slice leaves open on purpose:** `Profile.tsx`'s verification
-badge still reads `mockStore`'s local `verification_status` flag, not
-`coach_profiles.verification_status` (which `0005`'s own
-`sync_verification_status` trigger updates for real the moment a request
-is filed). Reading that column for real is step 2 above ("profile and
-onboarding") — until then, filing a real request also flips the local
-mock flag so the on-screen badge doesn't silently stay "Unverified" after
-a successful real submission.
+**Closed in step 2:** step 1 left `Profile.tsx`'s verification badge on a
+local mock flag it also flipped after a real request. The badge now reads
+`coach_profiles.verification_status`, re-fetched after filing (0005's
+`sync_verification_status` trigger sets it to `pending`); the local mirror
+is gone.
+
+## Step 2: `src/lib/profileData.ts`
+
+The signed-in user's own rows: `profiles` (both roles), `coach_profiles`,
+and `member_profiles`, which is new in `0006`.
+
+- **Why `member_profiles`:** ClientOnboarding collects the member's goal
+  and focus. The only columns for those were on `clients` — the coach's
+  roster row, which only the coach may write (`clients_update_own`). So a
+  member finishing onboarding had nowhere they were allowed to write.
+  `member_profiles` mirrors `coach_profiles`: the member writes their own
+  row, and a coach can read the rows of members on their roster. `focus`
+  holds a stable slug (`life`, `meditation`, …), never the translated label.
+- **What the app writes** is limited to the granted columns and nothing
+  else — never `verification_status`/`featured` (coach_profiles) or
+  `account_status` (profiles). `supabase/tests/07_profiles.sql` issues
+  each write `profileData.ts` makes, as the `authenticated` role, against
+  the real schema.
+- **No upsert:** a PostgREST upsert names the primary key in its
+  `ON CONFLICT … SET` list, and `profile_id` has no UPDATE grant, so it's
+  refused. The first write inserts; later ones update.
+- **One shared copy:** `src/store/ownProfileStore.ts` fetches the coach's
+  own profile once for Profile, EditProfile, AccountDetails, PreviewProfile
+  and ShareProfile, so a save on one is already on the next.
+  `useOwnCoachProfile()` returns loading / error / ready, and each screen
+  renders `components/LoadState.tsx` until it's ready — never a flash of
+  the demo profile.
+- **Photos** upload through `storage.ts` to the private `avatars`/`covers`
+  buckets; the columns store the object path, and reads sign a URL.
+  EditProfile refuses a photo that's too large or the wrong type the moment
+  it's picked, by the same rule the upload applies.
+- **Sign-in routing** (`session.ts`) now asks the database whether this
+  account finished onboarding — `coach_profiles` or `member_profiles` — so
+  a new phone doesn't send an onboarded coach through onboarding again,
+  and a member who signs in with Google before onboarding is sent to it.
+- **Still mockStore, on purpose:** the Pro tier gating Edit Profile's
+  photo controls (`isVerified()`) waits for payments (LAUNCH-CHECKLIST.md
+  §3); obligations, ratings and clients wait for step 3.
 
 ## Testing this kind of code
 
@@ -155,7 +193,16 @@ a successful real submission.
 covers async Supabase code without a real project or network: replace the
 client's own methods with recorders, so nothing ever leaves the browser,
 and assert on the exact table/payload a real call would send.
-`tests/admin-queues.spec.js` follows it for this slice. Needs
+`tests/admin-queues.spec.js` follows it for step 1.
+
+Screens that *read* need more than a recorder, so step 2 added
+`tests/fakeSupabase.js`: small in-memory tables behind the client's own
+`from()`/`auth`/`storage`, plus `signIn()`. Tests can assert on the rows
+that landed. It doesn't enforce RLS or grants — that is the schema
+suite's job (`supabase/tests/`, real Postgres, runnable locally with
+`supabase/tests/run.sh`), so every new write gets an assertion there too.
+
+Both need
 `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` set (placeholders are fine,
 same as CI) for `isSupabaseConfigured()` to be true — otherwise every
 function takes its `not_configured` early return before ever reaching the

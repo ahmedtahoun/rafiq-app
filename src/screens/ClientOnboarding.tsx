@@ -6,6 +6,8 @@ import { SpecialtyIcon, type SpecialtyIconKey } from '../components/specialtyIco
 import { CountryPicker } from '../components/CountryPicker';
 import { Button } from '../components/Button';
 import { TextField, TextAreaField } from '../components/TextField';
+import { useRemoteSession } from '../lib/remoteSession';
+import { completeClientSignupRemote } from '../lib/profileData';
 import './ClientOnboarding.css';
 
 // Same 12-item focus list as the design's ClientOnboarding.dc.html — a
@@ -38,6 +40,11 @@ export default function ClientOnboarding() {
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
   const completeClientSignup = useAppStore((s) => s.completeClientSignup);
+  const setRole = useAppStore((s) => s.setRole);
+  const nav = useAppStore((s) => s.nav);
+  const remote = useRemoteSession();
+  const [saving, setSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
 
   const [focus, setFocus] = useState(FOCUS_OPTIONS[0].labelKey);
   const [goal, setGoal] = useState('');
@@ -66,14 +73,33 @@ export default function ClientOnboarding() {
     : '';
 
   function finish() {
-    if (!canFinish) return;
-    completeClientSignup({
+    if (!canFinish || saving) return;
+    const fields = {
       goal: goal.trim(),
       phone: phone.trim(),
       countryCode: dialCountry.dial,
       email: email.trim(),
       city: city.trim(),
       focus: t(focus),
+    };
+    if (!remote) {
+      completeClientSignup(fields);
+      return;
+    }
+    setSaving(true);
+    setSaveFailed(false);
+    // The database gets the option's stable slug, not t(focus): a label
+    // stored in whatever language the member onboarded in is the same bug
+    // Task.due and nextSession were before they became data.
+    const focusSlug = FOCUS_OPTIONS.find((o) => o.labelKey === focus)?.icon ?? FOCUS_OPTIONS[0].icon;
+    void completeClientSignupRemote({ ...fields, focus: focusSlug }).then((result) => {
+      setSaving(false);
+      if (!result.ok) {
+        setSaveFailed(true);
+        return;
+      }
+      setRole('client');
+      nav('clientHome');
     });
   }
 
@@ -158,7 +184,10 @@ export default function ClientOnboarding() {
 
       <div className="client-onboarding-footer">
         {canFinish ? (
-          <Button onClick={finish}>{t('getStarted')}</Button>
+          <>
+            <Button onClick={finish} disabled={saving}>{saving ? t('savingEllipsis') : t('getStarted')}</Button>
+            {saveFailed && <div className="client-onboarding-validation" role="alert">{t('requestFailedRetry')}</div>}
+          </>
         ) : (
           <>
             <Button variant="secondary" onClick={() => setShowValidation(true)}>

@@ -1,7 +1,8 @@
 import { useAppStore } from '../store/appStore';
+import { useOwnCoachProfile, type OwnProfileView } from '../store/ownProfileStore';
+import { LoadState } from '../components/LoadState';
 import { useT } from '../lib/i18n';
 import { ChevronIcon, ArrowForwardIcon } from '../components/icons';
-import { getCoachProfile } from '../lib/mockStore';
 import './AccountDetails.css';
 
 // 1:1 port of AccountDetails.dc.html — a small read-mostly screen off
@@ -9,10 +10,17 @@ import './AccountDetails.css';
 // "Google · Connected" row (this prototype has no real auth yet), so it's
 // ported as static display, not a working OAuth control.
 export default function AccountDetails() {
+  const own = useOwnCoachProfile();
+  if (own.status === 'loading') return <LoadState status="loading" />;
+  if (own.status === 'error') return <LoadState status="error" onRetry={own.retry} showBack />;
+  return <AccountDetailsView own={own} />;
+}
+
+function AccountDetailsView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }> }) {
   const t = useT();
   const back = useAppStore((s) => s.back);
   const nav = useAppStore((s) => s.nav);
-  const profile = getCoachProfile();
+  const profile = own.profile;
   const profilePhone = `${profile.countryCode} ${profile.phone}`.trim();
 
   return (

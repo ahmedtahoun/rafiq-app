@@ -17,7 +17,7 @@ import type { MessageKey } from './i18n';
 import { useAppStore } from '../store/appStore';
 import { getSession, onAuthStateChange } from './auth';
 import { isSupabaseConfigured } from './supabase';
-import { getCoachProfile } from './mockStore';
+import { fetchOwnSignupCompleted } from './profileData';
 import { classifyOAuthReturn, clearOAuthReturn, takeAuthOrigin, takeOAuthReturn } from './oauthReturn';
 
 // undefined = we have not yet heard anything, which is different from
@@ -42,12 +42,31 @@ function routeAfterSignIn() {
     return;
   }
 
+  // Whether this account finished onboarding is a fact about the account,
+  // not the device: it comes from coach_profiles / member_profiles, so a
+  // new phone doesn't send an onboarded coach through onboarding again.
+  // (routeAfterSignIn only ever runs with a real session.)
   if (role === 'coach') {
-    nav(getCoachProfile().signupCompletedAtMs ? 'main' : 'onboarding');
+    void routeBySignup('coach', 'main', 'onboarding');
     return;
   }
+  void routeBySignup('client', 'clientHome', 'clientOnboarding');
+}
 
-  nav('clientHome');
+async function routeBySignup(role: 'coach' | 'client', done: 'main' | 'clientHome', notDone: 'onboarding' | 'clientOnboarding') {
+  const signedInAs = lastUserId;
+  const result = await fetchOwnSignupCompleted(role);
+  // Signed out, or someone else signed in, while this was in flight.
+  if (lastUserId !== signedInAs) return;
+  const { nav } = useAppStore.getState();
+  if (!result.ok) {
+    // Home rather than onboarding: re-running onboarding would overwrite a
+    // finished profile, and home's own profile screens show a retry.
+    console.error('[session] could not read signup state:', result.message);
+    nav(done);
+    return;
+  }
+  nav(result.data ? done : notDone);
 }
 
 function routeAfterSignOut() {

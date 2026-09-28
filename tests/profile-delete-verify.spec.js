@@ -1,22 +1,16 @@
 import { test, expect } from '@playwright/test';
 import { IGNORED_CONSOLE } from './helpers.js';
+import { installFakeSupabase, signIn, dbRows, dbCalls } from './fakeSupabase.js';
 
 /**
- * Profile.tsx's and ClientProfile.tsx's verification/account-deletion
- * flows, now that they call lib/adminQueues.ts for real when Supabase is
- * configured (LAUNCH-CHECKLIST.md §2's first slice). Nothing exercised
- * these screens before.
- *
- * CI always sets VITE_SUPABASE_URL/ANON_KEY (placeholders —
- * .github/workflows/ci.yml, tests/README.md), so isSupabaseConfigured()
- * is true on every CI run: these screens always take the real branch
- * there, never mockStore's fallback. So — same as tests/native-oauth.spec.js
- * and tests/admin-queues.spec.js — every test here replaces the client's
- * own methods with recorders before exercising the screen, rather than
- * asserting on the (CI-unreachable) unconfigured branch.
+ * Profile.tsx's and ClientProfile.tsx's verification and account-deletion
+ * flows on the real path — which, since profile step 2, is taken when
+ * someone is signed in (lib/remoteSession.ts), not merely when Supabase is
+ * configured. CI is configured (placeholder credentials) but never signed
+ * in, so each test here signs in against tests/fakeSupabase.js first.
  */
 
-async function open(browser, { screen, role = 'coach', params = null, seed = null } = {}) {
+async function open(browser, { screen, role = 'coach', seed = null, tables, fail } = {}) {
   const ctx = await browser.newContext({ viewport: { width: 420, height: 900 } });
   const page = await ctx.newPage();
   const errs = [];
@@ -36,73 +30,59 @@ async function open(browser, { screen, role = 'coach', params = null, seed = nul
       await eval(src)(m);
     }, seed);
   }
-  await page.evaluate(async ([s, p]) => {
+  await installFakeSupabase(page, { tables, fail });
+  await signIn(page);
+  await page.evaluate(async (s) => {
     const m = await import('/src/store/appStore.ts');
-    m.useAppStore.getState().nav(p ? { screen: s, params: p } : s);
-  }, [screen, params]);
+    m.useAppStore.getState().nav(s);
+  }, screen);
   await page.waitForTimeout(400);
   return { page, ctx, errs };
 }
 
-// Both delete-confirm tests need the "nothing outstanding" branch of the
-// confirm sheet (Cancel/Delete buttons), not the blocked one (a "Got it"
-// dead end) — the demo seed has real credits and upcoming sessions on
-// purpose (obligations tests want that), so this is cleared deliberately
-// rather than picked around.
+const COACH_TABLES = {
+  profiles: [{ id: 'user-123', full_name: 'Rana Coach', phone: '', country_code: '+20', email: 'rana@x.com', country: 'Egypt', country_flag: '', city: 'Cairo', avatar_photo_url: null, account_status: 'active' }],
+  coach_profiles: [{ profile_id: 'user-123', title: 'Life coaching', cert: '', bio: '', languages: [], session_mode: 'both', experience_years: null, certifications: [], cover_photo_url: null, verification_status: 'unverified', signup_completed_at: '2026-09-01T00:00:00Z' }],
+};
+
+// The delete confirm sheet shows its Cancel/Delete variant only when
+// nothing is outstanding. Obligations are still mockStore's (clients and
+// sessions are migration step 3), and the demo seed has plenty, on purpose.
 const CLEAR_PRO_OBLIGATIONS = `(m) => { for (const c of m.getClients()) m.updateClient(c.id, { active: false }); }`;
 const CLEAR_SARA_OBLIGATIONS = `(m) => {
   m.updateClient('sara', { nextSessionAtMs: null });
   localStorage.setItem('rafiq_package_sara', JSON.stringify({ total: 0, used: 0, expiresAtMs: Date.now() + 30 * 86400000 }));
 }`;
 
-// Same technique tests/admin-queues.spec.js and tests/native-oauth.spec.js
-// use: replace the client's own methods so nothing ever reaches a network.
-const installSpy = (page, { insertError = null } = {}) => page.evaluate(async (insertError) => {
-  const { getSupabase } = await import('/src/lib/supabase.ts');
-  const real = getSupabase();
-  window.__calls = [];
-  real.auth.getUser = async () => ({ data: { user: { id: 'user-123' } } });
-  real.auth.signOut = async () => {
-    window.__calls.push(['auth.signOut']);
-    return { error: null };
-  };
-  real.from = (table) => ({
-    insert: async (payload) => {
-      window.__calls.push([table, payload]);
-      return { error: insertError };
-    },
-  });
-}, insertError);
-
-const calls = (page) => page.evaluate(() => window.__calls);
+const inserts = async (page, table) => (await dbCalls(page)).filter((c) => c.table === table && c.op === 'insert');
+const signedOut = async (page) => (await dbCalls(page)).some((c) => c.op === 'auth.signOut');
 
 // ---------------------------------------------------------------------------
 
-test('Profile: requesting verification files a real row and toasts', async ({ browser }) => {
-  const { page, ctx, errs } = await open(browser, { screen: 'profile' });
-  await installSpy(page);
+test('Profile: requesting verification files a real row, and the badge reads the column back', async ({ browser }) => {
+  const { page, ctx, errs } = await open(browser, { screen: 'profile', tables: COACH_TABLES });
+
+  const badge = page.locator('.profile-row', { hasText: 'Verification' }).locator('.profile-row-badge');
+  expect.soft((await badge.innerText()).trim(), 'starts from the real column').toBe('Unverified');
 
   await page.locator('.profile-row', { hasText: 'Verification' }).click();
   await page.waitForTimeout(300);
 
-  const c = await calls(page);
-  expect.soft(c.length, 'exactly one insert').toBe(1);
-  expect.soft(c[0][0]).toBe('verification_requests');
-  expect.soft(c[0][1]).toEqual({ coach_id: 'user-123', note: '' });
+  const filed = await inserts(page, 'verification_requests');
+  expect.soft(filed.length, 'exactly one request').toBe(1);
+  expect.soft(filed[0]?.values).toEqual({ coach_id: 'user-123', note: '' });
+  expect.soft((await badge.innerText()).trim(), "pending, because the trigger flipped the column — re-read, not assumed").toBe('Pending');
   expect.soft(await page.locator('.profile-toast').count(), 'a toast confirms the request').toBe(1);
-  // The badge is still mockStore's local mirror (LAUNCH-CHECKLIST.md's
-  // "profile and onboarding" step is what converts the read side) — kept
-  // in sync so the UI reads the same as a successful request always has.
-  const badge = (await page.locator('.profile-row-badge').nth(1).innerText()).trim();
-  expect.soft(badge).not.toBe('Unverified');
+  // #38's workaround wrote a local mirror as well; there is no mirror now.
+  const localStatus = await page.evaluate(async () => (await import('/src/lib/mockStore.ts')).getVerificationStatus());
+  expect.soft(localStatus, 'mockStore untouched').toBe('unverified');
 
   await ctx.close();
   expect.soft(errs, 'no page errors').toEqual([]);
 });
 
 test('Profile: a failed verification request toasts an error and leaves the row usable', async ({ browser }) => {
-  const { page, ctx, errs } = await open(browser, { screen: 'profile' });
-  await installSpy(page, { insertError: { message: 'network down', code: '08006' } });
+  const { page, ctx, errs } = await open(browser, { screen: 'profile', tables: COACH_TABLES, fail: ['verification_requests'] });
 
   await page.locator('.profile-row', { hasText: 'Verification' }).click();
   await page.waitForTimeout(300);
@@ -117,17 +97,15 @@ test('Profile: a failed verification request toasts an error and leaves the row 
 });
 
 test('Profile: confirming account deletion files a real row and signs out', async ({ browser }) => {
-  const { page, ctx, errs } = await open(browser, { screen: 'profile', seed: CLEAR_PRO_OBLIGATIONS });
-  await installSpy(page);
+  const { page, ctx, errs } = await open(browser, { screen: 'profile', tables: COACH_TABLES, seed: CLEAR_PRO_OBLIGATIONS });
 
   await page.locator('button', { hasText: 'Delete Account' }).click();
   await page.waitForTimeout(200);
   await page.locator('.profile-modal-btn-danger').click();
   await page.waitForTimeout(300);
 
-  const c = await calls(page);
-  expect.soft(c[0]).toEqual(['account_deletion_requests', { profile_id: 'user-123' }]);
-  expect.soft(c.some((x) => x[0] === 'auth.signOut'), 'signed out after a successful request').toBe(true);
+  expect.soft(await dbRows(page, 'account_deletion_requests')).toEqual([{ profile_id: 'user-123', id: 'account_deletion_requests-1' }]);
+  expect.soft(await signedOut(page), 'signed out after a successful request').toBe(true);
   expect.soft(await page.locator('.profile-modal-backdrop').count(), 'confirm sheet closed').toBe(0);
 
   await ctx.close();
@@ -135,16 +113,16 @@ test('Profile: confirming account deletion files a real row and signs out', asyn
 });
 
 test('Profile: a failed deletion request keeps the sheet open with an error, and never signs out', async ({ browser }) => {
-  const { page, ctx, errs } = await open(browser, { screen: 'profile', seed: CLEAR_PRO_OBLIGATIONS });
-  await installSpy(page, { insertError: { message: 'network down', code: '08006' } });
+  const { page, ctx, errs } = await open(browser, {
+    screen: 'profile', tables: COACH_TABLES, seed: CLEAR_PRO_OBLIGATIONS, fail: ['account_deletion_requests'],
+  });
 
   await page.locator('button', { hasText: 'Delete Account' }).click();
   await page.waitForTimeout(200);
   await page.locator('.profile-modal-btn-danger').click();
   await page.waitForTimeout(300);
 
-  const c = await calls(page);
-  expect.soft(c.some((x) => x[0] === 'auth.signOut'), 'never reached sign-out').toBe(false);
+  expect.soft(await signedOut(page), 'never reached sign-out').toBe(false);
   expect.soft(await page.locator('.profile-toast-text').innerText(), 'error toast shown').toContain('Something went wrong');
   expect.soft(await page.locator('.profile-modal-backdrop').count(), 'sheet stayed open for a retry').toBe(1);
 
@@ -154,24 +132,23 @@ test('Profile: a failed deletion request keeps the sheet open with an error, and
 
 test('ClientProfile: confirming account deletion files a real row and signs out', async ({ browser }) => {
   const { page, ctx, errs } = await open(browser, { screen: 'clientProfile', role: 'client', seed: CLEAR_SARA_OBLIGATIONS });
-  await installSpy(page);
 
   await page.locator('button', { hasText: 'Delete Account' }).click();
   await page.waitForTimeout(200);
   await page.locator('.client-profile-modal-btn-danger').click();
   await page.waitForTimeout(300);
 
-  const c = await calls(page);
-  expect.soft(c[0]).toEqual(['account_deletion_requests', { profile_id: 'user-123' }]);
-  expect.soft(c.some((x) => x[0] === 'auth.signOut'), 'signed out after a successful request').toBe(true);
+  expect.soft((await inserts(page, 'account_deletion_requests'))[0]?.values).toEqual({ profile_id: 'user-123' });
+  expect.soft(await signedOut(page), 'signed out after a successful request').toBe(true);
 
   await ctx.close();
   expect.soft(errs, 'no page errors').toEqual([]);
 });
 
 test('ClientProfile: a failed deletion request shows an inline error and keeps the sheet open', async ({ browser }) => {
-  const { page, ctx, errs } = await open(browser, { screen: 'clientProfile', role: 'client', seed: CLEAR_SARA_OBLIGATIONS });
-  await installSpy(page, { insertError: { message: 'network down', code: '08006' } });
+  const { page, ctx, errs } = await open(browser, {
+    screen: 'clientProfile', role: 'client', seed: CLEAR_SARA_OBLIGATIONS, fail: ['account_deletion_requests'],
+  });
 
   await page.locator('button', { hasText: 'Delete Account' }).click();
   await page.waitForTimeout(200);
@@ -180,8 +157,7 @@ test('ClientProfile: a failed deletion request shows an inline error and keeps t
 
   expect.soft(await page.locator('.client-profile-modal-error').count(), 'inline error shown').toBe(1);
   expect.soft(await page.locator('.client-profile-modal-backdrop').count(), 'sheet stayed open').toBe(1);
-  const c = await calls(page);
-  expect.soft(c.some((x) => x[0] === 'auth.signOut'), 'never reached sign-out').toBe(false);
+  expect.soft(await signedOut(page), 'never reached sign-out').toBe(false);
 
   await ctx.close();
   expect.soft(errs, 'no page errors').toEqual([]);
