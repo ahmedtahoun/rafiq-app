@@ -174,7 +174,9 @@ Nothing native has ever run on a device or simulator (CLAUDE.md, "Not verified")
       commit it (`android/keystore/` is gitignored), and enroll in Play App
       Signing.
 - [ ] 🔴 Web page where users can request account deletion — Google Play
-      requires a URL, not only the in-app button.
+      requires a URL, not only the in-app button. **Page ready**
+      (`site/public/delete-account/`, EN + AR); goes live with the site at
+      `https://rafiqpro.com/delete-account/` once the domain is bought.
 - [ ] 🟡 `versionCode` / `versionName` (`android/app/build.gradle`) and
       `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` (Xcode) raised on every
       upload.
@@ -216,15 +218,18 @@ Waits on the name decision (§1).
       the demo data.
 - [ ] 🔴 Store text in English and Arabic: name (iOS: 30 characters),
       subtitle, description, keywords, category, "what's new".
-- [ ] 🔴 Public URLs: privacy policy, terms, support. The policies exist only
-      inside the app today.
+- [ ] 🔴 Public URLs: privacy policy, terms, support. **Pages ready** in
+      `site/public/`, EN + AR, generated from the app's own copy
+      (`npm run build:site`, see `site/README.md` for hosting and which URL
+      goes in which console). Waiting on registering rafiqpro.com.
 
 ## 8. Legal and policy (Ahmed)
 
 - [ ] 🔴 Privacy policy and terms reviewed by a lawyer and hosted publicly.
       Cover Egypt's data protection law (Law 151/2020), and GDPR if you accept
       EU users. Mood check-ins and coaching topics (breakups, stress) are
-      sensitive — say how they're protected.
+      sensitive — say how they're protected. Hosting is ready (`site/`);
+      the text it publishes is the app's current copy, not yet reviewed.
 - [ ] 🔴 **App Privacy (Apple) and Data safety (Google) forms** — list what's
       collected: name, email, phone, photos, messages, mood check-ins, ratings,
       payment status, plus crash data once §10 lands. For coaches who set up
