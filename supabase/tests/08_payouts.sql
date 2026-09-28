@@ -44,10 +44,10 @@ $$;
 -- A payout for coach A, as the Edge Function (service_role) would create it.
 insert into public.payouts (id, coach_id, amount, issuer, destination) values
   ('ffffffff-0000-4000-8000-000000000001', :coachA, 500, 'vodafone',
-   '{"msisdn":"01012345678","full_name":"Coach A","national_id":"29005270102927"}'),
+   '{"msisdn":"01012345678","full_name":"Coach A"}'),
   -- Coach C has no payments, so only this payout can block erasing them.
   ('ffffffff-0000-4000-8000-000000000002', :coachC, 200, 'orange',
-   '{"msisdn":"01212345678","full_name":"Coach C","national_id":"29005270102927"}');
+   '{"msisdn":"01212345678","full_name":"Coach C"}');
 
 set role authenticated;
 
@@ -96,5 +96,7 @@ reset role;
 -- As the owner: the ledger keeps its history ---------------------------------------
 select pg_temp.expect('a payout must be positive',
   pg_temp.try('insert into public.payouts (coach_id, amount, issuer, destination) values (' || quote_literal(:coachA) || ', 0, ''vodafone'', ''{}'')'), 'REJECTED(23514)');
+select pg_temp.expect('a payout record never keeps a national ID',
+  pg_temp.try('insert into public.payouts (coach_id, amount, issuer, destination) values (' || quote_literal(:coachA) || ', 10, ''vodafone'', ''{"msisdn":"01012345678","national_id":"29005270102927"}'')'), 'REJECTED(23514)');
 select pg_temp.expect('a paid coach cannot be erased',
   pg_temp.try('delete from public.coach_profiles where profile_id = ' || quote_literal(:coachC)), 'REJECTED(23503)');

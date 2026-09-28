@@ -2,6 +2,7 @@
 import { assert, assertEquals, assertRejects } from 'jsr:@std/assert@1';
 import {
   buildDisburseBody,
+  destinationSnapshot,
   disburse,
   getAccessToken,
   inquireByReference,
@@ -137,4 +138,11 @@ Deno.test('inquiry by reference: POSTs our ids, returns only the ones Paymob kno
   assertEquals(JSON.parse(String(r.calls[0].init!.body)).references_list, [wallet.id, bank.id]);
   assertEquals(found.get(wallet.id)?.status, 'success');
   assertEquals(found.has(bank.id), false);
+});
+
+Deno.test('a payout record keeps where the money went, never the national ID', () => {
+  const snap = destinationSnapshot(wallet.destination);
+  assertEquals(snap, { msisdn: '01012345678', bank_code: null, account_number: null, full_name: 'Yasmin Adel' });
+  assert(!('national_id' in snap));
+  assert(!JSON.stringify(destinationSnapshot(bank.destination)).includes('29005270102927'));
 });

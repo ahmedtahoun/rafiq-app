@@ -15,8 +15,8 @@ wallet or bank account. Paymob's API docs: https://payouts.paymobsolutions.com/d
 
 | Action | What it does |
 |---|---|
-| `create` `{ coach_id, amount, comment? }` | Validates against the coach's payout account and records a `requested` payout, with a snapshot of the destination |
-| `send` `{ payout_id }` | Claims the payout (`requested` → `processing`) so it can only ever be sent once, then calls Paymob and records `success`, `pending`, `failed` or `unknown` |
+| `create` `{ coach_id, amount, comment? }` | Validates against the coach's payout account and records a `requested` payout, with a snapshot of the destination (wallet or account number and name — never the national ID; `0009` enforces it) |
+| `send` `{ payout_id }` | Claims the payout (`requested` → `processing`) so it can only ever be sent once, reads the national ID from the coach's current payout account, then calls Paymob and records `success`, `pending`, `failed` or `unknown` |
 | `sync` | Asks Paymob about every `pending`/`unknown` payout (and any `processing` older than 2 minutes) by reference, and records what it says |
 | `balance` | Rafiq's remaining Paymob payout balance |
 
