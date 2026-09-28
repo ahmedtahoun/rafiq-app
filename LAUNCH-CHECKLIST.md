@@ -25,10 +25,13 @@ calendar time no matter how fast the code moves:
       **رفيق** in Arabic; the coach subscription is **Rafiq Pro Plus**
       (رفيق برو بلس). Bundle IDs stay `app.rafiqie.coach` — never shown to
       users, and changing them would mean new store listings.
-- [ ] 🔴 **One domain for the brand.** Support email is `support@rafiqpro.com`
-      while the app IDs say `rafiqie`. The domain hosts the privacy policy,
-      terms, support page and account-deletion page (§8), and Google's OAuth
-      consent screen needs it as an authorized domain (§5).
+- [ ] 🔴 **One domain for the brand.** Decided: **rafiqpro.com** (matches
+      the name and `support@rafiqpro.com`). **Not registered yet — buy it
+      first:** the app already sends users to `support@rafiqpro.com`, which
+      bounces until the domain and a mailbox exist. Then it hosts the privacy
+      policy, terms, support page and account-deletion page (§8), and goes
+      on Google's OAuth consent screen as an authorized domain (§5). The app
+      IDs saying `rafiqie` don't matter: they are never shown.
 - [ ] 🔴 **Payments model** — see §3 before deciding. Includes whether Rafiq
       takes a commission on sessions and how coaches get paid out.
 - [ ] 🟡 **Company / legal entity** that owns the developer accounts, receives
