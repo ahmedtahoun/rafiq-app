@@ -390,11 +390,45 @@ const en = {
     subscriptionProConfirmedTitle: "You're now on Rafiq Pro Plus!", subscriptionProConfirmedBodyTemplate: 'Unlimited members, your verified badge, and featured placement are live now. Renews on {date}.',
     subscriptionFreeConfirmedTitle: "You're on the Free plan", subscriptionFreeConfirmedBody: 'Thanks for the feedback — it genuinely helps us improve Rafiq Pro. You can upgrade again anytime.',
 
+    // Earnings — payout history (payouts, 0007). Authored, no prototype.
+    earningsPayouts: 'Payouts', earningsPayoutsEmpty: 'No payouts yet',
+    earningsPayoutsLoadFailed: "Couldn't load your payouts.",
+    payoutStatusRequested: 'Requested', payoutStatusProcessing: 'Processing', payoutStatusPending: 'Pending',
+    payoutStatusSuccess: 'Paid', payoutStatusFailed: 'Failed', payoutStatusUnknown: 'Checking status',
+
     // Earnings.dc.html
     earningsTitle: 'Earnings', earningsTotalReceived: 'Total received', earningsByMember: 'By member',
     earningsPaid: 'paid up', earningsDue: 'need payment', earningsNoMembers: 'No members yet',
     earningsStatusPaid: 'Paid up', earningsStatusDue: 'Payment due', earningsStatusOverdue: 'Payment overdue', earningsStatusPending: 'Payment pending',
     earningsPendingConfirmation: 'awaiting confirmation', earningsPendingSuffix: '+{amount} EGP pending',
+
+    // PayoutAccount — authored, no prototype. Saved to coach_payout_accounts
+    // (0007); the payout itself is sent by the Rafiq Pro team.
+    payoutAccountTitle: 'Payout account', payoutAccountSub: 'Where your earnings are sent',
+    payoutSignedOutTitle: 'Sign in to set up payouts',
+    payoutSignedOutBody: 'Your payout account is saved to your Rafiq Pro account, so you need to be signed in to add or change it.',
+    payoutIntro: 'Tell us where to send your earnings. The Rafiq Pro team sends each payout; you never need to share a password or PIN.',
+    payoutPrivacyNote: 'Only you and the Rafiq Pro team can see these details. They are shared with Paymob, our payment provider, only to send your payouts.',
+    payoutMethodLabel: 'Payout method', payoutMethodWallet: 'Mobile wallet', payoutMethodBank: 'Bank account',
+    payoutIssuerLabel: 'Wallet provider',
+    payoutIssuerVodafone: 'Vodafone Cash', payoutIssuerEtisalat: 'Etisalat Cash', payoutIssuerOrange: 'Orange Cash', payoutIssuerBankWallet: 'Bank wallet',
+    payoutMsisdnLabel: 'Wallet number', payoutMsisdnHint: '11 digits, starting with 01',
+    payoutBankLabel: 'Bank', payoutBankPlaceholder: 'Choose your bank',
+    payoutAccountNumberLabel: 'Account number or IBAN', payoutAccountNumberHint: '6 to 20 digits, or an IBAN starting with EG',
+    payoutFullNameLabel: 'Full name', payoutFullNameHint: 'As it appears on your national ID',
+    payoutNationalIdLabel: 'National ID number', payoutNationalIdHint: '14 digits',
+    payoutReenterHint: 'Enter it again to change it — the saved one ends in {last4}',
+    payoutErrMsisdn: 'Enter an 11-digit mobile number starting with 01.',
+    payoutErrBankCode: 'Choose your bank.',
+    payoutErrAccountNumber: 'Enter 6 to 20 digits, or an IBAN: EG followed by 27 digits.',
+    payoutErrFullName: 'Enter your full name.',
+    payoutErrNationalId: 'Enter the 14 digits of your national ID.',
+    payoutSave: 'Save payout account', payoutSaving: 'Saving…', payoutCancelEdit: 'Cancel',
+    payoutSaveFailed: "Your payout account wasn't saved. Please try again.",
+    payoutSaved: 'Payout account saved',
+    payoutChange: 'Change payout account',
+    payoutSavedMethod: 'Method', payoutSavedName: 'Name', payoutSavedNumber: 'Number', payoutSavedNationalId: 'National ID',
+    payoutEndsIn: 'ending in {last4}',
     // Templates.dc.html / TemplateDetail.dc.html
     // Neither screen carries a translations() block in the prototype — both
     // are English-only there — so the Arabic below is authored, not ported.
@@ -511,9 +545,9 @@ const en = {
 
     // CoachPrivacyPolicy.dc.html — ported, Arabic included.
     privacyTitle: 'Privacy Policy',
-    privacyUpdated: 'Last updated: October 2025',
+    privacyUpdated: 'Last updated: September 2026',
     privacySection1Heading: 'What we collect',
-    privacySection1Body: 'We collect your name, contact details, and the member, task, and schedule information you enter to run your coaching practice on Rafiq Pro.',
+    privacySection1Body: 'We collect your name, contact details, and the member, task, and schedule information you enter to run your coaching practice on Rafiq Pro. If you set up payouts, we also collect your national ID and the mobile wallet or bank account number you want to be paid to: Paymob, the payment company that sends your money, requires both for every payout. In the app, only you and the Rafiq Pro team can see them, and we share them only with Paymob, only to send your payouts.',
     privacySection2Heading: "Your members' data",
     privacySection2Body: 'Member names, progress, and mood check-ins you record are visible only to you and that member — never shared with other pros or members.',
     privacySection3Heading: 'How we use it',
@@ -1327,11 +1361,44 @@ const ar: Record<MessageKey, string> = {
     subscriptionProConfirmedTitle: 'أصبحت الآن على رفيق برو بلس!', subscriptionProConfirmedBodyTemplate: 'أصبح الآن متاحًا: عدد غير محدود من الأعضاء، علامة التوثيق، والظهور المميز. يتجدد في {date}.',
     subscriptionFreeConfirmedTitle: 'أنت الآن على الباقة المجانية', subscriptionFreeConfirmedBody: 'شكرًا لملاحظاتك — فعلًا تساعدنا على تحسين رفيق. يمكنك الترقية مرة أخرى في أي وقت.',
 
+    // Earnings — سجل الدفعات (payouts، 0007).
+    earningsPayouts: 'دفعات الأرباح', earningsPayoutsEmpty: 'لا توجد دفعات بعد',
+    earningsPayoutsLoadFailed: 'تعذّر تحميل دفعاتك.',
+    payoutStatusRequested: 'تم الطلب', payoutStatusProcessing: 'قيد المعالجة', payoutStatusPending: 'قيد الانتظار',
+    payoutStatusSuccess: 'تم الدفع', payoutStatusFailed: 'فشلت', payoutStatusUnknown: 'جارٍ التحقق من الحالة',
+
     // Earnings.dc.html
     earningsTitle: 'الأرباح', earningsTotalReceived: 'إجمالي المستلم', earningsByMember: 'حسب العضو',
     earningsPaid: 'دفعوا', earningsDue: 'بحاجة للدفع', earningsNoMembers: 'لا يوجد أعضاء بعد',
     earningsStatusPaid: 'تم الدفع', earningsStatusDue: 'الدفع مستحق', earningsStatusOverdue: 'الدفع متأخر', earningsStatusPending: 'الدفع قيد الانتظار',
     earningsPendingConfirmation: 'بانتظار التأكيد', earningsPendingSuffix: '+{amount} جنيه قيد الانتظار',
+
+    // PayoutAccount — مكتوبة مباشرة، بلا نموذج أولي.
+    payoutAccountTitle: 'حساب استلام الأرباح', payoutAccountSub: 'المكان الذي تُرسل إليه أرباحك',
+    payoutSignedOutTitle: 'سجّل الدخول لإعداد استلام أرباحك',
+    payoutSignedOutBody: 'يُحفظ حساب استلام الأرباح في حسابك على رفيق، لذلك يلزم تسجيل الدخول لإضافته أو تغييره.',
+    payoutIntro: 'أخبرنا أين نرسل أرباحك. فريق رفيق هو من يرسل كل دفعة، ولن نطلب منك أبدًا كلمة مرور أو رقمًا سريًا.',
+    payoutPrivacyNote: 'لا يرى هذه البيانات إلا أنت وفريق رفيق. ولا نشاركها إلا مع باي موب، مزوّد الدفع لدينا، وفقط لإرسال أرباحك.',
+    payoutMethodLabel: 'طريقة الاستلام', payoutMethodWallet: 'محفظة موبايل', payoutMethodBank: 'حساب بنكي',
+    payoutIssuerLabel: 'مزوّد المحفظة',
+    payoutIssuerVodafone: 'فودافون كاش', payoutIssuerEtisalat: 'اتصالات كاش', payoutIssuerOrange: 'أورنج كاش', payoutIssuerBankWallet: 'محفظة بنكية',
+    payoutMsisdnLabel: 'رقم المحفظة', payoutMsisdnHint: '11 رقمًا تبدأ بـ 01',
+    payoutBankLabel: 'البنك', payoutBankPlaceholder: 'اختر البنك',
+    payoutAccountNumberLabel: 'رقم الحساب أو رقم الآيبان', payoutAccountNumberHint: 'من 6 إلى 20 رقمًا، أو رقم آيبان يبدأ بـ EG',
+    payoutFullNameLabel: 'الاسم بالكامل', payoutFullNameHint: 'كما هو مكتوب في بطاقة الرقم القومي',
+    payoutNationalIdLabel: 'الرقم القومي', payoutNationalIdHint: '14 رقمًا',
+    payoutReenterHint: 'أدخله مرة أخرى لتغييره — المحفوظ ينتهي بـ {last4}',
+    payoutErrMsisdn: 'أدخل رقم موبايل من 11 رقمًا يبدأ بـ 01.',
+    payoutErrBankCode: 'اختر البنك.',
+    payoutErrAccountNumber: 'أدخل من 6 إلى 20 رقمًا، أو رقم آيبان: EG يليها 27 رقمًا.',
+    payoutErrFullName: 'أدخل اسمك بالكامل.',
+    payoutErrNationalId: 'أدخل الأرقام الـ 14 لرقمك القومي.',
+    payoutSave: 'حفظ حساب الاستلام', payoutSaving: 'جارٍ الحفظ…', payoutCancelEdit: 'إلغاء',
+    payoutSaveFailed: 'لم يُحفظ حساب الاستلام. يرجى المحاولة مرة أخرى.',
+    payoutSaved: 'تم حفظ حساب الاستلام',
+    payoutChange: 'تغيير حساب الاستلام',
+    payoutSavedMethod: 'الطريقة', payoutSavedName: 'الاسم', payoutSavedNumber: 'الرقم', payoutSavedNationalId: 'الرقم القومي',
+    payoutEndsIn: 'ينتهي بـ {last4}',
     // Templates.dc.html / TemplateDetail.dc.html — authored, not ported:
     // neither screen has a translations() block in the prototype.
     templatesTitle: 'قوالب الجلسات',
@@ -1447,9 +1514,9 @@ const ar: Record<MessageKey, string> = {
 
     // CoachPrivacyPolicy.dc.html — ported 1:1.
     privacyTitle: 'سياسة الخصوصية',
-    privacyUpdated: 'آخر تحديث: أكتوبر 2025',
+    privacyUpdated: 'آخر تحديث: سبتمبر 2026',
     privacySection1Heading: 'ما الذي نجمعه',
-    privacySection1Body: 'نجمع اسمك وبيانات التواصل الخاصة بك ومعلومات الأعضاء والمهام والجدول التي تدخلها لإدارة ممارستك التدريبية على رفيق.',
+    privacySection1Body: 'نجمع اسمك وبيانات التواصل الخاصة بك ومعلومات الأعضاء والمهام والجدول التي تدخلها لإدارة ممارستك التدريبية على رفيق. وإذا أعددت استلام مستحقاتك، نجمع أيضًا رقمك القومي ورقم المحفظة الإلكترونية أو الحساب البنكي الذي تريد الاستلام عليه، لأن باي موب، شركة الدفع التي ترسل إليك أموالك، تشترط الاثنين في كل عملية تحويل. داخل التطبيق لا يرى هذه البيانات إلا أنت وفريق رفيق، ولا نشاركها إلا مع باي موب، ولغرض إرسال مستحقاتك فقط.',
     privacySection2Heading: 'بيانات أعضائك',
     privacySection2Body: 'أسماء الأعضاء وتقدمهم وتسجيلات مزاجهم التي تسجلها تكون مرئية فقط لك وللعضو — لا تُشارك أبدًا مع محترفين أو أعضاء آخرين.',
     privacySection3Heading: 'كيف نستخدمها',

@@ -1,7 +1,10 @@
+import { useEffect, useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, type MessageKey } from '../lib/i18n';
+import { useRemoteSession } from '../lib/remoteSession';
+import { fetchOwnPayouts, type PayoutRecord, type PayoutStatus } from '../lib/payoutHistory';
 import { useFormat } from '../lib/format';
-import { ChevronIcon, SunIcon, MoonIcon } from '../components/icons';
+import { ChevronIcon, SunIcon, MoonIcon, ArrowForwardIcon } from '../components/icons';
 import { darken } from '../lib/color';
 import { getClient, getEarningsSummary, type PaymentStatus } from '../lib/mockStore';
 import './Earnings.css';
@@ -11,6 +14,7 @@ import './Earnings.css';
 export default function Earnings() {
   const t = useT();
   const fmt = useFormat();
+  const remote = useRemoteSession();
   const back = useAppStore((s) => s.back);
   const dark = useAppStore((s) => s.dark);
   const setDark = useAppStore((s) => s.setDark);
@@ -81,6 +85,14 @@ export default function Earnings() {
           {hasPending && <div className="earnings-pending-summary">{pendingSummaryLabel}</div>}
         </div>
 
+        <button type="button" className="earnings-payout-link" onClick={() => nav('payoutAccount')}>
+          <div className="earnings-payout-link-text">
+            <div className="earnings-payout-link-title">{t('payoutAccountTitle')}</div>
+            <div className="earnings-payout-link-sub">{t('payoutAccountSub')}</div>
+          </div>
+          <ArrowForwardIcon size={15} color="var(--ink-soft)" />
+        </button>
+
         <div className="earnings-list-section">
           <div className="earnings-list-label">{t('earningsByMember')}</div>
           {rows.length > 0 ? (
@@ -101,7 +113,89 @@ export default function Earnings() {
             <div className="earnings-empty">{t('earningsNoMembers')}</div>
           )}
         </div>
+
+        {remote && <PayoutHistory />}
       </div>
     </div>
+  );
+}
+
+const PAYOUT_STATUS: Record<PayoutStatus, { label: MessageKey; tone: 'green' | 'red' | 'amber' | 'soft' }> = {
+  requested: { label: 'payoutStatusRequested', tone: 'amber' },
+  processing: { label: 'payoutStatusProcessing', tone: 'amber' },
+  pending: { label: 'payoutStatusPending', tone: 'amber' },
+  success: { label: 'payoutStatusSuccess', tone: 'green' },
+  failed: { label: 'payoutStatusFailed', tone: 'red' },
+  unknown: { label: 'payoutStatusUnknown', tone: 'soft' },
+};
+
+type PayoutsLoad = { status: 'loading' } | { status: 'error' } | { status: 'ready'; payouts: PayoutRecord[] };
+
+/**
+ * The money the Rafiq Pro team has sent this coach (the payouts ledger).
+ * Signed in only — there are no demo payouts, so signed out the section
+ * isn't there rather than showing made-up ones.
+ */
+function PayoutHistory() {
+  const t = useT();
+  const fmt = useFormat();
+  const [load, setLoad] = useState<PayoutsLoad>({ status: 'loading' });
+  const [attempt, setAttempt] = useState(0);
+
+  useEffect(() => {
+    let live = true;
+    void fetchOwnPayouts().then((result) => {
+      if (live) setLoad(result.ok ? { status: 'ready', payouts: result.data } : { status: 'error' });
+    });
+    return () => {
+      live = false;
+    };
+  }, [attempt]);
+
+  return (
+    <section className="earnings-list-section earnings-payouts" aria-labelledby="earnings-payouts-label">
+      <h2 id="earnings-payouts-label" className="earnings-list-label">
+        {t('earningsPayouts')}
+      </h2>
+      {load.status === 'loading' && (
+        <div className="earnings-empty" role="status">
+          {t('loadingEllipsis')}
+        </div>
+      )}
+      {load.status === 'error' && (
+        <div className="earnings-payouts-error" role="alert">
+          <span>{t('earningsPayoutsLoadFailed')}</span>
+          <button
+            type="button"
+            className="earnings-payouts-retry"
+            onClick={() => {
+              setLoad({ status: 'loading' });
+              setAttempt((n) => n + 1);
+            }}
+          >
+            {t('retry')}
+          </button>
+        </div>
+      )}
+      {load.status === 'ready' &&
+        (load.payouts.length === 0 ? (
+          <div className="earnings-empty">{t('earningsPayoutsEmpty')}</div>
+        ) : (
+          <ul className="earnings-list earnings-payout-list">
+            {load.payouts.map((p) => {
+              const status = PAYOUT_STATUS[p.status];
+              return (
+                <li key={p.id} className="earnings-payout-row">
+                  <div className="earnings-row-text">
+                    <div className="earnings-payout-amount">{p.currency === 'EGP' ? fmt.money(p.amount) : `${fmt.amount(p.amount)} ${p.currency}`}</div>
+                    <div className="earnings-payout-date">{fmt.instantDate(p.createdAt)}</div>
+                  </div>
+                  <div className={`earnings-payout-status is-${status.tone}`}>{t(status.label)}</div>
+                </li>
+              );
+            })}
+          </ul>
+        ))}
+    </section>
   );
 }

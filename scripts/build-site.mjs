@@ -130,10 +130,13 @@ function render(lang, slug) {
       <h2>${esc(c.deleteEmailHeading)}</h2>
       <p>${esc(c.deleteEmailBody)}</p>
       <p class="email-cta">${text(SUPPORT_EMAIL, deleteSubject)}</p>
+      <h2>${esc(c.deleteTimeHeading)}</h2>
+      <p>${esc(c.deleteTimeBody)}</p>
       <h2>${esc(c.deleteRemovedHeading)}</h2>
       <p>${esc(c.deleteRemovedBody)}</p>
       <h2>${esc(c.deleteKeptHeading)}</h2>
       <p>${esc(c.deleteKeptBody)}</p>
+      <p>${esc(c.deleteKeptPayoutsBody)}</p>
       <h2>${esc(c.deleteBlockedHeading)}</h2>
       <p>${esc(c.deleteBlockedBody)}</p>`;
   }

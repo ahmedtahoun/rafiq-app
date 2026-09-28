@@ -378,6 +378,18 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
             </div>
             <ArrowForwardIcon size={15} color="var(--ink-soft)" />
           </button>
+          <button type="button" className="profile-row" onClick={() => nav('payoutAccount')}>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 10l9-6 9 6" />
+              <path d="M5 10v8M9.5 10v8M14.5 10v8M19 10v8" />
+              <path d="M3 21h18" />
+            </svg>
+            <div className="profile-row-text">
+              <div className="profile-row-title">{t('payoutAccountTitle')}</div>
+              <div className="profile-row-sub">{t('payoutAccountSub')}</div>
+            </div>
+            <ArrowForwardIcon size={15} color="var(--ink-soft)" />
+          </button>
           <button type="button" className="profile-row" onClick={() => nav('availability')}>
             <ScheduleIcon size={17} color="var(--accent)" />
             <div className="profile-row-text">

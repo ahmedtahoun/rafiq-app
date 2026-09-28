@@ -123,6 +123,20 @@ tests run in `Africa/Cairo` (`playwright.config.ts`) so it shows up there,
 not only on a phone. Store timestamps, never display strings — `Task.due`
 and `Client.nextSession` were both English sentences once.
 
+**Two kinds of time, two formatters.** Which one depends on where the value
+came from, not on what it looks like:
+
+- *Calendar values* — anything on the fixed week (tasks, sessions,
+  availability, mockStore dates). Wall-clock time in UTC fields: use
+  `fmt.date` / `fmt.time` / `fmt.taskDue`, which format in UTC.
+- *Real instants* — a moment Supabase recorded (`created_at`, `sent_at`,
+  `settled_at` on `payouts`; any `timestamptz` the server stamps). Use
+  `fmt.instantDate`, which formats in the device's zone. Through the UTC
+  formatters, a payout made at 1 AM in Cairo shows the day before.
+
+The test suite runs in `Africa/Cairo`, so mixing them up shows as a wrong
+date there (`tests/payout-history.spec.js` checks one across midnight).
+
 **`readLocal` does not validate shape.** It parses whatever is stored and
 casts it to the expected type, so a value written by an older version
 crashes the first screen that iterates it. Worth knowing when you change a

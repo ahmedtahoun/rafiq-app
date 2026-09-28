@@ -36,9 +36,12 @@ const LOCALE: Record<Lang, string> = {
  */
 const CALENDAR_ZONE = 'UTC';
 
-/** A grouped number: 5400 -> "5,400". */
+/** A grouped number: 5400 -> "5,400". A fractional one gets both decimal
+    places, as money does: 300.5 -> "300.50" (payouts are numeric(12,2)). */
 export function formatAmount(lang: Lang, value: number): string {
-  return value.toLocaleString(LOCALE[lang]);
+  return Number.isInteger(value)
+    ? value.toLocaleString(LOCALE[lang])
+    : value.toLocaleString(LOCALE[lang], { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 /** An amount with the currency word: "5,400 EGP" / "5,400 جنيه". */
@@ -128,6 +131,24 @@ export function formatNextSession(lang: Lang, atMs: number, todayMs: number): st
   return translate(lang, 'nextSessionAt', { date, time });
 }
 
+/**
+ * A real moment in time, as a date in the device's own time zone:
+ * "Sep 28, 2026" / "28 سبتمبر 2026".
+ *
+ * For timestamps Supabase records when something actually happened — a
+ * payout's created_at — not for the fixed-week calendar values above.
+ * Those are wall-clock times stored as UTC fields and must be formatted in
+ * UTC; a real instant formatted that way lands on the wrong day for
+ * anything recorded between midnight and 3 AM in Cairo.
+ */
+export function formatInstantDate(lang: Lang, at: string | number): string {
+  return new Date(at).toLocaleDateString(LOCALE[lang], {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
 /** The same, bound to the active language, for use inside a component. */
 export function useFormat() {
   const lang = useAppStore((s) => s.lang);
@@ -135,6 +156,7 @@ export function useFormat() {
     amount: (value: number) => formatAmount(lang, value),
     money: (value: number) => formatMoney(lang, value),
     date: (ms: number) => formatDisplayDate(lang, ms),
+    instantDate: (at: string | number) => formatInstantDate(lang, at),
     time: (ms: number) => formatTime(lang, ms),
     timeParts: (ms: number) => formatTimeParts(lang, ms),
     taskDue: (dueAtMs: number, hasTime = false) => formatTaskDue(lang, dueAtMs, hasTime, TODAY_MS),
