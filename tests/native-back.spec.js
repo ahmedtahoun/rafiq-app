@@ -66,6 +66,26 @@ const pressBack = (page) => page.evaluate(async () => {
   await App.notifyListeners('backButton', { canGoBack: false });
 });
 
+// Counts exitApp() calls. "Store unchanged" alone can't tell exiting from
+// doing nothing — on Welcome or Main, back() is itself a no-op — so the
+// exit branch needs its own signal. Capacitor resolves each plugin method
+// on the web implementation at call time (impl[prop]), and the impl is
+// `new AppWeb()` from the chunk the App plugin module imports; importing
+// that same URL here gets the same module instance, so patching its
+// prototype is what the real call reaches. The URL is read out of the
+// plugin module's own source rather than hard-coded, since it carries a
+// dependency-optimizer hash.
+const spyOnExit = (page) => page.evaluate(async () => {
+  const src = await (await fetch('/@id/@capacitor/app')).text();
+  const webUrl = src.match(/import\("([^"]*\/web-[^"]*)"\)/)[1];
+  const { AppWeb } = await import(webUrl);
+  window.__exitCalls = 0;
+  AppWeb.prototype.exitApp = async function () {
+    window.__exitCalls += 1;
+  };
+});
+const exitCalls = (page) => page.evaluate(() => window.__exitCalls);
+
 const storeState = (page) => page.evaluate(async () => {
   const { useAppStore } = await import('/src/store/appStore.ts');
   const s = useAppStore.getState();
@@ -79,34 +99,29 @@ const nav = (page, patch) => page.evaluate(async (p) => {
 
 // ---------------------------------------------------------------------------
 
-test('shouldExitOnBack: exits only on a dead end (empty history on a ROOTS screen)', async ({ browser }) => {
+test('shouldExitOnBack: exits only where back() has nowhere to go', async ({ browser }) => {
   const { page, ctx, errs } = await open(browser, null);
 
-  const r = await page.evaluate(async () => {
-    const [back, store] = await Promise.all([
-      import('/src/lib/nativeBack.ts'),
-      import('/src/store/appStore.ts'),
-    ]);
-    const allScreens = [
-      'welcome', 'roleSelect', 'auth', 'clientAuth', 'onboarding', 'main', 'profile',
-      'editProfile', 'clients', 'addClient', 'clientDetail', 'schedule', 'addTimeBlock',
-      'discover', 'clientHome', 'clientSchedule', 'clientTasks', 'myPrograms', 'programDetail',
-      'messagesInbox', 'comingSoon',
-    ];
-    return allScreens.map((s) => [
-      s,
-      store.ROOTS.includes(s),
-      back.shouldExitOnBack(s, 0),
-      back.shouldExitOnBack(s, 3),
-    ]);
-  });
+  // Pinned by hand rather than recomputed from ROOTS/PARENT, so a change to
+  // either list that alters behaviour has to change this table too.
+  // Exits on an empty history: every tab root, plus the screens with no
+  // PARENT at all — welcome (the app's first screen), roleSelect and
+  // onboarding. Everything else has a PARENT for back() to fall back to.
+  const expected = {
+    welcome: true, roleSelect: true, onboarding: true,
+    main: true, profile: true, clients: true, schedule: true, discover: true, clientHome: true,
+    clientSchedule: true, clientTasks: true, myPrograms: true, messagesInbox: true, comingSoon: true,
+    auth: false, clientAuth: false, editProfile: false, addClient: false, clientDetail: false,
+    editClient: false, addTimeBlock: false, programDetail: false,
+  };
 
-  for (const [screen, isRoot, exitsAtEmptyHist, exitsWithHist] of r) {
-    // A ROOTS screen only exits when there truly is no history — and a
-    // non-ROOTS screen never exits, no matter how empty its history is
-    // (welcome, for instance, is a dead end that stays put — the whole
-    // point of routing through the same PARENT-less no-op back() honors).
-    expect.soft(exitsAtEmptyHist, `${screen} (ROOTS=${isRoot}), empty history`).toBe(isRoot);
+  const r = await page.evaluate(async (screens) => {
+    const back = await import('/src/lib/nativeBack.ts');
+    return screens.map((s) => [s, back.shouldExitOnBack(s, 0), back.shouldExitOnBack(s, 3)]);
+  }, Object.keys(expected));
+
+  for (const [screen, exitsAtEmptyHist, exitsWithHist] of r) {
+    expect.soft(exitsAtEmptyHist, `${screen}, empty history`).toBe(expected[screen]);
     expect.soft(exitsWithHist, `${screen}, non-empty history never exits`).toBe(false);
   }
 
@@ -142,6 +157,7 @@ for (const platform of ['android', 'ios']) {
     // is the "real back-history wins" case even though clients is itself
     // a ROOTS screen — the bug this guards is exiting the app one press
     // too early instead of the on-screen back arrow's own behaviour.
+    await spyOnExit(page);
     await nav(page, { screen: 'clients' });
     await nav(page, { screen: 'addClient' });
     const before = await storeState(page);
@@ -151,37 +167,46 @@ for (const platform of ['android', 'ios']) {
     await page.waitForTimeout(150);
 
     const after = await storeState(page);
-    expect.soft(after.screen, `${platform}: popped back to clients, not exited`).toBe('clients');
+    expect.soft(after.screen, `${platform}: popped back to clients`).toBe('clients');
     expect.soft(after.histLen, `${platform}:   history is empty again`).toBe(0);
+    expect.soft(await exitCalls(page), `${platform}:   and did not exit`).toBe(0);
 
     await ctx.close();
     expect.soft(errs, `${platform}: no page errors`).toEqual([]);
   });
 
-  test(`native (${platform}): a true dead end takes the exit branch, not back()`, async ({ browser }) => {
+  // main: a tab root. welcome: the app's first screen — no history, no
+  // PARENT, not a root — where back() alone is a silent no-op, so before
+  // this rule the hardware button did nothing at all there.
+  for (const screen of ['main', 'welcome']) {
+    test(`native (${platform}): back on ${screen} with no history exits the app`, async ({ browser }) => {
+      const { page, ctx, errs } = await open(browser, platform);
+
+      await spyOnExit(page);
+      await nav(page, { screen });
+      const before = await storeState(page);
+      expect.soft(before, `${platform}: on ${screen}, no history`).toEqual({ screen, histLen: 0 });
+
+      await pressBack(page);
+      await page.waitForTimeout(150);
+
+      expect.soft(await exitCalls(page), `${platform}: exitApp() called once`).toBe(1);
+      expect.soft(await storeState(page), `${platform}: and back() did not move anything`).toEqual(before);
+
+      await ctx.close();
+      expect.soft(errs, `${platform}: no page errors`).toEqual([]);
+    });
+  }
+
+  test(`native (${platform}): the web fallback's unimplemented exitApp() rejection is swallowed`, async ({ browser }) => {
+    // No spy here: the real web exitApp() rejects with "Not implemented on
+    // web", and nativeBack.ts's .catch() is what keeps that from surfacing
+    // as an unhandled rejection.
     const { page, ctx, errs } = await open(browser, platform);
-
-    // main is a ROOTS screen entered with empty history — the same shape
-    // as landing on any bottom-nav tab. Before this fix a hardware back
-    // press here exited the app immediately; now it still should (there
-    // is nowhere for back() to send it), but through the exit branch,
-    // not a call to back() that would otherwise silently no-op here.
-    await nav(page, { screen: 'main' });
-    const before = await storeState(page);
-    expect.soft(before, `${platform}: on main, no history`).toEqual({ screen: 'main', histLen: 0 });
-
+    await nav(page, { screen: 'welcome' });
     await pressBack(page);
     await page.waitForTimeout(150);
-
-    const after = await storeState(page);
-    // exitApp() rejects under Capacitor's web fallback and is caught
-    // internally — nothing about that should touch the store, which is
-    // exactly how "the exit branch ran instead of back()" shows up here.
-    expect.soft(after, `${platform}: store untouched — back() was not called`).toEqual(before);
-
     await ctx.close();
-    // Confirms the .catch() on exitApp() actually caught the rejection
-    // Capacitor's web fallback throws, rather than leaving it unhandled.
-    expect.soft(errs, `${platform}: the unimplemented exitApp() rejection was swallowed`).toEqual([]);
+    expect.soft(errs, `${platform}: no page errors`).toEqual([]);
   });
 }

@@ -94,6 +94,9 @@ const PARENT: Partial<Record<Screen, Screen | typeof RET>> = {
   // where a back with no history belongs.
   clientOnboarding: 'clientAuth',
   addClient: 'clients',
+  // Not 'clientDetail': a PARENT hop carries no params, so it would land on
+  // ClientDetail's empty state. Same reasoning as addTask below.
+  editClient: 'clients',
   templates: 'profile',
   shareProfile: 'profile',
   previewProfile: 'profile',
@@ -145,6 +148,18 @@ const PARENT: Partial<Record<Screen, Screen | typeof RET>> = {
   // screen, not a child of the calendar view).
   availability: 'profile',
 };
+
+function parentOf(screen: Screen): Screen | null {
+  const parent = PARENT[screen];
+  return parent && parent !== RET ? parent : null;
+}
+
+/** Whether back() with an empty history has a PARENT to fall back to. The
+    Android hardware back button (nativeBack.ts) exits the app when it
+    doesn't, so both read the same rule rather than two copies of it. */
+export function hasBackParent(screen: Screen): boolean {
+  return parentOf(screen) !== null;
+}
 
 interface NavPatch {
   screen?: Screen;
@@ -256,9 +271,9 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ screen: prev.screen, params: prev.params, hist: h });
       return;
     }
-    const parent = PARENT[screen];
-    if (parent && parent !== RET) {
-      set({ screen: parent as Screen, params: NO_PARAMS, hist: [] });
+    const parent = parentOf(screen);
+    if (parent) {
+      set({ screen: parent, params: NO_PARAMS, hist: [] });
     }
     // RET or no PARENT entry: nothing sensible to go back to from here
     // (e.g. 'welcome' itself) — no-op rather than guessing a destination.
