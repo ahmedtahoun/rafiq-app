@@ -41,12 +41,16 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
     const NETWORK = { message: 'network down', code: '08006' };
 
     function run(q) {
-      log({ table: q.table, op: q.op, values: q.values ?? null, filters: q.filters });
+      log({ table: q.table, op: q.op, values: q.values ?? null, filters: q.filters, ...(q.columns ? { columns: q.columns } : {}), ...(q.order ? { order: q.order } : {}) });
       if (failing(q.table) || failing(`${q.table}.${q.op}`)) return { data: null, error: NETWORK };
       const rows = (db[q.table] ??= []);
       const matches = rows.filter((r) => q.filters.every(([c, v]) => r[c] === v));
 
       if (q.op === 'select') {
+        if (q.order) {
+          const [col, asc] = q.order;
+          matches.sort((a, b) => (a[col] < b[col] ? -1 : a[col] > b[col] ? 1 : 0) * (asc ? 1 : -1));
+        }
         return { data: q.single ? matches[0] ?? null : matches, error: null };
       }
       if (q.op === 'update') {
@@ -69,12 +73,13 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
     }
 
     real.from = (table) => {
-      const q = { table, op: 'select', values: null, filters: [], single: false, returning: false };
+      const q = { table, op: 'select', values: null, filters: [], single: false, returning: false, order: null };
       const b = {
-        select() { if (q.op !== 'select') q.returning = true; return b; },
+        select(columns) { if (q.op !== 'select') q.returning = true; else q.columns = columns ?? '*'; return b; },
         update(values) { q.op = 'update'; q.values = values; return b; },
         insert(values) { q.op = 'insert'; q.values = values; return b; },
         eq(col, val) { q.filters.push([col, val]); return b; },
+        order(col, { ascending = true } = {}) { q.order = [col, ascending]; return b; },
         maybeSingle() { q.single = true; return b; },
         then(resolve, reject) { return Promise.resolve().then(() => run(q)).then(resolve, reject); },
       };

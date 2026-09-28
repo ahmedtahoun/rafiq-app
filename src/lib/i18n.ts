@@ -390,6 +390,12 @@ const en = {
     subscriptionProConfirmedTitle: "You're now on Rafiq Pro Plus!", subscriptionProConfirmedBodyTemplate: 'Unlimited members, your verified badge, and featured placement are live now. Renews on {date}.',
     subscriptionFreeConfirmedTitle: "You're on the Free plan", subscriptionFreeConfirmedBody: 'Thanks for the feedback — it genuinely helps us improve Rafiq Pro. You can upgrade again anytime.',
 
+    // Earnings — payout history (payouts, 0007). Authored, no prototype.
+    earningsPayouts: 'Payouts', earningsPayoutsEmpty: 'No payouts yet',
+    earningsPayoutsLoadFailed: "Couldn't load your payouts.",
+    payoutStatusRequested: 'Requested', payoutStatusProcessing: 'Processing', payoutStatusPending: 'Pending',
+    payoutStatusSuccess: 'Paid', payoutStatusFailed: 'Failed', payoutStatusUnknown: 'Checking status',
+
     // Earnings.dc.html
     earningsTitle: 'Earnings', earningsTotalReceived: 'Total received', earningsByMember: 'By member',
     earningsPaid: 'paid up', earningsDue: 'need payment', earningsNoMembers: 'No members yet',
@@ -1354,6 +1360,12 @@ const ar: Record<MessageKey, string> = {
     subscriptionSurveySubmit: 'الرجوع إلى الباقة المجانية', subscriptionSurveyKeepPro: 'لا، أريد البقاء على رفيق برو بلس',
     subscriptionProConfirmedTitle: 'أصبحت الآن على رفيق برو بلس!', subscriptionProConfirmedBodyTemplate: 'أصبح الآن متاحًا: عدد غير محدود من الأعضاء، علامة التوثيق، والظهور المميز. يتجدد في {date}.',
     subscriptionFreeConfirmedTitle: 'أنت الآن على الباقة المجانية', subscriptionFreeConfirmedBody: 'شكرًا لملاحظاتك — فعلًا تساعدنا على تحسين رفيق. يمكنك الترقية مرة أخرى في أي وقت.',
+
+    // Earnings — سجل الدفعات (payouts، 0007).
+    earningsPayouts: 'دفعات الأرباح', earningsPayoutsEmpty: 'لا توجد دفعات بعد',
+    earningsPayoutsLoadFailed: 'تعذّر تحميل دفعاتك.',
+    payoutStatusRequested: 'تم الطلب', payoutStatusProcessing: 'قيد المعالجة', payoutStatusPending: 'قيد الانتظار',
+    payoutStatusSuccess: 'تم الدفع', payoutStatusFailed: 'فشلت', payoutStatusUnknown: 'جارٍ التحقق من الحالة',
 
     // Earnings.dc.html
     earningsTitle: 'الأرباح', earningsTotalReceived: 'إجمالي المستلم', earningsByMember: 'حسب العضو',
