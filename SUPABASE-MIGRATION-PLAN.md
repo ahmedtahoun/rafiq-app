@@ -88,6 +88,10 @@ Matches LAUNCH-CHECKLIST.md §2's own list, expanded with why:
    (`useAppStore.getState().userId`, already real). A member can have more
    than one coach, so this is also where a member picks which
    relationship they're viewing, not just a single hardcoded row.
+   A roster row is linked to a member account (`clients.member_id`) only
+   for a member with a pending or accepted session request to that coach
+   (`0008`); a coach can't attach an arbitrary account. Walk-in rows
+   (`member_id` null) are unaffected.
 4. **Scheduling** — `time_blocks`, depends on real clients existing.
 5. **Messaging** — depends on real clients; also where Realtime
    subscriptions replace `mockStore`'s "read on every render" pattern,
