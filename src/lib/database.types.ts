@@ -74,6 +74,29 @@ export type Database = {
           },
         ]
       }
+      admin_users: {
+        Row: {
+          created_at: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          profile_id: string
+        }
+        Update: {
+          created_at?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_users_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agreements: {
         Row: {
           client_id: string
@@ -299,6 +322,54 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_payout_accounts: {
+        Row: {
+          account_number: string | null
+          bank_code: string | null
+          coach_id: string
+          full_name: string
+          issuer: Database["public"]["Enums"]["payout_issuer"]
+          msisdn: string | null
+          national_id: string
+          updated_at: string
+        }
+        Insert: {
+          account_number?: string | null
+          bank_code?: string | null
+          coach_id: string
+          full_name: string
+          issuer: Database["public"]["Enums"]["payout_issuer"]
+          msisdn?: string | null
+          national_id: string
+          updated_at?: string
+        }
+        Update: {
+          account_number?: string | null
+          bank_code?: string | null
+          coach_id?: string
+          full_name?: string
+          issuer?: Database["public"]["Enums"]["payout_issuer"]
+          msisdn?: string | null
+          national_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_payout_accounts_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: true
+            referencedRelation: "coach_directory"
+            referencedColumns: ["coach_id"]
+          },
+          {
+            foreignKeyName: "coach_payout_accounts_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: true
+            referencedRelation: "coach_profiles"
+            referencedColumns: ["profile_id"]
           },
         ]
       }
@@ -809,6 +880,85 @@ export type Database = {
             columns: ["refund_of"]
             isOneToOne: false
             referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payouts: {
+        Row: {
+          amount: number
+          coach_id: string
+          comment: string | null
+          created_at: string
+          currency: string
+          destination: Json
+          id: string
+          issuer: Database["public"]["Enums"]["payout_issuer"]
+          paymob_transaction_id: string | null
+          requested_by: string | null
+          sent_at: string | null
+          settled_at: string | null
+          status: Database["public"]["Enums"]["payout_status"]
+          status_code: string | null
+          status_description: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          coach_id: string
+          comment?: string | null
+          created_at?: string
+          currency?: string
+          destination: Json
+          id?: string
+          issuer: Database["public"]["Enums"]["payout_issuer"]
+          paymob_transaction_id?: string | null
+          requested_by?: string | null
+          sent_at?: string | null
+          settled_at?: string | null
+          status?: Database["public"]["Enums"]["payout_status"]
+          status_code?: string | null
+          status_description?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          coach_id?: string
+          comment?: string | null
+          created_at?: string
+          currency?: string
+          destination?: Json
+          id?: string
+          issuer?: Database["public"]["Enums"]["payout_issuer"]
+          paymob_transaction_id?: string | null
+          requested_by?: string | null
+          sent_at?: string | null
+          settled_at?: string | null
+          status?: Database["public"]["Enums"]["payout_status"]
+          status_code?: string | null
+          status_description?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payouts_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coach_directory"
+            referencedColumns: ["coach_id"]
+          },
+          {
+            foreignKeyName: "payouts_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coach_profiles"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "payouts_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1586,6 +1736,19 @@ export type Database = {
       payment_kind: "charge" | "refund"
       payment_state: "completed" | "pending" | "refunded"
       payment_status: "paid" | "due" | "overdue"
+      payout_issuer:
+        | "vodafone"
+        | "etisalat"
+        | "orange"
+        | "bank_wallet"
+        | "instant_bank"
+      payout_status:
+        | "requested"
+        | "processing"
+        | "pending"
+        | "success"
+        | "failed"
+        | "unknown"
       report_reason: "no_show" | "inappropriate" | "payment" | "other"
       report_status: "open" | "actioned" | "dismissed"
       request_status: "pending" | "accepted" | "declined" | "withdrawn"
@@ -1765,6 +1928,21 @@ export const Constants = {
       payment_kind: ["charge", "refund"],
       payment_state: ["completed", "pending", "refunded"],
       payment_status: ["paid", "due", "overdue"],
+      payout_issuer: [
+        "vodafone",
+        "etisalat",
+        "orange",
+        "bank_wallet",
+        "instant_bank",
+      ],
+      payout_status: [
+        "requested",
+        "processing",
+        "pending",
+        "success",
+        "failed",
+        "unknown",
+      ],
       report_reason: ["no_show", "inappropriate", "payment", "other"],
       report_status: ["open", "actioned", "dismissed"],
       request_status: ["pending", "accepted", "declined", "withdrawn"],
