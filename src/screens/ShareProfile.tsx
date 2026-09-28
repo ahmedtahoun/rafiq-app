@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useOwnCoachProfile, type OwnProfileView } from '../store/ownProfileStore';
+import { LoadState } from '../components/LoadState';
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { CheckIcon, ChevronIcon, ClientsIcon, EyeIcon, ShareIcon, StarIcon } from '../components/icons';
-import { getClients, getCoachProfile, getProAggregateRating } from '../lib/mockStore';
+import { getClients, getProAggregateRating } from '../lib/mockStore';
 import './ShareProfile.css';
 
 const ACCENT = '#B75C3D';
@@ -61,12 +63,19 @@ const CHANNELS: ShareChannel[] = ['whatsapp', 'messages', 'email', 'sms'];
 // 1:1 port of ShareProfile.dc.html — the shareable card, link and QR mock a
 // coach hands to a prospective member.
 export default function ShareProfile() {
+  const own = useOwnCoachProfile();
+  if (own.status === 'loading') return <LoadState status="loading" />;
+  if (own.status === 'error') return <LoadState status="error" onRetry={own.retry} showBack />;
+  return <ShareProfileView own={own} />;
+}
+
+function ShareProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }> }) {
   const t = useT();
   const back = useAppStore((s) => s.back);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [toast, setToast] = useState('');
 
-  const profile = getCoachProfile();
+  const profile = own.profile;
   const initials = profile.name.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2);
   const primarySpecialty = (profile.title || 'Life coaching').split(' · ')[0];
   const slug = profile.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
