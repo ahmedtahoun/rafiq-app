@@ -7,12 +7,14 @@
 
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import {
+  destinationSnapshot,
   disburse,
   getAccessToken,
   getBudget,
   inquireByReference,
   validatePayout,
   type Destination,
+  type DestinationSnapshot,
   type Issuer,
   type Outcome,
   type PayoutsConfig,
@@ -40,14 +42,13 @@ function config(): PayoutsConfig | null {
 }
 
 /** Last four characters only — responses go to a browser. */
-function mask(d: Destination): Record<string, string | null> {
+function mask(d: DestinationSnapshot): Record<string, string | null> {
   const tail = (v?: string | null) => (v ? `••••${v.slice(-4)}` : null);
   return {
     msisdn: tail(d.msisdn),
     bank_code: d.bank_code ?? null,
     account_number: tail(d.account_number),
     full_name: d.full_name,
-    national_id: tail(d.national_id),
   };
 }
 
@@ -103,16 +104,17 @@ Deno.serve(async (req) => {
       };
       const invalid = validatePayout({ id: crypto.randomUUID(), amount, issuer: account.issuer as Issuer, destination });
       if (invalid) return reply(422, { error: 'invalid_payout', detail: invalid });
+      const snapshot = destinationSnapshot(destination);
       const { data: row, error } = await db.from('payouts').insert({
         coach_id: coachId,
         amount,
         issuer: account.issuer,
-        destination,
+        destination: snapshot,
         comment: typeof body.comment === 'string' ? body.comment : null,
         requested_by: auth.user.id,
       }).select('id, coach_id, amount, issuer, status, created_at').single();
       if (error) return reply(500, { error: 'insert_failed', detail: error.message });
-      return reply(201, { payout: { ...row, destination: mask(destination) } });
+      return reply(201, { payout: { ...row, destination: mask(snapshot) } });
     }
 
     case 'send': {
@@ -125,11 +127,20 @@ Deno.serve(async (req) => {
         .select('*').maybeSingle();
       if (!claimed) return reply(409, { error: 'not_in_requested_state' });
 
+      // The national ID isn't on the payout record (see destinationSnapshot);
+      // Paymob needs it, so read it from the coach's current account.
+      const { data: account } = await db.from('coach_payout_accounts')
+        .select('national_id').eq('coach_id', claimed.coach_id).maybeSingle();
+      if (!account) {
+        await record(db, id, { status: 'failed', transactionId: null, statusCode: null, statusDescription: 'coach has no payout account' });
+        return reply(409, { error: 'coach_has_no_payout_account' });
+      }
+
       const payout = {
         id: claimed.id as string,
         amount: Number(claimed.amount),
         issuer: claimed.issuer as Issuer,
-        destination: claimed.destination as Destination,
+        destination: { ...(claimed.destination as DestinationSnapshot), national_id: account.national_id as string },
         comment: claimed.comment as string | null,
       };
       const invalid = validatePayout(payout);

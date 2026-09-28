@@ -34,6 +34,23 @@ export interface Destination {
   national_id: string;
 }
 
+/**
+ * What a payout record keeps: where the money went, not who the person is.
+ * The ledger outlives an account deletion (it's a financial record), and the
+ * deletion page promises the national ID goes with the account — so it is
+ * read from coach_payout_accounts at send time and never stored here.
+ */
+export type DestinationSnapshot = Omit<Destination, 'national_id'>;
+
+export function destinationSnapshot(d: Destination): DestinationSnapshot {
+  return {
+    msisdn: d.msisdn ?? null,
+    bank_code: d.bank_code ?? null,
+    account_number: d.account_number ?? null,
+    full_name: d.full_name,
+  };
+}
+
 export interface PayoutRequest {
   /** Our payout id — sent as Paymob's client reference for timeout recovery. */
   id: string;
