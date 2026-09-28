@@ -511,9 +511,9 @@ const en = {
 
     // CoachPrivacyPolicy.dc.html — ported, Arabic included.
     privacyTitle: 'Privacy Policy',
-    privacyUpdated: 'Last updated: October 2025',
+    privacyUpdated: 'Last updated: September 2026',
     privacySection1Heading: 'What we collect',
-    privacySection1Body: 'We collect your name, contact details, and the member, task, and schedule information you enter to run your coaching practice on Rafiq Pro.',
+    privacySection1Body: 'We collect your name, contact details, and the member, task, and schedule information you enter to run your coaching practice on Rafiq Pro. If you set up payouts, we also collect your national ID and the mobile wallet or bank account number you want to be paid to: Paymob, the payment company that sends your money, requires both for every payout. In the app, only you and the Rafiq Pro team can see them, and we share them only with Paymob, only to send your payouts.',
     privacySection2Heading: "Your members' data",
     privacySection2Body: 'Member names, progress, and mood check-ins you record are visible only to you and that member — never shared with other pros or members.',
     privacySection3Heading: 'How we use it',
@@ -1447,9 +1447,9 @@ const ar: Record<MessageKey, string> = {
 
     // CoachPrivacyPolicy.dc.html — ported 1:1.
     privacyTitle: 'سياسة الخصوصية',
-    privacyUpdated: 'آخر تحديث: أكتوبر 2025',
+    privacyUpdated: 'آخر تحديث: سبتمبر 2026',
     privacySection1Heading: 'ما الذي نجمعه',
-    privacySection1Body: 'نجمع اسمك وبيانات التواصل الخاصة بك ومعلومات الأعضاء والمهام والجدول التي تدخلها لإدارة ممارستك التدريبية على رفيق.',
+    privacySection1Body: 'نجمع اسمك وبيانات التواصل الخاصة بك ومعلومات الأعضاء والمهام والجدول التي تدخلها لإدارة ممارستك التدريبية على رفيق. وإذا أعددت استلام مستحقاتك، نجمع أيضًا رقمك القومي ورقم المحفظة الإلكترونية أو الحساب البنكي الذي تريد الاستلام عليه، لأن باي موب، شركة الدفع التي ترسل إليك أموالك، تشترط الاثنين في كل عملية تحويل. داخل التطبيق لا يرى هذه البيانات إلا أنت وفريق رفيق، ولا نشاركها إلا مع باي موب، ولغرض إرسال مستحقاتك فقط.',
     privacySection2Heading: 'بيانات أعضائك',
     privacySection2Body: 'أسماء الأعضاء وتقدمهم وتسجيلات مزاجهم التي تسجلها تكون مرئية فقط لك وللعضو — لا تُشارك أبدًا مع محترفين أو أعضاء آخرين.',
     privacySection3Heading: 'كيف نستخدمها',
