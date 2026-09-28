@@ -48,6 +48,13 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # Supabase Edge Functions run on Deno, outside tsc's project. Check them
+      # with Deno itself, and run their unit tests (no network: Paymob is a recorder).
+      - name: Edge Functions (Deno check + test)
+        run: |
+          npx --yes deno check supabase/functions/payouts/index.ts
+          npx --yes deno test --no-prompt supabase/functions
+
   app-tests:
     name: app browser tests
     runs-on: ubuntu-latest

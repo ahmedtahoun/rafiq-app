@@ -35,3 +35,6 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+
+# Deno writes this when checking/testing supabase/functions locally
+deno.lock
