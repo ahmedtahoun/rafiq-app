@@ -193,7 +193,11 @@ begin
   if chk.err is not null and chk.err <> 'already_linked' then
     return jsonb_build_object('error', chk.err);
   end if;
-  select full_name, title, avatar_photo_url into d from public.coach_directory where coach_id = (chk.c).coach_id;
+  -- From the profile, not coach_directory: a coach can invite before their
+  -- public listing is finished, and the check already requires them active.
+  select p.full_name, cp.title, p.avatar_photo_url into d
+  from public.profiles p left join public.coach_profiles cp on cp.profile_id = p.id
+  where p.id = (chk.c).coach_id;
   return jsonb_build_object(
     'error', chk.err,
     'coach_id', (chk.c).coach_id,
