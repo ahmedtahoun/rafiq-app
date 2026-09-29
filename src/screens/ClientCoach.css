@@ -287,22 +287,12 @@
   justify-content: space-between;
   gap: 12px;
   width: 100%;
-  border: none;
   border-radius: 16px;
   padding: 14px 16px;
   background: var(--accent);
   color: #ffffff;
-  font-family: inherit;
   text-align: start;
-  cursor: pointer;
   box-shadow: 0 10px 20px -8px var(--accent-glow);
-}
-
-.client-coach-upgrade:disabled {
-  background: var(--line);
-  color: var(--ink-soft);
-  box-shadow: none;
-  cursor: default;
 }
 
 .client-coach-upgrade-title {
@@ -314,6 +304,26 @@
   font-size: 11.5px;
   margin-top: 2px;
   opacity: 0.9;
+}
+
+.client-coach-upgrade-note {
+  font-size: 11px;
+  line-height: 1.5;
+  margin-top: 7px;
+  opacity: 0.85;
+}
+
+.client-coach-soon-badge {
+  flex-shrink: 0;
+  align-self: flex-start;
+  border-radius: 999px;
+  padding: 4px 9px;
+  background: rgb(255 255 255 / 22%);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 /* ---------- about + stats ---------- */
@@ -433,8 +443,7 @@
   color: var(--ink-soft);
 }
 
-.client-coach-sheet-done,
-.client-coach-sheet-primary {
+.client-coach-sheet-done {
   width: 100%;
   border: none;
   border-radius: 14px;
@@ -445,154 +454,6 @@
   background: var(--accent);
   color: #ffffff;
   cursor: pointer;
-}
-
-.client-coach-sheet-primary:disabled {
-  background: var(--line);
-  color: var(--ink-soft);
-  cursor: default;
-}
-
-/* ---------- subscribe flow ---------- */
-
-.client-coach-subscribe {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.client-coach-plan {
-  background: var(--line);
-  border-radius: 16px;
-  padding: 6px 15px;
-}
-
-.client-coach-plan-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 0;
-  font-size: 12.5px;
-  color: var(--ink-soft);
-}
-
-.client-coach-plan-row + .client-coach-plan-row {
-  border-top: 1px solid var(--surface);
-}
-
-.client-coach-plan-price strong {
-  font-size: 14px;
-  color: var(--ink);
-}
-
-.client-coach-field-label {
-  font-size: 11.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--ink-soft);
-}
-
-.client-coach-days {
-  display: flex;
-  gap: 6px;
-}
-
-.client-coach-day {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  border-radius: 12px;
-  padding: 10px 2px;
-  background: var(--line);
-  color: var(--ink);
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.client-coach-day-on {
-  background: var(--accent);
-  color: #ffffff;
-}
-
-.client-coach-day:disabled {
-  color: var(--ink-soft);
-  opacity: 0.4;
-  cursor: default;
-}
-
-.client-coach-slots {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.client-coach-slot {
-  border: none;
-  border-radius: 12px;
-  padding: 11px 6px;
-  background: var(--line);
-  color: var(--ink);
-  font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.client-coach-slot-on {
-  background: var(--accent);
-  color: #ffffff;
-  box-shadow: 0 6px 14px -4px var(--accent-glow);
-}
-
-.client-coach-no-slots {
-  font-size: 12.5px;
-  color: var(--ink-soft);
-  text-align: center;
-  padding: 14px;
-  background: var(--line);
-  border-radius: 12px;
-}
-
-.client-coach-payment-box {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: var(--line);
-  border-radius: 16px;
-  padding: 14px 16px;
-}
-
-.client-coach-pay {
-  border: none;
-  border-radius: 12px;
-  padding: 12px;
-  background: var(--surface);
-  color: var(--accent);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: var(--shadow-soft);
-}
-
-.client-coach-paid {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--green);
-}
-
-.client-coach-demo-note {
-  margin: 0;
-  font-size: 10.5px;
-  line-height: 1.5;
-  color: var(--ink-soft);
 }
 
 .client-coach-report-error {

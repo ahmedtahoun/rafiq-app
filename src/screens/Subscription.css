@@ -142,15 +142,32 @@ html[dir='rtl'] .subscription-hero-plan {
   font-weight: 700;
 }
 
-.subscription-upgrade-btn {
-  text-align: center;
-  background: var(--accent);
-  color: #ffffff;
+.subscription-upgrade-soon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  border: 1px dashed var(--line);
   border-radius: 14px;
-  padding: 13px;
-  font-size: 13.5px;
+  padding: 12px;
+  text-align: center;
+}
+
+.subscription-soon-badge {
+  border-radius: 999px;
+  padding: 3px 9px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 10px;
   font-weight: 700;
-  box-shadow: 0 10px 20px -6px var(--accent-glow);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.subscription-soon-note {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
 }
 
 .subscription-disclaimer {
@@ -272,10 +289,6 @@ html[dir='rtl'] .subscription-hero-plan {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.subscription-confirmed-icon.is-pro {
-  background: var(--accent-soft);
 }
 
 .subscription-confirmed-title {

@@ -130,3 +130,25 @@ test('day names resolve to real copy on every screen that shows them', async ({ 
   expect.soft(/dowShort|dowFull/.test(text), 'coachPreview: no raw day keys').toBe(false);
   await ctx.close();
 });
+
+/**
+ * App Review rejects a button that looks like it takes payment and does
+ * not. Rafiq has no payment integration wired to the app yet, so no
+ * string may offer to charge a card, and no screen may claim a payment
+ * was made. Source-level rather than per-screen: the point is that the
+ * wording cannot come back anywhere, including on a screen no test walks.
+ */
+test('no copy offers a card payment the app cannot take', async () => {
+  const { readFileSync } = await import('node:fs');
+  const dict = readFileSync(new URL('../src/lib/i18n.ts', import.meta.url), 'utf8');
+
+  const banned = [
+    [/Pay with card/i, 'an English offer to charge a card'],
+    [/ادفع بالبطاقة/, 'an Arabic offer to charge a card'],
+    [/no real payment is processed/i, 'the English "this is a demo" payment note'],
+    [/لا يتم تنفيذ أي دفع فعلي/, 'the Arabic "this is a demo" payment note'],
+  ];
+  for (const [re, what] of banned) {
+    expect(dict, `i18n.ts still contains ${what}`).not.toMatch(re);
+  }
+});

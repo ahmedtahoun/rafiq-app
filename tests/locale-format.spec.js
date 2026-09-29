@@ -182,17 +182,19 @@ test('every screen that shows money agrees on the currency word', async ({ brows
 });
 
 test('every amount over 999 is grouped, in both languages', async ({ browser }) => {
-  // Offerings, Discover, CoachPreview, PreviewProfile, ClientCoach,
-  // ClientBooking, ClientDetail and both notification feeds each glued
+  // Offerings, Discover, CoachPreview, PreviewProfile, ClientBooking,
+  // ClientDetail and both notification feeds each glued
   // `${price} ${currency}` together themselves, so an offering read
   // "5400 EGP" while Earnings said "5,400 EGP".
+  // ClientCoach is no longer listed: the only amount it showed was Full
+  // Access's 7,200, inside the subscribe sheet that was removed when
+  // buying it stopped pretending to take payment.
   // The last column is a control to tap first, for amounts shown in a sheet.
   const screens = [
     ['offerings', 'coach', null, '5,400', null],
     ['previewProfile', 'coach', null, '5,400', null],
     ['clientDetail', 'coach', { clientId: 'sara' }, '5,400', '.client-detail-view-history'],
     ['notifications', 'coach', null, '5,400', null],
-    ['clientCoach', 'client', null, '7,200', '.client-coach-upgrade'],
   ];
   for (const lang of ['en', 'ar']) {
     for (const [screen, role, params, grouped, reveal] of screens) {

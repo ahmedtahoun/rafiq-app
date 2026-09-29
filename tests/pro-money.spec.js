@@ -209,25 +209,34 @@ test('Subscription: downgrading asks why first, and only then takes effect', asy
   expect.soft(errs, 'no page errors').toEqual([]);
 });
 
-test('Subscription: upgrading restores Pro and a renewal date', async ({ browser }) => {
-  const { page, ctx } = await open(browser, { screen: 'subscription',
+test('Subscription: upgrading is coming soon, and grants nothing', async ({ browser }) => {
+  // The upgrade button used to call setSubscriptionTier('pro') straight
+  // out, handing over a paid tier with no billing behind it. A coach
+  // subscription has to go through In-App Purchase or Play Billing, so
+  // until that exists the card says so and nothing changes.
+  const { page, ctx, errs } = await open(browser, { screen: 'subscription',
     seed: `(m) => m.setSubscriptionTier('free')` });
 
   expect.soft(await store(page, `(m) => m.getSubscription().tier`), 'starts free').toBe('free');
 
-  const upgrade = page.locator('button').filter({ hasText: /Upgrade|Go Pro|Rafiq Pro/i }).last();
-  if (await upgrade.count() > 0) {
-    await upgrade.click();
-    await page.waitForTimeout(450);
-  } else {
-    await store(page, `(m) => m.setSubscriptionTier('pro')`);
-  }
+  expect.soft(await page.locator('.subscription-upgrade-soon').count(), 'coming-soon block shown').toBe(1);
+  // innerText gives the rendered text, which the badge's text-transform uppercases.
+  expect.soft((await page.locator('.subscription-soon-badge').innerText()).toLowerCase(), '  badged').toBe('coming soon');
+  expect.soft(await page.locator('.subscription-upgrade-btn').count(), 'the upgrade button is gone').toBe(0);
+
+  // Nothing on the screen offers to take the upgrade.
+  const upgrade = page.locator('button').filter({ hasText: /Upgrade|Go Pro|Rafiq Pro Plus/i });
+  expect.soft(await upgrade.count(), 'no button offers to upgrade').toBe(0);
 
   const after = await store(page, `(m) => m.getSubscription()`);
-  expect.soft(after.tier, 'back on Pro').toBe('pro');
-  expect.soft(typeof after.renewsAtMs, 'Pro carries a renewal date').toBe('number');
+  expect.soft(after.tier, 'still free').toBe('free');
+  expect.soft(after.renewsAtMs, 'and carries no renewal date').toBe(null);
+
+  const text = await page.locator('.phone-frame').innerText();
+  expect.soft(/no real payment is processed/i.test(text), 'the demo disclaimer is gone').toBe(false);
 
   await ctx.close();
+  expect.soft(errs, 'no page errors').toEqual([]);
 });
 
 test('Money screens render in Arabic and dark without raw keys', async ({ browser }) => {
