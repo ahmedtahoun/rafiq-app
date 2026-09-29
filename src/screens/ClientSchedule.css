@@ -293,6 +293,11 @@
   justify-content: center;
 }
 
+/* A missed or disputed session. */
+.client-schedule-history-icon-amber {
+  background: var(--amber-bg);
+}
+
 .client-schedule-history-body {
   flex: 1;
   min-width: 0;

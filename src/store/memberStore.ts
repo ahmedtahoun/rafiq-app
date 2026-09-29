@@ -55,6 +55,8 @@ interface MemberState {
   selectedId: string | null;
   mockVersion: number;
   load: (userId: string) => Promise<void>;
+  /** Re-read in the background, keeping what's on screen (no spinner). */
+  refresh: (userId: string) => Promise<void>;
   patch: (fn: (r: Relationship[]) => Relationship[]) => void;
   setContact: (contact: MemberContact) => void;
   select: (clientId: string) => void;
@@ -93,6 +95,12 @@ export const useMemberStore = create<MemberState>((set, get) => ({
     if (get().userId !== userId) return;
     if (result.ok) set({ status: 'ready', data: result.data });
     else set({ status: 'error', errorCode: result.code });
+  },
+
+  async refresh(userId) {
+    if (get().userId !== userId || get().status !== 'ready') return;
+    const result = await fetchMemberSpace();
+    if (get().userId === userId && result.ok) set({ data: result.data });
   },
 
   patch(fn) {

@@ -1705,6 +1705,7 @@ export type Database = {
         Args: { p_outcome: Database["public"]["Enums"]["attendance"]; p_session: string }
         Returns: boolean
       }
+      member_cancel_session: { Args: { p_reason?: string; p_session: string }; Returns: boolean }
       refresh_next_session: { Args: { p_client: string }; Returns: undefined }
       reschedule_booking: { Args: { p_block: string; p_start: string }; Returns: undefined }
       push_notification: {

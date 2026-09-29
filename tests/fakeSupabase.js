@@ -177,6 +177,36 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       return { data: charged, error: null };
     }
 
+    // 0013's member_cancel_session, the same way: the member's own session
+    // only, then the record, the session cancelled, the block freed, a
+    // credit for a late cancel (never a free intro), and the next session.
+    // 17_member_cancel_session.sql proves the real one.
+    function memberCancel(args) {
+      const x = (db.sessions ??= []).find((r) => r.id === args.p_session);
+      const client = x && (db.clients ??= []).find((c) => c.id === x.client_id && c.member_id === userId);
+      if (!client) return refuse('P0002');
+      if (x.attendance) return refuse('55000');
+      if (Date.parse(x.scheduled_at) <= Date.now()) return refuse('22023');
+      const blocks = (db.time_blocks ??= []);
+      const block = blocks.find((b) => b.id === x.time_block_id);
+      const hours = Math.round((Date.parse(x.scheduled_at) - Date.now()) / 36000) / 100;
+      const late = hours < 12;
+      (db.cancellations ??= []).push({
+        id: `cancellations-${db.cancellations.length + 1}`, client_id: x.client_id, time_block_id: x.time_block_id,
+        cancelled_by_role: 'client', cancelled_by: userId, hours_until_session: hours, within_grace: !late, reason: null,
+      });
+      Object.assign(x, { attendance: 'cancelled', attendance_set_by: 'client', attendance_set_at: new Date().toISOString() });
+      db.time_blocks = blocks.filter((b) => b !== block);
+      let charged = false;
+      const pkg = (db.packages ??= []).find((p) => p.client_id === x.client_id);
+      if (late && block?.session_type !== 'intro' && pkg && pkg.used < pkg.total) {
+        pkg.used += 1;
+        charged = true;
+      }
+      refreshNext(x.client_id);
+      return { data: charged, error: null };
+    }
+
     real.rpc = async (fn, args) => {
       log({ op: 'rpc', fn, args });
       // window.__fake.rpcDelay (ms) keeps a call in flight, for a test that
@@ -185,6 +215,7 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       if (failing(`rpc.${fn}`)) return { data: null, error: NETWORK };
       if (fn === 'reschedule_booking' || fn === 'cancel_booking') return changeBooking(fn, args);
       if (fn === 'mark_attendance') return markAttendance(args);
+      if (fn === 'member_cancel_session') return memberCancel(args);
       if (fn !== 'accept_session_request') return refuse('42883');
       const r = (db.session_requests ??= []).find((x) => x.id === args.p_request && x.coach_id === userId);
       if (!r) return refuse('P0002');
