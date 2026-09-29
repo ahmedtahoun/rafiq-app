@@ -24,7 +24,14 @@
 --   * one that isn't a booked session (busy time, a request)  55000
 --   * a session that has already started, or a move into
 --     the past                                               22023
---   * a move that overlaps another booked session            23P01
+--   * a move that overlaps another booked session, or time
+--     the coach marked unavailable (a busy block)            23P01
+--
+-- Busy time now blocks a booking everywhere. Until this migration a busy
+-- block was only drawn on the calendar: 0010 checked a new booking against
+-- other bookings alone, so a coach who marked 2–4 PM Unavailable could
+-- still accept a request straight onto it. accept_session_request() is
+-- replaced below with the same body and 'busy' added to its overlap check.
 --
 -- A member's own moves and cancellations come with their Schedule (step 4,
 -- part 3); until then only the coach's side calls these.
@@ -87,11 +94,11 @@ begin
   if exists (
     select 1 from public.time_blocks o
     where o.coach_id = b.coach_id
-      and o.kind = 'booked'
+      and o.kind in ('booked', 'busy')
       and o.id <> b.id
       and tstzrange(o.starts_at, o.ends_at) && tstzrange(p_start, v_end)
   ) then
-    raise exception 'that time overlaps a session already booked' using errcode = '23P01';
+    raise exception 'that time overlaps a booked session or time marked unavailable' using errcode = '23P01';
   end if;
 
   update public.time_blocks set starts_at = p_start, ends_at = v_end where id = b.id;
@@ -134,6 +141,108 @@ begin
 
   delete from public.time_blocks where id = b.id;
   perform public.refresh_next_session(b.client_id);
+end;
+$$;
+
+-- 0010's accept, with busy time counted as taken. Everything else is as 0010
+-- has it, including its per-coach lock.
+create or replace function public.accept_session_request(p_request uuid)
+returns uuid
+language plpgsql
+security invoker
+set search_path = public
+as $$
+declare
+  r          public.session_requests%rowtype;
+  who        public.profiles%rowtype;
+  v_type     public.session_type;
+  v_end      timestamptz;
+  v_client   uuid;
+  v_block    uuid;
+  v_name     text;
+  v_offering text;
+begin
+  -- Locks the row, so a member withdrawing at the same moment either lands
+  -- first (and this sees 'withdrawn') or waits for this to finish.
+  select * into r from public.session_requests
+  where id = p_request and coach_id = auth.uid()
+  for update;
+  if not found then
+    raise exception 'no such request' using errcode = 'P0002';
+  end if;
+  if r.status <> 'pending' then
+    raise exception 'this request has already been answered or withdrawn' using errcode = '55000';
+  end if;
+  if r.requested_start <= now() then
+    raise exception 'the requested time has already passed' using errcode = '22023';
+  end if;
+
+  v_type := case when r.offering_id is null and r.price = 0 then 'intro' else 'standard' end;
+  v_end  := r.requested_start + make_interval(mins => case when v_type = 'intro' then 20 else 50 end);
+
+  -- The row lock above only covers this request. Two different requests
+  -- for the same slot, accepted at the same instant (two tabs, a double
+  -- tap), would both pass the overlap check before either inserts its
+  -- block. One lock per coach, held to the end of the transaction, makes
+  -- the second accept wait and then see the first one's booking.
+  perform pg_advisory_xact_lock(hashtextextended('accept_session_request:' || r.coach_id::text, 0));
+
+  if exists (
+    select 1 from public.time_blocks b
+    where b.coach_id = r.coach_id
+      and b.kind in ('booked', 'busy')
+      and tstzrange(b.starts_at, b.ends_at) && tstzrange(r.requested_start, v_end)
+  ) then
+    raise exception 'that time overlaps a booked session or time marked unavailable' using errcode = '23P01';
+  end if;
+
+  update public.session_requests
+  set status = 'accepted', responded_at = now()
+  where id = r.id;
+
+  -- Readable to this coach through profiles_select_own's session_requests arm.
+  select * into who from public.profiles where id = r.member_id;
+  v_name := coalesce(who.full_name, '');
+  select o.name into v_offering from public.offerings o where o.id = r.offering_id;
+
+  select c.id into v_client from public.clients c
+  where c.coach_id = r.coach_id and c.member_id = r.member_id;
+
+  if v_client is null then
+    insert into public.clients (
+      coach_id, member_id, full_name, initials, avatar_bg,
+      phone, country_code, email, program, active, payment_status
+    ) values (
+      r.coach_id, r.member_id, v_name,
+      upper(left(split_part(trim(v_name), ' ', 1), 1) || left(split_part(trim(v_name), ' ', 2), 1)),
+      (array['#B75C3D', '#3E6FB0', '#3F7D58', '#7A6BAE', '#A65D6E', '#1F7A8C', '#96472D', '#26547C'])
+        [1 + abs(hashtext(r.member_id::text)) % 8],
+      who.phone, who.country_code, who.email,
+      coalesce(v_offering, ''), true, 'due'
+    )
+    returning id into v_client;
+  else
+    -- An archived member coming back: EditClient's Archive is the soft
+    -- delete, so their history is still on this row.
+    update public.clients set active = true where id = v_client and not active;
+  end if;
+
+  insert into public.time_blocks (coach_id, client_id, kind, label, starts_at, ends_at, session_type)
+  values (r.coach_id, v_client, 'booked', 'Session · ' || v_name, r.requested_start, v_end, v_type)
+  returning id into v_block;
+
+  insert into public.sessions (client_id, scheduled_at, time_block_id)
+  values (v_client, r.requested_start, v_block);
+
+  update public.clients c
+  set next_session_at = s.first_at, next_session_type = v_type
+  from (
+    select min(scheduled_at) as first_at from public.sessions
+    where client_id = v_client and scheduled_at > now() and attendance is null
+  ) s
+  where c.id = v_client and s.first_at = r.requested_start;
+
+  return v_client;
 end;
 $$;
 

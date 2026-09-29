@@ -329,9 +329,14 @@ In small PRs, so each can be reviewed on its own:
    time. Both keep the roster row's next session right
    (`refresh_next_session()`), run as the coach (`SECURITY INVOKER`), and
    refuse a block that isn't theirs, isn't a booking, has started, or would
-   clash. Schedule offers them on a real booking until it starts; moving
-   needs 12 hours' notice, as in the demo. A session or request is drawn
-   above busy time it overlaps, so it can still be tapped.
+   clash. **Busy time counts as taken:** a move, and an accept (0011
+   replaces 0010's function with 'busy' added to its overlap check), can't
+   land on time the coach marked Unavailable, and the coach can remove a
+   busy block from its sheet. Members still can't see busy time when they
+   pick a slot, so such a request is refused when the coach accepts it.
+   Schedule offers move and cancel on a real booking until it starts;
+   moving needs 12 hours' notice, as in the demo. A session or request is
+   drawn above busy time it overlaps, so it can still be tapped.
 3. **Attendance** after a session, and the member's own Schedule and
    Booking between people already working together — including the
    member's side of moving and cancelling.

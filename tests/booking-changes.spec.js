@@ -130,8 +130,37 @@ test('a time on another booking is refused in the sheet, and nothing moves', asy
   await sheet(page).getByRole('button', { name: 'Reschedule' }).click();
   await page.locator('.schedule-slot-chip', { hasText: '3:00 PM' }).click();
   await page.getByRole('button', { name: 'Confirm new time' }).click();
-  await expect(page.getByRole('alert')).toHaveText('You already have a session booked at this time.');
+  await expect(page.getByRole('alert')).toHaveText('This time clashes with a booked session, or time you marked unavailable.');
   expect((await byId(page, 'time_blocks', 'b-hana-fri')).starts_at).toBe('2026-10-02T07:00:00Z');
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
+test('a move onto time marked unavailable is refused', async ({ browser }) => {
+  const { page, ctx, errs } = await open(browser);
+  await openFriday(page);
+  await sheet(page).getByRole('button', { name: 'Reschedule' }).click();
+  // Friday 10:00–12:00 is the coach's busy block.
+  await page.locator('.schedule-slot-chip', { hasText: '11:15 AM' }).click();
+  await page.getByRole('button', { name: 'Confirm new time' }).click();
+  await expect(page.getByRole('alert')).toHaveText('This time clashes with a booked session, or time you marked unavailable.');
+  expect((await byId(page, 'time_blocks', 'b-hana-fri')).starts_at).toBe('2026-10-02T07:00:00Z');
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
+test('the coach removes a busy block from its sheet', async ({ browser }) => {
+  const { page, ctx, errs } = await open(browser);
+  await page.locator('.schedule-day-chip').nth(4).click();
+  await page.locator('.schedule-block', { hasText: 'Unavailable' }).click();
+  await sheet(page).getByRole('button', { name: 'Remove this block' }).click();
+  await expect(page.locator('.schedule-block', { hasText: 'Unavailable' })).toHaveCount(0);
+  expect(await byId(page, 'time_blocks', 'b-fri')).toBeUndefined();
+  const [del] = (await dbCalls(page)).filter((c) => c.table === 'time_blocks' && c.op === 'delete');
+  expect(del.filters).toEqual([['id', 'b-fri'], ['kind', 'busy']]);
+  // A booked session is never deleted this way: its sheet has no Remove.
+  await page.locator('.schedule-block', { hasText: 'Hana Mostafa' }).click();
+  await expect(sheet(page).getByRole('button', { name: 'Remove this block' })).toHaveCount(0);
   expect(errs).toEqual([]);
   await ctx.close();
 });

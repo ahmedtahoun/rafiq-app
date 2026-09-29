@@ -28,6 +28,8 @@ $$;
 \set coachA '''11111111-1111-1111-1111-111111111111'''
 \set coachC '''55555555-5555-5555-5555-555555555555'''
 \set memberM '''33333333-3333-3333-3333-333333333333'''
+\set memberN '''44444444-4444-4444-4444-444444444444'''
+\set reqN '''dddddddd-0000-0000-0000-000000000150'''
 \set clientM '''aaaaaaaa-0000-0000-0000-000000000001'''
 \set b1 '''eeeeeeee-0000-0000-0000-000000000151'''
 \set b2 '''eeeeeeee-0000-0000-0000-000000000152'''
@@ -38,6 +40,7 @@ $$;
 select date_trunc('hour', now()) + interval '11 days' as t1 \gset
 select date_trunc('hour', now()) + interval '12 days' as t2 \gset
 select date_trunc('hour', now()) + interval '13 days' as t3 \gset
+select date_trunc('hour', now()) + interval '14 days' as t4 \gset
 select date_trunc('hour', now()) + interval '12 days 10 minutes' as t2_clash \gset
 select date_trunc('hour', now()) - interval '2 hours' as tpast \gset
 
@@ -87,18 +90,20 @@ select pg_temp.expect('...and changed nothing',
     || ':' || (select (scheduled_at = :'t1')::text from public.sessions where time_block_id = :b1), 'true:true');
 set role authenticated;
 
-select pg_temp.expect('the coach moves it (onto busy time is fine)',
-  pg_temp.as_user(:coachA, format('select public.reschedule_booking(%L, %L)::text', :b1, :'t3')), '');
+select pg_temp.expect('time marked unavailable is refused too',
+  pg_temp.as_user(:coachA, format('select public.reschedule_booking(%L, %L)::text', :b1, :'t3')), 'DENIED(23P01)');
+select pg_temp.expect('the coach moves it to a free time',
+  pg_temp.as_user(:coachA, format('select public.reschedule_booking(%L, %L)::text', :b1, :'t4')), '');
 reset role;
 select pg_temp.expect('block moved, same 50 minutes',
-  (select (starts_at = :'t3')::text || ':' || extract(epoch from ends_at - starts_at)::int / 60 from public.time_blocks where id = :b1), 'true:50');
+  (select (starts_at = :'t4')::text || ':' || extract(epoch from ends_at - starts_at)::int / 60 from public.time_blocks where id = :b1), 'true:50');
 select pg_temp.expect('the session moved with it',
-  (select (scheduled_at = :'t3')::text from public.sessions where time_block_id = :b1), 'true');
+  (select (scheduled_at = :'t4')::text from public.sessions where time_block_id = :b1), 'true');
 select pg_temp.expect('next session is now the intro',
   (select (next_session_at = :'t2')::text || ':' || next_session_type from public.clients where id = :clientM), 'true:intro');
 set role authenticated;
 select pg_temp.expect('a booking can move onto its own old time',
-  pg_temp.as_user(:coachA, format('select public.reschedule_booking(%L, %L)::text', :b1, :'t3'::timestamptz + interval '10 minutes')), '');
+  pg_temp.as_user(:coachA, format('select public.reschedule_booking(%L, %L)::text', :b1, :'t4'::timestamptz + interval '10 minutes')), '');
 
 -- Cancelling ----------------------------------------------------------------------
 select pg_temp.expect('busy time is not a booking to cancel',
@@ -116,7 +121,7 @@ select pg_temp.expect('a cancellation on record, with notice',
   (select cancelled_by_role || ':' || within_grace || ':' || (hours_until_session > 200) || ':' || reason
    from public.cancellations where client_id = :clientM and cancelled_by = :coachA order by cancelled_at desc limit 1), 'coach:true:true:Travelling');
 select pg_temp.expect('next session moves on to what is left',
-  (select (next_session_at = :'t3'::timestamptz + interval '10 minutes')::text || ':' || next_session_type from public.clients where id = :clientM), 'true:standard');
+  (select (next_session_at = :'t4'::timestamptz + interval '10 minutes')::text || ':' || next_session_type from public.clients where id = :clientM), 'true:standard');
 set role authenticated;
 select pg_temp.expect('member M sees the cancellation',
   pg_temp.as_user(:memberM, format('select count(*)::text from public.cancellations where client_id = %L and cancelled_by_role = ''coach''', :clientM)), '1');
@@ -127,3 +132,17 @@ select pg_temp.expect('cancelling the last clears next session',
 reset role;
 select pg_temp.expect('...to nothing',
   (select coalesce(next_session_at::text, 'none') from public.clients where id = :clientM), 'none');
+
+-- Accepting onto busy time (0010's accept, replaced in 0011) ---------------------
+insert into public.session_requests (id, member_id, coach_id, requested_start, price)
+values (:reqN, :memberN, :coachA, :'t3'::timestamptz + interval '15 minutes', 0);
+set role authenticated;
+select pg_temp.expect('a request onto time marked unavailable is refused',
+  pg_temp.as_user(:coachA, format('select public.accept_session_request(%L)::text', :reqN)), 'DENIED(23P01)');
+select pg_temp.expect('the coach removes their busy block',
+  pg_temp.as_user(:coachA, format('with d as (delete from public.time_blocks where id = %L and kind = ''busy'' returning 1) select count(*)::text from d', :busy)), '1');
+select pg_temp.expect('...and then it can be accepted',
+  pg_temp.as_user(:coachA, format('select (public.accept_session_request(%L) is not null)::text', :reqN)), 'true');
+select pg_temp.expect('accept keeps 0010''s grants',
+  has_function_privilege('anon', 'public.accept_session_request(uuid)', 'execute')::text
+    || ':' || has_function_privilege('authenticated', 'public.accept_session_request(uuid)', 'execute')::text, 'false:true');

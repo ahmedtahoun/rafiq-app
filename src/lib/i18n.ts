@@ -535,7 +535,7 @@ const en = {
     notificationsAccepted: 'Booked — {name} is on your Clients list now.',
     notificationsRequestGone: 'This request was withdrawn or already answered.',
     notificationsRequestPassed: 'This time has already passed. Decline it so {name} can pick another.',
-    notificationsSlotTaken: 'You already have a session booked at this time.',
+    notificationsSlotTaken: 'This time clashes with a booked session, or time you marked unavailable.',
     notificationsSessionRequest: '{name} requested a session',
     notificationsPaymentReceived: "{name}'s payment was received",
     notificationsPaymentSub: '{amount} EGP · {date}',
@@ -679,6 +679,7 @@ const en = {
     scheduleAttendanceMarkedDisputed: "Marked as disputed — held, won't charge or release a credit until resolved",
     scheduleMinutesSuffix: ' · {n} min',
     scheduleBookingGone: 'This session was already moved or cancelled.', scheduleSessionStarted: 'This session has already started.',
+    scheduleRemoveBlock: 'Remove this block',
 
     // AddTimeBlock.dc.html has no translations() of its own in the design
     // source (English-only prototype) — copy below is original, matching
@@ -1527,7 +1528,7 @@ const ar: Record<MessageKey, string> = {
     notificationsAccepted: 'تم الحجز — أصبح {name} ضمن قائمة عملائك.',
     notificationsRequestGone: 'تم سحب هذا الطلب أو الرد عليه بالفعل.',
     notificationsRequestPassed: 'مضى موعد هذا الطلب. ارفضه ليتمكن {name} من اختيار موعد آخر.',
-    notificationsSlotTaken: 'لديك جلسة محجوزة بالفعل في هذا الوقت.',
+    notificationsSlotTaken: 'هذا الوقت يتعارض مع جلسة محجوزة أو وقت حددته كغير متاح.',
     notificationsSessionRequest: 'طلب {name} جلسة',
     notificationsPaymentReceived: 'تم استلام دفعة {name}',
     notificationsPaymentSub: '{amount} جنيه · {date}',
@@ -1662,6 +1663,7 @@ const ar: Record<MessageKey, string> = {
     scheduleAttendanceMarkedDisputed: 'تم تمييزها كنزاع — معلّقة، لن يتم خصم أو إعادة جلسة حتى يُحل النزاع',
     scheduleMinutesSuffix: ' · {n} دقيقة',
     scheduleBookingGone: 'تم نقل هذه الجلسة أو إلغاؤها بالفعل.', scheduleSessionStarted: 'بدأت هذه الجلسة بالفعل.',
+    scheduleRemoveBlock: 'إزالة هذه الفترة',
 
     addTimeBlockTitle: 'إضافة فترة وقت', addTimeBlockCancel: 'إلغاء', addTimeBlockSave: 'حفظ',
     addTimeBlockDayLabel: 'اليوم',

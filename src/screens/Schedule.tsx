@@ -21,7 +21,7 @@ import { LoadState } from '../components/LoadState';
 import { useFormat } from '../lib/format';
 import { useRemoteSession } from '../lib/remoteSession';
 import { fetchOwnWeeklyAvailability, weekdayOf } from '../lib/requestData';
-import { cancelBooking as cancelRemoteBooking, fetchCoachWeek, rescheduleBooking as rescheduleRemoteBooking, type BookingChangeError } from '../lib/scheduleData';
+import { cancelBooking as cancelRemoteBooking, fetchCoachWeek, removeOwnBusyBlock, rescheduleBooking as rescheduleRemoteBooking, type BookingChangeError } from '../lib/scheduleData';
 import { wallNowMs, wallTodayMs } from '../lib/wallClock';
 import { useRosterStore } from '../store/rosterStore';
 import { useRemoteLoad } from '../store/remoteLoad';
@@ -350,7 +350,8 @@ export default function Schedule() {
       isBusy: b.kind === 'busy',
       isPending: b.kind === 'pending',
       showAvatar: b.kind === 'booked' || b.kind === 'pending',
-      canManage: b.kind === 'booked' || b.kind === 'pending',
+      // Signed in, the coach's own busy time opens too, to be removed.
+      canManage: b.kind === 'booked' || b.kind === 'pending' || (!!live && b.kind === 'busy' && !!b.id),
     };
   });
 
@@ -363,7 +364,7 @@ export default function Schedule() {
       startH: b.startH,
       endH: b.endH,
       kind: b.kind,
-      name: b.name ?? '',
+      name: b.name ?? (b.kind === 'busy' ? b.label : ''),
       range: b.range,
       avatarBg: b.avatarBg,
       initials: b.initials,
@@ -529,6 +530,21 @@ export default function Schedule() {
     await afterLiveChange();
   }
 
+  async function removeBusyBlock() {
+    if (!activeBlock?.id || changing) return;
+    setChanging(true);
+    setChangeError(null);
+    const result = await removeOwnBusyBlock(activeBlock.id);
+    setChanging(false);
+    if (!result.ok) {
+      setChangeError('requestFailedRetry');
+      return;
+    }
+    setShowBlockSheet(false);
+    setActiveBlock(null);
+    await afterLiveChange();
+  }
+
   function confirmReschedule() {
     if (live) {
       void confirmLiveReschedule();
@@ -554,6 +570,7 @@ export default function Schedule() {
   }
 
   function closeBlockSheet() {
+    setChangeError(null);
     setShowBlockSheet(false);
     setActiveBlock(null);
   }
@@ -763,7 +780,7 @@ export default function Schedule() {
                     opacity: b.rowOpacity,
                     // A session or request sits above busy or open time it
                     // overlaps, so it can still be tapped.
-                    zIndex: b.canManage ? 2 : 1,
+                    zIndex: b.isBooked || b.isPending ? 2 : 1,
                   }}
                   onClick={b.canManage ? () => openBlockSheet(b) : undefined}
                 >
@@ -872,7 +889,9 @@ export default function Schedule() {
         {activeBlock && (
           <>
             <div className="schedule-sheet-header">
-              <div className="schedule-sheet-avatar" style={{ background: activeBlock.avatarBg }}>{activeBlock.initials}</div>
+              <div className="schedule-sheet-avatar" style={{ background: activeBlock.kind === 'busy' ? 'var(--red)' : activeBlock.avatarBg }}>
+                {activeBlock.kind === 'busy' ? <LockIcon size={14} color="#FFFFFF" /> : activeBlock.initials}
+              </div>
               <div className="schedule-sheet-header-text">
                 <div className="schedule-sheet-name">{activeBlock.name}</div>
                 <div className="schedule-sheet-range" dir="ltr">{activeBlock.range}</div>
@@ -907,6 +926,15 @@ export default function Schedule() {
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="15" height="12" rx="2.5" /><path d="M22 8.5l-5 3.5 5 3.5v-7z" /></svg>
                 {t('scheduleJoinSession')}
               </button>
+            )}
+
+            {live && activeBlock.kind === 'busy' && (
+              <>
+                {changeError && <div className="schedule-sheet-notice schedule-sheet-notice-red" role="alert">{t(changeError)}</div>}
+                <button type="button" className="schedule-sheet-btn schedule-sheet-btn-red" disabled={changing} onClick={() => void removeBusyBlock()}>
+                  {t('scheduleRemoveBlock')}
+                </button>
+              </>
             )}
 
             {hasProfileLink && (

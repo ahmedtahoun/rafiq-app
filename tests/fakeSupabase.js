@@ -67,7 +67,7 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       }
       if (q.op === 'delete') {
         db[q.table] = rows.filter((r) => !matches.includes(r));
-        return { data: null, error: null };
+        return { data: q.returning ? matches.map((r) => ({ ...r })) : null, error: null };
       }
       // insert
       const key = KEYS[q.table] ?? 'id';
@@ -133,7 +133,7 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
         const start = Date.parse(args.p_start);
         if (start <= Date.now()) return refuse('22023');
         const end = start + (Date.parse(b.ends_at) - Date.parse(b.starts_at));
-        if (blocks.some((o) => o.id !== b.id && o.coach_id === userId && o.kind === 'booked' && Date.parse(o.starts_at) < end && Date.parse(o.ends_at) > start)) {
+        if (blocks.some((o) => o.id !== b.id && o.coach_id === userId && ['booked', 'busy'].includes(o.kind) && Date.parse(o.starts_at) < end && Date.parse(o.ends_at) > start)) {
           return refuse('23P01');
         }
         b.starts_at = new Date(start).toISOString();
@@ -167,7 +167,7 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       const intro = !r.offering_id && Number(r.price) === 0;
       const end = start + (intro ? 20 : 50) * 60000;
       const blocks = (db.time_blocks ??= []);
-      if (blocks.some((b) => b.coach_id === userId && b.kind === 'booked' && Date.parse(b.starts_at) < end && Date.parse(b.ends_at) > start)) {
+      if (blocks.some((b) => b.coach_id === userId && ['booked', 'busy'].includes(b.kind) && Date.parse(b.starts_at) < end && Date.parse(b.ends_at) > start)) {
         return refuse('23P01');
       }
       r.status = 'accepted';

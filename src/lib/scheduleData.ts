@@ -120,3 +120,17 @@ export async function cancelBooking(
   const { error } = await getSupabase().rpc('cancel_booking', { p_block: blockId });
   return error ? changeError(error) : { ok: true };
 }
+
+/** Remove one of the coach's own busy blocks. Only busy time: a booking is
+    cancelled through cancel_booking, never deleted. */
+export async function removeOwnBusyBlock(blockId: string): Promise<ScheduleResult<null>> {
+  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const { data, error } = await getSupabase()
+    .from('time_blocks')
+    .delete()
+    .eq('id', blockId)
+    .eq('kind', 'busy')
+    .select('id');
+  if (error) return unknown(error);
+  return data.length ? { ok: true, data: null } : unknown({ message: 'No such busy block.' });
+}

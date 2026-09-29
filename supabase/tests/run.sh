@@ -14,7 +14,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PGBIN="${PGBIN:-/usr/lib/postgresql/16/bin}"
 PGROOT="${PGROOT:-/var/tmp/rafiq-pgtest}"
-MIN_ASSERTIONS=326
+MIN_ASSERTIONS=331
 
 OUT=""
 OWN_CLUSTER=""
