@@ -159,7 +159,9 @@ export function useFormat() {
     instantDate: (at: string | number) => formatInstantDate(lang, at),
     time: (ms: number) => formatTime(lang, ms),
     timeParts: (ms: number) => formatTimeParts(lang, ms),
-    taskDue: (dueAtMs: number, hasTime = false) => formatTaskDue(lang, dueAtMs, hasTime, TODAY_MS),
-    nextSession: (atMs: number) => formatNextSession(lang, atMs, TODAY_MS),
+    // `todayMs` defaults to the fixed week's; a screen showing real rows
+    // passes wallTodayMs() (src/lib/wallClock.ts).
+    taskDue: (dueAtMs: number, hasTime = false, todayMs: number = TODAY_MS) => formatTaskDue(lang, dueAtMs, hasTime, todayMs),
+    nextSession: (atMs: number, todayMs: number = TODAY_MS) => formatNextSession(lang, atMs, todayMs),
   };
 }

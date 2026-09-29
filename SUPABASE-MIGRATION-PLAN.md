@@ -7,7 +7,8 @@ tests in CI). Most screens still read and write `src/lib/mockStore.ts` /
 
 **Done so far:** auth itself (`auth.ts`, `session.ts`); step 1, the admin
 queues (`adminQueues.ts`); step 2, the signed-in user's own profile and
-onboarding (`profileData.ts`). Each has its own section below.
+onboarding (`profileData.ts`); the coach side of step 3, the roster
+(`rosterData.ts`). Each has its own section below.
 
 ## The shape of the problem
 
@@ -190,6 +191,40 @@ and `member_profiles`, which is new in `0006`.
 - **Still mockStore, on purpose:** the Pro tier gating Edit Profile's
   photo controls (`isVerified()`) waits for payments (LAUNCH-CHECKLIST.md
   §3); obligations, ratings and clients wait for step 3.
+
+## Step 3, coach side: `src/lib/rosterData.ts`
+
+The signed-in coach's roster: `clients`, the coach-only `client_private`
+(notes, favourite), `tasks`, and on ClientDetail one relationship's
+`sessions` (recaps), `packages` and `payments`. Members, ClientDetail,
+AddClient, EditClient and AddTask read it through
+`src/store/rosterStore.ts`'s `useRoster()` — mockStore signed out, the
+shared Supabase copy signed in, with LoadState until it arrives — and
+ClientDetail's record through `src/store/clientRecord.ts`.
+
+- **Real dates, real "today":** timestamps are converted to the app's
+  wall-clock values at this edge (`src/lib/wallClock.ts`), and these
+  screens take "today" from `useRoster().todayMs` — the real day signed
+  in. The fixed demo week (`TODAY_MS`) still drives everything signed out
+  and every screen not converted yet.
+- **Writes land in the store only once they succeed**, so a failure leaves
+  the screen showing what is stored, plus an inline "try again". Each
+  action's control is disabled while its write is in flight.
+- **No upsert** for `client_private` (update, then insert the first time),
+  as in step 2. **Payments stay a ledger:** recording inserts a charge,
+  refunding inserts a refund row pointing at it; nothing is edited. The
+  member's `payment_status` is what moves.
+- **Recaps** save when the field loses focus, not on every keystroke.
+- **No demo content signed in:** a real client with no package shows "no
+  package yet" (and setting one up creates it); session history is the
+  real `sessions`, not ClientDetail.dc.html's two fixed entries.
+- **Not here:** `clients.member_id` is never set from these screens —
+  linking a member account happens when a session request is accepted
+  (`0008`). `supabase/tests/11_roster_app.sql` issues each write this
+  module makes, as the `authenticated` role.
+- **Still mockStore signed in:** Home, Profile's stats, Earnings' totals,
+  Schedule, Messages (steps 4–6), and the member side of step 3 — the 14
+  screens still on `CLIENT_ID = 'sara'`.
 
 ## Testing this kind of code
 

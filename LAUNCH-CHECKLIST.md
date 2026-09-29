@@ -53,6 +53,10 @@ reading and setting the user's role at sign-in, every screen reads and writes
       Suggested order: reports, verification and deletion requests (the admin
       queues need them) → profile and onboarding → clients, tasks and
       sessions → scheduling → messaging → the rest.
+      Done: admin queues, profile and onboarding, and the coach's roster
+      (Members, member detail with tasks/sessions/package/payments, add/edit
+      member, add task). Still on `mockStore` when signed in: Home, Profile's
+      stats, Earnings' totals, Schedule, Messages, and every member screen.
 - [ ] 🔴 **Remove the demo identities.** 14 member screens hardcode
       `const CLIENT_ID = 'sara'`, and the Pro side is the seeded
       `DEFAULT_PRO_ID = 'pro-yasmin'`. Both must come from the signed-in user.
@@ -112,7 +116,7 @@ Apple's App Review Guidelines decide what may be paid outside the App Store:
       and a link from Earnings). Signed-in only; saved numbers show last 4.
 - [ ] 🟡 *Ahmed:* check `src/lib/paymobBanks.ts` against the bank codes table
       in Paymob's Instant Cashin docs — it was written without access to them.
-- [ ] 🟡 *Dev:* payout history on Earnings.
+- [x] 🟡 *Dev:* payout history on Earnings (signed-in only; newest first).
 - [ ] 🟡 *Dev:* an admin screen to create, send and sync payouts (§9).
 - [ ] 🔴 *Ahmed:* production Paymob Payouts credentials — new ones, never the
       staging set, and shared through a password manager, not email.

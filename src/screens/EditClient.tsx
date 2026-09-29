@@ -8,7 +8,9 @@ import { SpecialtyIcon } from '../components/specialtyIcons';
 import { TextField, TextAreaField } from '../components/TextField';
 import { WarningIcon } from '../components/icons';
 import { darken } from '../lib/color';
-import { getClient, getClientDetailHref, updateClient } from '../lib/mockStore';
+import { getClientDetailHref, type Client } from '../lib/mockStore';
+import { LoadState } from '../components/LoadState';
+import { useRoster, type RosterActions } from '../store/rosterStore';
 import './EditClient.css';
 
 const PLANS: { value: string; labelKey: MessageKey }[] = [
@@ -17,34 +19,47 @@ const PLANS: { value: string; labelKey: MessageKey }[] = [
 ];
 
 export default function EditClient() {
+  const roster = useRoster();
+  const clientId = useAppStore((s) => s.params).clientId ?? '';
+  if (roster.status === 'loading') return <LoadState status="loading" />;
+  if (roster.status === 'error') return <LoadState status="error" onRetry={roster.retry} showBack />;
+  const client = roster.client(clientId);
+  if (!client) return null;
+  // Keyed so the form's initial state is this client's, not a previous one's.
+  return <EditClientForm key={clientId} client={client} actions={roster.actions} />;
+}
+
+function EditClientForm({ client, actions }: { client: Client; actions: RosterActions }) {
   const t = useT();
   const nav = useAppStore((s) => s.nav);
-  const params = useAppStore((s) => s.params);
-  const clientId = params.clientId ?? '';
-  const client = getClient(clientId);
+  const clientId = client.id;
 
-  const dialDefault = COUNTRIES.find((c) => c.dial === client?.countryCode)?.code ?? DEFAULT_COUNTRY.code;
+  const dialDefault = COUNTRIES.find((c) => c.dial === client.countryCode)?.code ?? DEFAULT_COUNTRY.code;
 
-  const [name, setName] = useState(client?.name ?? '');
-  const [age, setAge] = useState(client?.age != null ? String(client.age) : '');
-  const [phone, setPhone] = useState(client?.phone ?? '');
+  const [name, setName] = useState(client.name);
+  const [age, setAge] = useState(client.age != null ? String(client.age) : '');
+  const [phone, setPhone] = useState(client.phone);
   const [dialCode, setDialCode] = useState(dialDefault);
-  const [specialty, setSpecialty] = useState(client?.specialty ?? SPECIALTIES[0].value);
-  const [plan, setPlan] = useState(client?.plan ?? 'Basic');
-  const [goal, setGoal] = useState(client?.goal ?? '');
-  const [notes, setNotes] = useState(client?.notes ?? '');
+  const [specialty, setSpecialty] = useState(client.specialty || SPECIALTIES[0].value);
+  const [plan, setPlan] = useState(client.plan || 'Basic');
+  const [goal, setGoal] = useState(client.goal);
+  const [notes, setNotes] = useState(client.notes);
   const [showDialPicker, setShowDialPicker] = useState(false);
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
 
-  if (!client) return null;
   const savedClient = client;
 
   const dialCountry = COUNTRIES.find((c) => c.code === dialCode) ?? DEFAULT_COUNTRY;
   const detailHref = getClientDetailHref(clientId);
   const avatarInitials = name.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2) || client.initials;
 
-  function save() {
-    updateClient(clientId, {
+  async function save() {
+    if (saving) return;
+    setSaving(true);
+    setSaveFailed(false);
+    const saved = await actions.updateClient(clientId, {
       name: name.trim() || savedClient.name,
       age: age === '' ? savedClient.age : Number(age),
       phone: phone.trim() || savedClient.phone,
@@ -55,12 +70,23 @@ export default function EditClient() {
       goal,
       notes,
     });
-    nav(detailHref);
+    setSaving(false);
+    if (saved) nav(detailHref);
+    else setSaveFailed(true);
   }
 
-  function archive() {
-    updateClient(clientId, { active: false, needsCheckin: false });
-    nav('clients');
+  async function archive() {
+    if (saving) return;
+    setSaving(true);
+    setSaveFailed(false);
+    const archived = await actions.updateClient(clientId, { active: false, needsCheckin: false });
+    setSaving(false);
+    if (archived) {
+      nav('clients');
+    } else {
+      setShowArchiveConfirm(false);
+      setSaveFailed(true);
+    }
   }
 
   return (
@@ -68,8 +94,14 @@ export default function EditClient() {
       <div className="edit-client-header">
         <button type="button" className="edit-client-header-btn" onClick={() => nav(detailHref)}>{t('editClientCancel')}</button>
         <div className="edit-client-header-title">{t('editClientTitle')}</div>
-        <button type="button" className="edit-client-header-btn edit-client-save" onClick={save}>{t('editClientSave')}</button>
+        <button type="button" className="edit-client-header-btn edit-client-save" onClick={() => void save()} disabled={saving}>{t('editClientSave')}</button>
       </div>
+
+      {saveFailed && (
+        <div className="edit-client-error" role="alert">
+          {t('requestFailedRetry')}
+        </div>
+      )}
 
       <div className="edit-client-body">
         <div className="edit-client-avatar-row">
@@ -156,7 +188,7 @@ export default function EditClient() {
               <button type="button" className="edit-client-modal-btn edit-client-modal-btn-neutral" onClick={() => setShowArchiveConfirm(false)}>
                 {t('editClientCancel')}
               </button>
-              <button type="button" className="edit-client-modal-btn edit-client-modal-btn-danger" onClick={archive}>
+              <button type="button" className="edit-client-modal-btn edit-client-modal-btn-danger" onClick={() => void archive()} disabled={saving}>
                 {t('editClientArchiveConfirm')}
               </button>
             </div>

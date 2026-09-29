@@ -20,7 +20,10 @@
  * then read back with dbRows(page, 'profiles') / dbCalls(page).
  */
 
-const KEYS = { profiles: 'id', coach_profiles: 'profile_id', member_profiles: 'profile_id', coach_payout_accounts: 'coach_id' };
+const KEYS = {
+  profiles: 'id', coach_profiles: 'profile_id', member_profiles: 'profile_id', coach_payout_accounts: 'coach_id',
+  client_private: 'client_id', packages: 'client_id',
+};
 
 // A 1×1 PNG, so a signed photo URL renders without a network request.
 export const TINY_PNG_DATA_URL =
@@ -44,7 +47,7 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       log({ table: q.table, op: q.op, values: q.values ?? null, filters: q.filters, ...(q.columns ? { columns: q.columns } : {}), ...(q.order ? { order: q.order } : {}) });
       if (failing(q.table) || failing(`${q.table}.${q.op}`)) return { data: null, error: NETWORK };
       const rows = (db[q.table] ??= []);
-      const matches = rows.filter((r) => q.filters.every(([c, v]) => r[c] === v));
+      const matches = rows.filter((r) => q.filters.every(([c, v, op]) => (op === 'in' ? v.includes(r[c]) : r[c] === v)));
 
       if (q.op === 'select') {
         if (q.order) {
@@ -56,6 +59,10 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       if (q.op === 'update') {
         for (const r of matches) Object.assign(r, q.values);
         return { data: q.returning ? matches.map((r) => ({ ...r })) : null, error: null };
+      }
+      if (q.op === 'delete') {
+        db[q.table] = rows.filter((r) => !matches.includes(r));
+        return { data: null, error: null };
       }
       // insert
       const key = KEYS[q.table] ?? 'id';
@@ -69,7 +76,8 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
         const coach = (db.coach_profiles ??= []).find((r) => r.profile_id === row.coach_id);
         if (coach) coach.verification_status = 'pending';
       }
-      return { data: q.returning ? [{ ...row }] : null, error: null };
+      if (!q.returning) return { data: null, error: null };
+      return { data: q.single ? { ...row } : [{ ...row }], error: null };
     }
 
     real.from = (table) => {
@@ -78,9 +86,12 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
         select(columns) { if (q.op !== 'select') q.returning = true; else q.columns = columns ?? '*'; return b; },
         update(values) { q.op = 'update'; q.values = values; return b; },
         insert(values) { q.op = 'insert'; q.values = values; return b; },
+        delete() { q.op = 'delete'; return b; },
         eq(col, val) { q.filters.push([col, val]); return b; },
+        in(col, vals) { q.filters.push([col, vals, 'in']); return b; },
         order(col, { ascending = true } = {}) { q.order = [col, ascending]; return b; },
         maybeSingle() { q.single = true; return b; },
+        single() { q.single = true; return b; },
         then(resolve, reject) { return Promise.resolve().then(() => run(q)).then(resolve, reject); },
       };
       return b;

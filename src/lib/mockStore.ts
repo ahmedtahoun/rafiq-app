@@ -335,9 +335,9 @@ export function toggleTask(clientId: string, taskId: string): Task[] {
  * Arabic. Comparing timestamps keeps the same answer for every seeded task
  * and starts giving the right one for the rest.
  */
-export function isTaskOverdue(task: Task): boolean {
+export function isTaskOverdue(task: Task, todayMs: number = TODAY_MS): boolean {
   if (task.done) return false;
-  return task.dueAtMs < TODAY_MS + DAY_MS;
+  return task.dueAtMs < todayMs + DAY_MS;
 }
 
 // ---------------------------------------------------------------------------
@@ -364,7 +364,7 @@ export function formatDate(ms: number): string {
 export const PACKAGE_DEFAULT_TOTAL: Record<string, number> = { Basic: 8, 'Full Access': 12 };
 const PACKAGE_DEFAULT_USED = 2;
 
-interface RawPackage {
+export interface RawPackage {
   total: number;
   used: number;
   expiresAtMs: number;
@@ -391,9 +391,14 @@ function getPackage(clientId: string): RawPackage {
 
 // 1:1 port of store.js's getPackageStatus.
 export function getPackageStatus(clientId: string): PackageStatus {
-  const pkg = getPackage(clientId);
+  return packageStatusOf(getPackage(clientId), TODAY_MS);
+}
+
+/** The same status for any package — rosterData.ts's real ones, measured
+    against the real day rather than the fixed week. */
+export function packageStatusOf(pkg: RawPackage, todayMs: number): PackageStatus {
   const remaining = Math.max(0, pkg.total - pkg.used);
-  const daysToExpiry = Math.ceil((pkg.expiresAtMs - TODAY_MS) / DAY_MS);
+  const daysToExpiry = Math.ceil((pkg.expiresAtMs - todayMs) / DAY_MS);
   const isExpired = daysToExpiry < 0;
   const isOutOfSessions = remaining === 0;
   const isExpiringSoon = !isExpired && daysToExpiry <= 7;

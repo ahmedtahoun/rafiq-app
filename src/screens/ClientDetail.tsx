@@ -10,34 +10,17 @@ import {
   MoonIcon,
   PaymentIcon,
   PencilIcon,
+  ScheduleIcon,
   SunIcon,
   WarningIcon,
 } from '../components/icons';
 import { BottomSheet } from '../components/BottomSheet';
-import {
-  addPayment,
-  formatToday,
-  getAddTaskHref,
-  getClient,
-  getEditClientHref,
-  getMessagesHref,
-  getPackageStatus,
-  getPaymentHistory,
-  getRecaps,
-  getTasks,
-  isPaymentRefunded,
-  isTaskOverdue,
-  previewRenewExpiry,
-  refundPayment,
-  renewPackage,
-  setRecap,
-  toggleTask,
-  TODAY_MS,
-  updateClient,
-  updateTask,
-  deleteTask,
-  type Task,
-} from '../lib/mockStore';
+import { LoadState } from '../components/LoadState';
+import { useRoster, type RosterView } from '../store/rosterStore';
+import { useClientRecord, type ClientRecordView, type PaymentRow } from '../store/clientRecord';
+import { getAddTaskHref, getEditClientHref, getMessagesHref, isTaskOverdue, type Client, type Task } from '../lib/mockStore';
+import type { Attendance } from '../lib/rosterData';
+import { wallNowMs } from '../lib/wallClock';
 import './ClientDetail.css';
 
 type TaskFilter = 'all' | 'pending' | 'overdue' | 'completed';
@@ -61,7 +44,33 @@ const EDIT_DUE_OPTIONS: { key: string; labelKey: MessageKey; offsetDays: number 
 ];
 const DAY_MS = 86400000;
 
+const ATTENDANCE_LABEL: Record<Attendance, MessageKey> = {
+  attended: 'clientDetailSessionAttended',
+  no_show: 'clientDetailSessionNoShow',
+  cancelled: 'clientDetailSessionCancelled',
+  disputed: 'clientDetailSessionDisputed',
+};
+
+type Ready<T> = Extract<T, { status: 'ready' }>;
+
 export default function ClientDetail() {
+  const roster = useRoster();
+  const clientId = useAppStore((s) => s.params).clientId ?? '';
+  if (roster.status === 'loading') return <LoadState status="loading" />;
+  if (roster.status === 'error') return <LoadState status="error" onRetry={roster.retry} showBack />;
+  const client = roster.client(clientId);
+  if (!client) return null;
+  return <ClientDetailRecord key={clientId} roster={roster} client={client} />;
+}
+
+function ClientDetailRecord({ roster, client }: { roster: Ready<RosterView>; client: Client }) {
+  const record = useClientRecord(client.id, roster.remote, roster.todayMs);
+  if (record.status === 'loading') return <LoadState status="loading" />;
+  if (record.status === 'error') return <LoadState status="error" onRetry={record.retry} showBack />;
+  return <ClientDetailView roster={roster} client={client} record={record} />;
+}
+
+function ClientDetailView({ roster, client, record }: { roster: Ready<RosterView>; client: Client; record: Ready<ClientRecordView> }) {
   const t = useT();
   const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
@@ -69,9 +78,9 @@ export default function ClientDetail() {
   const dark = useAppStore((s) => s.dark);
   const setDark = useAppStore((s) => s.setDark);
   const nav = useAppStore((s) => s.nav);
-  const params = useAppStore((s) => s.params);
   const isAr = lang === 'ar';
-  const clientId = params.clientId ?? '';
+  const clientId = client.id;
+  const todayMs = roster.todayMs;
 
   const [taskFilter, setTaskFilter] = useState<TaskFilter>('all');
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
@@ -89,31 +98,44 @@ export default function ClientDetail() {
   const [editTitle, setEditTitle] = useState('');
   const [editDueAtMs, setEditDueAtMs] = useState(0);
   const [editRecurring, setEditRecurring] = useState(false);
-  const [, setTick] = useState(0);
-  const refresh = () => setTick((v) => v + 1);
+  // A write in flight (disables what started it) and the last one's failure.
+  const [busy, setBusy] = useState(false);
+  const [actionFailed, setActionFailed] = useState(false);
+  // Remote recaps save when the field loses focus, not on every keystroke.
+  const [recapDrafts, setRecapDrafts] = useState<Record<string, string>>({});
 
-  const client = getClient(clientId);
-  if (!client) return null;
+  async function run(write: () => Promise<boolean>): Promise<boolean> {
+    if (busy) return false;
+    setBusy(true);
+    setActionFailed(false);
+    const done = await write();
+    setBusy(false);
+    if (!done) setActionFailed(true);
+    return done;
+  }
 
   const editHref = getEditClientHref(clientId);
   const messagesHref = getMessagesHref(clientId);
   const currency = t('currency');
 
-  const pkgStatus = getPackageStatus(clientId);
-  const pkgPct = pkgStatus.total > 0 ? Math.min(100, Math.round((pkgStatus.used / pkgStatus.total) * 100)) : 0;
-  const showPkgAlert = pkgStatus.needsAttention;
-  const pkgAlertLabel = pkgStatus.isExpired
-    ? t('clientDetailExpired')
-    : pkgStatus.isOutOfSessions
-      ? t('clientDetailNoSessionsLeft')
-      : t('clientDetailExpiresInDays', { n: pkgStatus.daysToExpiry });
-  const pkgAlertColor = pkgStatus.isExpired || pkgStatus.isOutOfSessions ? 'var(--red)' : 'var(--amber)';
-  const pkgAlertBg = pkgStatus.isExpired || pkgStatus.isOutOfSessions ? 'var(--red-bg)' : 'var(--amber-bg)';
+  const pkgStatus = record.pkg;
+  const pkgPct = pkgStatus && pkgStatus.total > 0 ? Math.min(100, Math.round((pkgStatus.used / pkgStatus.total) * 100)) : 0;
+  const showPkgAlert = !!pkgStatus?.needsAttention;
+  const pkgAlertLabel = !pkgStatus
+    ? ''
+    : pkgStatus.isExpired
+      ? t('clientDetailExpired')
+      : pkgStatus.isOutOfSessions
+        ? t('clientDetailNoSessionsLeft')
+        : t('clientDetailExpiresInDays', { n: pkgStatus.daysToExpiry });
+  const pkgAlertColor = pkgStatus && (pkgStatus.isExpired || pkgStatus.isOutOfSessions) ? 'var(--red)' : 'var(--amber)';
+  const pkgAlertBg = pkgStatus && (pkgStatus.isExpired || pkgStatus.isOutOfSessions) ? 'var(--red-bg)' : 'var(--amber-bg)';
 
   // --- Payment ---------------------------------------------------------
-  const paymentHistory = getPaymentHistory(clientId);
+  const paymentHistory = record.payments;
+  const dateOf = (p: PaymentRow) => ('label' in p.date ? p.date.label : fmt.date(p.date.wallMs));
   const lastPayment = paymentHistory.find((p) => p.amount > 0) ?? null;
-  const hasPendingPayment = !!lastPayment && lastPayment.status === 'pending';
+  const hasPendingPayment = !!lastPayment && lastPayment.pending;
   const paid = !hasPendingPayment && client.paymentStatus === 'paid';
   const paymentStates = {
     paid: { label: t('clientDetailPaymentUpToDate'), color: 'var(--green)', bg: 'var(--green-bg)' },
@@ -125,22 +147,19 @@ export default function ClientDetail() {
   const planLabel = t('clientDetailPlanSuffix', { plan: client.plan });
   const paymentSubtitle = paid
     ? lastPayment
-      ? `${fmt.money(lastPayment.amount)} · ${methodLabel(lastPayment.method)} · ${lastPayment.date}`
+      ? `${fmt.money(lastPayment.amount)} · ${methodLabel(lastPayment.method)} · ${dateOf(lastPayment)}`
       : planLabel
     : planLabel;
 
-  function saveRecordPayment() {
+  async function saveRecordPayment() {
     const amt = parseFloat(paymentAmount);
     if (!amt || amt <= 0) return;
-    addPayment(clientId, { id: `pay-${Date.now().toString(36)}`, amount: amt, method: paymentMethod, date: formatToday() });
-    updateClient(clientId, { paymentStatus: 'paid' });
-    setShowRecordPaymentSheet(false);
-    refresh();
+    if (await run(() => record.actions.recordPayment(amt, paymentMethod))) setShowRecordPaymentSheet(false);
   }
 
   // --- Tasks -------------------------------------------------------------
   const clientFirst = client.name.split(' ')[0];
-  const allTasks: (Task & { overdue: boolean })[] = getTasks(clientId).map((task) => ({ ...task, overdue: isTaskOverdue(task) }));
+  const allTasks: (Task & { overdue: boolean })[] = roster.tasksOf(clientId).map((task) => ({ ...task, overdue: isTaskOverdue(task, todayMs) }));
   const pendingCount = allTasks.filter((task) => !task.done).length;
   const completedCount = allTasks.filter((task) => task.done).length;
   const overdueCount = allTasks.filter((task) => task.overdue).length;
@@ -169,30 +188,32 @@ export default function ClientDetail() {
     setShowEditTaskSheet(true);
   }
 
-  function saveEditTask() {
+  async function saveEditTask() {
     const title = editTitle.trim();
-    if (!title || !editingTaskId) return;
-    updateTask(clientId, editingTaskId, { title, dueAtMs: editDueAtMs, recurring: editRecurring });
-    setShowEditTaskSheet(false);
-    refresh();
+    const taskId = editingTaskId;
+    if (!title || !taskId) return;
+    if (await run(() => roster.actions.updateTask(clientId, taskId, { title, dueAtMs: editDueAtMs, recurring: editRecurring }))) setShowEditTaskSheet(false);
   }
 
-  function deleteEditTask() {
-    if (!editingTaskId) return;
-    deleteTask(clientId, editingTaskId);
-    setShowEditTaskSheet(false);
-    refresh();
+  async function deleteEditTask() {
+    const taskId = editingTaskId;
+    if (!taskId) return;
+    if (await run(() => roster.actions.deleteTask(clientId, taskId))) setShowEditTaskSheet(false);
   }
 
   // --- Session history / recaps ------------------------------------------
-  const recaps = getRecaps(clientId);
+  const recaps = record.demoRecaps;
+  const nowMs = wallNowMs();
+  const failNote = actionFailed && (
+    <div className="client-detail-action-error" role="alert">
+      {t('requestFailedRetry')}
+    </div>
+  );
 
   // --- Package renew -------------------------------------------------------
   const renewOptions = [4, 8, 12];
-  function doRenew(n: number) {
-    renewPackage(clientId, n);
-    setShowPackageSheet(false);
-    refresh();
+  async function doRenew(n: number) {
+    if (await run(() => record.actions.renew(n))) setShowPackageSheet(false);
   }
 
   // --- Refund -------------------------------------------------------------
@@ -202,15 +223,13 @@ export default function ClientDetail() {
     setRefundReason('');
     setShowRefundSheet(true);
   }
-  function saveRefund() {
+  async function saveRefund() {
     const amt = parseFloat(refundAmount);
-    if (!amt || amt <= 0 || !refundTargetId) return;
-    refundPayment(clientId, refundTargetId, amt, refundReason || undefined);
+    const target = refundTargetId;
+    if (!amt || amt <= 0 || !target) return;
     // Refunding puts the client's payment status back to "due" — mirrors
-    // ClientDetail.dc.html's own saveRefund behavior.
-    updateClient(clientId, { paymentStatus: 'due' });
-    setShowRefundSheet(false);
-    refresh();
+    // ClientDetail.dc.html's own saveRefund behavior (clientRecord.ts).
+    if (await run(() => record.actions.refund(target, amt, refundReason))) setShowRefundSheet(false);
   }
 
   return (
@@ -236,6 +255,7 @@ export default function ClientDetail() {
       </div>
 
       <div className="client-detail-body">
+        {failNote}
         <div className="client-detail-hero">
           <div className="client-detail-hero-top">
             <div className="client-detail-hero-avatar">{client.initials}</div>
@@ -251,12 +271,13 @@ export default function ClientDetail() {
             </div>
             <div className="client-detail-hero-stat-divider" />
             <div className="client-detail-hero-stat">
-              <div className="client-detail-hero-stat-num">{pkgStatus.remaining}/{pkgStatus.total}</div>
+              <div className="client-detail-hero-stat-num">{pkgStatus ? `${pkgStatus.remaining}/${pkgStatus.total}` : '—'}</div>
               <div className="client-detail-hero-stat-label">{t('clientDetailLeft')}</div>
             </div>
             <div className="client-detail-hero-stat-divider" />
             <div className="client-detail-hero-stat">
-              <div className="client-detail-hero-stat-num">{t('clientDetailStreakValue')}</div>
+              {/* The design's streak is a fixed demo value; nothing records one for a real member yet. */}
+              <div className="client-detail-hero-stat-num">{roster.remote ? '—' : t('clientDetailStreakValue')}</div>
               <div className="client-detail-hero-stat-label">{t('clientDetailStreak')}</div>
             </div>
           </div>
@@ -298,17 +319,15 @@ export default function ClientDetail() {
                   type="button"
                   className={`client-detail-task-check${task.done ? ' is-done' : ''}${!task.done && task.overdue ? ' is-overdue' : ''}`}
                   aria-label={t('toggleTaskComplete', { task: task.title })}
-                  onClick={() => {
-                    toggleTask(clientId, task.id);
-                    refresh();
-                  }}
+                  disabled={busy}
+                  onClick={() => void run(() => roster.actions.updateTask(clientId, task.id, { done: !task.done }))}
                 >
                   {task.done && <CheckIcon size={13} color="#FFFFFF" />}
                 </button>
                 <button type="button" className="client-detail-task-main" onClick={() => openEditTask(task)}>
                   <div className={`client-detail-task-title${task.done ? ' is-done' : ''}${!task.done && task.overdue ? ' is-overdue' : ''}`}>{task.title}</div>
                   <div className="client-detail-task-due-row">
-                    <span className={`client-detail-task-due${task.overdue ? ' is-overdue' : ''}`}><bdi>{fmt.taskDue(task.dueAtMs, task.dueHasTime)}</bdi></span>
+                    <span className={`client-detail-task-due${task.overdue ? ' is-overdue' : ''}`}><bdi>{fmt.taskDue(task.dueAtMs, task.dueHasTime, todayMs)}</bdi></span>
                     {task.recurring && (
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
                         <path d="M17 2.1l4 4-4 4" /><path d="M3 12.7V12a9 9 0 0 1 15-6.7l3 3" /><path d="M7 21.9l-4-4 4-4" /><path d="M21 11.3V12a9 9 0 0 1-15 6.7l-3-3" />
@@ -377,27 +396,77 @@ export default function ClientDetail() {
         <div className="client-detail-card">
           <div className="client-detail-package-header">
             <div className="client-detail-package-title">{t('clientDetailSessionPackage')}</div>
-            <button type="button" className="client-detail-renew-link" onClick={() => setShowPackageSheet(true)}>{t('clientDetailRenew')}</button>
+            <button type="button" className="client-detail-renew-link" onClick={() => setShowPackageSheet(true)}>{pkgStatus ? t('clientDetailRenew') : t('clientDetailSetUpPackage')}</button>
           </div>
-          {showPkgAlert && (
-            <div className="client-detail-pkg-alert" style={{ background: pkgAlertBg }}>
-              <WarningIcon size={11} color={pkgAlertColor} />
-              <span style={{ color: pkgAlertColor }}>{pkgAlertLabel}</span>
-            </div>
+          {pkgStatus ? (
+            <>
+              {showPkgAlert && (
+                <div className="client-detail-pkg-alert" style={{ background: pkgAlertBg }}>
+                  <WarningIcon size={11} color={pkgAlertColor} />
+                  <span style={{ color: pkgAlertColor }}>{pkgAlertLabel}</span>
+                </div>
+              )}
+              <div className="client-detail-pkg-remaining-row">
+                <div className="client-detail-pkg-remaining">{pkgStatus.remaining}</div>
+                <div className="client-detail-pkg-of">{t('clientDetailOfSessionsLeft', { n: pkgStatus.total })}</div>
+              </div>
+              <div className="client-detail-progress-track">
+                <div className="client-detail-progress-fill" style={{ width: `${pkgPct}%` }} />
+              </div>
+              <div className="client-detail-pkg-expiry">{t('clientDetailExpiresPrefix')}{fmt.date(pkgStatus.expiresAtMs)}</div>
+            </>
+          ) : (
+            <div className="client-detail-pkg-none">{t('clientDetailNoPackage')}</div>
           )}
-          <div className="client-detail-pkg-remaining-row">
-            <div className="client-detail-pkg-remaining">{pkgStatus.remaining}</div>
-            <div className="client-detail-pkg-of">{t('clientDetailOfSessionsLeft', { n: pkgStatus.total })}</div>
-          </div>
-          <div className="client-detail-progress-track">
-            <div className="client-detail-progress-fill" style={{ width: `${pkgPct}%` }} />
-          </div>
-          <div className="client-detail-pkg-expiry">{t('clientDetailExpiresPrefix')}{fmt.date(pkgStatus.expiresAtMs)}</div>
         </div>
 
         <div className="client-detail-section">
           <div className="client-detail-section-title">{t('clientDetailSessionHistory')}</div>
-          {DEMO_SESSIONS.map((s) => {
+          {record.sessions && record.sessions.length === 0 && (
+            <div className="client-detail-empty-card">
+              <div className="client-detail-empty-title">{t('clientDetailNoSessionsYet')}</div>
+            </div>
+          )}
+          {record.sessions?.map((s) => {
+            const expanded = expandedSession === s.id;
+            const upcoming = s.atMs > nowMs;
+            const status = s.attendance ? t(ATTENDANCE_LABEL[s.attendance]) : upcoming ? t('clientDetailSessionUpcoming') : t('clientDetailSessionNotLogged');
+            const draft = recapDrafts[s.id] ?? s.recap;
+            return (
+              <div key={s.id} className="client-detail-session-card">
+                <button type="button" className="client-detail-session-row" onClick={() => setExpandedSession(expanded ? null : s.id)}>
+                  <div className={`client-detail-session-icon${s.attendance === 'attended' ? '' : ' is-neutral'}`}>
+                    {s.attendance === 'attended' ? <CheckIcon size={16} color="var(--green)" /> : <ScheduleIcon size={16} color="var(--ink-soft)" />}
+                  </div>
+                  <div className="client-detail-session-text">
+                    <div className="client-detail-session-date">
+                      <bdi>{fmt.date(s.atMs)}</bdi> · <bdi>{fmt.time(s.atMs)}</bdi>
+                    </div>
+                    <div className="client-detail-session-note">{status}</div>
+                  </div>
+                  <span className={`client-detail-session-chevron${expanded ? ' is-open' : ''}`}>
+                    <ArrowForwardIcon size={13} color="var(--ink-soft)" />
+                  </span>
+                </button>
+                {expanded && (
+                  <div className="client-detail-recap-box">
+                    <label className="client-detail-recap-label" htmlFor={`recap-${s.id}`}>{t('clientDetailRecapLabel')}</label>
+                    <textarea
+                      id={`recap-${s.id}`}
+                      rows={3}
+                      value={draft}
+                      placeholder={t('clientDetailRecapPlaceholder')}
+                      onChange={(e) => setRecapDrafts((d) => ({ ...d, [s.id]: e.target.value }))}
+                      onBlur={() => {
+                        if (draft !== s.recap) void run(() => record.actions.setRecap(s.id, draft));
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {!record.sessions && DEMO_SESSIONS.map((s) => {
             const expanded = expandedSession === s.id;
             return (
               <div key={s.id} className="client-detail-session-card">
@@ -420,10 +489,7 @@ export default function ClientDetail() {
                       rows={3}
                       value={recaps[s.id] ?? ''}
                       placeholder={t('clientDetailRecapPlaceholder')}
-                      onChange={(e) => {
-                        setRecap(clientId, s.id, e.target.value);
-                        refresh();
-                      }}
+                      onChange={(e) => void record.actions.setRecap(s.id, e.target.value)}
                     />
                   </div>
                 )}
@@ -434,10 +500,11 @@ export default function ClientDetail() {
       </div>
 
       <BottomSheet open={showPackageSheet} onClose={() => setShowPackageSheet(false)} title={t('clientDetailRenewPackageTitle')}>
-        <div className="client-detail-sheet-sub">{t('clientDetailRenewPackageBody', { name: clientFirst, date: previewRenewExpiry() })}</div>
+        {failNote}
+        <div className="client-detail-sheet-sub">{t('clientDetailRenewPackageBody', { name: clientFirst, date: fmt.date(todayMs + 30 * DAY_MS) })}</div>
         <div className="client-detail-renew-options">
           {renewOptions.map((n) => (
-            <button key={n} type="button" className="client-detail-renew-option" onClick={() => doRenew(n)}>
+            <button key={n} type="button" className="client-detail-renew-option" disabled={busy} onClick={() => void doRenew(n)}>
               {t('clientDetailRenewOptionSuffix', { n })}
             </button>
           ))}
@@ -445,6 +512,7 @@ export default function ClientDetail() {
       </BottomSheet>
 
       <BottomSheet open={showRecordPaymentSheet} onClose={() => setShowRecordPaymentSheet(false)} title={t('clientDetailRecordPaymentTitle')}>
+        {failNote}
         <div className="client-detail-sheet-sub">{t('clientDetailForClientPlan', { name: client.name, plan: client.plan })}</div>
         <div className="client-detail-sheet-field">
           <label htmlFor="cdamount">{t('clientDetailAmountLabel', { currency })}</label>
@@ -465,7 +533,7 @@ export default function ClientDetail() {
             ))}
           </div>
         </div>
-        <button type="button" className="client-detail-sheet-submit" onClick={saveRecordPayment}>{t('clientDetailRecordPaymentBtn')}</button>
+        <button type="button" className="client-detail-sheet-submit" disabled={busy} onClick={() => void saveRecordPayment()}>{t('clientDetailRecordPaymentBtn')}</button>
       </BottomSheet>
 
       <BottomSheet open={showPaymentHistorySheet} onClose={() => setShowPaymentHistorySheet(false)} title={t('clientDetailPaymentHistoryTitle')}>
@@ -473,8 +541,8 @@ export default function ClientDetail() {
           <div className="client-detail-payment-rows">
             {paymentHistory.map((p) => {
               const isRefundEntry = p.amount < 0;
-              const isPending = !isRefundEntry && p.status === 'pending';
-              const alreadyRefunded = !isRefundEntry && isPaymentRefunded(clientId, p.id);
+              const isPending = !isRefundEntry && p.pending;
+              const alreadyRefunded = !isRefundEntry && p.refunded;
               const amountLabel = `${isRefundEntry ? '-' : ''}${fmt.money(Math.abs(p.amount))} · ${isRefundEntry ? t('clientDetailRefund') : methodLabel(p.method)}`;
               const statusTag = isPending ? t('clientDetailPendingTag') : alreadyRefunded ? t('clientDetailRefundedTag') : '';
               return (
@@ -490,7 +558,7 @@ export default function ClientDetail() {
                       <span className="client-detail-payment-history-amount">{amountLabel}</span>
                       {statusTag && <span className="client-detail-payment-history-tag">{statusTag}</span>}
                     </div>
-                    <div className="client-detail-payment-history-date">{p.date}</div>
+                    <div className="client-detail-payment-history-date">{dateOf(p)}</div>
                     {isRefundEntry && p.reason && <div className="client-detail-payment-history-reason">{p.reason}</div>}
                   </div>
                   {!isRefundEntry && !isPending && !alreadyRefunded && (
@@ -510,6 +578,7 @@ export default function ClientDetail() {
       </BottomSheet>
 
       <BottomSheet open={showRefundSheet} onClose={() => setShowRefundSheet(false)} title={t('clientDetailRefundPaymentTitle')}>
+        {failNote}
         <div className="client-detail-sheet-sub">{t('clientDetailRefundSubtitle', { name: client.name })}</div>
         <div className="client-detail-sheet-field">
           <label htmlFor="cdrefundamount">{t('clientDetailRefundAmountLabel', { currency })}</label>
@@ -519,10 +588,11 @@ export default function ClientDetail() {
           <label htmlFor="cdrefundreason">{t('clientDetailReasonLabel')}</label>
           <input id="cdrefundreason" type="text" placeholder={t('clientDetailReasonPlaceholder')} value={refundReason} onChange={(e) => setRefundReason(e.target.value)} />
         </div>
-        <button type="button" className="client-detail-sheet-submit client-detail-sheet-submit-danger" onClick={saveRefund}>{t('clientDetailConfirmRefund')}</button>
+        <button type="button" className="client-detail-sheet-submit client-detail-sheet-submit-danger" disabled={busy} onClick={() => void saveRefund()}>{t('clientDetailConfirmRefund')}</button>
       </BottomSheet>
 
       <BottomSheet open={showEditTaskSheet} onClose={() => setShowEditTaskSheet(false)} title={t('clientDetailEditTaskTitle')}>
+        {failNote}
         <div className="client-detail-sheet-field">
           <label htmlFor="cdetitle">{t('clientDetailTaskTitleLabel')}</label>
           <input id="cdetitle" type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
@@ -534,8 +604,8 @@ export default function ClientDetail() {
               <button
                 key={d.key}
                 type="button"
-                className={`client-detail-due-chip${editDueAtMs === TODAY_MS + d.offsetDays * DAY_MS ? ' is-selected' : ''}`}
-                onClick={() => setEditDueAtMs(TODAY_MS + d.offsetDays * DAY_MS)}
+                className={`client-detail-due-chip${editDueAtMs === todayMs + d.offsetDays * DAY_MS ? ' is-selected' : ''}`}
+                onClick={() => setEditDueAtMs(todayMs + d.offsetDays * DAY_MS)}
               >
                 {t(d.labelKey)}
               </button>
@@ -555,8 +625,8 @@ export default function ClientDetail() {
           </button>
         </div>
         <div className="client-detail-edit-task-actions">
-          <button type="button" className="client-detail-delete-task-btn" onClick={deleteEditTask}>{t('clientDetailDelete')}</button>
-          <button type="button" className="client-detail-sheet-submit" onClick={saveEditTask}>{t('clientDetailSaveChanges')}</button>
+          <button type="button" className="client-detail-delete-task-btn" disabled={busy} onClick={() => void deleteEditTask()}>{t('clientDetailDelete')}</button>
+          <button type="button" className="client-detail-sheet-submit" disabled={busy} onClick={() => void saveEditTask()}>{t('clientDetailSaveChanges')}</button>
         </div>
       </BottomSheet>
     </div>
