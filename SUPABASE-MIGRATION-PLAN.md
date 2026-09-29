@@ -342,9 +342,24 @@ In small PRs, so each can be reviewed on its own:
    Schedule offers move and cancel on a real booking until it starts;
    moving needs 12 hours' notice, as in the demo. A session or request is
    drawn above busy time it overlaps, so it can still be tapped.
-3. **Attendance** after a session, and the member's own Schedule and
-   Booking between people already working together — including the
-   member's side of moving and cancelling.
+3. ✅ **Attendance.** Once a booked session has started, its sheet asks
+   the coach how it went. 0015's `mark_attendance()` records the outcome
+   on the session and, for one that was held or that the member missed,
+   uses one credit from the relationship's package — the demo's rule
+   (`setAttendance`): completed and no-show charge, disputed holds. A
+   free intro call never uses one, and a package already used up (or none
+   yet) leaves the session marked and nothing charged, so the signed-in
+   no-show label doesn't claim a credit. It runs as the coach (`SECURITY
+   INVOKER`), in one transaction so a retry can't charge twice, and
+   refuses a session that isn't theirs, hasn't started, or is already
+   recorded — including a member's own dispute, which the sheet shows as
+   theirs. Once recorded it stays; correcting a mark and settling a
+   dispute come with payments (§3). A missed session no longer counts as
+   one held on the member's side. Only this week's sessions can be marked,
+   since Schedule shows one week.
+4. **The member's own Schedule** and Booking between people already
+   working together — including the member's side of moving and
+   cancelling.
 
 ## Testing this kind of code
 

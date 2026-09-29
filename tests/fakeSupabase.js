@@ -154,6 +154,29 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       return { data: null, error: null };
     }
 
+    // 0012's mark_attendance, the same way: its refusals, then one package
+    // credit for held or missed (never a free intro, never past the total)
+    // and the session marked. 16_mark_attendance.sql proves the real one.
+    function markAttendance(args) {
+      if (args.p_outcome === 'cancelled') return refuse('23514');
+      const x = (db.sessions ??= []).find((r) => r.id === args.p_session);
+      const client = x && (db.clients ??= []).find((c) => c.id === x.client_id && c.coach_id === userId);
+      if (!client) return refuse('P0002');
+      if (x.attendance) return refuse('55000');
+      if (Date.parse(x.scheduled_at) > Date.now()) return refuse('22023');
+      let charged = false;
+      if (args.p_outcome !== 'disputed') {
+        const block = (db.time_blocks ?? []).find((b) => b.id === x.time_block_id);
+        const pkg = (db.packages ??= []).find((p) => p.client_id === x.client_id);
+        if (block?.session_type !== 'intro' && pkg && pkg.used < pkg.total) {
+          pkg.used += 1;
+          charged = true;
+        }
+      }
+      Object.assign(x, { attendance: args.p_outcome, attendance_set_by: 'coach', attendance_set_at: new Date().toISOString() });
+      return { data: charged, error: null };
+    }
+
     real.rpc = async (fn, args) => {
       log({ op: 'rpc', fn, args });
       // window.__fake.rpcDelay (ms) keeps a call in flight, for a test that
@@ -161,6 +184,7 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       if (window.__fake.rpcDelay) await new Promise((r) => setTimeout(r, window.__fake.rpcDelay));
       if (failing(`rpc.${fn}`)) return { data: null, error: NETWORK };
       if (fn === 'reschedule_booking' || fn === 'cancel_booking') return changeBooking(fn, args);
+      if (fn === 'mark_attendance') return markAttendance(args);
       if (fn !== 'accept_session_request') return refuse('42883');
       const r = (db.session_requests ??= []).find((x) => x.id === args.p_request && x.coach_id === userId);
       if (!r) return refuse('P0002');

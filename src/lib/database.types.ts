@@ -1753,6 +1753,10 @@ export type Database = {
       create_client_invite: { Args: { p_client: string }; Returns: Json }
       is_coach_of: { Args: { p_client: string }; Returns: boolean }
       is_member_of: { Args: { p_client: string }; Returns: boolean }
+      mark_attendance: {
+        Args: { p_outcome: Database["public"]["Enums"]["attendance"]; p_session: string }
+        Returns: boolean
+      }
       new_invite_code: { Args: never; Returns: string }
       normalize_invite_code: { Args: { p_code: string }; Returns: string }
       peek_client_invite: { Args: { p_code: string }; Returns: Json }

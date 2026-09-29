@@ -290,10 +290,12 @@ test('in Arabic and dark mode: the coach name stays isolated, no-coach reads in 
   await empty.ctx.close();
 });
 
-test('a session the coach cancelled is not counted as one held', async ({ browser }) => {
+test('a session the coach cancelled, or one the member missed, is not counted as one held', async ({ browser }) => {
   const tables = oneCoach();
-  // Held on the 21st (s-1, already there), and one cancelled on the 24th.
+  // Held on the 21st (s-1, already there), one cancelled on the 24th, and a
+  // no-show on the 25th.
   tables.sessions.push({ id: 's-x', client_id: 'rel-a', scheduled_at: '2026-09-24T15:00:00Z', recap: null, attendance: 'cancelled' });
+  tables.sessions.push({ id: 's-y', client_id: 'rel-a', scheduled_at: '2026-09-25T15:00:00Z', recap: null, attendance: 'no_show' });
   const { page, ctx, errs } = await open(browser, { tables, screen: 'clientCoach' });
   const sessions = page.locator('.client-coach-stat').filter({ hasText: 'Sessions' });
   await expect(sessions.locator('.client-coach-stat-value')).toHaveText('1');
