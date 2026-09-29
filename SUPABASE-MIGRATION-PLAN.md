@@ -306,6 +306,26 @@ until this, no real member could ever get a coach:
   both sides are in one country; storing the coach's zone is the fix when
   that stops being true.
 
+## Step 4, the calendar: `src/lib/scheduleData.ts`
+
+In small PRs, so each can be reviewed on its own:
+
+1. ✅ **The coach's week.** Signed in, Schedule is the real current week
+   (Monday first), the real month around it, and the coach's own
+   `time_blocks` starting that week — sessions booked by accepting a
+   request, requests pending, their busy and open blocks — with their
+   weekly hours as each day's open time and names from their roster. A
+   block before 8 AM or after 8 PM widens the day. AddTimeBlock adds a busy
+   or open block on a day of this week (not one already gone); Repeat
+   weekly is left out signed in, because recurring hours are Availability's.
+   The block sheet offers what is real: the member's profile. Messages and
+   the session room are later steps.
+2. **Moving and cancelling a booking**, by either side, with the
+   cancellation record and the member's next session kept in step (the
+   booked block and its session are tied by `sessions.time_block_id`).
+3. **Attendance** after a session, and the member's own Schedule and
+   Booking between people already working together.
+
 ## Testing this kind of code
 
 `tests/README.md`'s existing pattern (`native-oauth.spec.js`) already

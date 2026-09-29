@@ -47,7 +47,12 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       log({ table: q.table, op: q.op, values: q.values ?? null, filters: q.filters, ...(q.columns ? { columns: q.columns } : {}), ...(q.order ? { order: q.order } : {}) });
       if (failing(q.table) || failing(`${q.table}.${q.op}`)) return { data: null, error: NETWORK };
       const rows = (db[q.table] ??= []);
-      const matches = rows.filter((r) => q.filters.every(([c, v, op]) => (op === 'in' ? v.includes(r[c]) : r[c] === v)));
+      const test = (r, [c, v, op]) =>
+        op === 'in' ? v.includes(r[c])
+          : op === 'gte' ? Date.parse(r[c]) >= Date.parse(v)
+            : op === 'lt' ? Date.parse(r[c]) < Date.parse(v)
+              : r[c] === v;
+      const matches = rows.filter((r) => q.filters.every((f) => test(r, f)));
 
       if (q.op === 'select') {
         if (q.order) {
@@ -89,6 +94,9 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
         delete() { q.op = 'delete'; return b; },
         eq(col, val) { q.filters.push([col, val]); return b; },
         in(col, vals) { q.filters.push([col, vals, 'in']); return b; },
+        // Timestamps only: compared as instants, as Postgres does.
+        gte(col, val) { q.filters.push([col, val, 'gte']); return b; },
+        lt(col, val) { q.filters.push([col, val, 'lt']); return b; },
         order(col, { ascending = true } = {}) { q.order = [col, ascending]; return b; },
         maybeSingle() { q.single = true; return b; },
         single() { q.single = true; return b; },

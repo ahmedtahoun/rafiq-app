@@ -222,3 +222,15 @@
 }
 .add-time-block-submit:disabled { cursor: default; }
 .add-time-block-submit:disabled:active { transform: none; }
+
+.add-time-block-error {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--red);
+}
+
+.add-time-block-day-chip:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
