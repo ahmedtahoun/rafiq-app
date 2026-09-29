@@ -44,8 +44,10 @@ function parseTime(str: string): number | null {
 //
 // Signed in, the block goes on the coach's real calendar (time_blocks), on
 // that weekday of the current week — the one Schedule shows. Days already
-// gone are off, and Repeat weekly is left out: a coach's recurring hours
-// are Availability's (weekly_availability).
+// gone are off. Only Unavailable is offered, and Repeat weekly is left out:
+// when a coach is open is their weekly hours (Availability), which is all
+// members book from — a one-off "Preferred" block would tell the coach a day
+// is open that no member can book.
 export default function AddTimeBlock() {
   const t = useT();
   const nav = useAppStore((s) => s.nav);
@@ -58,7 +60,7 @@ export default function AddTimeBlock() {
   const [day, setDay] = useState(() => (remote ? todayIndex : 0));
   const [saving, setSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
-  const [type, setType] = useState<TimeBlockKind>('available');
+  const [type, setType] = useState<TimeBlockKind>(() => (remote ? 'busy' : 'available'));
   const [repeat, setRepeat] = useState(false);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -77,7 +79,7 @@ export default function AddTimeBlock() {
       setSaving(true);
       setSaveFailed(false);
       const result = await addOwnTimeBlock({
-        kind: type === 'busy' ? 'busy' : 'available',
+        kind: 'busy',
         label,
         startWallMs,
         endWallMs: weekStartMs + day * DAY_MS + Math.round(endH * 3600000),
@@ -166,7 +168,7 @@ export default function AddTimeBlock() {
         <div className="add-time-block-field">
           <div className="add-time-block-field-label">{t('addTimeBlockTypeLabel')}</div>
           <div className="add-time-block-chips">
-            {TYPE_DEFS.map((d) => (
+            {TYPE_DEFS.filter((d) => !remote || d.kind === 'busy').map((d) => (
               <button
                 key={d.kind}
                 type="button"

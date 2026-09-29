@@ -185,6 +185,31 @@ test('adding a block puts it on the real calendar, on that day of this week', as
   await ctx.close();
 });
 
+test('signed in, only Unavailable can be added: open time is the weekly hours alone', async ({ browser }) => {
+  const data = tables();
+  // An open block from before this rule, on Thursday, whose weekly hours are off.
+  data.time_blocks.push(block('b-open', 'available', '2026-10-01T07:00:00Z', '2026-10-01T09:00:00Z'));
+  const { page, ctx, errs } = await open(browser, { data });
+  await page.getByRole('button', { name: 'Week' }).click();
+  await expect(page.locator('.schedule-week-row').nth(3)).toContainText('No availability set');
+  await go(page, 'addTimeBlock');
+  await expect(page.locator('.add-time-block-type-chip')).toHaveText(['Unavailable']);
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
+test('a block ending at midnight reads 12 AM, not 12 PM', async ({ browser }) => {
+  const { page, ctx, errs } = await open(browser, { screen: 'addTimeBlock' });
+  await page.locator('#atb-start').fill('10:00 PM');
+  await page.locator('#atb-end').fill('24:00');
+  await page.getByRole('button', { name: 'Save Block' }).click();
+  await expect.poll(async () => (await page.evaluate(async () => (await import('/src/store/appStore.ts')).useAppStore.getState().screen))).toBe('schedule');
+  await expect(page.locator('.schedule-block', { hasText: 'Unavailable' }).last()).toContainText('10:00 PM – 12:00 AM');
+  await expect(page.locator('.schedule-hour-label').last()).toHaveText('12 AM');
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
 test('a failed add stays on the form and says so', async ({ browser }) => {
   const { page, ctx, errs } = await open(browser, { screen: 'addTimeBlock', fail: ['time_blocks.insert'] });
   await page.locator('#atb-start').fill('3:00 PM');

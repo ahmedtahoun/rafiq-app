@@ -57,7 +57,7 @@ as done below, when signed in; every other screen still reads and writes
       a coach's page and the request a member sends from it, the coach
       accepting or declining it in Notifications). Still on `mockStore`
       when signed in: the coach's Home (apart from the bell), Profile stats,
-      Earnings' totals, moving or cancelling a session in Schedule, and
+      Earnings' totals, moving, cancelling and attendance in Schedule,
       Messages, and the member screens listed
       under the demo identities below.
 - [ ] 🔴 **Remove the demo identities.** 14 member screens hardcoded
