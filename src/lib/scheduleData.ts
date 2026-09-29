@@ -64,9 +64,10 @@ export async function fetchCoachWeek(weekStartWallMs: number): Promise<ScheduleR
   };
 }
 
-/** One of the coach's own busy or open blocks — never a member's. */
+/** One of the coach's own busy blocks — never a member's. (Open time is
+    their weekly hours, which members book from.) */
 export async function addOwnTimeBlock(block: {
-  kind: 'available' | 'busy';
+  kind: 'busy';
   label: string;
   startWallMs: number;
   endWallMs: number;

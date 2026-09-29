@@ -584,11 +584,12 @@ function fmtHour(h: number, withPeriod: boolean): string {
   let hh = Math.floor(h) % 12;
   if (hh === 0) hh = 12;
   const mins = Math.round((h % 1) * 60);
-  const period = h >= 12 ? 'PM' : 'AM';
+  const period = h % 24 >= 12 ? 'PM' : 'AM';
   return `${hh}:${mins.toString().padStart(2, '0')}${withPeriod ? ` ${period}` : ''}`;
 }
+// Hours run 0–24: 24 is the midnight a block ends on, so it reads 12 AM.
 export function hourRangeLabel(startH: number, endH: number): string {
-  const samePeriod = startH >= 12 === endH >= 12;
+  const samePeriod = startH % 24 >= 12 === endH % 24 >= 12;
   return samePeriod ? `${fmtHour(startH, false)} – ${fmtHour(endH, true)}` : `${fmtHour(startH, true)} – ${fmtHour(endH, true)}`;
 }
 export function blockRange(block: CustomBlock): string {

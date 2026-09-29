@@ -167,7 +167,7 @@ function fmtHour(h: number, amLabel: string, pmLabel: string): string {
   let hh = Math.floor(h) % 12;
   if (hh === 0) hh = 12;
   const mins = Math.round((h % 1) * 60);
-  const period = h >= 12 ? pmLabel : amLabel;
+  const period = h % 24 >= 12 ? pmLabel : amLabel;
   return `${hh}:${mins.toString().padStart(2, '0')} ${period}`;
 }
 
@@ -260,8 +260,9 @@ export default function Schedule() {
     const open: UIBlock[] = hours.enabled
       ? [{ key: `avail-${dayIndex}`, id: null, clientId: null, kind: 'available', label: t('schedulePreferredHours'), startH: hours.startH, endH: hours.endH }]
       : [];
+    // Open time is the weekly hours alone: that's what members book from.
     const real: UIBlock[] = live.blocks
-      .filter((b) => b.startWallMs >= dayStart && b.startWallMs < dayStart + DAY_MS)
+      .filter((b) => b.kind !== 'available' && b.startWallMs >= dayStart && b.startWallMs < dayStart + DAY_MS)
       .map((b) => ({
         key: `real-${b.id}`,
         id: b.id,
@@ -379,7 +380,7 @@ export default function Schedule() {
   const timelineHeight = (endHour - startHour) * ROW_H + TOP_PAD * 2;
   const hourMarks: { top: number; labelTop: number; label: string }[] = [];
   for (let h = startHour; h <= endHour; h++) {
-    const period = h >= 12 ? 'PM' : 'AM';
+    const period = h % 24 >= 12 ? 'PM' : 'AM';
     let hh = h % 12;
     if (hh === 0) hh = 12;
     hourMarks.push({ top: (h - startHour) * ROW_H + TOP_PAD, labelTop: (h - startHour) * ROW_H + TOP_PAD - 6, label: `${hh} ${period}` });
