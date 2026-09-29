@@ -8,11 +8,14 @@ import {
 } from '../components/icons';
 import { BottomNav, type BottomNavItem } from '../components/BottomNav';
 import {
+  DEMO_MEMBER_CLIENT_ID,
   getClient, getClientProgramProgressList, getOfferingTypeInfo, setSelectedOfferingId,
 } from '../lib/mockStore';
 import './MyPrograms.css';
 
-const CLIENT_ID = 'sara';
+// Still the demo member's, signed in or not, until programs (step 6) moves to
+// Supabase (SUPABASE-MIGRATION-PLAN.md) — see DEMO_MEMBER_CLIENT_ID.
+const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
 const ACCENT_HEX = '#B75C3D';
 
 export default function MyPrograms() {

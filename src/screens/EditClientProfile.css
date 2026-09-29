@@ -103,3 +103,16 @@
   padding: 9px 6px 9px 0;
   font-family: inherit;
 }
+
+.edit-client-profile-error {
+  margin-inline: 20px;
+  margin-block-end: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--red-bg);
+  color: var(--red);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+  flex-shrink: 0;
+}

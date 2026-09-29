@@ -1,0 +1,44 @@
+.no-coach-yet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  padding: 28px 22px;
+  border-radius: 20px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.no-coach-yet-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.no-coach-yet-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.no-coach-yet-body {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  max-width: 280px;
+}
+
+.no-coach-yet-cta {
+  margin-top: 4px;
+  padding: 11px 20px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 6px 14px -4px var(--accent-glow);
+}

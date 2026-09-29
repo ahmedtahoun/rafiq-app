@@ -5,13 +5,16 @@ import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import { CheckIcon, StarIcon } from '../components/icons';
 import {
+  DEMO_MEMBER_CLIENT_ID,
   getCoachProfile, getSelectedOfferingId, getUnreviewedMilestones, getOfferingTypeInfo,
   getRatings, setRating, getMemberSessions, getRecapForMember, markMilestoneReviewed,
   getOffering,
 } from '../lib/mockStore';
 import './RateCoach.css';
 
-const CLIENT_ID = 'sara';
+// Still the demo member's, signed in or not, until ratings (step 6) moves to
+// Supabase (SUPABASE-MIGRATION-PLAN.md) — see DEMO_MEMBER_CLIENT_ID.
+const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
 const ACCENT_HEX = '#B75C3D';
 const STARS = [1, 2, 3, 4, 5];
 

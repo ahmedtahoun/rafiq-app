@@ -4,12 +4,15 @@ import { useT } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { ChevronIcon, MessageIcon } from '../components/icons';
 import {
+  DEMO_MEMBER_CLIENT_ID,
   getCoachProfile, getMessages, getMessageDraft, draftMessage, clearMessageDraft,
   sendMessage, markMessagesRead, canInteract, getBlockStatus, getProAccountStatus,
 } from '../lib/mockStore';
 import './CoachMessages.css';
 
-const CLIENT_ID = 'sara';
+// Still the demo member's, signed in or not, until messaging (step 5) moves to
+// Supabase (SUPABASE-MIGRATION-PLAN.md) — see DEMO_MEMBER_CLIENT_ID.
+const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
 const ACCENT_HEX = '#B75C3D';
 
 export default function CoachMessages() {

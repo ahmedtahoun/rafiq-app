@@ -6,12 +6,15 @@ import {
   MoonIcon, SunIcon, ChevronIcon, ArrowForwardIcon, CheckIcon, ScheduleIcon, PlusIcon, ProgramsIcon,
 } from '../components/icons';
 import {
+  DEMO_MEMBER_CLIENT_ID,
   getClient, getSelectedOfferingId, getClientProgramProgress, getOfferingTypeInfo,
   getMilestoneReviewStatus,
 } from '../lib/mockStore';
 import './ProgramDetail.css';
 
-const CLIENT_ID = 'sara';
+// Still the demo member's, signed in or not, until programs (step 6) moves to
+// Supabase (SUPABASE-MIGRATION-PLAN.md) — see DEMO_MEMBER_CLIENT_ID.
+const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
 const ACCENT_HEX = '#B75C3D';
 const RING_R = 30;
 const RING_CIRC = 2 * Math.PI * RING_R;

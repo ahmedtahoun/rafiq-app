@@ -1135,6 +1135,17 @@ export interface CoachProfile {
 
 const DEFAULT_PRO_ID = 'pro-yasmin';
 
+/**
+ * The demo member ("Sara Ahmed") the member screens show signed out.
+ *
+ * Signed in, the member screens that step 3 converted read the member's own
+ * relationships instead (src/store/memberStore.ts). The ones still on this
+ * constant signed in are the ones whose data moves in a later step —
+ * scheduling (4), messaging (5), programs/ratings/notifications/discovery
+ * (6) — and each says which at its import.
+ */
+export const DEMO_MEMBER_CLIENT_ID = 'sara';
+
 // Same seed values as store.js's DEFAULT_COACH_PROFILE, minus the two
 // avatar/cover fields it seeds with a demo-only artifact blob URL that
 // doesn't resolve outside that environment — unset (empty string) here so
@@ -1350,7 +1361,7 @@ export interface AggregateRating {
   hasEnoughReviews: boolean;
 }
 
-const MIN_REVIEWS_FOR_RATING = 3;
+export const MIN_REVIEWS_FOR_RATING = 3;
 
 export interface SessionRating {
   rating: number;
@@ -1565,8 +1576,8 @@ export function getRecapForMember(clientId: string, sessionId: string): string {
 // be ("Next: Today, ..."), which could only ever be true in English — same
 // class of bug isTaskOverdue had before the Task.due fix. Compares the real
 // timestamp against TODAY_MS's day boundary instead.
-export function isSessionToday(nextSessionAtMs: number | null): boolean {
-  return nextSessionAtMs != null && nextSessionAtMs >= TODAY_MS && nextSessionAtMs < TODAY_MS + DAY_MS;
+export function isSessionToday(nextSessionAtMs: number | null, todayMs: number = TODAY_MS): boolean {
+  return nextSessionAtMs != null && nextSessionAtMs >= todayMs && nextSessionAtMs < todayMs + DAY_MS;
 }
 
 export interface ActiveSessionState {

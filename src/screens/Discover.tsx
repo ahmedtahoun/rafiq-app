@@ -13,7 +13,7 @@ import { BottomSheet } from '../components/BottomSheet';
 import { CountryPicker } from '../components/CountryPicker';
 import { SPECIALTIES } from '../lib/specialties';
 import { COUNTRIES } from '../lib/countries';
-import { getClient } from '../lib/mockStore';
+import { DEMO_MEMBER_CLIENT_ID, getClient } from '../lib/mockStore';
 import {
   getDirectoryCoaches, getTrendingCoaches, filterCoaches, hasActiveFilters,
   getFavouriteCoaches, toggleFavouriteCoach, initialsOf, countryFlagOf,
@@ -21,7 +21,9 @@ import {
 } from '../lib/directory';
 import './Discover.css';
 
-const CLIENT_ID = 'sara';
+// Still the demo member's, signed in or not, until discovery (step 6) moves to
+// Supabase (SUPABASE-MIGRATION-PLAN.md) — see DEMO_MEMBER_CLIENT_ID.
+const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
 const ACCENT_HEX = '#B75C3D';
 
 // The specialty rail. The prototype had its own nine-entry list with

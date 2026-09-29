@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT, type MessageKey } from '../lib/i18n';
+import { isolate, useT, type MessageKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import {
@@ -8,14 +8,12 @@ import {
   SearchIcon, HomeIcon, ProgramsIcon, TasksIcon, ScheduleIcon, PersonIcon,
 } from '../components/icons';
 import { BottomNav, type BottomNavItem } from '../components/BottomNav';
-import {
-  getClient, getCoachProfile, getPackageStatus, getTasks, toggleTask, isTaskOverdue,
-  getMemberSessions, getRecapForMember, getMood, setMood, MOOD_KEYS,
-  type MoodKey,
-} from '../lib/mockStore';
+import { LoadState } from '../components/LoadState';
+import { NoCoachYet } from '../components/NoCoachYet';
+import { useMemberSpace, type MemberSpaceView } from '../store/memberStore';
+import { isTaskOverdue, MOOD_KEYS, type MoodKey } from '../lib/mockStore';
 import './ClientTasks.css';
 
-const CLIENT_ID = 'sara';
 const RING_R = 22;
 const RING_CIRC = 2 * Math.PI * RING_R;
 
@@ -42,6 +40,13 @@ const FILTERS: { key: TaskFilter; labelKey: MessageKey }[] = [
 ];
 
 export default function ClientTasks() {
+  const space = useMemberSpace();
+  if (space.status === 'loading') return <LoadState status="loading" />;
+  if (space.status === 'error') return <LoadState status="error" onRetry={space.retry} />;
+  return <ClientTasksView space={space} />;
+}
+
+function ClientTasksView({ space }: { space: Extract<MemberSpaceView, { status: 'ready' }> }) {
   const t = useT();
   const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
@@ -52,35 +57,33 @@ export default function ClientTasks() {
   const isAr = lang === 'ar';
 
   const [filter, setFilter] = useState<TaskFilter>('all');
-  // mockStore is plain functions over localStorage, not reactive state —
-  // a counter bump is what makes the screen re-read after a mutation.
-  const [, setTick] = useState(0);
-  const refresh = () => setTick((v) => v + 1);
+  // A write in flight (a tick or a mood), and whether the last one failed.
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
 
-  const client = getClient(CLIENT_ID);
-  const coachName = getCoachProfile().name || 'Yasmin El-Sayed';
+  const { todayMs } = space;
+  const rel = space.current;
+  const client = rel?.client;
+  const coachName = rel?.coach.name ?? '';
   const coachInitials = coachName.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2);
   const heroGrad = `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 40)} 100%)`;
   const coachGrad = `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 35)} 100%)`;
 
-  const mood = getMood(CLIENT_ID);
+  const mood = rel?.mood ?? null;
 
   // Same progress-ring math ClientHome uses, so "progress toward goal"
   // reads identically wherever the member app shows it.
-  const progress = client?.progress ?? 63;
+  const progress = client?.progress ?? 0;
   const ringOffset = RING_CIRC * (1 - progress / 100);
   const goalDisplay = client?.goal || t('clientTasksGoalFallback');
-  const pkg = getPackageStatus(CLIENT_ID);
-  const sessionsCompletedText = t('clientHomeSessionsCompleted', { used: pkg.used, total: pkg.total });
+  const pkg = rel?.pkg ?? null;
+  const sessionsCompletedText = pkg ? t('clientHomeSessionsCompleted', { used: pkg.used, total: pkg.total }) : t('clientHomeNoPackage');
 
-  // The most recent session recap the Pro has shared — same lookup
-  // ClientHome's feedback card uses, routed through getRecapForMember so a
-  // recap marked private is never surfaced here either.
-  const recentFeedback = getMemberSessions(CLIENT_ID)
-    .map((s) => ({ session: s, text: getRecapForMember(CLIENT_ID, s.id).trim() }))
-    .find((r) => r.text);
+  // The most recent session recap the Pro has shared — the same one
+  // ClientHome's feedback card shows (memberStore).
+  const recentFeedback = rel?.latestRecap ?? null;
 
-  const allTasks = getTasks(CLIENT_ID).map((task) => ({ ...task, overdue: isTaskOverdue(task) }));
+  const allTasks = (rel?.tasks ?? []).map((task) => ({ ...task, overdue: isTaskOverdue(task, todayMs) }));
   const counts: Record<TaskFilter, number> = {
     all: allTasks.length,
     pending: allTasks.filter((tk) => !tk.done).length,
@@ -94,14 +97,21 @@ export default function ClientTasks() {
     return true;
   });
 
+  async function run(write: () => Promise<boolean>) {
+    if (busy) return;
+    setBusy(true);
+    setFailed(false);
+    const done = await write();
+    setBusy(false);
+    if (!done) setFailed(true);
+  }
+
   function pickMood(key: MoodKey) {
-    setMood(CLIENT_ID, key);
-    refresh();
+    void run(() => space.actions.setMood(key));
   }
 
   function toggle(taskId: string) {
-    toggleTask(CLIENT_ID, taskId);
-    refresh();
+    void run(() => space.actions.toggleTask(taskId));
   }
 
   const navItems: BottomNavItem[] = [
@@ -119,7 +129,7 @@ export default function ClientTasks() {
         <div className="client-tasks-hero-top">
           <div>
             <h1 className="client-tasks-title">{t('clientTasksTitle')}</h1>
-            <div className="client-tasks-subtitle">{t('clientTasksFromCoach', { coach: coachName })}</div>
+            {rel && <div className="client-tasks-subtitle">{t('clientTasksFromCoach', { coach: isolate(coachName) })}</div>}
           </div>
           <div className="client-tasks-hero-actions">
             <button
@@ -142,6 +152,12 @@ export default function ClientTasks() {
         </div>
       </div>
 
+      {!rel ? (
+        <div className="client-tasks-scroll">
+          <NoCoachYet />
+        </div>
+      ) : (
+      <>
       <div className="client-tasks-mood">
         <div className="client-tasks-mood-question">{t('clientTasksHowFeeling')}</div>
         <div className="client-tasks-mood-row" role="group" aria-label={t('clientTasksHowFeeling')}>
@@ -153,6 +169,7 @@ export default function ClientTasks() {
                 type="button"
                 className="client-tasks-mood-btn"
                 aria-pressed={selected}
+                disabled={busy}
                 onClick={() => pickMood(key)}
               >
                 <span className={`client-tasks-mood-emoji${selected ? ' client-tasks-mood-emoji-on' : ''}`}>
@@ -174,6 +191,11 @@ export default function ClientTasks() {
       </div>
 
       <div className="client-tasks-scroll">
+        {failed && (
+          <div className="client-tasks-error" role="alert">
+            {t('requestFailedRetry')}
+          </div>
+        )}
         <button type="button" className="client-tasks-progress" onClick={() => nav('clientHome')}>
           <span className="client-tasks-ring">
             <svg width="52" height="52" viewBox="0 0 52 52" style={{ transform: 'rotate(-90deg)' }}>
@@ -197,9 +219,9 @@ export default function ClientTasks() {
           <button type="button" className="client-tasks-feedback" onClick={() => nav('clientCoach')}>
             <span className="client-tasks-feedback-avatar" style={{ background: coachGrad }}>{coachInitials}</span>
             <span className="client-tasks-feedback-body">
-              <span className="client-tasks-feedback-label">{t('clientTasksFeedbackLabel', { coach: coachName })}</span>
+              <span className="client-tasks-feedback-label">{t('clientTasksFeedbackLabel', { coach: isolate(coachName) })}</span>
               <span className="client-tasks-feedback-text"><bdi>{recentFeedback.text}</bdi></span>
-              <span className="client-tasks-feedback-date"><bdi>{fmt.date(recentFeedback.session.atMs)}</bdi></span>
+              <span className="client-tasks-feedback-date"><bdi>{fmt.date(recentFeedback.atMs)}</bdi></span>
             </span>
           </button>
         )}
@@ -226,6 +248,7 @@ export default function ClientTasks() {
                 className={`client-tasks-box${task.done ? ' client-tasks-box-done' : ''}${task.overdue ? ' client-tasks-box-overdue' : ''}`}
                 aria-pressed={task.done}
                 aria-label={task.title}
+                disabled={busy}
                 onClick={() => toggle(task.id)}
               >
                 {task.done && <CheckIcon size={13} color="#FFFFFF" />}
@@ -235,7 +258,7 @@ export default function ClientTasks() {
                   <bdi>{task.title}</bdi>
                 </div>
                 <div className="client-tasks-row-meta">
-                  <span className={`client-tasks-due${task.overdue ? ' client-tasks-due-overdue' : ''}`}><bdi>{fmt.taskDue(task.dueAtMs, task.dueHasTime)}</bdi></span>
+                  <span className={`client-tasks-due${task.overdue ? ' client-tasks-due-overdue' : ''}`}><bdi>{fmt.taskDue(task.dueAtMs, task.dueHasTime, todayMs)}</bdi></span>
                   {task.recurring && (
                     <svg
                       width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--ink-soft)"
@@ -261,6 +284,8 @@ export default function ClientTasks() {
           </div>
         )}
       </div>
+      </>
+      )}
 
       <BottomNav items={navItems} />
     </div>

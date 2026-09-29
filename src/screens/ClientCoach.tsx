@@ -10,17 +10,23 @@ import {
 } from '../components/icons';
 import { BottomNav, type BottomNavItem } from '../components/BottomNav';
 import { BottomSheet } from '../components/BottomSheet';
+import { LoadState } from '../components/LoadState';
+import { NoCoachYet } from '../components/NoCoachYet';
+import { useMemberSpace, useMemberStore, type MemberRelationshipView, type MemberSpaceView } from '../store/memberStore';
+import { fileProReport } from '../lib/adminQueues';
 import {
-  getClient, getCoachProfile, getTasks, getSessionLogs, isSessionToday,
-  getPackageStatus, getProAggregateRating, isCredentialVerified,
+  DEMO_MEMBER_CLIENT_ID, isSessionToday,
   getAvailabilityForDayIndex, updateClient, addPayment, addCustomBlock,
   formatDate, canInteract, reportPro, setStandingSlot, getStandingSlot,
-  getMonthsTogether,
   PACKAGE_DEFAULT_TOTAL, type ProReportReason,
 } from '../lib/mockStore';
 import './ClientCoach.css';
 
-const CLIENT_ID = 'sara';
+// The standing slot, the Full Access upgrade and its card payment are still
+// the demo's (they move with scheduling and payments), so they act on the
+// demo member and only show signed out.
+const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
+const DAY_MS = 86400000;
 const ACCENT_HEX = '#B75C3D';
 
 // What Full Access costs. There is no price field on the relationship yet,
@@ -53,6 +59,39 @@ const REPORT_REASONS: { key: ProReportReason; labelKey: MessageKey }[] = [
 ];
 
 export default function ClientCoach() {
+  const space = useMemberSpace();
+  if (space.status === 'loading') return <LoadState status="loading" />;
+  if (space.status === 'error') return <LoadState status="error" onRetry={space.retry} />;
+  if (!space.current) return <ClientCoachEmpty />;
+  return <ClientCoachView space={space} rel={space.current} />;
+}
+
+/** A signed-in member no coach has accepted yet. */
+function ClientCoachEmpty() {
+  const t = useT();
+  const navItems = memberNavItems(t);
+  return (
+    <div className="phone-frame client-coach-screen">
+      <div className="client-coach-scroll client-coach-empty">
+        <NoCoachYet />
+      </div>
+      <BottomNav items={navItems} />
+    </div>
+  );
+}
+
+function memberNavItems(t: ReturnType<typeof useT>): BottomNavItem[] {
+  return [
+    { key: 'discover', label: t('discoverNav'), icon: SearchIcon, screen: 'discover' },
+    { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'clientHome' },
+    { key: 'programs', label: t('myProgramsNav'), icon: ProgramsIcon, screen: 'myPrograms' },
+    { key: 'tasks', label: t('clientTasksNav'), icon: TasksIcon, screen: 'clientTasks' },
+    { key: 'schedule', label: t('clientScheduleNav'), icon: ScheduleIcon, screen: 'clientSchedule' },
+    { key: 'coach', label: t('clientCoachNav'), icon: PersonIcon, screen: 'clientCoach' },
+  ];
+}
+
+function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { status: 'ready' }>; rel: MemberRelationshipView }) {
   const t = useT();
   const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
@@ -69,53 +108,59 @@ export default function ClientCoach() {
   const [day, setDay] = useState<number | null>(null);
   const [slot, setSlot] = useState<number | null>(null);
   const [paid, setPaid] = useState(false);
-  // mockStore is plain functions over localStorage, not reactive — bumped
-  // after a write so the reads below recompute.
-  const [, setTick] = useState(0);
-  const refresh = () => setTick((v) => v + 1);
+  // mockStore is plain functions over localStorage, not reactive. The
+  // relationship comes from useMemberSpace() above this component, so a
+  // demo write bumps the member store, which re-reads it there.
+  const refresh = useMemberStore((s) => s.bumpMock);
 
-  const profile = getCoachProfile();
-  const client = getClient(CLIENT_ID);
-  const coachName = profile.name || 'Yasmin El-Sayed';
+  const { remote, todayMs } = space;
+  const [reportBusy, setReportBusy] = useState(false);
+  const [reportFailed, setReportFailed] = useState(false);
+
+  const profile = rel.coach;
+  const client = rel.client;
+  const coachName = profile.name;
   const coachInitials = coachName.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2);
 
-  const nextSessionAtMs = client?.nextSessionAtMs ?? null;
+  const nextSessionAtMs = client.nextSessionAtMs;
   const hasNextSession = nextSessionAtMs != null;
   const nextSessionText = hasNextSession
-    ? fmt.nextSession(nextSessionAtMs)
+    ? fmt.nextSession(nextSessionAtMs, todayMs)
     : t('clientCoachNoSession');
-  const sessionToday = hasNextSession && isSessionToday(nextSessionAtMs);
+  const sessionToday = hasNextSession && isSessionToday(nextSessionAtMs, todayMs);
 
-  const pendingTasks = getTasks(CLIENT_ID).filter((task) => !task.done).length;
+  const pendingTasks = rel.tasks.filter((task) => !task.done).length;
   const tasksText = pendingTasks > 0
     ? t('clientCoachTasksPending', { n: pendingTasks })
     : t('clientCoachTasksDone');
 
-  // Same baseline ClientHome uses — two seeded sessions before any real log
-  // exists — so the count agrees with the history shown there.
-  const sessionsTogether = getSessionLogs(CLIENT_ID).length + 2;
+  // Sessions that have happened (memberStore; the demo keeps the design's
+  // baseline of two).
+  const sessionsTogether = rel.sessionsTogether;
   // How long they have been working together, from when the member
   // actually completed signup. The design hardcodes 6 here; a made-up
   // relationship length is the same kind of claim as ShareProfile's
   // invented rating, so this shows a dash until there is a real date to
   // count from — which is also how the Reviews stat beside it behaves.
-  const monthsTogether = getMonthsTogether(CLIENT_ID);
+  const joinedAtMs = client.signupCompletedAtMs;
+  const monthsTogether = joinedAtMs === null ? null : Math.max(1, Math.round((todayMs - joinedAtMs) / (30 * DAY_MS)));
 
-  const rating = getProAggregateRating();
-  const pkg = getPackageStatus(CLIENT_ID);
-  const verified = isCredentialVerified();
-  const interactive = canInteract(CLIENT_ID);
-  const standing = getStandingSlot(CLIENT_ID);
+  const rating = profile.rating;
+  const pkg = rel.pkg;
+  const verified = profile.verified;
+  // Blocking and suspension are the demo's until messaging moves (step 5).
+  const interactive = remote ? true : canInteract(CLIENT_ID);
+  const standing = remote ? null : getStandingSlot(CLIENT_ID);
 
-  const plan = client?.plan || 'Basic';
-  const showUpgrade = plan !== 'Full Access';
+  const plan = client.plan || 'Basic';
+  const showUpgrade = !remote && plan !== 'Full Access';
   const fullAccessTotal = PACKAGE_DEFAULT_TOTAL['Full Access'] ?? 12;
 
-  const paymentStatus = client?.paymentStatus ?? 'due';
+  const paymentStatus = client.paymentStatus;
   const paymentLabel = paymentStatus === 'paid'
     ? t('clientCoachPaymentPaid')
     : paymentStatus === 'overdue' ? t('clientCoachPaymentOverdue') : t('clientCoachPaymentDue');
-  const paymentDetail = paymentStatus === 'paid'
+  const paymentDetail = paymentStatus === 'paid' || !pkg
     ? t('clientCoachPlanLine', { plan })
     : t('clientCoachPlanRenews', { plan, date: fmt.date(pkg.expiresAtMs) });
 
@@ -149,16 +194,22 @@ export default function ClientCoach() {
     ? `${hourLabel(slot, AM, PM)} – ${hourLabel(slot + STANDING_SLOT_LEN, AM, PM)}`
     : '';
 
-  // Still mockStore-only, deliberately: lib/adminQueues.ts's real
-  // fileProReport() needs a real `clients` row id and the signed-in
-  // member's own coach's real profile id, neither of which exist until
-  // CLIENT_ID/DEFAULT_PRO_ID are replaced with the signed-in identity
-  // (LAUNCH-CHECKLIST.md §2, "remove the demo identities") — wiring this
-  // one in first would just fail the insert's RLS check against real
-  // Supabase credentials with nothing gained.
+  // Signed in, a real report on this relationship (step 1's queue): the
+  // member's roster row and its coach, which 0005's policy checks match.
   function submitReport(reason: ProReportReason) {
-    reportPro(CLIENT_ID, reason);
-    setTrustStep('reported');
+    if (!remote) {
+      reportPro(CLIENT_ID, reason);
+      setTrustStep('reported');
+      return;
+    }
+    if (reportBusy || !profile.id) return;
+    setReportBusy(true);
+    setReportFailed(false);
+    void fileProReport({ clientId: rel.clientId, coachId: profile.id, reason }).then((result) => {
+      setReportBusy(false);
+      if (result.ok) setTrustStep('reported');
+      else setReportFailed(true);
+    });
   }
 
   function confirmSubscribe() {
@@ -176,7 +227,7 @@ export default function ClientCoach() {
     addCustomBlock({
       clientId: CLIENT_ID,
       kind: 'pending',
-      label: `${client?.name || 'Sara Ahmed'} · Standing`,
+      label: `${client.name || 'Sara Ahmed'} · Standing`,
       dayIndex: day,
       startH: slot,
       endH,
@@ -211,14 +262,7 @@ export default function ClientCoach() {
     }
   }
 
-  const navItems: BottomNavItem[] = [
-    { key: 'discover', label: t('discoverNav'), icon: SearchIcon, screen: 'discover' },
-    { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'clientHome' },
-    { key: 'programs', label: t('myProgramsNav'), icon: ProgramsIcon, screen: 'myPrograms' },
-    { key: 'tasks', label: t('clientTasksNav'), icon: TasksIcon, screen: 'clientTasks' },
-    { key: 'schedule', label: t('clientScheduleNav'), icon: ScheduleIcon, screen: 'clientSchedule' },
-    { key: 'coach', label: t('clientCoachNav'), icon: PersonIcon, screen: 'clientCoach' },
-  ];
+  const navItems = memberNavItems(t);
 
   const heroBackground = profile.coverPhotoUrl
     ? `linear-gradient(180deg, rgba(0,0,0,.45) 0%, rgba(0,0,0,.55) 55%, rgba(0,0,0,.68) 100%), url('${profile.coverPhotoUrl}') center/cover no-repeat`
@@ -367,7 +411,7 @@ export default function ClientCoach() {
 
         <section className="client-coach-section">
           <h2 className="client-coach-h2">{t('clientCoachAbout')}</h2>
-          <p className="client-coach-bio">{profile.bio || t('clientCoachBioFallback')}</p>
+          <p className="client-coach-bio">{profile.bio ? <bdi>{profile.bio}</bdi> : t('clientCoachBioFallback')}</p>
         </section>
 
         <div className="client-coach-stats">
@@ -398,11 +442,17 @@ export default function ClientCoach() {
       >
         {trustStep === 'reason' ? (
           <div className="client-coach-reasons">
+            {reportFailed && (
+              <div className="client-coach-report-error" role="alert">
+                {t('requestFailedRetry')}
+              </div>
+            )}
             {REPORT_REASONS.map((reason) => (
               <button
                 key={reason.key}
                 type="button"
                 className="client-coach-reason"
+                disabled={reportBusy}
                 onClick={() => submitReport(reason.key)}
               >
                 {t(reason.labelKey)}

@@ -9,6 +9,7 @@ import {
 } from '../components/icons';
 import { BottomNav, type BottomNavItem } from '../components/BottomNav';
 import {
+  DEMO_MEMBER_CLIENT_ID,
   getClient, getCoachProfile, getCustomBlocks, getAvailabilityForDayIndex,
   getRescheduleEligibility, getCancellationPolicy, rescheduleBooking, cancelBooking,
   getMemberSessions, getRecapForMember, getRatings, getSessionTypeInfo,
@@ -18,7 +19,9 @@ import {
 } from '../lib/mockStore';
 import './ClientSchedule.css';
 
-const CLIENT_ID = 'sara';
+// Still the demo member's, signed in or not, until scheduling (step 4) moves to
+// Supabase (SUPABASE-MIGRATION-PLAN.md) — see DEMO_MEMBER_CLIENT_ID.
+const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
 // Same fixed fictional week every other screen's calendar math anchors to:
 // Wednesday is "today", so Mon/Tue have already passed.
 const TODAY_INDEX = 2;

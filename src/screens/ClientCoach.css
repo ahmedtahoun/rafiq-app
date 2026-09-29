@@ -594,3 +594,17 @@
   line-height: 1.5;
   color: var(--ink-soft);
 }
+
+.client-coach-report-error {
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--red-bg);
+  color: var(--red);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.client-coach-empty {
+  padding-top: 40px;
+}
