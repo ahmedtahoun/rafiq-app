@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT, type MessageKey } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { ChevronIcon } from '../components/icons';
 import { signInWithOAuth, type OAuthProvider } from '../lib/auth';
+import { onAuthBrowserClosed } from '../lib/nativeAuth';
 import { rememberAuthOrigin } from '../lib/oauthReturn';
 import { isSupabaseConfigured } from '../lib/supabase';
 import './Auth.css';
@@ -47,6 +48,9 @@ export default function Auth() {
   const nav = useAppStore((s) => s.nav);
   const back = useAppStore((s) => s.back);
   const [pending, setPending] = useState<OAuthProvider | null>(null);
+  // Closing the in-app browser without finishing is a cancel, not a
+  // failure: the buttons come back, with no error to show.
+  useEffect(() => onAuthBrowserClosed(() => setPending(null)), []);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
 
   // A failed provider return is reported by lib/session.ts, not by this

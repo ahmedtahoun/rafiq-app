@@ -135,6 +135,35 @@ export async function closeAuthBrowser(): Promise<void> {
 }
 
 /**
+ * The in-app browser closed — by the user (Cancel, Done, the X) or by
+ * closeAuthBrowser() after a redirect. The sign-in screens reset their
+ * "Connecting…" state on it: without this, someone who closed the browser
+ * was left with both buttons disabled until they restarted the app (first
+ * seen on the iOS simulator). A no-op on web, where there is no in-app
+ * browser to close.
+ */
+const browserClosedHandlers = new Set<() => void>();
+let browserClosedListening = false;
+
+export function onAuthBrowserClosed(handle: () => void): () => void {
+  if (!isNativePlatform()) return () => {};
+  // One plugin listener for the app's lifetime, fanning out to a plain set.
+  // Adding and removing a plugin listener per screen is asynchronous, and
+  // React's development double-mount raced them: the screen that stayed
+  // mounted ended up with no listener at all. Set add/delete can't race.
+  if (!browserClosedListening) {
+    browserClosedListening = true;
+    void Browser.addListener('browserFinished', () => {
+      for (const h of [...browserClosedHandlers]) h();
+    });
+  }
+  browserClosedHandlers.add(handle);
+  return () => {
+    browserClosedHandlers.delete(handle);
+  };
+}
+
+/**
  * Listen for the provider's redirect back into the app.
  *
  * Returns its own unsubscribe so a caller can hand it straight back from
