@@ -42,6 +42,7 @@ import {
   getMemberAccountStatus,
   getMemberReliability,
   getMessagesHref,
+  getMonthGrid,
   getRescheduleEligibility,
   getSessionLogs,
   getSessionRoomHref,
@@ -142,23 +143,6 @@ const ATTENDANCE_STYLE: Record<AttendanceOutcome, { color: string; bg: string }>
   disputed: { color: 'var(--red)', bg: 'var(--red-bg)' },
 };
 
-interface MonthCellDef {
-  day: number;
-  inMonth: boolean;
-  dataIdx?: number;
-}
-
-// Fixed Oct 2025 grid — same fictional month Schedule.dc.html's own
-// monthRaw hardcodes, anchored to the same fixed week (dataIdx 0-6 = Oct
-// 20-26, this app's one live week).
-const MONTH_RAW: MonthCellDef[] = [
-  { day: 29, inMonth: false }, { day: 30, inMonth: false }, { day: 1, inMonth: true }, { day: 2, inMonth: true }, { day: 3, inMonth: true }, { day: 4, inMonth: true }, { day: 5, inMonth: true },
-  { day: 6, inMonth: true }, { day: 7, inMonth: true }, { day: 8, inMonth: true }, { day: 9, inMonth: true }, { day: 10, inMonth: true }, { day: 11, inMonth: true }, { day: 12, inMonth: true },
-  { day: 13, inMonth: true }, { day: 14, inMonth: true }, { day: 15, inMonth: true }, { day: 16, inMonth: true }, { day: 17, inMonth: true }, { day: 18, inMonth: true }, { day: 19, inMonth: true },
-  { day: 20, inMonth: true, dataIdx: 0 }, { day: 21, inMonth: true, dataIdx: 1 }, { day: 22, inMonth: true, dataIdx: 2 }, { day: 23, inMonth: true, dataIdx: 3 }, { day: 24, inMonth: true, dataIdx: 4 }, { day: 25, inMonth: true, dataIdx: 5 }, { day: 26, inMonth: true, dataIdx: 6 },
-  { day: 27, inMonth: true }, { day: 28, inMonth: true }, { day: 29, inMonth: true }, { day: 30, inMonth: true }, { day: 31, inMonth: true }, { day: 1, inMonth: false }, { day: 2, inMonth: false },
-];
-
 // Same tiny 12-hour formatter every screen in the design prototype carries
 // its own copy of (Schedule.dc.html/Availability.dc.html's local fmtHour) —
 // kept local here too rather than shared, matching that established
@@ -170,23 +154,6 @@ function fmtHour(h: number, amLabel: string, pmLabel: string): string {
   const mins = Math.round((h % 1) * 60);
   const period = h % 24 >= 12 ? pmLabel : amLabel;
   return `${hh}:${mins.toString().padStart(2, '0')} ${period}`;
-}
-
-/** The real month around today, Monday first, in MONTH_RAW's shape: the
-    days of the loaded week carry their index into it, so they are the ones
-    that open the day view (the same as the demo's one live week). */
-function liveMonth(todayMs: number, weekStartMs: number): MonthCellDef[] {
-  const today = new Date(todayMs);
-  const month = today.getUTCMonth();
-  const first = Date.UTC(today.getUTCFullYear(), month, 1);
-  const cells: MonthCellDef[] = [];
-  for (let ms = first - weekdayOf(first) * DAY_MS; ; ms += DAY_MS) {
-    const d = new Date(ms);
-    if (cells.length > 0 && cells.length % 7 === 0 && d.getUTCMonth() !== month && ms > first) break;
-    const idx = Math.round((ms - weekStartMs) / DAY_MS);
-    cells.push({ day: d.getUTCDate(), inMonth: d.getUTCMonth() === month, dataIdx: idx >= 0 && idx < 7 ? idx : undefined });
-  }
-  return cells;
 }
 
 function dominantKind(dayBlocks: UIBlock[]): UIKind | null {
@@ -676,10 +643,14 @@ export default function Schedule() {
   });
 
   // ---- Month view ----
-  const monthCells = (live ? liveMonth(realTodayMs, weekStartMs) : MONTH_RAW).map((c, idx) => {
-    const isSelCell = c.dataIdx !== undefined && c.dataIdx === selectedDay && view === 'month';
-    const kind = c.dataIdx !== undefined ? dominantKind(blocksForDay(c.dataIdx)) : null;
-    return { key: idx, day: c.day, inMonth: c.inMonth, dataIdx: c.dataIdx, isSelCell, dotColor: kind ? KIND_STYLE[kind].bar : null };
+  // Both branches are mockStore's getMonthGrid: signed out it draws the
+  // fixed week's month from its own defaults, signed in the real month
+  // around today with this week marked live.
+  const grid = live ? getMonthGrid(realTodayMs, weekStartMs) : getMonthGrid();
+  const monthCells = grid.map((c, idx) => {
+    const isSelCell = c.dayIndex !== null && c.dayIndex === selectedDay && view === 'month';
+    const kind = c.dayIndex !== null ? dominantKind(blocksForDay(c.dayIndex)) : null;
+    return { key: idx, day: c.day, inMonth: c.inMonth, dataIdx: c.dayIndex, isSelCell, dotColor: kind ? KIND_STYLE[kind].bar : null };
   });
 
   const bookedToday = blocks.filter((b) => b.kind === 'booked').length;
@@ -883,9 +854,9 @@ export default function Schedule() {
                       background: c.isSelCell ? 'var(--accent)' : 'transparent',
                       color: c.isSelCell ? '#FFFFFF' : c.inMonth ? 'var(--ink)' : 'var(--ink-soft)',
                       opacity: c.inMonth ? 1 : 0.35,
-                      fontWeight: c.dataIdx !== undefined ? 700 : 500,
+                      fontWeight: c.dataIdx !== null ? 700 : 500,
                     }}
-                    onClick={c.dataIdx !== undefined ? () => { setSelectedDay(c.dataIdx!); setView('day'); } : undefined}
+                    onClick={c.dataIdx !== null ? () => { setSelectedDay(c.dataIdx!); setView('day'); } : undefined}
                   >
                     <span>{c.day}</span>
                     {c.dotColor && <span className="schedule-month-dot" style={{ background: c.dotColor }} />}
