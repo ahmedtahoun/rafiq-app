@@ -11,6 +11,8 @@ import { NoCoachYet } from '../components/NoCoachYet';
 import { useMemberSpace, type MemberRelationshipView, type MemberSpaceView } from '../store/memberStore';
 import type { Screen } from '../store/appStore';
 import { getSessionRequests, getDirectoryCoach, initialsOf } from '../lib/directory';
+import { fetchOwnRequests } from '../lib/requestData';
+import { useRemoteLoad } from '../store/remoteLoad';
 import './MyCoaches.css';
 
 const ACCENT_HEX = '#B75C3D';
@@ -29,6 +31,8 @@ function MyCoachesView({ space }: { space: Extract<MemberSpaceView, { status: 'r
   const nav = useAppStore((s) => s.nav);
   const back = useAppStore((s) => s.back);
   const isAr = lang === 'ar';
+  const fmt = useFormat();
+  const ownRequests = useRemoteLoad('own_requests', space.remote, fetchOwnRequests);
 
   const active = space.relationships.filter((r) => r.client.active);
   const past = space.relationships.filter((r) => !r.client.active);
@@ -40,15 +44,26 @@ function MyCoachesView({ space }: { space: Extract<MemberSpaceView, { status: 'r
     nav(screen);
   };
 
-  // Requests the member sent from CoachPreview. Still directory.ts's local
-  // copy (discovery moves in step 6), so only the demo shows them.
+  // Requests the member sent from CoachPreview that no coach has answered
+  // yet: session_requests signed in, directory.ts's local copy in the demo.
+  // Tapping one opens that coach again, to pick a different time.
   const pending = space.remote
-    ? []
+    ? ownRequests.status === 'ready'
+      ? ownRequests.data.map((r) => ({
+          id: r.id,
+          coachId: r.coachId,
+          name: r.coachName,
+          specialty: t('myCoachesRequestedFor', { when: fmt.slot(r.startWallMs) }),
+          initials: initialsOf(r.coachName || '?'),
+          color: ACCENT_HEX,
+        }))
+      : []
     : getSessionRequests().map((r) => {
         const coach = getDirectoryCoach(r.coachId);
         const specialtyDef = coach ? SPECIALTIES.find((sp) => sp.value === coach.specialty) : undefined;
         return {
           id: r.coachId,
+          coachId: r.coachId,
           name: r.coachName,
           specialty: specialtyDef ? t(specialtyDef.labelKey) : coach?.specialty ?? r.offeringName,
           initials: initialsOf(r.coachName),
@@ -81,24 +96,32 @@ function MyCoachesView({ space }: { space: Extract<MemberSpaceView, { status: 'r
           <NoCoachYet />
         )}
 
-        {!space.remote && (
-          <>
-            <div className="my-coaches-section-label my-coaches-section-gap">{t('myCoachesPending')}</div>
-            {pending.length > 0 ? (
-              pending.map((p) => (
-                <div key={p.id} className="my-coaches-pending">
-                  <span className="my-coaches-pending-avatar" style={{ background: p.color }}>{p.initials}</span>
-                  <div className="my-coaches-pending-body">
-                    <div className="my-coaches-pending-name"><bdi>{p.name}</bdi></div>
-                    <div className="my-coaches-pending-specialty"><bdi>{p.specialty}</bdi></div>
-                  </div>
-                  <span className="my-coaches-pending-badge">{t('myCoachesPendingBadge')}</span>
-                </div>
-              ))
-            ) : (
-              <div className="my-coaches-empty">{t('myCoachesNoPending')}</div>
-            )}
-          </>
+        <div className="my-coaches-section-label my-coaches-section-gap">{t('myCoachesPending')}</div>
+        {space.remote && ownRequests.status === 'error' ? (
+          <div className="my-coaches-empty" role="alert">
+            {t('loadFailedTitle')}{' '}
+            <button type="button" className="my-coaches-retry" onClick={ownRequests.retry}>{t('retry')}</button>
+          </div>
+        ) : space.remote && ownRequests.status === 'loading' ? (
+          <div className="my-coaches-empty">{t('loadingEllipsis')}</div>
+        ) : pending.length > 0 ? (
+          pending.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              className="my-coaches-pending my-coaches-past"
+              onClick={() => nav({ screen: 'coachPreview', params: { coachId: p.coachId } })}
+            >
+              <span className="my-coaches-pending-avatar" style={{ background: p.color }}>{p.initials}</span>
+              <span className="my-coaches-pending-body">
+                <span className="my-coaches-pending-name"><bdi>{p.name}</bdi></span>
+                <span className="my-coaches-pending-specialty"><bdi>{p.specialty}</bdi></span>
+              </span>
+              <span className="my-coaches-pending-badge">{t('myCoachesPendingBadge')}</span>
+            </button>
+          ))
+        ) : (
+          <div className="my-coaches-empty">{t('myCoachesNoPending')}</div>
         )}
 
         {/* A relationship ends when the coach archives the member's roster

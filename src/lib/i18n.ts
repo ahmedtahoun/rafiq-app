@@ -531,6 +531,11 @@ const en = {
     notificationsMarkAllRead: 'Mark all read',
     notificationsAllCaughtUp: "You're all caught up!",
     notificationsNothingNew: 'Nothing new to show right now.',
+    notificationsAccept: 'Accept', notificationsDecline: 'Decline',
+    notificationsAccepted: 'Booked — {name} is on your Clients list now.',
+    notificationsRequestGone: 'This request was withdrawn or already answered.',
+    notificationsRequestPassed: 'This time has already passed. Decline it so {name} can pick another.',
+    notificationsSlotTaken: 'You already have a session booked at this time.',
     notificationsSessionRequest: '{name} requested a session',
     notificationsPaymentReceived: "{name}'s payment was received",
     notificationsPaymentSub: '{amount} EGP · {date}',
@@ -691,6 +696,7 @@ const en = {
     availabilityTitle: 'Availability', availabilitySubtitle: 'The hours members can book you, every week.',
     availabilityStart: 'Start', availabilityEnd: 'End', availabilitySave: 'Save', availabilityCancel: 'Cancel',
     availabilityInvalidRange: 'End time must be after start time.',
+    availabilitySaveFailed: "Your hours weren't saved. Please try again.",
 
     // Discover.dc.html — a member browsing pros.
     discoverEyebrow: 'Find your fit', discoverTitle: 'Discover pros', discoverNav: 'Discover',
@@ -704,6 +710,7 @@ const en = {
     discoverYearsExp: '{n} yrs exp',
     discoverAvailableToday: 'Available today',
     discoverFeatured: 'FEATURED', discoverTopRated: 'TOP RATED',
+    discoverNewCoach: 'New',
     discoverTrending: 'Trending this week',
     discoverStories: 'Member Stories', discoverStoriesSub: 'Real feedback from people like you',
     discoverStoryHelpful: '{n} found this helpful',
@@ -747,6 +754,10 @@ const en = {
     coachPreviewFreeNote: 'This intro session is free — no payment needed.',
     coachPreviewDateLabel: 'Date', coachPreviewCoachLabel: 'Pro',
     coachPreviewAddToCalendar: 'Add to calendar', coachPreviewDone: 'Done',
+    coachPreviewNoHoursYet: "{name} hasn't set their hours yet — check back soon.",
+    coachPreviewExistingRequest: "You've asked for {when}. Sending a new time replaces that request.",
+    coachPreviewRequestFailed: "Your request wasn't sent. Please try again.",
+    coachPreviewMinutes: '{n} min',
 
     // ClientCoach.dc.html — the member's view of their own Pro.
     clientCoachTitle: 'Your Pro', clientCoachNav: 'Your Pro',
@@ -910,6 +921,7 @@ const en = {
     myCoachesHint: 'You can work with more than one pro at a time — for example, a life pro and a yoga pro. Browse Discover to add another.',
     myCoachesViewProfile: 'View profile', myCoachesSessions: 'Sessions', myCoachesMessage: 'Message',
     myCoachesNoRating: 'No rating yet',
+    myCoachesRequestedFor: 'Requested: {when}',
 
     clientNotificationsTitle: 'Notifications', clientNotificationsMarkAll: 'Mark all read',
     clientNotificationsEmptyTitle: "You're all caught up!",
@@ -1509,6 +1521,11 @@ const ar: Record<MessageKey, string> = {
     notificationsMarkAllRead: 'تعليم الكل كمقروء',
     notificationsAllCaughtUp: 'كل شيء على ما يرام!',
     notificationsNothingNew: 'لا يوجد جديد لعرضه الآن.',
+    notificationsAccept: 'قبول', notificationsDecline: 'رفض',
+    notificationsAccepted: 'تم الحجز — أصبح {name} ضمن قائمة عملائك.',
+    notificationsRequestGone: 'تم سحب هذا الطلب أو الرد عليه بالفعل.',
+    notificationsRequestPassed: 'مضى موعد هذا الطلب. ارفضه ليتمكن {name} من اختيار موعد آخر.',
+    notificationsSlotTaken: 'لديك جلسة محجوزة بالفعل في هذا الوقت.',
     notificationsSessionRequest: 'طلب {name} جلسة',
     notificationsPaymentReceived: 'تم استلام دفعة {name}',
     notificationsPaymentSub: '{amount} جنيه · {date}',
@@ -1655,6 +1672,7 @@ const ar: Record<MessageKey, string> = {
     availabilityTitle: 'أوقات التوفر', availabilitySubtitle: 'الساعات التي يمكن للأعضاء حجزها معك كل أسبوع.',
     availabilityStart: 'البداية', availabilityEnd: 'النهاية', availabilitySave: 'حفظ', availabilityCancel: 'إلغاء',
     availabilityInvalidRange: 'يجب أن يكون وقت النهاية بعد وقت البداية.',
+    availabilitySaveFailed: 'لم تُحفظ ساعاتك. يرجى المحاولة مرة أخرى.',
 
     // Discover.dc.html
     discoverEyebrow: 'اعثر على محترفك', discoverTitle: 'اكتشف المحترفين', discoverNav: 'اكتشف',
@@ -1668,6 +1686,7 @@ const ar: Record<MessageKey, string> = {
     discoverYearsExp: '{n} سنوات خبرة',
     discoverAvailableToday: 'متاح اليوم',
     discoverFeatured: 'مميز', discoverTopRated: 'الأعلى تقييمًا',
+    discoverNewCoach: 'جديد',
     discoverTrending: 'الأكثر رواجًا هذا الأسبوع',
     discoverStories: 'قصص الأعضاء', discoverStoriesSub: 'آراء حقيقية من أشخاص مثلك',
     discoverStoryHelpful: '{n} وجدوا هذا مفيدًا',
@@ -1711,6 +1730,10 @@ const ar: Record<MessageKey, string> = {
     coachPreviewFreeNote: 'هذه الجلسة التعريفية مجانية — لا حاجة للدفع.',
     coachPreviewDateLabel: 'التاريخ', coachPreviewCoachLabel: 'المحترف',
     coachPreviewAddToCalendar: 'إضافة إلى التقويم', coachPreviewDone: 'تم',
+    coachPreviewNoHoursYet: 'لم تُحدَّد مواعيد {name} بعد — تحقّق لاحقًا.',
+    coachPreviewExistingRequest: 'طلبت موعد {when}. إرسال وقت جديد يستبدل هذا الطلب.',
+    coachPreviewRequestFailed: 'لم يُرسل طلبك. يرجى المحاولة مرة أخرى.',
+    coachPreviewMinutes: '{n} دقيقة',
 
     // ClientCoach.dc.html
     clientCoachTitle: 'محترفك', clientCoachNav: 'محترفك',
@@ -1869,6 +1892,7 @@ const ar: Record<MessageKey, string> = {
     myCoachesHint: 'يمكنك العمل مع أكثر من محترف في نفس الوقت — مثلًا محترفة حياة ومحترف يوغا. تصفحي اكتشف لإضافة محترف آخر.',
     myCoachesViewProfile: 'عرض الملف', myCoachesSessions: 'الجلسات', myCoachesMessage: 'مراسلة',
     myCoachesNoRating: 'لا يوجد تقييم بعد',
+    myCoachesRequestedFor: 'الموعد المطلوب: {when}',
 
     clientNotificationsTitle: 'الإشعارات', clientNotificationsMarkAll: 'تعليم الكل كمقروء',
     clientNotificationsEmptyTitle: 'كل شيء على ما يرام!',

@@ -3,7 +3,11 @@ import { useAppStore } from '../store/appStore';
 import { useT, dayKey } from '../lib/i18n';
 import { ChevronIcon } from '../components/icons';
 import { BottomSheet } from '../components/BottomSheet';
+import { LoadState } from '../components/LoadState';
 import { getWeeklyAvailability, setWeeklyAvailability, type WeeklyAvailabilityDay } from '../lib/mockStore';
+import { useRemoteSession } from '../lib/remoteSession';
+import { fetchOwnWeeklyAvailability, saveOwnWeeklyDay } from '../lib/requestData';
+import { useRemoteLoad } from '../store/remoteLoad';
 import './Availability.css';
 
 // Every 30 minutes, 6:00 AM through 10:00 PM — covers every default block
@@ -28,10 +32,15 @@ function rangeLabel(startH: number, endH: number, amLabel: string, pmLabel: stri
 }
 
 // 1:1 port of Availability.dc.html — the coach's weekly recurring
-// available-hours editor, reached from Schedule's header icon.
+// available-hours editor, reached from Schedule's header icon. Signed in, the
+// hours are the coach's weekly_availability rows: what members book from.
 export default function Availability() {
   const t = useT();
   const back = useAppStore((s) => s.back);
+  const remote = useRemoteSession();
+  const load = useRemoteLoad('weekly_availability', remote, fetchOwnWeeklyAvailability);
+  const [saving, setSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
   const [, setTick] = useState(0);
   const refresh = () => setTick((v) => v + 1);
 
@@ -39,9 +48,32 @@ export default function Availability() {
   const [editStartH, setEditStartH] = useState<number | null>(null);
   const [editEndH, setEditEndH] = useState<number | null>(null);
 
-  const weekly = getWeeklyAvailability();
   const amLabel = t('scheduleAm');
   const pmLabel = t('schedulePm');
+
+  if (remote && load.status === 'loading') return <LoadState status="loading" />;
+  if (remote && load.status === 'error') return <LoadState status="error" onRetry={load.retry} showBack />;
+  const weekly = remote && load.status === 'ready' ? load.data : getWeeklyAvailability();
+
+  /** Store one day's change; the screen shows it once it's saved. */
+  async function write(updated: WeeklyAvailabilityDay[], i: number): Promise<boolean> {
+    if (!remote) {
+      setWeeklyAvailability(updated);
+      refresh();
+      return true;
+    }
+    if (load.status !== 'ready' || saving) return false;
+    setSaving(true);
+    setSaveFailed(false);
+    const result = await saveOwnWeeklyDay(i, updated[i]);
+    setSaving(false);
+    if (!result.ok) {
+      setSaveFailed(true);
+      return false;
+    }
+    load.set(updated);
+    return true;
+  }
 
   function toggleDay(i: number) {
     const day = weekly[i];
@@ -56,8 +88,7 @@ export default function Availability() {
       endH = 17;
     }
     const updated: WeeklyAvailabilityDay[] = weekly.map((d, idx) => (idx === i ? { enabled: nextEnabled, startH, endH } : d));
-    setWeeklyAvailability(updated);
-    refresh();
+    void write(updated, i);
   }
 
   function openEdit(i: number) {
@@ -66,6 +97,7 @@ export default function Availability() {
     setEditEndH(null);
   }
   function closeEdit() {
+    setSaveFailed(false);
     setEditingDayIdx(null);
     setEditStartH(null);
     setEditEndH(null);
@@ -77,12 +109,11 @@ export default function Availability() {
   const canSave = showEditSheet && currentEditStartH !== null && currentEditEndH !== null && currentEditEndH > currentEditStartH;
   const showInvalidRange = showEditSheet && currentEditStartH !== null && currentEditEndH !== null && !(currentEditEndH > currentEditStartH);
 
-  function saveEditDay() {
+  async function saveEditDay() {
     if (!canSave || editingDayIdx === null || currentEditStartH === null || currentEditEndH === null) return;
     const updated = weekly.map((d, idx) => (idx === editingDayIdx ? { ...d, startH: currentEditStartH, endH: currentEditEndH } : d));
-    setWeeklyAvailability(updated);
-    closeEdit();
-    refresh();
+    // A failed save keeps the sheet open with the chosen hours, and says so.
+    if (await write(updated, editingDayIdx)) closeEdit();
   }
 
   return (
@@ -96,6 +127,7 @@ export default function Availability() {
       <div className="availability-subtitle-wrap">
         <div className="availability-subtitle">{t('availabilitySubtitle')}</div>
       </div>
+      {saveFailed && !showEditSheet && <div className="availability-save-failed" role="alert">{t('availabilitySaveFailed')}</div>}
 
       <div className="availability-list">
         {weekly.map((d, i) => (
@@ -108,6 +140,7 @@ export default function Availability() {
                 aria-checked={d.enabled}
                 aria-label={t('availabilityToggleDay', { day: t(dayKey('dowFull', i)) })}
                 className={`availability-switch${d.enabled ? ' is-on' : ''}`}
+                disabled={saving}
                 onClick={() => toggleDay(i)}
               >
                 <span className="availability-switch-thumb" />
@@ -164,6 +197,7 @@ export default function Availability() {
         </div>
 
         {showInvalidRange && <div className="availability-invalid-range">{t('availabilityInvalidRange')}</div>}
+        {saveFailed && <div className="availability-invalid-range" role="alert">{t('availabilitySaveFailed')}</div>}
 
         <div className="availability-edit-actions">
           <button type="button" className="availability-edit-btn availability-edit-btn-neutral" onClick={closeEdit}>{t('availabilityCancel')}</button>
@@ -171,8 +205,8 @@ export default function Availability() {
             type="button"
             className="availability-edit-btn availability-edit-btn-accent"
             style={!canSave ? { background: 'var(--line)', color: 'var(--ink-soft)' } : undefined}
-            disabled={!canSave}
-            onClick={saveEditDay}
+            disabled={!canSave || saving}
+            onClick={() => void saveEditDay()}
           >
             {t('availabilitySave')}
           </button>

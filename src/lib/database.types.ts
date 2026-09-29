@@ -1224,6 +1224,7 @@ export type Database = {
           id: string
           recap: string | null
           scheduled_at: string
+          time_block_id: string | null
           updated_at: string
         }
         Insert: {
@@ -1237,6 +1238,7 @@ export type Database = {
           id?: string
           recap?: string | null
           scheduled_at: string
+          time_block_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -1250,6 +1252,7 @@ export type Database = {
           id?: string
           recap?: string | null
           scheduled_at?: string
+          time_block_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1258,6 +1261,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sessions_time_block_id_fkey"
+            columns: ["time_block_id"]
+            isOneToOne: false
+            referencedRelation: "time_blocks"
             referencedColumns: ["id"]
           },
         ]
@@ -1682,6 +1692,7 @@ export type Database = {
       }
     }
     Functions: {
+      accept_session_request: { Args: { p_request: string }; Returns: string }
       can_see_client: { Args: { p_client: string }; Returns: boolean }
       client_counterparty: {
         Args: { p_actor: string; p_client: string }

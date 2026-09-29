@@ -208,3 +208,10 @@
 .availability-edit-btn-accent { background: var(--accent); color: #FFFFFF; }
 .availability-edit-btn-accent:disabled { cursor: default; }
 .availability-edit-btn-accent:disabled:active { transform: none; }
+
+.availability-save-failed {
+  margin: 4px 24px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--red);
+}

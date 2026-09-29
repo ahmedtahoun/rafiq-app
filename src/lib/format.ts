@@ -59,6 +59,19 @@ export function formatDisplayDate(lang: Lang, ms: number): string {
   });
 }
 
+/** A day of a month, no year: "Oct 5" / "5 أكتوبر". */
+export function formatMonthDay(lang: Lang, ms: number): string {
+  return new Date(ms).toLocaleDateString(LOCALE[lang], { timeZone: CALENDAR_ZONE, month: 'short', day: 'numeric' });
+}
+
+/** A day and time that may be weeks away: "Tue, Oct 6, 10:00 AM" /
+    "الثلاثاء، 6 أكتوبر، 10:00 ص" — a session request's time. */
+export function formatSlot(lang: Lang, ms: number): string {
+  return new Date(ms).toLocaleString(LOCALE[lang], {
+    timeZone: CALENDAR_ZONE, weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+  });
+}
+
 /** A time of day: "6:00 PM" / "6:00 م". */
 export function formatTime(lang: Lang, ms: number): string {
   return new Date(ms).toLocaleTimeString(LOCALE[lang], { timeZone: CALENDAR_ZONE, hour: 'numeric', minute: '2-digit' });
@@ -157,6 +170,8 @@ export function useFormat() {
     money: (value: number) => formatMoney(lang, value),
     date: (ms: number) => formatDisplayDate(lang, ms),
     instantDate: (at: string | number) => formatInstantDate(lang, at),
+    monthDay: (ms: number) => formatMonthDay(lang, ms),
+    slot: (ms: number) => formatSlot(lang, ms),
     time: (ms: number) => formatTime(lang, ms),
     timeParts: (ms: number) => formatTimeParts(lang, ms),
     // `todayMs` defaults to the fixed week's; a screen showing real rows

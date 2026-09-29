@@ -97,6 +97,64 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       return b;
     };
 
+    // 0010's accept_session_request, as the database runs it: the same
+    // refusals (by SQLSTATE), then the request, roster row, booked block,
+    // session and next session in one step. 13_accept_flow.sql proves the
+    // real function; this lets screens drive it.
+    const refuse = (code) => ({ data: null, error: { message: `refused (${code})`, code } });
+    real.rpc = async (fn, args) => {
+      log({ op: 'rpc', fn, args });
+      if (failing(`rpc.${fn}`)) return { data: null, error: NETWORK };
+      if (fn !== 'accept_session_request') return refuse('42883');
+      const r = (db.session_requests ??= []).find((x) => x.id === args.p_request && x.coach_id === userId);
+      if (!r) return refuse('P0002');
+      if (r.status !== 'pending') return refuse('55000');
+      const start = Date.parse(r.requested_start);
+      if (start <= Date.now()) return refuse('22023');
+      const intro = !r.offering_id && Number(r.price) === 0;
+      const end = start + (intro ? 20 : 50) * 60000;
+      const blocks = (db.time_blocks ??= []);
+      if (blocks.some((b) => b.coach_id === userId && b.kind === 'booked' && Date.parse(b.starts_at) < end && Date.parse(b.ends_at) > start)) {
+        return refuse('23P01');
+      }
+      r.status = 'accepted';
+      r.responded_at = new Date().toISOString();
+      const who = (db.profiles ??= []).find((p) => p.id === r.member_id) ?? {};
+      const offering = (db.offerings ??= []).find((o) => o.id === r.offering_id);
+      const clients = (db.clients ??= []);
+      let client = clients.find((c) => c.coach_id === userId && c.member_id === r.member_id);
+      const name = who.full_name ?? '';
+      if (!client) {
+        client = {
+          id: `clients-${clients.length + 1}`, coach_id: userId, member_id: r.member_id, full_name: name,
+          initials: name.trim().split(/\s+/).slice(0, 2).map((w) => w[0] ?? '').join('').toUpperCase(),
+          avatar_bg: '#3E6FB0', phone: who.phone ?? null, country_code: who.country_code ?? null, email: who.email ?? null,
+          program: offering?.name ?? '', plan: 'Basic', specialty: '', age: null, city: null, goal: '', focus: '',
+          active: true, progress: 0, needs_checkin: false, next_session_at: null, next_session_type: null,
+          program_completed: false, payment_status: 'due', signup_completed_at: null, created_at: new Date().toISOString(),
+        };
+        clients.push(client);
+      } else {
+        client.active = true;
+      }
+      const block = {
+        id: `time_blocks-${blocks.length + 1}`, coach_id: userId, client_id: client.id, kind: 'booked',
+        label: `Session · ${name}`, starts_at: r.requested_start, ends_at: new Date(end).toISOString(), session_type: intro ? 'intro' : 'standard',
+      };
+      blocks.push(block);
+      const sessions = (db.sessions ??= []);
+      sessions.push({ id: `sessions-${sessions.length + 1}`, client_id: client.id, scheduled_at: r.requested_start, time_block_id: block.id, recap: null, attendance: null });
+      const next = sessions
+        .filter((x) => x.client_id === client.id && Date.parse(x.scheduled_at) > Date.now() && !x.attendance)
+        .map((x) => Date.parse(x.scheduled_at))
+        .sort((a, b) => a - b)[0];
+      if (next === start) {
+        client.next_session_at = r.requested_start;
+        client.next_session_type = intro ? 'intro' : 'standard';
+      }
+      return { data: client.id, error: null };
+    };
+
     real.auth.getUser = async () => ({ data: { user: userId ? { id: userId } : null }, error: null });
     real.auth.signOut = async () => { log({ op: 'auth.signOut' }); return { error: null }; };
 

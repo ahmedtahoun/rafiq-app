@@ -649,3 +649,57 @@
   font-size: 14px;
   font-weight: 700;
 }
+
+/* A real coach's photo, filling the same rounded square as their initials. */
+.coach-preview-avatar {
+  overflow: hidden;
+}
+
+.coach-preview-avatar-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.coach-preview-bar-error,
+.coach-preview-bar-note {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.coach-preview-bar-error {
+  color: var(--red);
+}
+
+.coach-preview-bar-note {
+  color: var(--ink-soft);
+}
+
+/* A real coach's photo, filling the same rounded square as their initials. */
+.coach-preview-avatar {
+  overflow: hidden;
+}
+
+.coach-preview-avatar-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.coach-preview-bar-error,
+.coach-preview-bar-note {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.coach-preview-bar-error {
+  color: var(--red);
+}
+
+.coach-preview-bar-note {
+  color: var(--ink-soft);
+}

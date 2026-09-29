@@ -13,7 +13,12 @@ import { BottomSheet } from '../components/BottomSheet';
 import { CountryPicker } from '../components/CountryPicker';
 import { SPECIALTIES } from '../lib/specialties';
 import { COUNTRIES } from '../lib/countries';
-import { DEMO_MEMBER_CLIENT_ID, getClient } from '../lib/mockStore';
+import { DEMO_MEMBER_CLIENT_ID, MIN_REVIEWS_FOR_RATING, getClient } from '../lib/mockStore';
+import { LoadState } from '../components/LoadState';
+import { useRemoteSession } from '../lib/remoteSession';
+import { fetchDirectory, type RealDirectoryCoach } from '../lib/requestData';
+import { wallNowMs } from '../lib/wallClock';
+import { useRemoteLoad } from '../store/remoteLoad';
 import {
   getDirectoryCoaches, getTrendingCoaches, filterCoaches, hasActiveFilters,
   getFavouriteCoaches, toggleFavouriteCoach, initialsOf, countryFlagOf,
@@ -21,9 +26,17 @@ import {
 } from '../lib/directory';
 import './Discover.css';
 
-// Still the demo member's, signed in or not, until discovery (step 6) moves to
-// Supabase (SUPABASE-MIGRATION-PLAN.md) — see DEMO_MEMBER_CLIENT_ID.
+// Signed in, the coaches are the real directory (step 4); the member's own
+// goal, which floats matching coaches up, is still only the demo member's
+// (step 6, SUPABASE-MIGRATION-PLAN.md) — so signed in it isn't used.
 const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
+
+const isReal = (coach: DirectoryCoach): coach is RealDirectoryCoach => 'ratingCount' in coach;
+
+/** A real coach's average means little over one or two reviews. */
+function hasRating(coach: DirectoryCoach): boolean {
+  return !isReal(coach) || coach.ratingCount >= MIN_REVIEWS_FOR_RATING;
+}
 const ACCENT_HEX = '#B75C3D';
 
 // The specialty rail. The prototype had its own nine-entry list with
@@ -79,15 +92,19 @@ export default function Discover() {
   // Favourites live in localStorage, which is not reactive — this mirrors
   // them into render state so a tapped heart repaints immediately.
   const [favourites, setFavourites] = useState(getFavouriteCoaches);
+  const remote = useRemoteSession();
+  const load = useRemoteLoad('directory', remote, () => fetchDirectory(wallNowMs()));
 
-  const coaches = getDirectoryCoaches();
+  if (remote && load.status === 'loading') return <LoadState status="loading" />;
+  if (remote && load.status === 'error') return <LoadState status="error" onRetry={load.retry} />;
+  const coaches: DirectoryCoach[] = remote && load.status === 'ready' ? load.data : getDirectoryCoaches();
   const rail = specialtyRail(coaches);
 
   // The member's own coaching goal, used to float matching pros to the
   // top and to caption the section. Absent for a member who has not
   // finished onboarding — in which case the section is simply unlabelled
   // rather than claiming a match that was never made.
-  const member = getClient(CLIENT_ID);
+  const member = remote ? undefined : getClient(CLIENT_ID);
   const goalSpecialty = member?.specialty ?? null;
   const goalLabelKey = SPECIALTIES.find((s) => s.value === goalSpecialty)?.labelKey ?? null;
 
@@ -100,7 +117,9 @@ export default function Discover() {
   };
 
   const results = filterCoaches(coaches, filters, labelOf, goalSpecialty);
-  const trending = getTrendingCoaches();
+  const trending = remote
+    ? coaches.filter(hasRating).sort((a, b) => b.rating - a.rating).slice(0, 3)
+    : getTrendingCoaches();
   const filtersActive = hasActiveFilters(filters);
 
   const patch = (p: Partial<DirectoryFilters>) => setFilters((f) => ({ ...f, ...p }));
@@ -128,6 +147,27 @@ export default function Discover() {
 
   const heroGrad = `linear-gradient(135deg, ${ACCENT_HEX} 0%, ${darken(ACCENT_HEX, 45)} 100%)`;
 
+  // A real coach with only free offerings has no price to show; the demo's all do.
+  const priceLabel = (coach: DirectoryCoach) =>
+    isReal(coach) && !coach.hasPaidOffering ? t('offeringsFree') : money(coach.price);
+
+  function avatarContent(coach: DirectoryCoach) {
+    return isReal(coach) && coach.avatarPhotoUrl
+      ? <img className="discover-avatar-photo" src={coach.avatarPhotoUrl} alt="" />
+      : initialsOf(coach.name);
+  }
+
+  function ratingBadge(coach: DirectoryCoach) {
+    return hasRating(coach) ? (
+      <span className="discover-rating">
+        <StarIcon size={10} color="var(--amber)" />
+        {coach.rating.toFixed(1)}
+      </span>
+    ) : (
+      <span className="discover-meta-text">{t('discoverNewCoach')}</span>
+    );
+  }
+
   function coachCard(coach: DirectoryCoach) {
     const isFav = !!favourites[coach.id];
     const showGoalMatch = !filters.specialty && !!goalSpecialty && coach.specialty === goalSpecialty;
@@ -146,7 +186,7 @@ export default function Discover() {
                 boxShadow: `0 10px 18px -8px ${coach.color}66`,
               }}
             >
-              {initialsOf(coach.name)}
+              {avatarContent(coach)}
             </div>
             {coach.verified && (
               <span className="discover-verified-badge">
@@ -158,16 +198,13 @@ export default function Discover() {
           <div className="discover-card-body">
             <div className="discover-card-name-row">
               <span aria-hidden="true" className="discover-flag">{countryFlagOf(coach.country)}</span>
-              <span className="discover-card-name">{coach.name}</span>
+              <span className="discover-card-name"><bdi>{coach.name}</bdi></span>
             </div>
             <div className="discover-card-specialty" style={{ color: coach.color }}>{labelOf(coach)}</div>
             <div className="discover-card-meta">
-              <span className="discover-rating">
-                <StarIcon size={10} color="var(--amber)" />
-                {coach.rating.toFixed(1)}
-              </span>
-              <span className="discover-meta-text">{money(coach.price)}</span>
-              <span className="discover-meta-text">{t('discoverYearsExp', { n: coach.years })}</span>
+              {ratingBadge(coach)}
+              <span className="discover-meta-text">{priceLabel(coach)}</span>
+              {coach.years > 0 && <span className="discover-meta-text">{t('discoverYearsExp', { n: coach.years })}</span>}
               {coach.availability === 'today' && (
                 <span className="discover-pill discover-pill-green">
                   <span className="discover-dot" />
@@ -350,6 +387,7 @@ export default function Discover() {
           )}
         </section>
 
+        {trending.length > 0 && (
         <section className="discover-section">
           <h2 className="discover-section-title">{t('discoverTrending')}</h2>
           <div className="discover-trending">
@@ -364,7 +402,7 @@ export default function Discover() {
                   className="discover-trend-top"
                   style={{ background: `linear-gradient(135deg, ${coach.color} 0%, ${darken(coach.color, 35)} 100%)` }}
                 >
-                  <span className="discover-trend-avatar">{initialsOf(coach.name)}</span>
+                  <span className="discover-trend-avatar">{avatarContent(coach)}</span>
                   {i === 0 && (
                     <span className="discover-trend-badge" style={{ color: coach.color }}>
                       {t('discoverTopRated')}
@@ -372,20 +410,21 @@ export default function Discover() {
                   )}
                 </div>
                 <div className="discover-trend-body">
-                  <div className="discover-trend-name">{coach.name}</div>
+                  <div className="discover-trend-name"><bdi>{coach.name}</bdi></div>
                   <div className="discover-trend-meta">
-                    <span className="discover-rating">
-                      <StarIcon size={10} color="var(--amber)" />
-                      {coach.rating.toFixed(1)}
-                    </span>
-                    <span className="discover-meta-text">{money(coach.price)}</span>
+                    {ratingBadge(coach)}
+                    <span className="discover-meta-text">{priceLabel(coach)}</span>
                   </div>
                 </div>
               </button>
             ))}
           </div>
         </section>
+        )}
 
+        {/* Sample stories about the demo's coaches: nothing to show signed
+            in until real reviews reach Discover (step 6). */}
+        {!remote && (
         <section className="discover-section">
           <div>
             <h2 className="discover-section-title">{t('discoverStories')}</h2>
@@ -418,6 +457,7 @@ export default function Discover() {
             );
           })}
         </section>
+        )}
       </div>
 
       <BottomNav items={navItems} />
