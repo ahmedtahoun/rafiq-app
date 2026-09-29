@@ -38,7 +38,9 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
     for (const [name, rows] of Object.entries(tables)) {
       db[name] = rows.map((r) => ({ ...r }));
     }
-    window.__fake = { db, calls: [], fail: [...fail] };
+    // refuse: { 'table.op': 'SQLSTATE' } — a write the database would
+    // refuse under its policies (RLS isn't modelled), e.g. '42501'.
+    window.__fake = { db, calls: [], fail: [...fail], refuse: {} };
     const log = (entry) => window.__fake.calls.push(JSON.parse(JSON.stringify(entry)));
     const failing = (what) => window.__fake.fail.includes(what);
     const NETWORK = { message: 'network down', code: '08006' };
@@ -46,12 +48,16 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
     function run(q) {
       log({ table: q.table, op: q.op, values: q.values ?? null, filters: q.filters, ...(q.columns ? { columns: q.columns } : {}), ...(q.order ? { order: q.order } : {}) });
       if (failing(q.table) || failing(`${q.table}.${q.op}`)) return { data: null, error: NETWORK };
+      const refused = window.__fake.refuse[`${q.table}.${q.op}`];
+      if (refused) return { data: null, error: { message: `refused (${refused})`, code: refused } };
       const rows = (db[q.table] ??= []);
       const test = (r, [c, v, op]) =>
         op === 'in' ? v.includes(r[c])
           : op === 'gte' ? Date.parse(r[c]) >= Date.parse(v)
             : op === 'lt' ? Date.parse(r[c]) < Date.parse(v)
-              : r[c] === v;
+              // is(col, null): a missing column reads as null, as in Postgres.
+              : op === 'is' ? (r[c] ?? null) === v
+                : r[c] === v;
       const matches = rows.filter((r) => q.filters.every((f) => test(r, f)));
 
       if (q.op === 'select') {
@@ -97,6 +103,7 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
         // Timestamps only: compared as instants, as Postgres does.
         gte(col, val) { q.filters.push([col, val, 'gte']); return b; },
         lt(col, val) { q.filters.push([col, val, 'lt']); return b; },
+        is(col, val) { q.filters.push([col, val, 'is']); return b; },
         order(col, { ascending = true } = {}) { q.order = [col, ascending]; return b; },
         maybeSingle() { q.single = true; return b; },
         single() { q.single = true; return b; },
@@ -149,6 +156,8 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
           if (x.time_block_id === b.id) Object.assign(x, { attendance: 'cancelled', attendance_set_by: 'coach', time_block_id: null });
         }
         db.time_blocks = blocks.filter((x) => x !== b);
+        // A move request for it goes with it (0017's on delete cascade).
+        db.session_requests = (db.session_requests ?? []).filter((x) => x.reschedule_of !== b.id);
       }
       refreshNext(b.client_id);
       return { data: null, error: null };
@@ -197,6 +206,7 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       });
       Object.assign(x, { attendance: 'cancelled', attendance_set_by: 'client', attendance_set_at: new Date().toISOString() });
       db.time_blocks = blocks.filter((b) => b !== block);
+      if (block) db.session_requests = (db.session_requests ?? []).filter((r) => r.reschedule_of !== block.id);
       let charged = false;
       const pkg = (db.packages ??= []).find((p) => p.client_id === x.client_id);
       if (late && block?.session_type !== 'intro' && pkg && pkg.used < pkg.total) {
@@ -222,6 +232,29 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       if (r.status !== 'pending') return refuse('55000');
       const start = Date.parse(r.requested_start);
       if (start <= Date.now()) return refuse('22023');
+      // 0017: a block from either side, or an inactive member, refuses it.
+      const pair = (db.clients ??= []).find((c) => c.coach_id === userId && c.member_id === r.member_id);
+      const member = (db.profiles ??= []).find((p) => p.id === r.member_id);
+      if ((pair && (pair.blocked_by_member_at || pair.blocked_by_coach_at)) || (member && member.account_status && member.account_status !== 'active')) {
+        return refuse('42501');
+      }
+      if (r.reschedule_of) {
+        // A move: the booking and its session, keeping the length.
+        const b = (db.time_blocks ??= []).find((x) => x.id === r.reschedule_of && x.coach_id === userId && x.kind === 'booked');
+        if (!b) return refuse('55000');
+        if (Date.parse(b.starts_at) <= Date.now()) return refuse('22023');
+        const moveEnd = start + (Date.parse(b.ends_at) - Date.parse(b.starts_at));
+        if (db.time_blocks.some((o) => o.id !== b.id && o.coach_id === userId && ['booked', 'busy'].includes(o.kind) && Date.parse(o.starts_at) < moveEnd && Date.parse(o.ends_at) > start)) {
+          return refuse('23P01');
+        }
+        r.status = 'accepted';
+        r.responded_at = new Date().toISOString();
+        b.starts_at = new Date(start).toISOString();
+        b.ends_at = new Date(moveEnd).toISOString();
+        for (const x of (db.sessions ??= [])) if (x.time_block_id === b.id) x.scheduled_at = b.starts_at;
+        refreshNext(b.client_id);
+        return { data: b.client_id, error: null };
+      }
       const intro = !r.offering_id && Number(r.price) === 0;
       const end = start + (intro ? 20 : 50) * 60000;
       const blocks = (db.time_blocks ??= []);

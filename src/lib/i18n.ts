@@ -555,6 +555,10 @@ const en = {
     notificationsRequestPassed: 'This time has already passed. Decline it so {name} can pick another.',
     notificationsSlotTaken: 'This time clashes with a booked session, or time you marked unavailable.',
     notificationsSessionRequest: '{name} requested a session',
+    notificationsMoveRequest: '{name} asked to move a session',
+    notificationsMoveBookedFor: 'Booked for', notificationsMoveAskedFor: 'Asked for',
+    notificationsMoveAccepted: "{name}'s session is moved.",
+    notificationsRequestBlocked: "This can't be accepted: one of you has blocked the other, or {name}'s account isn't active.",
     notificationsPaymentReceived: "{name}'s payment was received",
     notificationsPaymentSub: '{amount} EGP · {date}',
     notificationsUnread: 'Unread',
@@ -784,6 +788,7 @@ const en = {
     coachPreviewNoHoursYet: "{name} hasn't set their hours yet — check back soon.",
     coachPreviewExistingRequest: "You've asked for {when}. Sending a new time replaces that request.",
     coachPreviewRequestFailed: "Your request wasn't sent. Please try again.",
+    coachPreviewRequestBlocked: "You can't request a session with this coach right now.",
     coachPreviewMinutes: '{n} min',
 
     // ClientCoach.dc.html — the member's view of their own Pro.
@@ -870,6 +875,12 @@ const en = {
     clientScheduleWithdrawTitle: 'Withdraw this request?',
     clientScheduleWithdrawBody: "{coach} won't see it any more. You can send a new one anytime.",
     clientScheduleMissedNote: 'Missed session', clientScheduleDisputedNote: 'Attendance disputed',
+    clientScheduleMoveInstructions: 'Pick a new time. {coach} confirms it before it changes.',
+    clientScheduleSendMove: 'Ask for this time',
+    clientScheduleMoveWaiting: 'Asked to move to {when} — waiting on {coach}.',
+    clientScheduleWithdrawMove: 'Withdraw move',
+    clientScheduleMoveRefused: "This session can't be moved now. It may be within 12 hours, or no longer yours to move.",
+    clientScheduleMoveAlreadyAsked: 'A move for this session is already waiting on your coach.',
 
     clientTasksTitle: 'My Tasks', clientTasksFromCoach: 'From {coach}',
     clientTasksHowFeeling: 'How are you feeling today?',
@@ -1559,6 +1570,10 @@ const ar: Record<MessageKey, string> = {
     notificationsRequestPassed: 'مضى موعد هذا الطلب. ارفضه ليتمكن {name} من اختيار موعد آخر.',
     notificationsSlotTaken: 'هذا الوقت يتعارض مع جلسة محجوزة أو وقت حددته كغير متاح.',
     notificationsSessionRequest: 'طلب {name} جلسة',
+    notificationsMoveRequest: 'طلب {name} نقل جلسة',
+    notificationsMoveBookedFor: 'محجوزة في', notificationsMoveAskedFor: 'الوقت المطلوب',
+    notificationsMoveAccepted: 'تم نقل جلسة {name}.',
+    notificationsRequestBlocked: 'لا يمكن قبول هذا الطلب: أحدكما حظر الآخر، أو حساب {name} غير نشط.',
     notificationsPaymentReceived: 'تم استلام دفعة {name}',
     notificationsPaymentSub: '{amount} جنيه · {date}',
     notificationsUnread: 'غير مقروء',
@@ -1774,6 +1789,7 @@ const ar: Record<MessageKey, string> = {
     coachPreviewNoHoursYet: 'لم تُحدَّد مواعيد {name} بعد — تحقّق لاحقًا.',
     coachPreviewExistingRequest: 'طلبت موعد {when}. إرسال وقت جديد يستبدل هذا الطلب.',
     coachPreviewRequestFailed: 'لم يُرسل طلبك. يرجى المحاولة مرة أخرى.',
+    coachPreviewRequestBlocked: 'لا يمكنك طلب جلسة مع هذا المدرب حاليًا.',
     coachPreviewMinutes: '{n} دقيقة',
 
     // ClientCoach.dc.html
@@ -1855,6 +1871,12 @@ const ar: Record<MessageKey, string> = {
     clientScheduleWithdrawTitle: 'سحب هذا الطلب؟',
     clientScheduleWithdrawBody: 'لن يراه {coach} بعد الآن. يمكنك إرسال طلب جديد في أي وقت.',
     clientScheduleMissedNote: 'جلسة فائتة', clientScheduleDisputedNote: 'الحضور محل نزاع',
+    clientScheduleMoveInstructions: 'اختاري وقتًا جديدًا. يؤكده {coach} قبل أن يتغير.',
+    clientScheduleSendMove: 'اطلبي هذا الوقت',
+    clientScheduleMoveWaiting: 'طلبتِ النقل إلى {when} — بانتظار {coach}.',
+    clientScheduleWithdrawMove: 'سحب طلب النقل',
+    clientScheduleMoveRefused: 'لا يمكن نقل هذه الجلسة الآن. قد تكون خلال 12 ساعة، أو لم يعد نقلها متاحًا لك.',
+    clientScheduleMoveAlreadyAsked: 'هناك طلب نقل لهذه الجلسة بانتظار مدربك بالفعل.',
 
     clientTasksTitle: 'مهامي', clientTasksFromCoach: 'من {coach}',
     clientTasksHowFeeling: 'كيف تشعرين اليوم؟',

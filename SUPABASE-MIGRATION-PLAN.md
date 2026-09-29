@@ -376,8 +376,24 @@ In small PRs, so each can be reviewed on its own:
    screen, with its 25-minute type that 0010 doesn't book, stays the
    demo's. Moving, joining the session room and rating a session aren't
    offered signed in yet.
-5. **The member moving a session**, and the booking screen's other entry
-   points (Home, the coach page, programs).
+5. ✅ **The member moving a session** (0017). As in the demo, a member's
+   move is confirmed by the coach: it is a `session_requests` row whose
+   `reschedule_of` names the booked block, at least 12 hours before the
+   session, with no offering or price. The coach sees it in Notifications
+   with both times; accepting moves the block and its session (keeping the
+   length) under 0010's lock and the booked-or-busy overlap check, and the
+   member is told by 0011's trigger. Declining or withdrawing leaves the
+   booking where it was, and cancelling the booking removes its move
+   request (on delete cascade). The one-open-request rule is now one open
+   request for a new session per coach, plus one open move per booking, so
+   neither withdraws the other. **Blocks stop requests:** a member can't
+   ask a coach while either side blocks the other (0014) or either account
+   isn't active (`can_request_session`, which only looks at the caller's own
+   relationship), and accepting refuses the same, so a request sent before a
+   block can't be accepted after it. Home and the coach page's "book a
+   session" open the coach's page signed in, like Sessions does; the
+   demo booking screen is still reached from the programs screens, which
+   are step 6's.
 
 ## Testing this kind of code
 

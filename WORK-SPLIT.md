@@ -52,8 +52,12 @@ has no relationship with; its `requestSession()` records an ask to a
 stranger. ClientCoach/ClientBooking are the opposite: the one real
 relationship, so they read `getCoachProfile()` and write real `time_blocks`
 via `addCustomBlock({kind:'pending'})` — the same request the coach's
-Schedule already confirms or declines. There is no second request
-mechanism, and there should not be one.
+Schedule already confirms or declines. That is the demo (signed out).
+Signed in there is also one mechanism: `session_requests`, answered in the
+coach's Notifications — a first session from CoachPreview, and a member's
+move of a booked one (0017, `reschedule_of`). Home, the coach page and
+Sessions open CoachPreview for the member's own coach rather than
+ClientBooking.
 
 `getMonthGrid()` is the one month grid, for Schedule and ClientBooking,
 demo and real. Its two arguments default to the fixed week, so a screen on

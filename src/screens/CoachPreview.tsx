@@ -140,7 +140,8 @@ interface PreviewSource {
   noHours: boolean;
   /** When the member's open request to this coach is for, if they have one. */
   existingRequest: string | null;
-  request: (offering: PreviewOffering, slotWallMs: number, whenLabel: string) => Promise<boolean>;
+  /** true when sent; 'blocked' when the member may not ask this coach (0017). */
+  request: (offering: PreviewOffering, slotWallMs: number, whenLabel: string) => Promise<boolean | 'blocked'>;
 }
 
 function firstOpen(weeks: PickerWeek[], fromWeek: number, fromDay: number): Pos | null {
@@ -396,7 +397,7 @@ function RemoteCoachPreviewReady({ data }: { data: CoachPreviewData }) {
         price: offering.price,
         currency: real?.currency ?? 'EGP',
       });
-      return result.ok;
+      return result.ok || (result.code === 'blocked' ? 'blocked' : false);
     },
   };
   return <CoachPreviewBody source={source} />;
@@ -415,7 +416,7 @@ function CoachPreviewBody({ source }: { source: PreviewSource }) {
   const [offeringId, setOfferingId] = useState('');
   const [messaged, setMessaged] = useState(false);
   const [sending, setSending] = useState(false);
-  const [failed, setFailed] = useState(false);
+  const [failed, setFailed] = useState<false | 'failed' | 'blocked'>(false);
   const [confirmed, setConfirmed] = useState(false);
   const [favourites, setFavourites] = useState(getFavouriteCoaches);
   const isFav = !!favourites[coach.id];
@@ -477,8 +478,8 @@ function CoachPreviewBody({ source }: { source: PreviewSource }) {
     setFailed(false);
     const sent = await source.request(selectedOffering, slot.wallMs, whenLabel);
     setSending(false);
-    if (sent) setConfirmed(true);
-    else setFailed(true);
+    if (sent === true) setConfirmed(true);
+    else setFailed(sent === 'blocked' ? 'blocked' : 'failed');
   }
 
   const heroGrad = `linear-gradient(135deg, ${coach.color} 0%, ${darken(coach.color, 40)} 100%)`;
@@ -760,7 +761,7 @@ function CoachPreviewBody({ source }: { source: PreviewSource }) {
       </div>
 
       <div className="coach-preview-bar">
-        {failed && <div className="coach-preview-bar-error" role="alert">{t('coachPreviewRequestFailed')}</div>}
+        {failed && <div className="coach-preview-bar-error" role="alert">{t(failed === 'blocked' ? 'coachPreviewRequestBlocked' : 'coachPreviewRequestFailed')}</div>}
         {!failed && source.existingRequest && (
           <div className="coach-preview-bar-note">{t('coachPreviewExistingRequest', { when: source.existingRequest })}</div>
         )}

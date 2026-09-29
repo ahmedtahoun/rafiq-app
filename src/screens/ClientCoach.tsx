@@ -12,7 +12,7 @@ import { BottomNav, type BottomNavItem } from '../components/BottomNav';
 import { BottomSheet } from '../components/BottomSheet';
 import { LoadState } from '../components/LoadState';
 import { NoCoachYet } from '../components/NoCoachYet';
-import { useMemberSpace, type MemberRelationshipView, type MemberSpaceView } from '../store/memberStore';
+import { bookSessionTarget, useMemberSpace, type MemberRelationshipView, type MemberSpaceView } from '../store/memberStore';
 import { fileProReport } from '../lib/adminQueues';
 import {
   DEMO_MEMBER_CLIENT_ID, isSessionToday,
@@ -248,7 +248,7 @@ function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { sta
             type="button"
             className="client-coach-secondary"
             disabled={!interactive}
-            onClick={() => nav('clientBooking')}
+            onClick={() => nav(bookSessionTarget(remote, rel))}
           >
             <ScheduleIcon size={15} color="currentColor" />
             {t('clientCoachBookSession')}

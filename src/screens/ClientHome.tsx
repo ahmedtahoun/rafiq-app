@@ -7,7 +7,7 @@ import { BellIcon, MoonIcon, SunIcon, CheckIcon, TasksIcon, ScheduleIcon, ArrowF
 import { BottomNav, type BottomNavItem } from '../components/BottomNav';
 import { LoadState } from '../components/LoadState';
 import { NoCoachYet } from '../components/NoCoachYet';
-import { useMemberSpace, type MemberSpaceView } from '../store/memberStore';
+import { bookSessionTarget, useMemberSpace, type MemberSpaceView } from '../store/memberStore';
 import {
   DEMO_MEMBER_CLIENT_ID,
   isSessionToday,
@@ -181,7 +181,7 @@ function ClientHomeView({ space }: { space: Extract<MemberSpaceView, { status: '
             <button
               type="button"
               className="client-home-welcome-cta"
-              onClick={() => nav('clientBooking')}
+              onClick={() => nav(bookSessionTarget(remote, rel))}
             >
               {t('clientHomeBookFirst')}
             </button>
@@ -287,7 +287,7 @@ function ClientHomeView({ space }: { space: Extract<MemberSpaceView, { status: '
                 <button
                   type="button"
                   className="client-home-card"
-                  onClick={() => nav('clientBooking')}
+                  onClick={() => nav(bookSessionTarget(remote, rel))}
                 >
                   <div className="client-home-card-icon">
                     <ScheduleIcon size={20} color="var(--accent)" />

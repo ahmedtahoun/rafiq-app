@@ -11,9 +11,9 @@ import { BottomNav, type BottomNavItem } from '../components/BottomNav';
 import { LoadState } from '../components/LoadState';
 import { NoCoachYet } from '../components/NoCoachYet';
 import { useRemoteSession } from '../lib/remoteSession';
-import { withdrawSessionRequest } from '../lib/requestData';
+import { sendMoveRequest, weekdayOf, withdrawSessionRequest } from '../lib/requestData';
 import { fetchMemberSchedule, memberCancelSession, type MemberSchedule } from '../lib/memberScheduleData';
-import { wallNowMs } from '../lib/wallClock';
+import { wallNowMs, wallTodayMs } from '../lib/wallClock';
 import { useMemberSpace, useMemberStore, type MemberRelationshipView } from '../store/memberStore';
 import { useRemoteLoad } from '../store/remoteLoad';
 import {
@@ -526,6 +526,13 @@ function LiveClientSchedule({ rel }: { rel: MemberRelationshipView | null }) {
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<MessageKey | null>(null);
+  // Asking to move the upcoming session (0017): the picker, and the
+  // request (or withdrawing it) on its way.
+  const [showMove, setShowMove] = useState(false);
+  const [moveDay, setMoveDay] = useState(0);
+  const [moveSlot, setMoveSlot] = useState<number | null>(null);
+  const [moving, setMoving] = useState(false);
+  const [moveError, setMoveError] = useState<MessageKey | null>(null);
 
   if (!rel || !coachId) {
     return (
@@ -543,7 +550,7 @@ function LiveClientSchedule({ rel }: { rel: MemberRelationshipView | null }) {
   if (load.status === 'loading') return <LoadState status="loading" />;
   if (load.status === 'error') return <LoadState status="error" onRetry={load.retry} />;
 
-  const { upcoming, request, history } = load.data;
+  const { upcoming, move, request, history, hours } = load.data;
   const coachName = rel.coach.name;
   // A booked session first; a request waiting on the coach otherwise.
   const shown = upcoming ?? request;
@@ -557,6 +564,70 @@ function LiveClientSchedule({ rel }: { rel: MemberRelationshipView | null }) {
   const hoursUntil = upcoming ? (upcoming.startWallMs - wallNowMs()) / 3600000 : null;
   const cancelForfeitsCredit = !!upcoming && hoursUntil != null && hoursUntil < graceHours
     && upcoming.sessionType !== 'intro' && !!rel.pkg && rel.pkg.remaining > 0;
+
+  // Moving is a request the coach confirms (0017), with the same 12 hours'
+  // notice the demo asks for. One at a time: while one waits, the member
+  // can withdraw it.
+  const canAskToMove = !!upcoming?.blockId && !move && hoursUntil != null && hoursUntil >= graceHours;
+  const moveTooLate = !!upcoming && !move && hoursUntil != null && hoursUntil < graceHours;
+
+  // The next two weeks of the coach's hours, on the hour, each slot long
+  // enough for this session and still ahead. Members can't see the coach's
+  // bookings, so a clash is refused when the coach accepts.
+  const todayWallMs = wallTodayMs();
+  const nowMs = wallNowMs();
+  const lengthH = upcoming ? (upcoming.endWallMs - upcoming.startWallMs) / 3600000 : 50 / 60;
+  const moveDays = Array.from({ length: 14 }, (_, i) => {
+    const dayMs = todayWallMs + i * 86400000;
+    const day = hours[weekdayOf(dayMs)];
+    const slots: number[] = [];
+    if (day?.enabled) {
+      for (let h = day.startH; h + lengthH <= day.endH + 1e-9; h += 1) {
+        const ms = dayMs + Math.round(h * 3600000);
+        if (ms > nowMs && ms !== upcoming?.startWallMs) slots.push(ms);
+      }
+    }
+    return { dayMs, slots };
+  });
+
+  function openMove() {
+    const first = moveDays.findIndex((d) => d.slots.length > 0);
+    setMoveDay(first >= 0 ? first : 0);
+    setMoveSlot(null);
+    setMoveError(null);
+    setShowMove(true);
+  }
+
+  async function confirmMove() {
+    if (moving || moveSlot == null || !upcoming?.blockId || load.status !== 'ready') return;
+    setMoving(true);
+    setMoveError(null);
+    const result = await sendMoveRequest({ coachId: coachId!, blockId: upcoming.blockId, startWallMs: moveSlot });
+    setMoving(false);
+    if (!result.ok) {
+      setMoveError(result.code === 'blocked' ? 'clientScheduleMoveRefused' : result.code === 'gone' ? 'clientScheduleMoveAlreadyAsked' : 'requestFailedRetry');
+      if (result.code !== 'unknown') void load.reload();
+      return;
+    }
+    setShowMove(false);
+    load.set({ ...load.data, move: { id: '', startWallMs: moveSlot } });
+    void load.reload();
+  }
+
+  async function withdrawMove() {
+    if (moving || !move || load.status !== 'ready') return;
+    setMoving(true);
+    setMoveError(null);
+    const result = await withdrawSessionRequest(move.id);
+    setMoving(false);
+    // Already answered: re-read, so the card shows what the coach did.
+    if (!result.ok && result.code !== 'gone') {
+      setMoveError('requestFailedRetry');
+      return;
+    }
+    if (result.ok) load.set({ ...load.data, move: null });
+    void load.reload();
+  }
 
   function openCancel() {
     setCancelError(null);
@@ -618,7 +689,28 @@ function LiveClientSchedule({ rel }: { rel: MemberRelationshipView | null }) {
               </span>
             </button>
 
+            {move && (
+              <div className="client-schedule-move-note" role="status">
+                {t('clientScheduleMoveWaiting', { when: fmt.slot(move.startWallMs), coach: coachName })}
+              </div>
+            )}
+            {moveError && !showMove && <div className="client-schedule-move-note client-schedule-move-error" role="alert">{t(moveError)}</div>}
+
             <div className="client-schedule-actions">
+              {canAskToMove && (
+                <button type="button" className="client-schedule-action" onClick={openMove}>
+                  {t('clientScheduleReschedule')}
+                </button>
+              )}
+              {moveTooLate && (
+                <div className="client-schedule-action-blocked">{t('clientScheduleRescheduleTooLate', { hours: graceHours })}</div>
+              )}
+              {move && (
+                // Its id arrives with the re-read after asking.
+                <button type="button" className="client-schedule-action" disabled={moving || !move.id} onClick={() => void withdrawMove()}>
+                  {t('clientScheduleWithdrawMove')}
+                </button>
+              )}
               <button type="button" className="client-schedule-action" onClick={openCancel}>
                 {isPending ? t('clientScheduleWithdrawRequest') : t('clientScheduleCancelSession')}
               </button>
@@ -695,6 +787,80 @@ function LiveClientSchedule({ rel }: { rel: MemberRelationshipView | null }) {
               </button>
               <button type="button" className="client-schedule-dialog-cancel" disabled={cancelling} onClick={() => void confirmCancel()}>
                 {t('clientScheduleYesCancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showMove && (
+        <div className="client-schedule-overlay client-schedule-overlay-bottom">
+          <div className="client-schedule-sheet" role="dialog" aria-modal="true">
+            <div className="client-schedule-sheet-top">
+              <div className="client-schedule-sheet-title">{t('clientScheduleRescheduleTitle')}</div>
+              <button type="button" className="client-schedule-sheet-close" aria-label={t('clientScheduleCancelReschedule')} disabled={moving} onClick={() => setShowMove(false)}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.4} strokeLinecap="round">
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <p className="client-schedule-sheet-hint">{t('clientScheduleMoveInstructions', { coach: coachName })}</p>
+
+            {[0, 1].map((w) => (
+              <div key={w} className="client-schedule-days client-schedule-days-week">
+                {moveDays.slice(w * 7, w * 7 + 7).map((d, j) => {
+                  const i = w * 7 + j;
+                  const selected = i === moveDay;
+                  return (
+                    <button
+                      key={d.dayMs}
+                      type="button"
+                      className={`client-schedule-day${selected ? ' client-schedule-day-on' : ''}`}
+                      disabled={d.slots.length === 0}
+                      aria-pressed={selected}
+                      onClick={() => { setMoveDay(i); setMoveSlot(null); }}
+                    >
+                      <span className="client-schedule-day-dow">{t(dayKey('dowShort', weekdayOf(d.dayMs)))}</span>
+                      <span className="client-schedule-day-num">{new Date(d.dayMs).getUTCDate()}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+
+            <div className="client-schedule-slots-wrap">
+              {moveDays[moveDay].slots.length > 0 ? (
+                <div className="client-schedule-slots">
+                  {moveDays[moveDay].slots.map((ms) => (
+                    <button
+                      key={ms}
+                      type="button"
+                      className={`client-schedule-slot${moveSlot === ms ? ' client-schedule-slot-on' : ''}`}
+                      aria-pressed={moveSlot === ms}
+                      onClick={() => setMoveSlot(ms)}
+                    >
+                      {fmt.time(ms)}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <div className="client-schedule-no-slots">{t('clientScheduleRescheduleNoSlots')}</div>
+              )}
+            </div>
+
+            {moveError && <div className="client-schedule-sheet-error" role="alert">{t(moveError)}</div>}
+
+            <div className="client-schedule-sheet-actions">
+              <button type="button" className="client-schedule-sheet-cancel" disabled={moving} onClick={() => setShowMove(false)}>
+                {t('clientScheduleCancelReschedule')}
+              </button>
+              <button
+                type="button"
+                className="client-schedule-sheet-confirm"
+                disabled={moveSlot === null || moving}
+                onClick={() => void confirmMove()}
+              >
+                {t('clientScheduleSendMove')}
               </button>
             </div>
           </div>

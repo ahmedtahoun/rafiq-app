@@ -30,7 +30,9 @@ import type { Enums } from './database.types';
  * `gone`: the request was withdrawn or already answered. `passed`: its time
  * has gone by. `slot_taken`: it overlaps a session already booked.
  */
-export type RequestErrorCode = 'not_configured' | 'not_signed_in' | 'gone' | 'passed' | 'slot_taken' | 'unknown';
+/** `blocked`: either side has blocked the other, or an account isn't active
+    (0017) — or, for a move, the session is no longer this member's to move. */
+export type RequestErrorCode = 'not_configured' | 'not_signed_in' | 'gone' | 'passed' | 'slot_taken' | 'blocked' | 'unknown';
 export type RequestResult<T> = { ok: true; data: T } | { ok: false; code: RequestErrorCode; message: string };
 
 const NOT_CONFIGURED = { ok: false, code: 'not_configured', message: 'Supabase credentials are missing — see .env.local.example.' } as const;
@@ -54,7 +56,7 @@ export function weekdayOf(wallMs: number): number {
 }
 
 /** Seven days, Monday first, from a coach's rows; a day with no row is off. */
-function toWeek(rows: { day_of_week: number; enabled: boolean; start_hour: number; end_hour: number }[]): WeeklyAvailabilityDay[] {
+export function toWeek(rows: { day_of_week: number; enabled: boolean; start_hour: number; end_hour: number }[]): WeeklyAvailabilityDay[] {
   return Array.from({ length: 7 }, (_, i) => {
     const r = rows.find((x) => x.day_of_week === i);
     return r
@@ -243,6 +245,8 @@ export async function fetchCoachPreview(coachId: string, nowWallMs: number): Pro
       .eq('member_id', uid)
       .eq('coach_id', coachId)
       .eq('status', 'pending')
+      // A request to move a booking is the member's Sessions screen's.
+      .is('reschedule_of', null)
       .maybeSingle(),
   ]);
   for (const r of [coach, hours, offerings, pending]) if (r.error) return unknown(r.error);
@@ -304,7 +308,9 @@ export async function sendSessionRequest(request: NewRequest): Promise<RequestRe
     .update({ status: 'withdrawn' })
     .eq('member_id', uid)
     .eq('coach_id', request.coachId)
-    .eq('status', 'pending');
+    .eq('status', 'pending')
+    // Never a pending move: that's a different booking's request (0017).
+    .is('reschedule_of', null);
   if (withdrawn.error) return unknown(withdrawn.error);
   const { error } = await supabase.from('session_requests').insert({
     member_id: uid,
@@ -316,7 +322,34 @@ export async function sendSessionRequest(request: NewRequest): Promise<RequestRe
     // The column's default, stated: session_requests_insert_member allows no other.
     status: 'pending',
   });
+  if (error?.code === '42501') return { ok: false, code: 'blocked', message: error.message };
   return error ? unknown(error) : ok(null);
+}
+
+/**
+ * Ask the coach to move one of the member's booked sessions (0017): a
+ * request naming the booking, at least 12 hours before it starts. The
+ * coach accepts it in Notifications; until then the booking stays put.
+ */
+export async function sendMoveRequest(move: { coachId: string; blockId: string; startWallMs: number }): Promise<RequestResult<null>> {
+  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const uid = await currentUserId();
+  if (!uid) return NOT_SIGNED_IN;
+  const { error } = await getSupabase().from('session_requests').insert({
+    member_id: uid,
+    coach_id: move.coachId,
+    offering_id: null,
+    requested_start: fromWallMs(move.startWallMs),
+    price: 0,
+    status: 'pending',
+    reschedule_of: move.blockId,
+  });
+  if (!error) return ok(null);
+  // 42501: blocked, too close to the session, or no longer theirs.
+  // 23505: a move for this booking is already waiting.
+  if (error.code === '42501') return { ok: false, code: 'blocked', message: error.message };
+  if (error.code === '23505') return GONE;
+  return unknown(error);
 }
 
 /** Only a still-open request: one the coach has already answered stays answered. */
@@ -343,6 +376,7 @@ export async function fetchOwnRequests(): Promise<RequestResult<OwnRequest[]>> {
     .select('id, coach_id, offering_id, requested_start, price')
     .eq('member_id', uid)
     .eq('status', 'pending')
+    .is('reschedule_of', null)
     .order('created_at', { ascending: false });
   if (requests.error) return unknown(requests.error);
   if (requests.data.length === 0) return ok([]);
@@ -379,6 +413,8 @@ export interface IncomingRequest {
   price: number;
   /** When it was sent, for the list's order. */
   sentAt: string;
+  /** A request to move a booked session (0017): the booking's time now. */
+  movesFromWallMs: number | null;
 }
 
 export async function fetchIncomingRequests(): Promise<RequestResult<IncomingRequest[]>> {
@@ -388,7 +424,7 @@ export async function fetchIncomingRequests(): Promise<RequestResult<IncomingReq
   const supabase = getSupabase();
   const requests = await supabase
     .from('session_requests')
-    .select('id, member_id, offering_id, requested_start, price, created_at')
+    .select('id, member_id, offering_id, requested_start, price, created_at, reschedule_of')
     .eq('coach_id', uid)
     .eq('status', 'pending')
     .order('created_at', { ascending: false });
@@ -397,13 +433,16 @@ export async function fetchIncomingRequests(): Promise<RequestResult<IncomingReq
 
   const memberIds = [...new Set(requests.data.map((r) => r.member_id))];
   const offeringIds = requests.data.map((r) => r.offering_id).filter((id): id is string => !!id);
-  const [members, offerings] = await Promise.all([
+  const blockIds = requests.data.map((r) => r.reschedule_of).filter((id): id is string => !!id);
+  const [members, offerings, blocks] = await Promise.all([
     // profiles_select_own lets a coach read whoever has asked them.
     supabase.from('profiles').select('id, full_name').in('id', memberIds),
     offeringIds.length ? supabase.from('offerings').select('id, name').in('id', offeringIds) : Promise.resolve({ data: [], error: null }),
+    blockIds.length ? supabase.from('time_blocks').select('id, starts_at').in('id', blockIds) : Promise.resolve({ data: [], error: null }),
   ]);
   if (members.error) return unknown(members.error);
   if (offerings.error) return unknown(offerings.error);
+  if (blocks.error) return unknown(blocks.error);
   return ok(
     requests.data.map((r) => ({
       id: r.id,
@@ -412,12 +451,16 @@ export async function fetchIncomingRequests(): Promise<RequestResult<IncomingReq
       startWallMs: toWallMs(r.requested_start),
       price: Number(r.price),
       sentAt: r.created_at,
+      movesFromWallMs: (() => {
+        const from = (blocks.data as { id: string; starts_at: string }[]).find((b) => b.id === r.reschedule_of);
+        return from ? toWallMs(from.starts_at) : null;
+      })(),
     })),
   );
 }
 
-/** Accept: 0010's function books it and puts the member on the roster.
-    Returns the roster row's id. */
+/** Accept: 0010's function books it and puts the member on the roster —
+    or, for a move (0017), moves the booking. Returns the roster row's id. */
 export async function acceptSessionRequest(requestId: string): Promise<RequestResult<string>> {
   if (!isSupabaseConfigured()) return NOT_CONFIGURED;
   const { data, error } = await getSupabase().rpc('accept_session_request', { p_request: requestId });
@@ -426,7 +469,8 @@ export async function acceptSessionRequest(requestId: string): Promise<RequestRe
     error.code === 'P0002' || error.code === '55000' ? 'gone'
       : error.code === '22023' ? 'passed'
         : error.code === '23P01' ? 'slot_taken'
-          : 'unknown';
+          : error.code === '42501' ? 'blocked'
+            : 'unknown';
   return { ok: false, code, message: error.message };
 }
 
