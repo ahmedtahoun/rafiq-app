@@ -1,7 +1,7 @@
 # Launch checklist — App Store & Google Play
 
 Everything between today and a published Rafiq, checked against the repo on
-2026-09-27. Tick items off in the PR that does them (`- [x]`), so this file
+2026-09-29. Tick items off in the PR that does them (`- [x]`), so this file
 stays the source of truth the same way `WORK-SPLIT.md` is.
 
 **Tags:** 🔴 **blocker** — the stores reject the app, or it doesn't work for a
@@ -25,13 +25,10 @@ calendar time no matter how fast the code moves:
       **رفيق** in Arabic; the coach subscription is **Rafiq Pro Plus**
       (رفيق برو بلس). Bundle IDs stay `app.rafiqie.coach` — never shown to
       users, and changing them would mean new store listings.
-- [ ] 🔴 **One domain for the brand.** Decided: **rafiqpro.com** (matches
-      the name and `support@rafiqpro.com`). **Not registered yet — buy it
-      first:** the app already sends users to `support@rafiqpro.com`, which
-      bounces until the domain and a mailbox exist. Then it hosts the privacy
-      policy, terms, support page and account-deletion page (§8), and goes
-      on Google's OAuth consent screen as an authorized domain (§5). The app
-      IDs saying `rafiqie` don't matter: they are never shown.
+- [x] 🔴 **One domain for the brand: rafiqpro.com** — registered (Ahmed,
+      2026-09-28). What it still needs is in §5: the `support@` mailbox,
+      hosting `site/public/`, and the OAuth consent screen. The app IDs
+      saying `rafiqie` don't matter: they are never shown.
 - [ ] 🔴 **Payments model** — see §3 before deciding. Includes whether Rafiq
       takes a commission on sessions and how coaches get paid out.
 - [ ] 🟡 **Company / legal entity** that owns the developer accounts, receives
@@ -42,9 +39,9 @@ calendar time no matter how fast the code moves:
 
 ## 2. Connect the app to the database (Dev)
 
-The live Supabase project has the full schema (migrations `0001`–`0005`,
-locked down, 144 tests in CI). **The app doesn't use it yet** — apart from
-reading and setting the user's role at sign-in, every screen reads and writes
+The live Supabase project has the full schema (migrations `0001`–`0009`,
+locked down, 248 schema tests in CI). The app uses it for the screens listed
+as done below, when signed in; every other screen still reads and writes
 `src/lib/mockStore.ts` / `src/lib/directory.ts` (localStorage on the phone).
 
 - [ ] 🔴 Replace each `mockStore` / `directory` function body with a Supabase
@@ -109,9 +106,11 @@ Apple's App Review Guidelines decide what may be paid outside the App Store:
 - [x] 🟡 *Dev:* payouts backend — Paymob Payouts client, admin-only
       `payouts` Edge Function, `coach_payout_accounts` / `payouts` /
       `admin_users` tables (`0007`). See `supabase/functions/payouts/README.md`.
-- [ ] 🟡 *Ahmed:* push `0007`, set the Paymob secrets, deploy the function, add
-      yourself to `admin_users`, and run a staging payout (README, "Testing on
-      staging").
+- [ ] 🟡 *Ahmed:* ~~push `0007`~~ (done, with `0008`/`0009`), set the Paymob
+      secrets, deploy the function, add yourself to `admin_users`, and run a
+      staging payout (README, "Testing on staging"). The staging run also
+      settles whether Paymob really needs `national_id` — if it doesn't, stop
+      collecting it.
 - [x] 🟡 *Dev:* the coach's payout-account screen (Profile → Payout account,
       and a link from Earnings). Signed-in only; saved numbers show last 4.
 - [ ] 🟡 *Ahmed:* check `src/lib/paymobBanks.ts` against the bank codes table
@@ -161,8 +160,17 @@ Nothing native has ever run on a device or simulator (CLAUDE.md, "Not verified")
 - [ ] 🟡 **Google Play Console:** payments profile (for Play Billing); decide
       personal vs organization account (organizations skip the
       12-testers / 14-days rule).
-- [ ] 🟡 **Support mailbox** `support@rafiqpro.com` exists and someone reads
+- [ ] 🔴 **Support mailbox** `support@rafiqpro.com` exists and someone reads
       it — the app, both privacy policies and the store listings point there.
+      Receiving alone (e.g. Cloudflare Email Routing) is not enough: support
+      has to reply *from* it. Add the provider's SPF, DKIM and DMARC records.
+- [ ] 🔴 **Host the site:** `site/public/` on rafiqpro.com (e.g. Cloudflare
+      Pages, no build step, output `site/public`; `www` redirects to the bare
+      domain). Check `/privacy/`, `/terms/`, `/support/`, `/delete-account/`
+      and their `/ar/` versions load.
+- [ ] 🟡 **Apple private relay:** register `support@rafiqpro.com` under Apple
+      Developer → Services → Sign in with Apple for Email Communication.
+      Without it, mail to members who chose "Hide My Email" is dropped.
 
 ## 6. Store requirements the code must meet (Dev)
 
@@ -184,7 +192,7 @@ Nothing native has ever run on a device or simulator (CLAUDE.md, "Not verified")
 - [ ] 🔴 Web page where users can request account deletion — Google Play
       requires a URL, not only the in-app button. **Page ready**
       (`site/public/delete-account/`, EN + AR); goes live with the site at
-      `https://rafiqpro.com/delete-account/` once the domain is bought.
+      `https://rafiqpro.com/delete-account/` once the site is hosted (§5).
 - [ ] 🟡 `versionCode` / `versionName` (`android/app/build.gradle`) and
       `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` (Xcode) raised on every
       upload.
@@ -232,7 +240,7 @@ Waits on the name decision (§1).
 - [ ] 🔴 Public URLs: privacy policy, terms, support. **Pages ready** in
       `site/public/`, EN + AR, generated from the app's own copy
       (`npm run build:site`, see `site/README.md` for hosting and which URL
-      goes in which console). Waiting on registering rafiqpro.com.
+      goes in which console). Waiting on hosting the site (§5).
 
 ## 8. Legal and policy (Ahmed)
 
@@ -296,9 +304,11 @@ only Rafiq can resolve (as `service_role`). Nothing works them yet.
 ## Already done — don't redo
 
 - Google + Apple OAuth configured and working in the web app.
-- Supabase schema live (`0001`–`0005`), locked down (signed-out access refused
-  at the grant; six security holes closed), 144 schema tests in CI; generated
+- Supabase schema live (`0001`–`0009`), locked down (signed-out access refused
+  at the grant; six security holes closed), 248 schema tests in CI; generated
   types in `src/lib/database.types.ts`.
+- Payouts backend (`0007`, `payouts` Edge Function, payout-account screen,
+  payout history); the ledger never stores a national ID (`0009`).
 - Browser test suite (~180 tests) in CI: Arabic ordering, dark-mode
   contrast, timezone (tests run in Cairo time), money formatting, support rows.
 - Contact Us opens `support@rafiqpro.com`; Rate Rafiq opens the store; privacy
