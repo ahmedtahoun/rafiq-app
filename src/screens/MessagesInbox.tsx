@@ -2,13 +2,17 @@ import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
 import { ChevronIcon, MessageIcon } from '../components/icons';
 import { darken } from '../lib/color';
+import { LoadState } from '../components/LoadState';
 import {
-  getClients,
   getMessageDraft,
   getMessages,
   getMessagesHref,
   getUnreadMessageCount,
 } from '../lib/mockStore';
+import { fetchInbox } from '../lib/messageData';
+import { useRemoteSession } from '../lib/remoteSession';
+import { useRemoteLoad } from '../store/remoteLoad';
+import { useRoster } from '../store/rosterStore';
 import './MessagesInbox.css';
 
 // 1:1 port of MessagesInbox.dc.html.
@@ -24,13 +28,31 @@ export default function MessagesInbox() {
   const t = useT();
   const nav = useAppStore((s) => s.nav);
   const back = useAppStore((s) => s.back);
+  // Signed in, the roster is Supabase's and each row's latest message and
+  // unread count come from messageData.fetchInbox (message_reads per side).
+  const remote = useRemoteSession();
+  const roster = useRoster();
+  const ids = roster.status === 'ready' ? roster.clients.map((c) => c.id) : [];
+  const inbox = useRemoteLoad(`inbox:${ids.join(',')}`, remote && roster.status === 'ready', () => fetchInbox(ids));
 
-  const threads = getClients()
+  if (roster.status === 'loading' || (remote && inbox.status === 'loading')) return <LoadState status="loading" />;
+  if (roster.status === 'error') return <LoadState status="error" onRetry={roster.retry} />;
+  if (remote && inbox.status === 'error') return <LoadState status="error" onRetry={inbox.retry} />;
+  const entries = inbox.status === 'ready' ? inbox.data : null;
+
+  const threads = roster.clients
     .map((client, rosterIndex) => {
-      const messages = getMessages(client.id);
       const draft = getMessageDraft(client.id).trim();
-      const unread = getUnreadMessageCount(client.id, 'pro');
-      const last = messages.length ? messages[messages.length - 1] : null;
+      let last;
+      let unread;
+      if (remote) {
+        last = entries?.[client.id]?.last ?? null;
+        unread = entries?.[client.id]?.unread ?? 0;
+      } else {
+        const messages = getMessages(client.id);
+        last = messages.length ? messages[messages.length - 1] : null;
+        unread = getUnreadMessageCount(client.id, 'pro');
+      }
 
       // The preview reflects only what is actually stored: a real last
       // message, else an unsent draft (prefixed so it can never read as a
@@ -89,7 +111,7 @@ export default function MessagesInbox() {
                 )}
               </div>
               <div className="messages-inbox-text">
-                <div className={`messages-inbox-name${thread.unread > 0 ? ' is-unread' : ''}`}>{thread.client.name}</div>
+                <div className={`messages-inbox-name${thread.unread > 0 ? ' is-unread' : ''}`}><bdi>{thread.client.name}</bdi></div>
                 <div className={`messages-inbox-preview${thread.unread > 0 ? ' is-unread' : ''}${thread.isPlaceholder ? ' is-placeholder' : ''}`}>
                   {thread.preview}
                 </div>
