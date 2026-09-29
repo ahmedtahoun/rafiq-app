@@ -339,31 +339,16 @@
   color: var(--ink-soft);
 }
 
-.client-booking-pay {
-  border: none;
-  border-radius: 12px;
-  padding: 12px;
-  background: var(--accent-soft);
-  color: var(--accent);
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
+.client-booking-fee {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ink);
 }
 
-.client-booking-paid {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--green);
-}
-
-.client-booking-demo-note {
+.client-booking-pay-note {
   margin: 0;
-  font-size: 10.5px;
-  line-height: 1.5;
+  font-size: 11.5px;
+  line-height: 1.55;
   color: var(--ink-soft);
 }
 

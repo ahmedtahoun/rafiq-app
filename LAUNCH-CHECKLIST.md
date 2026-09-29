@@ -112,8 +112,12 @@ Apple's App Review Guidelines decide what may be paid outside the App Store:
 - [ ] 🔴 *Dev:* Paymob for 1:1 sessions, server-side. The payment result is
       written to `payments` by a webhook / edge function as `service_role`.
       No Paymob secret key in the app, ever.
-- [ ] 🔴 *Dev:* remove or replace every "demo" payment button (ClientBooking
-      "Pay with card", Subscription upgrade, ClientCoach upgrade).
+- [x] 🔴 *Dev:* remove or replace every "demo" payment button (ClientBooking
+      "Pay with card", Subscription upgrade, ClientCoach upgrade). Done: booking
+      sends the request with no payment step and writes no payment row; both
+      upgrades are a "Coming soon" state instead of a button that charged
+      nothing and then granted the plan. The card-payment copy is gone from
+      both languages, and a test guards it from coming back.
 - [ ] 🟡 *Ahmed:* coach payouts and Rafiq's commission, if any.
 - [x] 🟡 *Dev:* payouts backend — Paymob Payouts client, admin-only
       `payouts` Edge Function, `coach_payout_accounts` / `payouts` /

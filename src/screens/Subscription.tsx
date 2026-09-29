@@ -18,6 +18,12 @@ const CANCEL_REASONS: { key: CancelReason; labelKey: MessageKey }[] = [
 
 type Stage = 'plans' | 'survey' | 'confirmed';
 
+// Upgrading is the one direction that needs money to change hands, and a
+// coach subscription is a digital subscription: on iOS it has to go through
+// In-App Purchase, on Android through Play Billing (LAUNCH-CHECKLIST.md §3).
+// Neither is built, so the button says so instead of quietly setting the
+// tier to 'pro' for free, which is what it used to do.
+
 // 1:1 port of Subscription.dc.html — Rafiq Pro plan picker with a mandatory
 // exit survey before a downgrade actually takes effect.
 export default function Subscription() {
@@ -26,7 +32,6 @@ export default function Subscription() {
   const back = useAppStore((s) => s.back);
 
   const [stage, setStage] = useState<Stage>('plans');
-  const [confirmedKind, setConfirmedKind] = useState<'pro' | 'free' | null>(null);
   const [cancelReason, setCancelReason] = useState<CancelReason | null>(null);
   const [cancelNote, setCancelNote] = useState('');
 
@@ -41,35 +46,28 @@ export default function Subscription() {
   const freeFeatures = [t('subscriptionFreeFeature1'), t('subscriptionFreeFeature2'), t('subscriptionFreeFeature3'), t('subscriptionFreeFeature4')];
   const proFeatures = [t('subscriptionProFeature1'), t('subscriptionProFeature2'), t('subscriptionProFeature3'), t('subscriptionProFeature4'), t('subscriptionProFeature5')];
 
-  function upgrade() {
-    setSubscriptionTier('pro');
-    setConfirmedKind('pro');
-    setStage('confirmed');
-  }
-
   function submitCancelSurvey() {
     if (!cancelReason) return;
     logSubscriptionCancelFeedback(cancelReason, cancelNote);
     setSubscriptionTier('free');
-    setConfirmedKind('free');
     setStage('confirmed');
   }
 
   function closeConfirmed() {
     setStage('plans');
-    setConfirmedKind(null);
   }
 
-  const proConfirmedBody = t('subscriptionProConfirmedBodyTemplate', { date: fmt.date(getSubscription().renewsAtMs as number) });
-  const confirmedTitle = confirmedKind === 'pro' ? t('subscriptionProConfirmedTitle') : t('subscriptionFreeConfirmedTitle');
-  const confirmedBody = confirmedKind === 'pro' ? proConfirmedBody : t('subscriptionFreeConfirmedBody');
+  // Downgrading is the only confirmable outcome left: upgrading cannot
+  // complete until billing exists.
+  const confirmedTitle = t('subscriptionFreeConfirmedTitle');
+  const confirmedBody = t('subscriptionFreeConfirmedBody');
 
   if (stage === 'confirmed') {
     return (
       <div className="phone-frame subscription-screen">
         <div className="subscription-confirmed">
-          <div className={`subscription-confirmed-icon${confirmedKind === 'pro' ? ' is-pro' : ''}`}>
-            <CheckIcon size={28} color={confirmedKind === 'pro' ? 'var(--accent)' : 'var(--green)'} />
+          <div className="subscription-confirmed-icon">
+            <CheckIcon size={28} color="var(--green)" />
           </div>
           <div className="subscription-confirmed-title">{confirmedTitle}</div>
           <div className="subscription-confirmed-body">{confirmedBody}</div>
@@ -137,9 +135,10 @@ export default function Subscription() {
               ))}
             </div>
             {!isPro && (
-              <button type="button" className="subscription-upgrade-btn" onClick={upgrade}>
-                {t('subscriptionUpgrade')}
-              </button>
+              <div className="subscription-upgrade-soon">
+                <span className="subscription-soon-badge">{t('comingSoonBadge')}</span>
+                <span className="subscription-soon-note">{t('subscriptionUpgradeSoonNote')}</span>
+              </div>
             )}
           </div>
         </div>

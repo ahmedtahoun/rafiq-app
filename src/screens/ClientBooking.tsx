@@ -7,7 +7,7 @@ import {
   DEMO_MEMBER_CLIENT_ID,
   getClient, getCoachProfile, getAvailabilityForDayIndex, getCustomBlocks,
   getPackageStatus, getSessionTypeInfo, getSelectedOfferingId, getOffering,
-  addCustomBlock, addPayment, chargeCredit, formatDate, canInteract,
+  addCustomBlock, chargeCredit, canInteract,
   blockDayIndex, blockStartH, getMonthGrid, type SessionType,
 } from '../lib/mockStore';
 import './ClientBooking.css';
@@ -32,7 +32,8 @@ const SLOT_STEP = 0.75;
 
 // A single session, for a member with no package credit left. Follows
 // CoachPreview's precedent of a local constant — there is no price field on
-// the relationship yet, and this is the same number shown there.
+// the relationship yet, and this is the same number shown there. Shown so
+// the member knows what they are agreeing to; Rafiq does not collect it.
 const SESSION_PRICE = 750;
 
 const TYPE_CHIPS: { key: SessionType; chipKey: MessageKey; labelKey: MessageKey }[] = [
@@ -59,7 +60,6 @@ export default function ClientBooking() {
   const [day, setDay] = useState(TODAY_INDEX);
   const [slot, setSlot] = useState<number | null>(null);
   const [sessionType, setSessionType] = useState<SessionType>('standard');
-  const [paid, setPaid] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
 
   const profile = getCoachProfile();
@@ -114,7 +114,10 @@ export default function ClientBooking() {
     ? `${hourLabel(slot, AM, PM)} – ${hourLabel(slotEnd, AM, PM)}`
     : '';
 
-  const canConfirm = slot !== null && (hasCredit || paid);
+  // Nothing gates the request but picking a time. Rafiq takes no payment
+  // yet, so a member with no credit left still sends the request and
+  // settles up with the Pro directly.
+  const canConfirm = slot !== null;
   const selectedDayLabel = `${dayNames[day]}, ${monthLabel} ${DATE_NUMS[day]}`;
 
   // The whole month, so a member can see where they are rather than
@@ -159,19 +162,11 @@ export default function ClientBooking() {
       sessionType,
     });
 
-    if (requiresPayment) {
-      // 'pending', not settled: a real card charge confirms asynchronously
-      // through Paymob.
-      addPayment(CLIENT_ID, {
-        id: `pay${Date.now().toString(36)}`,
-        amount: SESSION_PRICE,
-        method: 'Card',
-        status: 'pending',
-        // Stored on the payment row, so it stays language-independent:
-      // see formatDate's note in mockStore.
-      date: formatDate(Date.now()),
-      });
-    } else {
+    // No payment row is written when the member has no credit: nobody has
+    // been charged, and inventing a pending payment would put money on the
+    // Pro's Earnings screen that was never asked for. The Pro records it
+    // from their own side once the member actually pays.
+    if (!requiresPayment) {
       // Spend the credit the confirmation says this session uses. Without
       // this the "N sessions left after this one" line would be a lie the
       // moment the member looked at their package again.
@@ -231,7 +226,7 @@ export default function ClientBooking() {
 
           <p className="client-booking-note">
             {requiresPayment
-              ? t('clientBookingPaymentPendingNote', { coach: coachName })
+              ? t('clientBookingPaymentPendingNote', { coach: isolate(coachName) })
               : t('clientBookingCreditUsedNote')}
           </p>
           <p className="client-booking-note">{t('clientBookingPendingNote', { coach: coachName })}</p>
@@ -388,17 +383,10 @@ export default function ClientBooking() {
           ) : (
             <div className="client-booking-pay-box">
               <div className="client-booking-pay-title">{t('clientBookingPaymentTitle')}</div>
-              {paid ? (
-                <div className="client-booking-paid">
-                  <CheckIcon size={14} color="var(--green)" />
-                  {t('clientBookingPaymentReady')}
-                </div>
-              ) : (
-                <button type="button" className="client-booking-pay" onClick={() => setPaid(true)}>
-                  {t('clientBookingPayWithCard')} · {money(SESSION_PRICE)}
-                </button>
-              )}
-              <p className="client-booking-demo-note">{t('clientBookingPaymentDemoNote')}</p>
+              <div className="client-booking-fee">{money(SESSION_PRICE)}</div>
+              <p className="client-booking-pay-note">
+                {t('clientBookingPaymentNote', { coach: isolate(coachName) })}
+              </p>
             </div>
           )
         )}

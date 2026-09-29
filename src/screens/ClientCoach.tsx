@@ -1,23 +1,22 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT, dayKey, type MessageKey } from '../lib/i18n';
+import { useT, dayKey, isolate, type MessageKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import {
   MessageIcon, ScheduleIcon, TasksIcon, CheckIcon, StarIcon, WarningIcon,
-  SunIcon, MoonIcon, ChevronIcon, ArrowForwardIcon,
+  SunIcon, MoonIcon, ChevronIcon,
   SearchIcon, HomeIcon, ProgramsIcon, PersonIcon,
 } from '../components/icons';
 import { BottomNav, type BottomNavItem } from '../components/BottomNav';
 import { BottomSheet } from '../components/BottomSheet';
 import { LoadState } from '../components/LoadState';
 import { NoCoachYet } from '../components/NoCoachYet';
-import { useMemberSpace, useMemberStore, type MemberRelationshipView, type MemberSpaceView } from '../store/memberStore';
+import { useMemberSpace, type MemberRelationshipView, type MemberSpaceView } from '../store/memberStore';
 import { fileProReport } from '../lib/adminQueues';
 import {
   DEMO_MEMBER_CLIENT_ID, isSessionToday,
-  getAvailabilityForDayIndex, updateClient, addPayment, addCustomBlock,
-  formatDate, canInteract, reportPro, setStandingSlot, getStandingSlot,
+  canInteract, reportPro, getStandingSlot,
   PACKAGE_DEFAULT_TOTAL, type ProReportReason,
 } from '../lib/mockStore';
 import './ClientCoach.css';
@@ -29,17 +28,6 @@ const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
 const DAY_MS = 86400000;
 const ACCENT_HEX = '#B75C3D';
 
-// What Full Access costs. There is no price field on the relationship yet,
-// so this follows CoachPreview's precedent of a local constant rather than
-// inventing a pricing model: 12 sessions at the 750 EGP single-session
-// price shown elsewhere would be 9,000, and this is that with a package
-// discount (600/session).
-const FULL_ACCESS_PRICE = 7200;
-
-// A standing weekly slot is 45 minutes, matching the granularity
-// ClientBooking's own picker offers against the same availability.
-const STANDING_SLOT_LEN = 0.75;
-
 /** "5:00 PM" / "5:45 PM" from a fractional hour. */
 function hourLabel(h: number, am: string, pm: string): string {
   const period = h >= 12 ? pm : am;
@@ -49,7 +37,6 @@ function hourLabel(h: number, am: string, pm: string): string {
 }
 
 type TrustStep = 'reason' | 'reported';
-type SubscribeStep = 'pick' | 'done';
 
 const REPORT_REASONS: { key: ProReportReason; labelKey: MessageKey }[] = [
   { key: 'no_show', labelKey: 'clientCoachReasonNoShow' },
@@ -103,16 +90,6 @@ function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { sta
 
   const [trustOpen, setTrustOpen] = useState(false);
   const [trustStep, setTrustStep] = useState<TrustStep>('reason');
-  const [subscribeOpen, setSubscribeOpen] = useState(false);
-  const [subscribeStep, setSubscribeStep] = useState<SubscribeStep>('pick');
-  const [day, setDay] = useState<number | null>(null);
-  const [slot, setSlot] = useState<number | null>(null);
-  const [paid, setPaid] = useState(false);
-  // mockStore is plain functions over localStorage, not reactive. The
-  // relationship comes from useMemberSpace() above this component, so a
-  // demo write bumps the member store, which re-reads it there.
-  const refresh = useMemberStore((s) => s.bumpMock);
-
   const { remote, todayMs } = space;
   const [reportBusy, setReportBusy] = useState(false);
   const [reportFailed, setReportFailed] = useState(false);
@@ -166,33 +143,7 @@ function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { sta
 
   const AM = isAr ? 'صباحًا' : 'AM';
   const PM = isAr ? 'مساءً' : 'PM';
-  const dayNamesShort = [0, 1, 2, 3, 4, 5, 6].map((i) => t(dayKey('dowShort', i)));
   const dayNamesFull = [0, 1, 2, 3, 4, 5, 6].map((i) => t(dayKey('dowFull', i)));
-
-  // Which weekdays the Pro is actually open on, straight from their own
-  // weekly availability — so a member can never pick a standing time the
-  // Pro isn't open for.
-  const openDays = dayNamesShort.map((_, i) => getAvailabilityForDayIndex(i).length > 0);
-
-  const standingSlots: number[] = [];
-  if (day !== null) {
-    const block = getAvailabilityForDayIndex(day)[0];
-    if (block) {
-      for (let h = block.startH; h + STANDING_SLOT_LEN <= block.endH + 0.001; h += STANDING_SLOT_LEN) {
-        standingSlots.push(h);
-      }
-    }
-  }
-
-  const canConfirm = day !== null && slot !== null && paid;
-  const confirmLabel = slot === null
-    ? t('clientCoachPickDayTimeBtn')
-    : !paid ? t('clientCoachAddPaymentBtn') : t('clientCoachConfirmSubscribeBtn');
-
-  const chosenDayLabel = day !== null ? dayNamesFull[day] : '';
-  const chosenTimeLabel = slot !== null
-    ? `${hourLabel(slot, AM, PM)} – ${hourLabel(slot + STANDING_SLOT_LEN, AM, PM)}`
-    : '';
 
   // Signed in, a real report on this relationship (step 1's queue): the
   // member's roster row and its coach, which 0005's policy checks match.
@@ -210,56 +161,6 @@ function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { sta
       if (result.ok) setTrustStep('reported');
       else setReportFailed(true);
     });
-  }
-
-  function confirmSubscribe() {
-    if (!canConfirm || day === null || slot === null) return;
-    const endH = slot + STANDING_SLOT_LEN;
-
-    updateClient(CLIENT_ID, { plan: 'Full Access' });
-    setStandingSlot(CLIENT_ID, { dayIndex: day, startH: slot, endH });
-
-    // The standing pattern alone would be invisible to the Pro — their
-    // Schedule reads time blocks, not recurrence. Writing the first
-    // occurrence as a pending request is what makes the confirmation's
-    // promise ("they will see it on their schedule") true, and it goes
-    // through the same confirm/decline flow as any other request.
-    addCustomBlock({
-      clientId: CLIENT_ID,
-      kind: 'pending',
-      label: `${client.name || 'Sara Ahmed'} · Standing`,
-      dayIndex: day,
-      startH: slot,
-      endH,
-      sessionType: 'standard',
-    });
-
-    // 'pending', not settled: a real card charge confirms asynchronously
-    // through Paymob, so claiming it cleared here would be a lie.
-    addPayment(CLIENT_ID, {
-      id: `pay${Date.now().toString(36)}`,
-      amount: FULL_ACCESS_PRICE,
-      method: 'Card',
-      status: 'pending',
-      // Stored on the payment row, so it stays language-independent:
-      // see formatDate's note in mockStore.
-      date: formatDate(Date.now()),
-    });
-
-    refresh();
-    setSubscribeStep('done');
-  }
-
-  function closeSubscribe() {
-    setSubscribeOpen(false);
-    // Reset only after a completed run, so re-opening mid-flow keeps the
-    // day and time the member already picked.
-    if (subscribeStep === 'done') {
-      setSubscribeStep('pick');
-      setDay(null);
-      setSlot(null);
-      setPaid(false);
-    }
   }
 
   const navItems = memberNavItems(t);
@@ -392,21 +293,24 @@ function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { sta
           </div>
         )}
 
+{/* Not a button. Buying Full Access needs a payment Rafiq cannot take
+            yet (LAUNCH-CHECKLIST.md §3), and the flow this replaced granted the
+            plan for free behind a "Pay with card" button that charged nothing.
+            The card still says what Full Access is, so the member knows it is
+            coming, and the Message button above is how they arrange it today. */}
         {showUpgrade && (
-          <button
-            type="button"
-            className="client-coach-upgrade"
-            disabled={!interactive}
-            onClick={() => setSubscribeOpen(true)}
-          >
+          <div className="client-coach-upgrade">
             <div>
               <div className="client-coach-upgrade-title">{t('clientCoachUpgradeTitle')}</div>
               <div className="client-coach-upgrade-sub">
                 {t('clientCoachUpgradeSubtitle', { n: fullAccessTotal })}
               </div>
+              <div className="client-coach-upgrade-note">
+                {t('clientCoachUpgradeSoonNote', { coach: isolate(coachName) })}
+              </div>
             </div>
-            <ArrowForwardIcon size={16} color="currentColor" />
-          </button>
+            <span className="client-coach-soon-badge">{t('comingSoonBadge')}</span>
+          </div>
         )}
 
         <section className="client-coach-section">
@@ -466,110 +370,6 @@ function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { sta
             </span>
             <p className="client-coach-reported-body">{t('clientCoachReportedBody')}</p>
             <button type="button" className="client-coach-sheet-done" onClick={() => setTrustOpen(false)}>
-              {t('clientBookingDone')}
-            </button>
-          </div>
-        )}
-      </BottomSheet>
-
-      <BottomSheet
-        open={subscribeOpen}
-        onClose={closeSubscribe}
-        title={subscribeStep === 'pick' ? t('clientCoachUpgradeTitle') : t('clientCoachSubscribedTitle')}
-      >
-        {subscribeStep === 'pick' ? (
-          <div className="client-coach-subscribe">
-            <div className="client-coach-plan">
-              <div className="client-coach-plan-row">
-                <span>{t('clientCoachFullAccessIncludes', { n: fullAccessTotal })}</span>
-              </div>
-              <div className="client-coach-plan-row">
-                <span>{t('clientCoachFullAccessStanding', { coach: coachName })}</span>
-              </div>
-              <div className="client-coach-plan-row client-coach-plan-price">
-                <span>{t('clientCoachPriceLabel')}</span>
-                <strong>{fmt.money(FULL_ACCESS_PRICE)}</strong>
-              </div>
-            </div>
-
-            <div className="client-coach-field-label">{t('clientCoachPickDay')}</div>
-            <div className="client-coach-days">
-              {dayNamesShort.map((label, i) => (
-                <button
-                  key={label}
-                  type="button"
-                  className={`client-coach-day${day === i ? ' client-coach-day-on' : ''}`}
-                  disabled={!openDays[i]}
-                  aria-pressed={day === i}
-                  onClick={() => { setDay(i); setSlot(null); setPaid(false); }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-
-            {day !== null && (
-              <>
-                <div className="client-coach-field-label">{t('clientCoachPickTime')}</div>
-                {standingSlots.length > 0 ? (
-                  <div className="client-coach-slots">
-                    {standingSlots.map((h) => (
-                      <button
-                        key={h}
-                        type="button"
-                        className={`client-coach-slot${slot === h ? ' client-coach-slot-on' : ''}`}
-                        aria-pressed={slot === h}
-                        onClick={() => { setSlot(h); setPaid(false); }}
-                      >
-                        {hourLabel(h, AM, PM)}
-                      </button>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="client-coach-no-slots">{t('clientBookingNoAvailability')}</div>
-                )}
-              </>
-            )}
-
-            {slot !== null && (
-              <div className="client-coach-payment-box">
-                <div className="client-coach-field-label">{t('clientCoachPaymentTitle')}</div>
-                {paid ? (
-                  <div className="client-coach-paid">
-                    <CheckIcon size={14} color="var(--green)" />
-                    {t('clientCoachPaymentReady')}
-                  </div>
-                ) : (
-                  <button type="button" className="client-coach-pay" onClick={() => setPaid(true)}>
-                    {t('clientCoachPayWithCard')}
-                  </button>
-                )}
-                <p className="client-coach-demo-note">{t('clientCoachPaymentDemoNote')}</p>
-              </div>
-            )}
-
-            <button
-              type="button"
-              className="client-coach-sheet-primary"
-              disabled={!canConfirm}
-              onClick={confirmSubscribe}
-            >
-              {confirmLabel}
-            </button>
-          </div>
-        ) : (
-          <div className="client-coach-reported">
-            <span className="client-coach-reported-tick client-coach-tick-green">
-              <CheckIcon size={22} color="#FFFFFF" />
-            </span>
-            <p className="client-coach-reported-body">
-              {t('clientCoachSubscribedBody', {
-                day: chosenDayLabel,
-                time: chosenTimeLabel,
-                coach: coachName,
-              })}
-            </p>
-            <button type="button" className="client-coach-sheet-done" onClick={closeSubscribe}>
               {t('clientBookingDone')}
             </button>
           </div>

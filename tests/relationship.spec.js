@@ -66,48 +66,35 @@ test('ClientCoach: report a problem writes a real report', async ({ browser }) =
   await ctx.close();
 });
 
-test('ClientCoach: Full Access subscribe', async ({ browser }) => {
+test('ClientCoach: Full Access is announced, not sold', async ({ browser }) => {
+  // It used to be a button opening a sheet whose "Pay with card" charged
+  // nothing and then granted the plan. Nothing in the app can take that
+  // payment yet, so the card says so and stays inert.
   const { page, ctx, errs } = await open(browser);
+  expect.soft(String(await page.locator('.client-coach-upgrade').count()), 'upgrade card still shown').toBe('1');
+  expect.soft(String(await page.locator('button.client-coach-upgrade').count()), '  but it is not a button').toBe('0');
+  // innerText gives the rendered text, which the badge's text-transform uppercases.
+  expect.soft(String(await page.locator('.client-coach-soon-badge').innerText()).toLowerCase(), '  badged coming soon').toBe('coming soon');
+  const note = await page.locator('.client-coach-upgrade-note').innerText();
+  expect.soft(String(note.includes('Yasmin El-Sayed')), '  points at the Pro instead').toBe('true');
+  expect.soft(String(/can't take payment/i.test(note)), '  and says why').toBe('true');
+
   await page.locator('.client-coach-upgrade').click();
   await page.waitForTimeout(400);
-  expect.soft(String(await page.locator('.client-coach-subscribe').count()), 'sheet open').toBe('1');
-  expect.soft(String(await page.locator('.client-coach-day').count()), '  7 day buttons').toBe('7');
-  const enabled = await page.locator('.client-coach-day:not([disabled])').count();
-  expect.soft(String(enabled > 0 && enabled < 7), '  only open days selectable').toBe('true');
+  expect.soft(String(await page.locator('.client-coach-subscribe').count()), 'no subscribe sheet opens').toBe('0');
+  expect.soft(String(await page.locator('.client-coach-pay').count()), 'no pay button anywhere').toBe('0');
 
-  expect.soft(String(await page.locator('.client-coach-sheet-primary').isDisabled()), '  confirm disabled up front').toBe('true');
+  const frameText = await page.locator('.phone-frame').innerText();
+  expect.soft(String(/pay with card/i.test(frameText)), 'screen never offers a card payment').toBe('false');
 
-  await page.locator('.client-coach-day:not([disabled])').first().click();
-  await page.waitForTimeout(300);
-  const slots = await page.locator('.client-coach-slot').count();
-  expect.soft(String(slots > 0), '  slots appear for that day').toBe('true');
-  await page.locator('.client-coach-slot').first().click();
-  await page.waitForTimeout(250);
-  expect.soft(String(await page.locator('.client-coach-sheet-primary').isDisabled()), '  still disabled before payment').toBe('true');
-  await page.locator('.client-coach-pay').click();
-  await page.waitForTimeout(250);
-  expect.soft(String(await page.locator('.client-coach-sheet-primary').isDisabled()), '  enabled after payment').toBe('false');
-
-  await page.locator('.client-coach-sheet-primary').click();
-  await page.waitForTimeout(500);
-  expect.soft(String(await page.locator('.client-coach-reported').count()), '  confirmation shown').toBe('1');
-
-  expect.soft(String(await store(page, "(m)=>m.getClient('sara').plan")), 'plan upgraded').toBe('Full Access');
-  const standing = await store(page, "(m)=>m.getStandingSlot('sara')");
-  expect.soft(String(standing !== null), 'standing slot stored').toBe('true');
+  // Nothing was granted and nothing was charged.
+  expect.soft(String(await store(page, "(m)=>m.getClient('sara').plan")), 'plan unchanged').toBe('Basic');
+  expect.soft(String(await store(page, "(m)=>m.getStandingSlot('sara')")), 'no standing slot written').toBe('null');
   const blocks = await store(page, "(m)=>m.getCustomBlocks().filter(b=>b.kind==='pending')");
-  expect.soft(String(blocks.length), 'a pending block the coach will see').toBe('1');
-  expect.soft(String(blocks[0].label.includes('Standing')), '  labelled as standing').toBe('true');
+  expect.soft(String(blocks.length), 'no pending block written').toBe('0');
   const pays = await store(page, "(m)=>m.getPaymentHistory('sara')");
-  expect.soft(String(pays[0].status), 'payment recorded pending').toBe('pending');
-  expect.soft(String(pays[0].amount), '  amount').toBe('7200');
+  expect.soft(String(pays.length), 'no payment written').toBe('0');
   expect.soft(String(errs.length), 'no errors').toBe('0');
-
-  await page.locator('.client-coach-sheet-done').click();
-  await page.waitForTimeout(400);
-  expect.soft(String(await page.locator('.client-coach-upgrade').count()), 'upgrade CTA gone after upgrading').toBe('0');
-  expect.soft(String(await page.locator('.client-coach-standing').count()), 'standing slot now shown').toBe('1');
-
   await ctx.close();
 });
 
@@ -190,7 +177,7 @@ test('ClientBooking: the golden path uses a package credit', async ({ browser })
   await ctx.close();
 });
 
-test('ClientBooking: no credits left -> pay for the session', async ({ browser }) => {
+test('ClientBooking: no credits left still books, with no payment step', async ({ browser }) => {
   // Drain the package first.
   const { page, ctx, errs } = await open(browser, { screen: 'clientBooking' });
   await store(page, "(m)=>{const p=m.getPackageStatus('sara'); for(let i=0;i<p.remaining;i++) m.chargeCredit('sara'); return null}");
@@ -203,19 +190,25 @@ test('ClientBooking: no credits left -> pay for the session', async ({ browser }
   expect.soft(String(await store(page, "(m)=>m.getPackageStatus('sara').remaining")), 'credits drained').toBe('0');
   await page.locator('.client-booking-slot:not([disabled])').last().click();
   await page.waitForTimeout(300);
-  expect.soft(String(await page.locator('.client-booking-pay-box').count()), 'payment box shown instead of credit').toBe('1');
+  expect.soft(String(await page.locator('.client-booking-pay-box').count()), 'the fee is stated').toBe('1');
   expect.soft(String(await page.locator('.client-booking-credit').count()), '  no credit notice').toBe('0');
-  expect.soft(String(await page.locator('.client-booking-primary').isDisabled()), '  confirm blocked until paid').toBe('true');
+  expect.soft(String(await page.locator('.client-booking-pay').count()), '  but no button that takes payment').toBe('0');
+  const note = await page.locator('.client-booking-pay-note').innerText();
+  expect.soft(String(note.includes('Yasmin El-Sayed')), '  the Pro arranges it').toBe('true');
 
-  await page.locator('.client-booking-pay').click();
-  await page.waitForTimeout(250);
-  expect.soft(String(await page.locator('.client-booking-primary').isDisabled()), '  confirm enabled after paying').toBe('false');
+  // The request no longer waits on a payment that never happens.
+  expect.soft(String(await page.locator('.client-booking-primary').isDisabled()), '  confirm is not gated on paying').toBe('false');
   await page.locator('.client-booking-primary').click();
   await page.waitForTimeout(500);
+  expect.soft(String(await page.locator('.client-booking-confirmed').count()), 'request sent').toBe('1');
+  const blocks = await store(page, "(m)=>m.getCustomBlocks().filter(b=>b.kind==='pending')");
+  expect.soft(String(blocks.length), '  pending block written').toBe('1');
+
+  // Nobody was charged, so nothing may appear on the Pro's books.
   const pays = await store(page, "(m)=>m.getPaymentHistory('sara')");
-  expect.soft(String(pays.length), 'payment recorded').toBe('1');
-  expect.soft(String(pays[0].status), '  pending, not settled').toBe('pending');
-  expect.soft(String(pays[0].amount), '  session price').toBe('750');
+  expect.soft(String(pays.length), 'no payment invented').toBe('0');
+  const confirmText = await page.locator('.client-booking-confirmed').innerText();
+  expect.soft(String(/will arrange payment/i.test(confirmText)), '  and the receipt says who settles it').toBe('true');
   expect.soft(String(errs.length), 'no errors').toBe('0');
   await ctx.close();
 });
