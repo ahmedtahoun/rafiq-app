@@ -379,6 +379,7 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
                 <span className="client-profile-switch-thumb" />
               </button>
             </div>
+            <div className="client-profile-notif-scope">{t('notifInAppOnly')}</div>
             {notif &&
               notifTypeDefs.map((nt) => (
                 <div className="client-profile-notif-sub-row" key={nt.key}>
