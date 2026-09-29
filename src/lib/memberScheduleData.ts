@@ -2,7 +2,7 @@
  * The member's own Schedule (SUPABASE-MIGRATION-PLAN.md step 4, the
  * calendar, part 4): for one relationship, the next booked session, the
  * open request to that coach, and the sessions that have happened — and
- * cancelling a booked session (0013's member_cancel_session).
+ * cancelling a booked session (0016's member_cancel_session).
  *
  * A member reads their own sessions and blocks (sessions_select,
  * time_blocks_select) and their own requests (session_requests_select).
@@ -114,7 +114,7 @@ export async function fetchMemberSchedule(clientId: string, coachId: string): Pr
 export type MemberCancelError = 'gone' | 'passed' | 'unknown';
 
 /**
- * Cancel one of the member's booked sessions (0013). With less than 12
+ * Cancel one of the member's booked sessions (0016). With less than 12
  * hours' notice it uses one package credit when one is left (never for a
  * free intro); `charged` says whether it did.
  */

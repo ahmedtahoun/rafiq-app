@@ -1,4 +1,4 @@
--- 0012's mark_attendance(), as the coach under the real policies. Coach A
+-- 0015's mark_attendance(), as the coach under the real policies. Coach A
 -- has past sessions with member M (clientM) — standard ones, a free intro,
 -- one with no calendar block — and one still to come; clientM's package is
 -- set to 3 credits with 1 used. Every refusal has an allowed case beside it.

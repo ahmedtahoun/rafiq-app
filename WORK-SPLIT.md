@@ -55,11 +55,11 @@ via `addCustomBlock({kind:'pending'})` — the same request the coach's
 Schedule already confirms or declines. There is no second request
 mechanism, and there should not be one.
 
-`getMonthGrid()` derives the October-2025 calendar from the fixed week's
-own constants. `Schedule.tsx` still carries a hand-written 35-cell literal
-for the same grid — worth moving it onto `getMonthGrid()` so the two cannot
-disagree about which dates are live, but that is Reem's file and was left
-alone here.
+`getMonthGrid()` is the one month grid, for Schedule and ClientBooking,
+demo and real. Its two arguments default to the fixed week, so a screen on
+the demo clock calls it bare; Schedule passes `(todayMs, weekStartMs)`
+signed in. Done — `Schedule.tsx`'s hand-written 35-cell literal and the
+second derivation that sat beside it are both gone.
 
 ## The WhatsApp claim in the privacy policy — RESOLVED, both sides
 

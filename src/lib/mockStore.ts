@@ -1672,6 +1672,18 @@ export function getBlockStatus(clientId: string): BlockStatus {
   });
 }
 
+/** One side's own block, on or off — the demo's counterpart of 0014's
+    set_relationship_block(). Neither side can lift the other's. */
+export function setBlockStatus(clientId: string, side: MessageRole, blocked: boolean): BlockStatus {
+  const current = getBlockStatus(clientId);
+  const next: BlockStatus = side === 'pro'
+    ? { ...current, blockedByPro: blocked }
+    : { ...current, blockedByMember: blocked };
+  next.blockedAtMs = next.blockedByMember || next.blockedByPro ? (current.blockedAtMs ?? Date.now()) : null;
+  writeLocal(`block_${clientId}`, next);
+  return next;
+}
+
 export function isRelationshipBlocked(clientId: string): boolean {
   const status = getBlockStatus(clientId);
   return status.blockedByMember || status.blockedByPro;
@@ -2182,16 +2194,21 @@ export interface MonthCell {
 /**
  * The month containing the app's fixed week, as calendar cells.
  *
- * Derived from WEEK_START_MS rather than hardcoded. Schedule.tsx carries a
- * 35-cell literal for the same grid, written out by hand; computing it
- * means the two cannot disagree about which dates are live, and it stops
- * being a literal that has to be re-typed if the fixed week ever moves.
- * Schedule should move onto this — see WORK-SPLIT.md.
+ * The one grid every month view uses. It was hardcoded to the fixed demo
+ * week while Schedule carried its own 35-cell literal *and*, once the
+ * coach's calendar went live, a second derivation beside it — three
+ * implementations of one grid. Both arguments default to the demo week, so
+ * a caller on the fixed clock passes nothing; a real one passes its own.
+ *
+ * `monthAnchorMs` picks which month to draw, and `weekStartMs` which seven
+ * days are live inside it. They are separate because a real week straddles
+ * a month boundary twice a year: on Wed 1 Oct the week starts in September
+ * but the month to show is October.
  *
  * Cells run in whole Monday-start weeks, so the grid is always rectangular.
  */
-export function getMonthGrid(): MonthCell[] {
-  const anchor = new Date(WEEK_START_MS);
+export function getMonthGrid(monthAnchorMs: number = TODAY_MS, weekStartMs: number = WEEK_START_MS): MonthCell[] {
+  const anchor = new Date(monthAnchorMs);
   const year = anchor.getUTCFullYear();
   const month = anchor.getUTCMonth();
 
@@ -2205,7 +2222,7 @@ export function getMonthGrid(): MonthCell[] {
   for (let i = 0; i < total; i++) {
     const cellMs = firstOfMonth + (i - leading) * DAY_MS;
     const date = new Date(cellMs);
-    const index = dayIndexFromMs(cellMs);
+    const index = Math.round((cellMs - weekStartMs) / DAY_MS);
     cells.push({
       day: date.getUTCDate(),
       inMonth: date.getUTCMonth() === month,

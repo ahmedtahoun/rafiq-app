@@ -166,7 +166,7 @@ export async function removeOwnBusyBlock(blockId: string): Promise<ScheduleResul
 export type AttendanceError = 'recorded' | 'not_yet' | 'gone' | 'unknown';
 
 /**
- * Record what happened at a session that has started (0012). Held or
+ * Record what happened at a session that has started (0015). Held or
  * missed uses one package credit when one is left (never for a free intro);
  * disputed holds it. `charged` says whether a credit was used.
  */

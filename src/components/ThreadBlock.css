@@ -1,0 +1,36 @@
+.thread-block-toggle {
+  margin-inline-start: auto;
+  padding-block: 6px;
+  padding-inline: 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.thread-block-toggle:disabled { opacity: 0.5; cursor: default; }
+
+.thread-block-confirm {
+  margin-block: 8px;
+  margin-inline: 16px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.thread-block-confirm p { margin: 0 0 12px; font-size: 14px; line-height: 1.45; }
+.thread-block-confirm-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.thread-block-confirm-actions button {
+  padding-block: 8px;
+  padding-inline: 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.thread-block-cancel { border: 1px solid var(--line); background: transparent; }
+.thread-block-yes { border: none; background: var(--red); color: #FFFFFF; }
+.thread-block-confirm-actions button:disabled { opacity: 0.5; cursor: default; }
+
+.thread-error { margin: 0 0 8px; font-size: 13px; color: var(--red); }

@@ -507,7 +507,7 @@ const ATTENDANCE_NOTE_KEYS: Partial<Record<string, MessageKey>> = {
 /**
  * Signed in: this relationship's real sessions (memberScheduleData.ts).
  * The next booked session, or else the open request to this coach; the
- * sessions that have happened; cancelling a booked one (0013), or
+ * sessions that have happened; cancelling a booked one (0016), or
  * withdrawing the request. Moving one, joining the session room and rating
  * a session aren't real yet, so they aren't offered.
  */
@@ -550,7 +550,7 @@ function LiveClientSchedule({ rel }: { rel: MemberRelationshipView | null }) {
   const isPending = !upcoming && !!request;
   const sessionTypeLabel = shown ? t(TYPE_LABEL_KEYS[getSessionTypeInfo(shown.sessionType).key]) : '';
 
-  // Cancelling inside the grace window uses a package credit — 0013 does
+  // Cancelling inside the grace window uses a package credit — 0016 does
   // that when one is left and the session isn't a free intro, so the
   // confirmation says so only then.
   const graceHours = getCancellationPolicy().graceHours;

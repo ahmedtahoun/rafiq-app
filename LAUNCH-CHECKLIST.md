@@ -98,7 +98,9 @@ as done below, when signed in; every other screen still reads and writes
       reviewer's name is exposed today. Whoever wires reviews must select
       the view's `reviewer_name` and never join back to
       `profiles.full_name`.
-- [ ] 🟡 Messaging updates live (Supabase Realtime on `messages`).
+- [x] 🟡 Messaging updates live (Supabase Realtime on `messages`). Done in
+      step 5 (`0014`, `src/lib/messageData.ts`): both threads and the
+      coach's inbox on Supabase, with real blocking from either side.
 - [x] 🟡 Profile and cover photo upload through `src/lib/storage.ts` to the
       private `avatars` / `covers` buckets.
 - [ ] 🟡 Run `npx supabase gen types typescript --linked > src/lib/database.types.ts`
@@ -291,7 +293,8 @@ Waits on the name decision (§1).
       payouts: **national ID and wallet number or bank account** — financial
       info, and it must be in the privacy policy too.
 - [ ] 🔴 Apple requires apps where users message each other to have reporting
-      (✓ exists), blocking (✓ exists) and **timely action on reports** (§9),
+      (✓ exists), blocking (✓ since step 5 — until then only a status the app
+      read and nothing could set) and **timely action on reports** (§9),
       and terms users accept that forbid objectionable content.
 - [ ] 🟡 Age rating (Apple) and content rating questionnaire (Google); target
       audience adults, not children.
@@ -305,8 +308,11 @@ Waits on the name decision (§1).
 Reports, verification requests, deletion requests and suspensions are queues
 only Rafiq can resolve (as `service_role`). Nothing works them yet.
 
-- [ ] 🔴 For closed testing: Supabase dashboard table editor + saved queries
+- [x] 🔴 For closed testing: Supabase dashboard table editor + saved queries
       ("open reports", "pending verifications", "pending deletions") is enough.
+      Done: `supabase/admin/README.md` — open reports (suspend, close),
+      pending verifications (approve/reject), pending deletions (through
+      the `account-deletion` Edge Function).
 - [ ] 🟡 Before public launch: a small admin web app (verification review,
       reports with suspend/block, deletion requests, user lookup), behind an
       admin role. The `service_role` key stays server-side, never in a browser.
@@ -351,4 +357,5 @@ only Rafiq can resolve (as `service_role`). Nothing works them yet.
   policies give the support address.
 - iOS target is iPhone-only (no iPad screenshots or iPad review needed).
 - Bundle IDs `app.rafiqie.coach` (+ `app.rafiqie.coach.web` for Apple sign-in).
-- In-app account-deletion request, reporting, and blocking a Pro exist in the UI.
+- In-app account-deletion request and reporting exist in the UI; blocking
+  works from either side of a thread (step 5, `0014`).

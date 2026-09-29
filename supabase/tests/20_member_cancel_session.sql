@@ -1,4 +1,4 @@
--- 0013's member_cancel_session(), as member M under the real policies.
+-- 0016's member_cancel_session(), as member M under the real policies.
 -- Coach A has booked sessions for member M (clientM): one weeks ahead, one
 -- a few hours ahead, a free intro a few hours ahead, and one already past.
 -- clientM's package is set to 5 credits with 1 used. Every refusal has an

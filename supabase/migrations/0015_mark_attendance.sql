@@ -1,4 +1,4 @@
--- 0012: the coach records what happened at a session, after it.
+-- 0015: the coach records what happened at a session, after it.
 --
 -- mark_attendance(session, outcome) sets the session's attendance and, for a
 -- session that was held or that the member missed, uses one credit from the

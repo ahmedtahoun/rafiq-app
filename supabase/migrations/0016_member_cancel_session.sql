@@ -1,4 +1,4 @@
--- 0013: a member cancelling one of their own booked sessions.
+-- 0016: a member cancelling one of their own booked sessions.
 --
 -- The member's side of 0011's cancel_booking(): it records the cancellation
 -- (who, how far ahead, whether with 12 hours' notice — the app's
@@ -9,7 +9,7 @@
 -- call never costs one. The coach is told by 0011's trigger on sessions,
 -- which notifies the counterparty of whoever made the change.
 --
--- Unlike 0010-0012 this is SECURITY DEFINER: a member may read their
+-- Unlike 0010, 0011 and 0015 this is SECURITY DEFINER: a member may read their
 -- sessions and blocks but, by design, may not update a session beyond a
 -- dispute (0005), delete the coach's block, or touch the package. So the
 -- function checks for itself that the caller is the member on the

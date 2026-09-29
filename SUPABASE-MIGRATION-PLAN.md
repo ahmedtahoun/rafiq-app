@@ -343,7 +343,7 @@ In small PRs, so each can be reviewed on its own:
    moving needs 12 hours' notice, as in the demo. A session or request is
    drawn above busy time it overlaps, so it can still be tapped.
 3. ✅ **Attendance.** Once a booked session has started, its sheet asks
-   the coach how it went. 0012's `mark_attendance()` records the outcome
+   the coach how it went. 0015's `mark_attendance()` records the outcome
    on the session and, for one that was held or that the member missed,
    uses one credit from the relationship's package — the demo's rule
    (`setAttendance`): completed and no-show charge, disputed holds. A
@@ -363,7 +363,7 @@ In small PRs, so each can be reviewed on its own:
    else their open request to that coach, and the sessions that have
    happened, newest first, with the coach's recap — a missed or disputed
    one says so, a cancelled one isn't listed. They can cancel a booked
-   session with 0013's `member_cancel_session()`: the member's side of
+   session with 0016's `member_cancel_session()`: the member's side of
    `cancel_booking()`, recorded as theirs, and with less than 12 hours'
    notice it uses one package credit when one is left (never for a free
    intro), as the demo's `cancelBooking()` does; the confirmation says so
