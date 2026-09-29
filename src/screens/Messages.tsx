@@ -2,45 +2,42 @@ import { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
 import { ChevronIcon, MessageIcon } from '../components/icons';
-import {
-  canInteract,
-  clearMessageDraft,
-  draftMessage,
-  getBlockStatus,
-  getClient,
-  getMemberAccountStatus,
-  getMessageDraft,
-  getMessages,
-  markMessagesRead,
-  sendMessage,
-} from '../lib/mockStore';
+import { LoadState } from '../components/LoadState';
+import { BlockConfirm, BlockToggle } from '../components/ThreadBlock';
+import { clearMessageDraft, draftMessage, getMemberAccountStatus, getMessageDraft } from '../lib/mockStore';
+import { useRemoteSession } from '../lib/remoteSession';
+import { useRoster } from '../store/rosterStore';
+import { useThread } from '../store/threadLoad';
 import './Messages.css';
 
 // 1:1 port of Messages.dc.html — the coach's thread with one member.
-// Parametrized on clientId, like ClientDetail and AddTask.
+// Parametrized on clientId, like ClientDetail and AddTask. Signed in, the
+// thread is Supabase's and new messages arrive live (src/store/threadLoad.ts);
+// signed out it is mockStore's demo thread.
 export default function Messages() {
   const t = useT();
   const back = useAppStore((s) => s.back);
   const clientId = useAppStore((s) => s.params).clientId ?? '';
-
-  const client = getClient(clientId);
-
-  const [messages, setMessages] = useState(() => getMessages(clientId));
+  const remote = useRemoteSession();
+  const roster = useRoster();
+  const thread = useThread(clientId, 'pro', remote);
+  // Drafts stay on the device in both modes: MessagesInbox shows an unsent
+  // draft as the preview, and Remind/Nudge elsewhere prefill through it.
   const [draft, setDraft] = useState(() => getMessageDraft(clientId));
+  const [confirming, setConfirming] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
-
-  // Opening the thread is what marks it read. In an effect rather than during
-  // render because it writes — the design calls it inline in renderVals(),
-  // which React would run on every re-render and in StrictMode twice.
-  useEffect(() => {
-    if (clientId) markMessagesRead(clientId, 'pro');
-  }, [clientId, messages.length]);
+  const count = thread.status === 'ready' ? thread.messages.length : 0;
 
   useEffect(() => {
     const el = listRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [messages.length]);
+  }, [count]);
 
+  if (roster.status === 'loading' || thread.status === 'loading') return <LoadState status="loading" />;
+  if (roster.status === 'error') return <LoadState status="error" onRetry={roster.retry} showBack />;
+  if (thread.status === 'error') return <LoadState status="error" onRetry={thread.retry} showBack />;
+
+  const client = roster.client(clientId);
   if (!client) {
     return (
       <div className="phone-frame messages">
@@ -56,53 +53,67 @@ export default function Messages() {
   }
 
   const firstName = client.name.split(' ')[0] || client.name;
-  const canSend = canInteract(clientId);
-  const block = getBlockStatus(clientId);
-  const cannotSendReason = block.blockedByMember || block.blockedByPro
-    ? t('messagesBlockedRelationship', { name: firstName })
-    : getMemberAccountStatus(clientId) !== 'active'
-      ? t('messagesBlockedInactive', { name: firstName })
-      : t('messagesUnavailable');
+  const { block } = thread;
+  const cannotSendReason = block.blockedByPro
+    ? t('messagesBlockedByYou', { name: firstName })
+    : block.blockedByMember
+      ? t('messagesBlockedRelationship', { name: firstName })
+      : !remote && getMemberAccountStatus(clientId) !== 'active'
+        ? t('messagesBlockedInactive', { name: firstName })
+        : t('messagesUnavailable');
 
   function onDraftChange(value: string) {
     setDraft(value);
-    // Persisted as you type: MessagesInbox shows an unsent draft as the
-    // thread preview, and Remind/Nudge elsewhere prefills through the same
-    // key, so it has to survive leaving the screen.
     draftMessage(clientId, value);
   }
 
-  function send() {
-    const sent = sendMessage(clientId, draft, 'pro');
-    if (!sent) return;
-    clearMessageDraft(clientId);
-    setDraft('');
-    setMessages(getMessages(clientId));
+  async function send() {
+    if (thread.status !== 'ready') return;
+    if (await thread.send(draft)) {
+      clearMessageDraft(clientId);
+      setDraft('');
+    }
+  }
+
+  async function toggleBlock() {
+    if (thread.status !== 'ready') return;
+    if (block.blockedByPro) {
+      await thread.setBlocked(false);
+    } else {
+      setConfirming(true);
+    }
   }
 
   return (
     <div className="phone-frame messages">
       <div className="messages-header">
         {/* history-aware rather than the design's hardcoded ClientDetail
-            link: there the thread is only reachable from a member's profile,
-            here it is also a bottom-nav destination via MessagesInbox, and
-            back() returns to whichever one you actually came from. PARENT
-            falls back to the inbox when there is no history at all. */}
+            link: the thread is reachable from a member's profile and from
+            MessagesInbox, and back() returns to whichever one you came from. */}
         <button className="messages-back" aria-label={t('back')} onClick={back}>
           <ChevronIcon size={16} />
         </button>
         <div className="messages-avatar" style={{ background: client.avatarBg }}>{client.initials}</div>
         <div className="messages-header-text">
-          <div className="messages-name">{client.name}</div>
+          <div className="messages-name"><bdi>{client.name}</bdi></div>
           <div className="messages-subtitle">{t('messagesSubtitle')}</div>
         </div>
+        <BlockToggle name={firstName} blockedByMe={block.blockedByPro} busy={thread.blockBusy} onClick={() => void toggleBlock()} />
       </div>
+      {confirming && (
+        <BlockConfirm
+          name={firstName}
+          busy={thread.blockBusy}
+          onCancel={() => setConfirming(false)}
+          onConfirm={() => void thread.setBlocked(true).then((done) => done && setConfirming(false))}
+        />
+      )}
 
       <div className="messages-list" ref={listRef}>
-        {messages.length > 0 ? (
-          messages.map((m) => (
+        {thread.messages.length > 0 ? (
+          thread.messages.map((m) => (
             <div key={m.id} className={`messages-row${m.senderRole === 'pro' ? ' is-mine' : ''}`}>
-              <div className="messages-bubble">{m.text}</div>
+              <div className="messages-bubble"><bdi>{m.text}</bdi></div>
             </div>
           ))
         ) : (
@@ -115,7 +126,11 @@ export default function Messages() {
       </div>
 
       <div className="messages-composer">
-        {canSend ? (
+        {thread.blockFailed && <p className="thread-error" role="alert">{t('messagesBlockFailed')}</p>}
+        {thread.sendFailed && (
+          <p className="thread-error" role="alert">{t(thread.sendFailed === 'refused' ? 'messagesSendRefused' : 'messagesSendFailed')}</p>
+        )}
+        {thread.canSend ? (
           <div className="messages-composer-row">
             <input
               type="text"
@@ -123,9 +138,9 @@ export default function Messages() {
               placeholder={t('messagesPlaceholder')}
               value={draft}
               onChange={(e) => onDraftChange(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') send(); }}
+              onKeyDown={(e) => { if (e.key === 'Enter') void send(); }}
             />
-            <button type="button" aria-label={t('messagesSend')} onClick={send}>
+            <button type="button" aria-label={t('messagesSend')} disabled={thread.sending} onClick={() => void send()}>
               <SendGlyph />
             </button>
           </div>

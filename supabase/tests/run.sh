@@ -14,7 +14,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PGBIN="${PGBIN:-/usr/lib/postgresql/16/bin}"
 PGROOT="${PGROOT:-/var/tmp/rafiq-pgtest}"
-MIN_ASSERTIONS=359
+MIN_ASSERTIONS=434
 
 OUT=""
 OWN_CLUSTER=""
@@ -115,8 +115,17 @@ OUT="$(mktemp)"
   echo "=== BOOKING CHANGES ==="
   psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/15_booking_changes.sql"
   echo
-  echo "=== ATTENDANCE ==="
-  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/16_mark_attendance.sql"
+  echo "=== ACCOUNT DELETION ==="
+  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/16_account_deletion.sql"
+  echo
+  echo "=== CLIENT INVITES ==="
+  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/17_client_invites.sql"
+  echo
+  echo "=== MESSAGING ==="
+  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/18_messaging.sql"
+  echo
+  echo "=== MARK ATTENDANCE ==="
+  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/19_mark_attendance.sql"
 } | grep -v '^$' | tee "$OUT"
 
 PASSED="$(grep -c '^PASS' "$OUT" || true)"

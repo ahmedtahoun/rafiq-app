@@ -187,6 +187,29 @@ export type Database = {
           },
         ]
       }
+      client_invite_attempts: {
+        Row: {
+          at: string
+          profile_id: string
+        }
+        Insert: {
+          at?: string
+          profile_id: string
+        }
+        Update: {
+          at?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_invite_attempts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_private: {
         Row: {
           client_id: string
@@ -221,6 +244,8 @@ export type Database = {
           active: boolean
           age: number | null
           avatar_bg: string
+          blocked_by_coach_at: string | null
+          blocked_by_member_at: string | null
           city: string | null
           coach_id: string
           country_code: string | null
@@ -231,6 +256,9 @@ export type Database = {
           goal: string
           id: string
           initials: string
+          invite_code: string | null
+          invite_created_at: string | null
+          invite_expires_at: string | null
           member_id: string | null
           needs_checkin: boolean
           next_session_at: string | null
@@ -249,6 +277,8 @@ export type Database = {
           active?: boolean
           age?: number | null
           avatar_bg?: string
+          blocked_by_coach_at?: string | null
+          blocked_by_member_at?: string | null
           city?: string | null
           coach_id: string
           country_code?: string | null
@@ -259,6 +289,9 @@ export type Database = {
           goal?: string
           id?: string
           initials?: string
+          invite_code?: string | null
+          invite_created_at?: string | null
+          invite_expires_at?: string | null
           member_id?: string | null
           needs_checkin?: boolean
           next_session_at?: string | null
@@ -277,6 +310,8 @@ export type Database = {
           active?: boolean
           age?: number | null
           avatar_bg?: string
+          blocked_by_coach_at?: string | null
+          blocked_by_member_at?: string | null
           city?: string | null
           coach_id?: string
           country_code?: string | null
@@ -287,6 +322,9 @@ export type Database = {
           goal?: string
           id?: string
           initials?: string
+          invite_code?: string | null
+          invite_created_at?: string | null
+          invite_expires_at?: string | null
           member_id?: string | null
           needs_checkin?: boolean
           next_session_at?: string | null
@@ -1692,21 +1730,37 @@ export type Database = {
       }
     }
     Functions: {
+      relationship_can_message: { Args: { p_client: string }; Returns: boolean }
+      set_relationship_block: {
+        Args: { p_blocked: boolean; p_client: string }
+        Returns: Json
+      }
       accept_session_request: { Args: { p_request: string }; Returns: string }
       can_see_client: { Args: { p_client: string }; Returns: boolean }
-      cancel_booking: { Args: { p_block: string; p_reason?: string }; Returns: undefined }
+      cancel_booking: {
+        Args: { p_block: string; p_reason?: string }
+        Returns: undefined
+      }
+      check_client_invite: {
+        Args: { p_code: string }
+        Returns: Record<string, unknown>
+      }
+      claim_client_invite: { Args: { p_code: string }; Returns: Json }
       client_counterparty: {
         Args: { p_actor: string; p_client: string }
         Returns: string
       }
+      create_client_invite: { Args: { p_client: string }; Returns: Json }
       is_coach_of: { Args: { p_client: string }; Returns: boolean }
       is_member_of: { Args: { p_client: string }; Returns: boolean }
       mark_attendance: {
         Args: { p_outcome: Database["public"]["Enums"]["attendance"]; p_session: string }
         Returns: boolean
       }
-      refresh_next_session: { Args: { p_client: string }; Returns: undefined }
-      reschedule_booking: { Args: { p_block: string; p_start: string }; Returns: undefined }
+      new_invite_code: { Args: never; Returns: string }
+      normalize_invite_code: { Args: { p_code: string }; Returns: string }
+      peek_client_invite: { Args: { p_code: string }; Returns: Json }
+      process_account_deletion: { Args: { p_request: string }; Returns: Json }
       push_notification: {
         Args: {
           p_client: string
@@ -1716,6 +1770,12 @@ export type Database = {
         }
         Returns: undefined
       }
+      refresh_next_session: { Args: { p_client: string }; Returns: undefined }
+      reschedule_booking: {
+        Args: { p_block: string; p_start: string }
+        Returns: undefined
+      }
+      revoke_client_invite: { Args: { p_client: string }; Returns: Json }
     }
     Enums: {
       account_status: "active" | "suspended" | "deleted"

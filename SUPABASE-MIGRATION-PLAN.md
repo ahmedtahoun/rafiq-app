@@ -343,7 +343,7 @@ In small PRs, so each can be reviewed on its own:
    moving needs 12 hours' notice, as in the demo. A session or request is
    drawn above busy time it overlaps, so it can still be tapped.
 3. ✅ **Attendance.** Once a booked session has started, its sheet asks
-   the coach how it went. 0012's `mark_attendance()` records the outcome
+   the coach how it went. 0015's `mark_attendance()` records the outcome
    on the session and, for one that was held or that the member missed,
    uses one credit from the relationship's package — the demo's rule
    (`setAttendance`): completed and no-show charge, disputed holds. A
