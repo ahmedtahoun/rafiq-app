@@ -182,6 +182,39 @@ test('cancelling today’s session frees the time, keeps it in history, and move
   await ctx.close();
 });
 
+test('a cancel that goes through stays done even if the re-read fails, with no spinner', async ({ browser }) => {
+  const { page, ctx, errs } = await open(browser);
+  // Clients once, so the roster is loaded; then every read fails.
+  await go(page, 'clients');
+  await go(page, 'schedule');
+  await page.evaluate(() => { window.__fake.fail = ['time_blocks.select', 'clients.select', 'weekly_availability.select']; });
+  await page.locator('.schedule-block', { hasText: 'Hana Mostafa' }).click();
+  await sheet(page).getByRole('button', { name: 'Cancel session' }).click();
+  await page.getByRole('button', { name: 'Yes, cancel' }).click();
+  await expect(page.locator('.schedule-block', { hasText: 'Hana Mostafa' })).toHaveCount(0);
+  await page.waitForTimeout(500);
+  await expect(page.locator('.load-state')).toHaveCount(0);
+  await expect(page.locator('.schedule-timeline')).toBeVisible();
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
+test('an error from one sheet never shows up in the next', async ({ browser }) => {
+  const { page, ctx, errs } = await open(browser, { fail: ['rpc.cancel_booking'] });
+  // The cancel is still in flight when the coach taps Keep it; it fails after.
+  await page.evaluate(() => { window.__fake.rpcDelay = 800; });
+  await openFriday(page);
+  await sheet(page).getByRole('button', { name: 'Cancel session' }).click();
+  await page.getByRole('button', { name: 'Yes, cancel' }).click();
+  await page.getByRole('button', { name: 'Keep it' }).click();
+  await page.waitForTimeout(1200);
+  await openFriday(page);
+  await sheet(page).getByRole('button', { name: 'Reschedule' }).click();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
 test('a failed cancel keeps the session and says so', async ({ browser }) => {
   const { page, ctx, errs } = await open(browser, { fail: ['rpc.cancel_booking'] });
   await page.locator('.schedule-block', { hasText: 'Hana Mostafa' }).click();

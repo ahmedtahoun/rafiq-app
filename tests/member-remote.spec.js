@@ -289,3 +289,14 @@ test('in Arabic and dark mode: the coach name stays isolated, no-coach reads in 
   expect([...errs, ...empty.errs]).toEqual([]);
   await empty.ctx.close();
 });
+
+test('a session the coach cancelled is not counted as one held', async ({ browser }) => {
+  const tables = oneCoach();
+  // Held on the 21st (s-1, already there), and one cancelled on the 24th.
+  tables.sessions.push({ id: 's-x', client_id: 'rel-a', scheduled_at: '2026-09-24T15:00:00Z', recap: null, attendance: 'cancelled' });
+  const { page, ctx, errs } = await open(browser, { tables, screen: 'clientCoach' });
+  const sessions = page.locator('.client-coach-stat').filter({ hasText: 'Sessions' });
+  await expect(sessions.locator('.client-coach-stat-value')).toHaveText('1');
+  expect(errs).toEqual([]);
+  await ctx.close();
+});

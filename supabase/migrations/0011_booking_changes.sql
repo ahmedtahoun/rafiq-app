@@ -36,6 +36,43 @@
 -- A member's own moves and cancellations come with their Schedule (step 4,
 -- part 3); until then only the coach's side calls these.
 
+-- The other side hears about it. A moved or cancelled session notifies the
+-- counterparty of whoever made the change (0002's client_counterparty and
+-- push_notification): the member when the coach moves or cancels, the coach
+-- when a member does (their side comes with step 4, part 3). A trigger on
+-- sessions rather than a line in each function, so any path that moves or
+-- cancels a session — these functions, a later member one — tells them, and
+-- a refused change (rolled back) tells nobody. A walk-in with no account has
+-- nobody to tell.
+alter type public.notification_kind add value if not exists 'session-moved';
+alter type public.notification_kind add value if not exists 'session-cancelled';
+
+create or replace function public.on_session_changed()
+returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  if new.attendance = 'cancelled' and old.attendance is distinct from 'cancelled' then
+    perform public.push_notification(
+      public.client_counterparty(new.client_id, auth.uid()),
+      'session-cancelled',
+      new.client_id,
+      jsonb_build_object('session_id', new.id, 'scheduled_at', new.scheduled_at)
+    );
+  elsif new.scheduled_at is distinct from old.scheduled_at and new.attendance is null then
+    perform public.push_notification(
+      public.client_counterparty(new.client_id, auth.uid()),
+      'session-moved',
+      new.client_id,
+      jsonb_build_object('session_id', new.id, 'from', old.scheduled_at, 'to', new.scheduled_at)
+    );
+  end if;
+  return new;
+end;
+$$;
+
+create trigger sessions_notify_change
+  after update of scheduled_at, attendance on public.sessions
+  for each row execute function public.on_session_changed();
+
 -- The earliest upcoming, not-cancelled session on a roster row, and its
 -- length, as next_session_at / next_session_type. Invoker: it can only
 -- update a row the caller could already update.

@@ -156,6 +156,9 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
 
     real.rpc = async (fn, args) => {
       log({ op: 'rpc', fn, args });
+      // window.__fake.rpcDelay (ms) keeps a call in flight, for a test that
+      // acts while it is.
+      if (window.__fake.rpcDelay) await new Promise((r) => setTimeout(r, window.__fake.rpcDelay));
       if (failing(`rpc.${fn}`)) return { data: null, error: NETWORK };
       if (fn === 'reschedule_booking' || fn === 'cancel_booking') return changeBooking(fn, args);
       if (fn !== 'accept_session_request') return refuse('42883');

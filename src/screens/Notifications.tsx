@@ -95,7 +95,7 @@ export default function Notifications() {
       // The new roster row (or the archived one brought back) is the roster
       // store's to show, so it re-reads.
       const roster = useRosterStore.getState();
-      if (roster.userId) void roster.load(roster.userId);
+      if (roster.userId) void roster.refresh(roster.userId);
       return;
     }
     if (result.code === 'gone') settle(r, t('notificationsRequestGone'));

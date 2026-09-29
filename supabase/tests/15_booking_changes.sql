@@ -146,3 +146,19 @@ select pg_temp.expect('...and then it can be accepted',
 select pg_temp.expect('accept keeps 0010''s grants',
   has_function_privilege('anon', 'public.accept_session_request(uuid)', 'execute')::text
     || ':' || has_function_privilege('authenticated', 'public.accept_session_request(uuid)', 'execute')::text, 'false:true');
+
+-- The member hears about it --------------------------------------------------------
+reset role;
+select pg_temp.expect('member M told of each move',
+  (select count(*)::text from public.notifications where recipient_id = :memberM and kind = 'session-moved' and client_id = :clientM), '2');
+select pg_temp.expect('...and each cancellation, with its time',
+  (select count(*)::text || ':' || bool_and(payload ? 'scheduled_at') from public.notifications
+   where recipient_id = :memberM and kind = 'session-cancelled' and client_id = :clientM), '2:true');
+select pg_temp.expect('a move says from and to',
+  (select ((payload->>'to')::timestamptz = :'t4')::text from public.notifications
+   where recipient_id = :memberM and kind = 'session-moved' order by created_at limit 1), 'true');
+select pg_temp.expect('the coach who made them is not told',
+  (select count(*)::text from public.notifications where recipient_id = :coachA and kind in ('session-moved', 'session-cancelled')), '0');
+set role authenticated;
+select pg_temp.expect('member M reads their notifications',
+  pg_temp.as_user(:memberM, 'select count(*)::text from public.notifications where kind in (''session-moved'', ''session-cancelled'')'), '4');

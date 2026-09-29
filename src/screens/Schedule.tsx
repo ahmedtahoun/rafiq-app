@@ -21,7 +21,7 @@ import { LoadState } from '../components/LoadState';
 import { useFormat } from '../lib/format';
 import { useRemoteSession } from '../lib/remoteSession';
 import { fetchOwnWeeklyAvailability, weekdayOf } from '../lib/requestData';
-import { cancelBooking as cancelRemoteBooking, fetchCoachWeek, removeOwnBusyBlock, rescheduleBooking as rescheduleRemoteBooking, type BookingChangeError } from '../lib/scheduleData';
+import { cancelBooking as cancelRemoteBooking, fetchCoachWeek, removeOwnBusyBlock, type CalendarBlock, rescheduleBooking as rescheduleRemoteBooking, type BookingChangeError } from '../lib/scheduleData';
 import { wallNowMs, wallTodayMs } from '../lib/wallClock';
 import { useRosterStore } from '../store/rosterStore';
 import { useRemoteLoad } from '../store/remoteLoad';
@@ -58,6 +58,7 @@ import {
   type NavTarget,
   type SessionType,
   type TimeBlockKind,
+  type WeeklyAvailabilityDay,
 } from '../lib/mockStore';
 import './Schedule.css';
 
@@ -216,7 +217,7 @@ export default function Schedule() {
   const fmt = useFormat();
   const realTodayMs = wallTodayMs();
   const weekStartMs = realTodayMs - weekdayOf(realTodayMs) * DAY_MS;
-  const week = useRemoteLoad(`coach_week:${weekStartMs}`, remote, async () => {
+  const week = useRemoteLoad<{ blocks: CalendarBlock[]; hours: WeeklyAvailabilityDay[] }>(`coach_week:${weekStartMs}`, remote, async () => {
     const [blocks, hours] = await Promise.all([fetchCoachWeek(weekStartMs), fetchOwnWeeklyAvailability()]);
     return blocks.ok && hours.ok ? { ok: true as const, data: { blocks: blocks.data, hours: hours.data } } : { ok: false as const };
   });
@@ -469,6 +470,7 @@ export default function Schedule() {
 
   function openReschedulePicker() {
     if (!rescheduleEligible || !activeBlock) return;
+    setChangeError(null);
     setShowBlockSheet(false);
     setShowRescheduleSheet(true);
     setRescheduleDay(activeBlock.dayIndex);
@@ -483,11 +485,19 @@ export default function Schedule() {
     setRescheduleSlot(null);
     setRescheduleConfirmError(false);
   }
-  /** After a real move or cancel: the week and the roster's next session re-read. */
-  async function afterLiveChange() {
-    if (week.status === 'ready') await week.reload();
+  /**
+   * After a real change: show it at once, then re-read quietly. The change
+   * went through, so a failed re-read keeps the local update on screen
+   * rather than the old block (or an error), and the roster refreshes in
+   * the background without taking the screen back to a spinner.
+   */
+  async function afterLiveChange(update: (blocks: CalendarBlock[]) => CalendarBlock[]) {
+    if (week.status === 'ready') {
+      week.set({ ...week.data, blocks: update(week.data.blocks) });
+      void week.reload();
+    }
     const r = useRosterStore.getState();
-    if (r.userId) void r.load(r.userId);
+    if (r.userId) void r.refresh(r.userId);
   }
 
   function liveErrorKey(code: BookingChangeError | 'not_configured'): MessageKey {
@@ -509,17 +519,20 @@ export default function Schedule() {
       return;
     }
     const day = rescheduleDaySel;
+    const blockId = activeBlock.id;
     closeRescheduleSheet();
     setSelectedDay(day);
     setView('day');
-    await afterLiveChange();
+    await afterLiveChange((blocks) => blocks.map((b) =>
+      (b.id === blockId ? { ...b, startWallMs: newStartMs, endWallMs: newStartMs + (b.endWallMs - b.startWallMs) } : b)));
   }
 
   async function confirmLiveCancel() {
     if (!activeBlock?.id || changing) return;
     setChanging(true);
     setChangeError(null);
-    const result = await cancelRemoteBooking(activeBlock.id);
+    const blockId = activeBlock.id;
+    const result = await cancelRemoteBooking(blockId);
     setChanging(false);
     if (!result.ok) {
       setChangeError(liveErrorKey(result.code));
@@ -527,14 +540,15 @@ export default function Schedule() {
     }
     setShowCancelConfirm(false);
     setActiveBlock(null);
-    await afterLiveChange();
+    await afterLiveChange((blocks) => blocks.filter((b) => b.id !== blockId));
   }
 
   async function removeBusyBlock() {
     if (!activeBlock?.id || changing) return;
     setChanging(true);
     setChangeError(null);
-    const result = await removeOwnBusyBlock(activeBlock.id);
+    const blockId = activeBlock.id;
+    const result = await removeOwnBusyBlock(blockId);
     setChanging(false);
     if (!result.ok) {
       setChangeError('requestFailedRetry');
@@ -542,7 +556,7 @@ export default function Schedule() {
     }
     setShowBlockSheet(false);
     setActiveBlock(null);
-    await afterLiveChange();
+    await afterLiveChange((blocks) => blocks.filter((b) => b.id !== blockId));
   }
 
   function confirmReschedule() {
@@ -575,6 +589,7 @@ export default function Schedule() {
     setActiveBlock(null);
   }
   function openCancelSheet() {
+    setChangeError(null);
     setShowBlockSheet(false);
     setShowCancelConfirm(true);
   }

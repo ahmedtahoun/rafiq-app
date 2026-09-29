@@ -334,6 +334,11 @@ In small PRs, so each can be reviewed on its own:
    land on time the coach marked Unavailable, and the coach can remove a
    busy block from its sheet. Members still can't see busy time when they
    pick a slot, so such a request is refused when the coach accepts it.
+   The other side is told: a trigger on `sessions` sends the member a
+   `session-moved` or `session-cancelled` notification (the coach, when a
+   member makes the change, later); the member's notifications screen is
+   still the demo's, so these wait in the table until it's converted. A
+   cancelled session no longer counts as one held on the member's side.
    Schedule offers move and cancel on a real booking until it starts;
    moving needs 12 hours' notice, as in the demo. A session or request is
    drawn above busy time it overlaps, so it can still be tapped.
