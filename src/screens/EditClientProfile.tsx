@@ -5,10 +5,11 @@ import { darken } from '../lib/color';
 import { COUNTRIES, DEFAULT_COUNTRY } from '../lib/countries';
 import { CountryPicker } from '../components/CountryPicker';
 import { TextField } from '../components/TextField';
-import { getClient, updateClient } from '../lib/mockStore';
+import { LoadState } from '../components/LoadState';
+import { useMemberSpace, type MemberSpaceView } from '../store/memberStore';
+import { DEMO_MEMBER_CLIENT_ID, getClient, updateClient } from '../lib/mockStore';
 import './EditClientProfile.css';
 
-const CLIENT_ID = 'sara';
 // Matches tokens.css's --accent — darken() needs a literal hex, not the CSS
 // custom property, for the avatar gradient's darker stop.
 const ACCENT_HEX = '#B75C3D';
@@ -17,28 +18,49 @@ const ACCENT_HEX = '#B75C3D';
 // EditProfile.dc.html (no photos, no specialties): just name, age, and
 // phone/dial-code, the only fields ClientProfile's own edit pencil needs.
 export default function EditClientProfile() {
+  const space = useMemberSpace();
+  if (space.status === 'loading') return <LoadState status="loading" />;
+  if (space.status === 'error') return <LoadState status="error" onRetry={space.retry} showBack />;
+  return <EditClientProfileForm space={space} />;
+}
+
+/**
+ * Signed in, this edits the member's own account (profiles: name and
+ * phone) — not a coach's roster row, which is the coach's to write. The
+ * demo keeps editing its roster record, age included; a real member has no
+ * age on their account to edit.
+ */
+function EditClientProfileForm({ space }: { space: Extract<MemberSpaceView, { status: 'ready' }> }) {
   const t = useT();
   const nav = useAppStore((s) => s.nav);
-  const client = getClient(CLIENT_ID);
+  const { contact, remote } = space;
+  const demoClient = remote ? undefined : getClient(DEMO_MEMBER_CLIENT_ID);
 
-  const [name, setName] = useState(client?.name ?? '');
-  const [age, setAge] = useState(client?.age != null ? String(client.age) : '');
-  const [phone, setPhone] = useState(client?.phone ?? '');
-  const [dialCode, setDialCode] = useState(() => COUNTRIES.find((c) => c.dial === client?.countryCode)?.code ?? DEFAULT_COUNTRY.code);
+  const [name, setName] = useState(contact.fullName);
+  const [age, setAge] = useState(demoClient?.age != null ? String(demoClient.age) : '');
+  const [phone, setPhone] = useState(contact.phone);
+  const [dialCode, setDialCode] = useState(() => COUNTRIES.find((c) => c.dial === contact.countryCode)?.code ?? DEFAULT_COUNTRY.code);
   const [showDialPicker, setShowDialPicker] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
 
   const dialCountry = COUNTRIES.find((c) => c.code === dialCode) ?? DEFAULT_COUNTRY;
-  const avatarInitials = name.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2) || client?.initials || 'SA';
+  const avatarInitials = name.trim().split(/\s+/).map((w) => w[0] ?? '').join('').toUpperCase().slice(0, 2) || '?';
   const avatarGrad = `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 35)} 100%)`;
 
-  function save() {
-    updateClient(CLIENT_ID, {
-      name: name.trim() || client?.name,
-      age: age === '' ? (client?.age ?? null) : Number(age),
-      phone: phone.trim() || client?.phone,
+  async function save() {
+    if (saving) return;
+    setSaving(true);
+    setSaveFailed(false);
+    const saved = await space.actions.saveContact({
+      fullName: name.trim() || contact.fullName,
+      phone: phone.trim() || contact.phone,
       countryCode: dialCountry.dial,
     });
-    nav('clientProfile');
+    if (saved && !remote) updateClient(DEMO_MEMBER_CLIENT_ID, { age: age === '' ? (demoClient?.age ?? null) : Number(age) });
+    setSaving(false);
+    if (saved) nav('clientProfile');
+    else setSaveFailed(true);
   }
 
   return (
@@ -48,10 +70,16 @@ export default function EditClientProfile() {
           {t('profileCancel')}
         </button>
         <div className="edit-client-profile-title">{t('editProfileTitle')}</div>
-        <button type="button" className="edit-client-profile-save" onClick={save}>
+        <button type="button" className="edit-client-profile-save" onClick={() => void save()} disabled={saving}>
           {t('editProfileSave')}
         </button>
       </div>
+
+      {saveFailed && (
+        <div className="edit-client-profile-error" role="alert">
+          {t('requestFailedRetry')}
+        </div>
+      )}
 
       <div className="edit-client-profile-body">
         <div className="edit-client-profile-avatar-block">
@@ -62,7 +90,7 @@ export default function EditClientProfile() {
 
         <TextField id="cname" label={t('fullName')} type="text" value={name} onChange={(e) => setName(e.target.value)} />
 
-        <TextField id="cage" label={t('editClientProfileAge')} type="number" min={0} value={age} onChange={(e) => setAge(e.target.value)} />
+        {!remote && <TextField id="cage" label={t('editClientProfileAge')} type="number" min={0} value={age} onChange={(e) => setAge(e.target.value)} />}
 
         <div className="edit-client-profile-field">
           <label htmlFor="cphone" className="edit-client-profile-label">

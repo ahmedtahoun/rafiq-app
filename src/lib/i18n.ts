@@ -319,6 +319,10 @@ const en = {
 
     // ClientHome.dc.html
     clientHomeName: 'Sara Ahmed', clientHomeStreak: '5-day check-in streak',
+    clientHomeNoPackage: 'No session package yet',
+    memberNoCoachTitle: 'No coach yet',
+    memberNoCoachBody: 'When a coach accepts your session request, your plan with them — tasks, sessions and progress — shows up here.',
+    memberNoCoachCta: 'Find a coach',
     clientHomeProgressLabel: 'Goal Progress', clientHomeGoalFallback: 'Feel more in control of life',
     clientHomeSessionsCompleted: '{used} of {total} sessions completed', clientHomeSessionProgressLabel: 'Session Progress',
     clientHomeProgressAssessedBy: 'Assessed by {name}',
@@ -898,7 +902,7 @@ const en = {
 
     myCoachesTitle: 'My Pros',
     myCoachesActive: 'Active', myCoachesPending: 'Pending', myCoachesPast: 'Past',
-    myCoachesActiveBadge: 'Active', myCoachesPendingBadge: 'Pending',
+    myCoachesActiveBadge: 'Active', myCoachesPendingBadge: 'Pending', myCoachesViewingBadge: 'Viewing',
     myCoachesNextSession: 'Next session', myCoachesNoSession: 'None booked',
     myCoachesTasks: 'Tasks', myCoachesTasksPending: '{n} pending', myCoachesTasksDone: 'All done',
     myCoachesNoPending: 'No pending requests', myCoachesNoPast: 'No past pros yet',
@@ -1295,6 +1299,10 @@ const ar: Record<MessageKey, string> = {
 
     // ClientHome.dc.html
     clientHomeName: 'سارة أحمد', clientHomeStreak: 'مواظبة 5 أيام',
+    clientHomeNoPackage: 'لا توجد باقة جلسات بعد',
+    memberNoCoachTitle: 'لا يوجد مدرب بعد',
+    memberNoCoachBody: 'عندما يقبل مدرب طلب جلستك، ستظهر هنا خطتك معه: المهام والجلسات والتقدّم.',
+    memberNoCoachCta: 'ابحث عن مدرب',
     clientHomeProgressLabel: 'تقدم الهدف', clientHomeGoalFallback: 'الشعور بمزيد من التحكم في الحياة',
     clientHomeSessionsCompleted: 'اكتمال {used} من {total} جلسات', clientHomeSessionProgressLabel: 'تقدم الجلسات',
     clientHomeProgressAssessedBy: 'تقييم من {name}',
@@ -1853,7 +1861,7 @@ const ar: Record<MessageKey, string> = {
 
     myCoachesTitle: 'محترفوني',
     myCoachesActive: 'نشط', myCoachesPending: 'قيد الانتظار', myCoachesPast: 'سابق',
-    myCoachesActiveBadge: 'نشط', myCoachesPendingBadge: 'قيد الانتظار',
+    myCoachesActiveBadge: 'نشط', myCoachesPendingBadge: 'قيد الانتظار', myCoachesViewingBadge: 'المعروض الآن',
     myCoachesNextSession: 'الجلسة القادمة', myCoachesNoSession: 'لا يوجد حجز',
     myCoachesTasks: 'المهام', myCoachesTasksPending: '{n} معلقة', myCoachesTasksDone: 'كل شيء منجز',
     myCoachesNoPending: 'لا توجد طلبات معلقة', myCoachesNoPast: 'لا يوجد محترفون سابقون بعد',

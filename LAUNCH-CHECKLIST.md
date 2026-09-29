@@ -52,11 +52,17 @@ as done below, when signed in; every other screen still reads and writes
       sessions → scheduling → messaging → the rest.
       Done: admin queues, profile and onboarding, and the coach's roster
       (Members, member detail with tasks/sessions/package/payments, add/edit
-      member, add task). Still on `mockStore` when signed in: Home, Profile's
-      stats, Earnings' totals, Schedule, Messages, and every member screen.
-- [ ] 🔴 **Remove the demo identities.** 14 member screens hardcode
+      member, add task), and the member's Home, Tasks, My Pros, coach page
+      and profile. Still on `mockStore` when signed in: the coach's Home,
+      Profile stats, Earnings' totals, Schedule and Messages, and the member
+      screens listed under the demo identities below.
+- [ ] 🔴 **Remove the demo identities.** 14 member screens hardcoded
       `const CLIENT_ID = 'sara'`, and the Pro side is the seeded
       `DEFAULT_PRO_ID = 'pro-yasmin'`. Both must come from the signed-in user.
+      Done for the coach's roster and the member's Home, Tasks, My Pros,
+      coach page and profile (SUPABASE-MIGRATION-PLAN.md, step 3). Left:
+      the member screens still on `DEMO_MEMBER_CLIENT_ID` (scheduling,
+      messaging, programs, ratings, notifications, discovery).
 - [ ] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,
       the 8 fictional `DIRECTORY_COACHES`, and any other `DEFAULT_*` seed.

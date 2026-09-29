@@ -7,8 +7,9 @@ tests in CI). Most screens still read and write `src/lib/mockStore.ts` /
 
 **Done so far:** auth itself (`auth.ts`, `session.ts`); step 1, the admin
 queues (`adminQueues.ts`); step 2, the signed-in user's own profile and
-onboarding (`profileData.ts`); the coach side of step 3, the roster
-(`rosterData.ts`). Each has its own section below.
+onboarding (`profileData.ts`); step 3, the coach's roster
+(`rosterData.ts`) and the member's side of it (`memberData.ts`). Each has
+its own section below.
 
 ## The shape of the problem
 
@@ -225,6 +226,40 @@ ClientDetail's record through `src/store/clientRecord.ts`.
 - **Still mockStore signed in:** Home, Profile's stats, Earnings' totals,
   Schedule, Messages (steps 4–6), and the member side of step 3 — the 14
   screens still on `CLIENT_ID = 'sara'`.
+
+## Step 3, member side: `src/lib/memberData.ts`
+
+The member screens were hardcoded to the demo member (`CLIENT_ID = 'sara'`)
+and the demo coach. Signed in, ClientHome, ClientTasks, MyCoaches,
+ClientCoach, ClientProfile and EditClientProfile now read the member's own
+relationships through `src/store/memberStore.ts`'s `useMemberSpace()`:
+
+- **A relationship** is a `clients` row with `member_id` = the member (set
+  when a coach accepts their request, `0008`), its coach from the public
+  `coach_directory` view, and its tasks, package, past sessions (count and
+  latest recap) and mood check-ins. A member with no relationship — every
+  real member until the accept flow exists — sees "No coach yet" with a way
+  to Discover, never the demo member or coach.
+- **More than one coach:** MyCoaches lists every current relationship, and
+  any action on a card makes that coach the one the app shows (remembered
+  per account on the device). Relationships the coach archived are the
+  "Past" section, which was always empty before.
+- **What a member writes:** a task's done state (0004's trigger refuses
+  anything else), a mood check-in (a new `mood_checkins` row each time),
+  their own name and phone on `profiles` — EditClientProfile no longer
+  writes the coach's roster row, which a member was never allowed to — and
+  a report on their coach, now through step 1's real `fileProReport`.
+  `supabase/tests/12_member_app.sql` issues each of these as the member.
+- **Account deletion** now weighs the member's own obligations (unused
+  sessions, a booked one). Signed in, it used to read the demo member's,
+  which always has sessions left.
+- **Still the demo member's, signed in:** Schedule and Booking (step 4),
+  Messages (step 5), Notifications, Programs, RateCoach and Discover
+  (step 6). Each reads `DEMO_MEMBER_CLIENT_ID` from mockStore with a note
+  naming its step, so what's left is one grep. The pieces of converted
+  screens that belong to those steps (milestones, the live-session badge,
+  the agreement, the Full Access upgrade and standing slot) are hidden
+  signed in rather than showing the demo's.
 
 ## Testing this kind of code
 

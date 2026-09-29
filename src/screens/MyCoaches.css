@@ -309,3 +309,20 @@
   line-height: 1.5;
   color: var(--ink-soft);
 }
+
+/* An ended relationship: tappable, like the active card's head. */
+.my-coaches-past {
+  width: 100%;
+  text-align: start;
+  color: inherit;
+}
+
+/* With more than one coach, the one the member app is showing. */
+.my-coaches-card.is-current {
+  box-shadow: 0 0 0 2px var(--accent), var(--shadow);
+}
+
+.my-coaches-past .my-coaches-pending-name,
+.my-coaches-past .my-coaches-pending-specialty {
+  display: block;
+}

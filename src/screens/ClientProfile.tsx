@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { isolate, useT } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import { ChevronIcon, PencilIcon, ArrowForwardIcon, ScheduleIcon, TasksIcon, PaymentIcon, WarningIcon } from '../components/icons';
@@ -9,10 +9,11 @@ import { isSupabaseConfigured } from '../lib/supabase';
 import { fileAccountDeletionRequest } from '../lib/adminQueues';
 import { useRemoteSession } from '../lib/remoteSession';
 import { openExternal, supportMailto, SUPPORT_EMAIL } from '../lib/support';
+import { LoadState } from '../components/LoadState';
+import { NoCoachYet } from '../components/NoCoachYet';
+import { useMemberSpace, type MemberSpaceView } from '../store/memberStore';
 import {
-  getClient,
-  getCoachProfile,
-  getTasks,
+  DEMO_MEMBER_CLIENT_ID,
   getAgreementInfo,
   getAgreement,
   setAgreementStatus,
@@ -20,10 +21,14 @@ import {
   setNotificationPrefs,
   getMemberActiveObligations,
   requestAccountDeletion,
+  type ActiveObligations,
 } from '../lib/mockStore';
 import './ClientProfile.css';
 
-const CLIENT_ID = 'sara';
+// The coaching agreement and demo account deletion are still the demo
+// member's (agreements move in step 6); signed in, the agreement card is
+// hidden and deletion files a real request.
+const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
 const RING_R = 22;
 const RING_CIRC = 2 * Math.PI * RING_R;
 
@@ -38,6 +43,13 @@ type NotifTypeKey = 'session' | 'task' | 'messages';
 // here (unlike the coach-side Profile.dc.html's local-only toggles), same
 // as the design source itself.
 export default function ClientProfile() {
+  const space = useMemberSpace();
+  if (space.status === 'loading') return <LoadState status="loading" />;
+  if (space.status === 'error') return <LoadState status="error" onRetry={space.retry} showBack />;
+  return <ClientProfileView space={space} />;
+}
+
+function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status: 'ready' }> }) {
   const t = useT();
   const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
@@ -61,23 +73,25 @@ export default function ClientProfile() {
   const [, setTick] = useState(0);
   const refresh = () => setTick((v) => v + 1);
 
-  const client = getClient(CLIENT_ID);
-  const coachProfile = getCoachProfile();
-  const coachName = coachProfile.name || 'Yasmin El-Sayed';
-  const coachSpecialty = coachProfile.title || 'Life coaching';
-  const coachInitials = coachName.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2);
+  const rel = space.current;
+  const client = rel?.client;
+  const { contact, todayMs } = space;
+  const memberInitials = contact.fullName.trim().split(/\s+/).map((w) => w[0] ?? '').join('').toUpperCase().slice(0, 2);
+  const coachName = rel?.coach.name ?? '';
+  const coachSpecialty = rel?.coach.title ?? '';
+  const coachInitials = coachName.trim().split(/\s+/).map((w) => w[0] ?? '').join('').toUpperCase().slice(0, 2);
   const clientColor = client?.avatarBg || ACCENT_HEX;
   const avatarGrad = `linear-gradient(135deg, ${clientColor} 0%, ${darken(clientColor, 35)} 100%)`;
   const coachGrad = `linear-gradient(135deg, ${ACCENT_HEX} 0%, ${darken(ACCENT_HEX, 35)} 100%)`;
 
-  const progress = client?.progress ?? 63;
+  const progress = client?.progress ?? 0;
   const ringOffset = RING_CIRC * (1 - progress / 100);
   const goalDisplay = client?.goal || t('clientHomeGoalFallback');
 
   const nextSessionAtMs = client?.nextSessionAtMs ?? null;
-  const nextSessionQuick = nextSessionAtMs != null ? fmt.nextSession(nextSessionAtMs) : t('clientProfileNoSessionLabel');
+  const nextSessionQuick = nextSessionAtMs != null ? fmt.nextSession(nextSessionAtMs, todayMs) : t('clientProfileNoSessionLabel');
 
-  const pendingTaskCount = getTasks(CLIENT_ID).filter((tk) => !tk.done).length;
+  const pendingTaskCount = (rel?.tasks ?? []).filter((tk) => !tk.done).length;
   const tasksQuickText = pendingTaskCount > 0 ? t('clientProfileTasksPending', { n: pendingTaskCount }) : t('clientProfileTasksDone');
 
   const paymentStates = {
@@ -97,7 +111,20 @@ export default function ClientProfile() {
   const notifPrefs = getNotificationPrefs();
   const notif = notifPrefs.enabled;
 
-  const obligations = getMemberActiveObligations(CLIENT_ID);
+  // Signed in, what a coach would still owe this member: unused, unexpired
+  // sessions and a booked one. (Disputes join when SessionRoom moves.)
+  const obligations: ActiveObligations = remote ? remoteObligations() : getMemberActiveObligations(CLIENT_ID);
+  function remoteObligations(): ActiveObligations {
+    const hasUnusedCredits = !!rel?.pkg && rel.pkg.remaining > 0 && !rel.pkg.isExpired;
+    const hasUpcomingSession = client?.nextSessionAtMs != null;
+    return {
+      hasUnusedCredits,
+      remainingCredits: rel?.pkg?.remaining ?? 0,
+      hasUpcomingSession,
+      openDisputesCount: 0,
+      blocked: hasUnusedCredits || hasUpcomingSession,
+    };
+  }
   const obligationParts: string[] = [];
   if (obligations.hasUnusedCredits) obligationParts.push(t('clientProfileObligationCredits', { n: obligations.remainingCredits }));
   if (obligations.hasUpcomingSession) obligationParts.push(t('clientProfileObligationSession'));
@@ -105,8 +132,8 @@ export default function ClientProfile() {
   const obligationsSummary = obligationParts.length
     ? `${t('profileDeleteBlockedIntro')} ${obligationParts.join(lang === 'ar' ? '، ' : ', ')}.`
     : '';
-  const deleteBody = t('clientProfileDeleteBody', { coach: coachName });
-  const memberOf = t('clientProfileMemberOf', { coach: coachName });
+  const deleteBody = t('clientProfileDeleteBody', { coach: isolate(coachName) });
+  const memberOf = rel ? t('clientProfileMemberOf', { coach: isolate(coachName) }) : '';
 
   function signAgreement() {
     setAgreementStatus(CLIENT_ID, 'signed');
@@ -183,16 +210,22 @@ export default function ClientProfile() {
             <PencilIcon size={14} />
           </button>
           <div className="client-profile-avatar" style={{ background: avatarGrad }}>
-            {client?.initials || 'SA'}
+            {memberInitials || '?'}
           </div>
           <div>
-            <div className="client-profile-name">{client?.name || t('clientHomeName')}</div>
-            <div className="client-profile-member-of">{memberOf}</div>
+            <div className="client-profile-name"><bdi>{contact.fullName}</bdi></div>
+            {memberOf && <div className="client-profile-member-of">{memberOf}</div>}
           </div>
-          <div className="client-profile-phone" dir="ltr">
-            {client?.countryCode} {client?.phone}
-          </div>
+          {contact.phone && (
+            <div className="client-profile-phone" dir="ltr">
+              {contact.countryCode} {contact.phone}
+            </div>
+          )}
         </div>
+
+        {!rel && <NoCoachYet />}
+        {rel && (
+        <>
 
         <button type="button" className="client-profile-card" onClick={() => nav('clientHome')}>
           <div className="client-profile-ring">
@@ -219,8 +252,8 @@ export default function ClientProfile() {
           </div>
           <div className="client-profile-card-text">
             <div className="client-profile-card-eyebrow">{t('clientProfileYourPro')}</div>
-            <div className="client-profile-coach-name">{coachName}</div>
-            <div className="client-profile-coach-specialty">{coachSpecialty}</div>
+            <div className="client-profile-coach-name"><bdi>{coachName}</bdi></div>
+            <div className="client-profile-coach-specialty"><bdi>{coachSpecialty}</bdi></div>
           </div>
           <ArrowForwardIcon size={14} color="var(--ink-soft)" />
         </button>
@@ -262,7 +295,10 @@ export default function ClientProfile() {
           </div>
           <ArrowForwardIcon size={14} color="var(--ink-soft)" />
         </button>
+        </>
+        )}
 
+        {!remote && (
         <div className="client-profile-agreement-card">
           <button type="button" className="client-profile-agreement-row" onClick={() => setShowAgreementExpand((v) => !v)}>
             <div className="client-profile-agreement-icon" style={{ background: agreementBg }}>
@@ -303,6 +339,7 @@ export default function ClientProfile() {
             </div>
           )}
         </div>
+        )}
 
         <div className="client-profile-section">
           <div className="client-profile-section-label">{t('profilePreferences')}</div>

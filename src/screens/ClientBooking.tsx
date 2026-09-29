@@ -4,6 +4,7 @@ import { useT, dayKey, isolate, type MessageKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { CheckIcon, CloseIcon, ScheduleIcon, WarningIcon } from '../components/icons';
 import {
+  DEMO_MEMBER_CLIENT_ID,
   getClient, getCoachProfile, getAvailabilityForDayIndex, getCustomBlocks,
   getPackageStatus, getSessionTypeInfo, getSelectedOfferingId, getOffering,
   addCustomBlock, addPayment, chargeCredit, formatDate, canInteract,
@@ -11,7 +12,9 @@ import {
 } from '../lib/mockStore';
 import './ClientBooking.css';
 
-const CLIENT_ID = 'sara';
+// Still the demo member's, signed in or not, until scheduling and offerings (steps 4 and 6) moves to
+// Supabase (SUPABASE-MIGRATION-PLAN.md) — see DEMO_MEMBER_CLIENT_ID.
+const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
 
 // The one fictional week the whole app's calendar lives on: Wednesday is
 // "today" and the hour is late afternoon, matching Schedule's own

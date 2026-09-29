@@ -5,24 +5,20 @@ import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import { BellIcon, MoonIcon, SunIcon, CheckIcon, TasksIcon, ScheduleIcon, ArrowForwardIcon, SearchIcon, ProgramsIcon, PersonIcon, HomeIcon } from '../components/icons';
 import { BottomNav, type BottomNavItem } from '../components/BottomNav';
+import { LoadState } from '../components/LoadState';
+import { NoCoachYet } from '../components/NoCoachYet';
+import { useMemberSpace, type MemberSpaceView } from '../store/memberStore';
 import {
-  getClient,
-  getCoachProfile,
-  getPackageStatus,
-  getTasks,
-  toggleTask,
-  getMemberSessions,
+  DEMO_MEMBER_CLIENT_ID,
   isSessionToday,
   getActiveSession,
   getUnreviewedMilestones,
   markMilestoneReviewed,
   setSelectedOfferingId,
-  getRecapForMember,
   getClientNotifications,
 } from '../lib/mockStore';
 import './ClientHome.css';
 
-const CLIENT_ID = 'sara';
 const RING_R = 37;
 const RING_CIRC = 2 * Math.PI * RING_R;
 // Matches tokens.css's --accent — darken() needs a literal hex, not the CSS
@@ -30,6 +26,13 @@ const RING_CIRC = 2 * Math.PI * RING_R;
 const ACCENT_HEX = '#B75C3D';
 
 export default function ClientHome() {
+  const space = useMemberSpace();
+  if (space.status === 'loading') return <LoadState status="loading" />;
+  if (space.status === 'error') return <LoadState status="error" onRetry={space.retry} />;
+  return <ClientHomeView space={space} />;
+}
+
+function ClientHomeView({ space }: { space: Extract<MemberSpaceView, { status: 'ready' }> }) {
   const t = useT();
   const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
@@ -40,28 +43,31 @@ export default function ClientHome() {
   const isAr = lang === 'ar';
 
   const [isFirstTime, setIsFirstTime] = useState(false);
-  // Bumped after a mutation (task toggle, milestone dismiss) to force the
-  // derived reads below to recompute from localStorage — mockStore is
-  // plain functions over localStorage, not reactive state.
+  // Bumped after a demo-only mutation (milestone dismiss) to force the
+  // derived reads below to recompute from localStorage.
   const [, setTick] = useState(0);
   const refresh = () => setTick((v) => v + 1);
+  const [busyTask, setBusyTask] = useState<string | null>(null);
 
-  const client = getClient(CLIENT_ID);
-  const coachProfile = getCoachProfile();
-  const initials = client?.initials || 'SA';
-  const coachName = coachProfile.name || 'Yasmin El-Sayed';
+  const { remote, todayMs } = space;
+  const rel = space.current;
+  const client = rel?.client;
+  // Signed out this is the design's demo member; signed in, what the
+  // coach's roster row says — never the demo name.
+  const initials = client?.initials || (remote ? '' : 'SA');
+  const coachName = rel?.coach.name ?? '';
   const coachInitials = coachName.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2);
   const coachGrad = `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 35)} 100%)`;
   const heroGrad = `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 40)} 100%)`;
 
-  const progress = client?.progress ?? 63;
+  const progress = client?.progress ?? 0;
   const ringOffset = RING_CIRC * (1 - progress / 100);
-  const pkgStatus = getPackageStatus(CLIENT_ID);
-  const sessionsFraction = `${pkgStatus.used}/${pkgStatus.total}`;
-  const sessionProgressPct = pkgStatus.total > 0 ? Math.round((pkgStatus.used / pkgStatus.total) * 100) : 0;
-  const sessionsCompletedText = t('clientHomeSessionsCompleted', { used: pkgStatus.used, total: pkgStatus.total });
+  const pkgStatus = rel?.pkg ?? null;
+  const sessionsFraction = pkgStatus ? `${pkgStatus.used}/${pkgStatus.total}` : '—';
+  const sessionProgressPct = pkgStatus && pkgStatus.total > 0 ? Math.round((pkgStatus.used / pkgStatus.total) * 100) : 0;
+  const sessionsCompletedText = pkgStatus ? t('clientHomeSessionsCompleted', { used: pkgStatus.used, total: pkgStatus.total }) : t('clientHomeNoPackage');
 
-  const baseTasks = getTasks(CLIENT_ID);
+  const baseTasks = rel?.tasks ?? [];
   const pendingTasks = baseTasks.filter((tk) => !tk.done);
   const completedTasks = baseTasks.filter((tk) => tk.done);
   const orderedTasks = [...pendingTasks, ...completedTasks];
@@ -72,22 +78,25 @@ export default function ClientHome() {
 
   const nextSessionAtMs = client?.nextSessionAtMs ?? null;
   const hasNextSession = nextSessionAtMs != null;
-  const nextSessionDisplay = hasNextSession ? fmt.nextSession(nextSessionAtMs) : '';
+  const nextSessionDisplay = hasNextSession ? fmt.nextSession(nextSessionAtMs, todayMs) : '';
   const noNextSession = !hasNextSession;
-  const showJoinBadge = hasNextSession && isSessionToday(nextSessionAtMs);
-  const sessionIsLive = getActiveSession(CLIENT_ID).active;
+  const showJoinBadge = hasNextSession && isSessionToday(nextSessionAtMs, todayMs);
+  // The live session room is still the demo's (SessionRoom moves with scheduling).
+  const sessionIsLive = !remote && getActiveSession(DEMO_MEMBER_CLIENT_ID).active;
   const joinBadgeLabel = sessionIsLive ? t('clientHomeRejoinSession') : t('clientHomeJoinSession');
 
-  // Real logged sessions plus the same two demo ones ClientSchedule and
-  // ClientTasks read, from the one shared seam rather than a private copy.
-  const recentFeedback = getMemberSessions(CLIENT_ID).map((s) => ({ session: s, text: getRecapForMember(CLIENT_ID, s.id) })).find((r) => r.text.trim());
+  // The coach's most recent recap (memberStore reads it from the same seam
+  // ClientTasks uses).
+  const recentFeedback = rel?.latestRecap ?? null;
   const hasRecentFeedback = !!recentFeedback;
   const recentFeedbackText = recentFeedback?.text ?? '';
-  const recentFeedbackDate = recentFeedback ? fmt.date(recentFeedback.session.atMs) : '';
+  const recentFeedbackDate = recentFeedback ? fmt.date(recentFeedback.atMs) : '';
 
-  const hasUnreadNotifications = getClientNotifications(CLIENT_ID).some((n) => n.unread);
+  // Notifications and program milestones are still the demo's (step 6), so a
+  // signed-in member sees neither rather than the demo member's.
+  const hasUnreadNotifications = !remote && getClientNotifications(DEMO_MEMBER_CLIENT_ID).some((n) => n.unread);
 
-  const unreviewedMilestones = getUnreviewedMilestones(CLIENT_ID);
+  const unreviewedMilestones = remote ? [] : getUnreviewedMilestones(DEMO_MEMBER_CLIENT_ID);
   const milestone = unreviewedMilestones[0] || null;
   const hasMilestone = !!milestone;
   const milestoneTitle = milestone ? t('clientHomeMilestoneTitleTemplate', { program: isolate(milestone.offering.name) }) : '';
@@ -99,12 +108,13 @@ export default function ClientHome() {
   }
   function dismissMilestone() {
     if (!milestone) return;
-    markMilestoneReviewed(CLIENT_ID, milestone.offeringId);
+    markMilestoneReviewed(DEMO_MEMBER_CLIENT_ID, milestone.offeringId);
     refresh();
   }
   function toggleTaskDone(taskId: string) {
-    toggleTask(CLIENT_ID, taskId);
-    refresh();
+    if (busyTask) return;
+    setBusyTask(taskId);
+    void space.actions.toggleTask(taskId).finally(() => setBusyTask(null));
   }
 
   const previewLabel = isFirstTime ? t('clientHomePreviewToNormal') : t('clientHomePreviewToFirst');
@@ -124,13 +134,13 @@ export default function ClientHome() {
         <div className="client-home-hero-top">
           <div>
             <div className="client-home-greeting">{t('mainGreeting')}</div>
-            <div className="client-home-name">{client?.name || t('clientHomeName')}</div>
-            <div className="client-home-streak">
+            {(client?.name || !remote) && <div className="client-home-name">{client?.name || t('clientHomeName')}</div>}
+            {!remote && <div className="client-home-streak">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none">
                 <path d="M12 2c1.5 3 5 5.5 5 10a5 5 0 0 1-10 0c0-1.5.5-2.5 1-3.5.2 1.5 1.3 2 2 1-1-2 .5-4 2-4.5-1 1.5-.5 3 .5 3.5C13 7 12 4.5 12 2z" />
               </svg>
               <span>{t('clientHomeStreak')}</span>
-            </div>
+            </div>}
           </div>
           <div className="client-home-hero-actions">
             <button type="button" className="client-home-icon-btn" aria-label={t('switchLanguage')} onClick={() => setLang(isAr ? 'en' : 'ar')}>
@@ -154,12 +164,12 @@ export default function ClientHome() {
               aria-label={t('clientHomeYourProfile')}
               onClick={() => nav('clientProfile')}
             >
-              {initials}
+              {initials || <PersonIcon size={16} color="#FFFFFF" />}
             </button>
           </div>
         </div>
 
-        {isFirstTime ? (
+        {!rel ? null : isFirstTime ? (
           <div className="client-home-welcome">
             <div className="client-home-welcome-icon">
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -167,7 +177,7 @@ export default function ClientHome() {
               </svg>
             </div>
             <div className="client-home-welcome-title">{t('clientHomeWelcomeTitle', { name: (client?.name || t('clientHomeName')).split(' ')[0] })}</div>
-            <div className="client-home-welcome-sub">{t('clientHomeWelcomeSub', { coach: coachName })}</div>
+            <div className="client-home-welcome-sub">{t('clientHomeWelcomeSub', { coach: isolate(coachName) })}</div>
             <button
               type="button"
               className="client-home-welcome-cta"
@@ -193,7 +203,7 @@ export default function ClientHome() {
               <div className="client-home-progress-text">
                 <div className="client-home-progress-label">{t('clientHomeProgressLabel')}</div>
                 <div className="client-home-progress-goal">{client?.goal || t('clientHomeGoalFallback')}</div>
-                <div className="client-home-progress-note">{t('clientHomeProgressAssessedBy', { name: coachName })}</div>
+                <div className="client-home-progress-note">{t('clientHomeProgressAssessedBy', { name: isolate(coachName) })}</div>
               </div>
             </div>
             <div className="client-home-session-progress">
@@ -211,7 +221,9 @@ export default function ClientHome() {
       </div>
 
       <div className="client-home-body">
-        {isFirstTime ? (
+        {!rel ? (
+          <NoCoachYet />
+        ) : isFirstTime ? (
           <div className="client-home-empty-card">
             <TasksIcon size={26} color="var(--ink-soft)" />
             <div className="client-home-empty-title">{t('clientHomeNoTasksTitle')}</div>
@@ -256,7 +268,7 @@ export default function ClientHome() {
                 <div className="client-home-card-text">
                   <div className="client-home-card-eyebrow">{t('clientHomeNextSession')}</div>
                   <div className="client-home-card-title">{nextSessionDisplay}</div>
-                  <div className="client-home-card-sub">{t('clientHomeWithCoach', { name: coachName })}</div>
+                  <div className="client-home-card-sub">{t('clientHomeWithCoach', { name: isolate(coachName) })}</div>
                 </div>
                 {showJoinBadge ? (
                   <span className="client-home-join-badge">
@@ -282,7 +294,7 @@ export default function ClientHome() {
                   </div>
                   <div className="client-home-card-text">
                     <div className="client-home-card-title">{t('clientHomeNoSessionTitle')}</div>
-                    <div className="client-home-card-sub">{t('clientHomeNoSessionSub', { coach: coachName })}</div>
+                    <div className="client-home-card-sub">{t('clientHomeNoSessionSub', { coach: isolate(coachName) })}</div>
                   </div>
                   <ArrowForwardIcon size={16} color="var(--accent)" />
                 </button>
@@ -299,7 +311,7 @@ export default function ClientHome() {
                   {coachInitials}
                 </div>
                 <div className="client-home-card-text">
-                  <div className="client-home-card-eyebrow">{t('clientHomeFeedbackLabel', { name: coachName })}</div>
+                  <div className="client-home-card-eyebrow">{t('clientHomeFeedbackLabel', { name: isolate(coachName) })}</div>
                   <div className="client-home-feedback-text">{recentFeedbackText}</div>
                   <div className="client-home-feedback-date">{recentFeedbackDate}</div>
                 </div>
@@ -320,12 +332,12 @@ export default function ClientHome() {
               {hasTasksToday &&
                 taskPreview.map((tk) => (
                   <div className="client-home-task-row" key={tk.id}>
-                    <button type="button" aria-label={t('toggleTaskComplete', { task: tk.title })} className={`client-home-task-check${tk.done ? ' is-done' : ''}`} onClick={() => toggleTaskDone(tk.id)}>
+                    <button type="button" aria-label={t('toggleTaskComplete', { task: tk.title })} className={`client-home-task-check${tk.done ? ' is-done' : ''}`} disabled={busyTask !== null} onClick={() => toggleTaskDone(tk.id)}>
                       {tk.done && <CheckIcon size={12} color="#FFFFFF" />}
                     </button>
                     <div className="client-home-task-text">
                       <div className={`client-home-task-title${tk.done ? ' is-done' : ''}`}>{tk.title}</div>
-                      <div className="client-home-task-due"><bdi>{fmt.taskDue(tk.dueAtMs, tk.dueHasTime)}</bdi></div>
+                      <div className="client-home-task-due"><bdi>{fmt.taskDue(tk.dueAtMs, tk.dueHasTime, todayMs)}</bdi></div>
                     </div>
                   </div>
                 ))}
@@ -348,9 +360,12 @@ export default function ClientHome() {
           </>
         )}
 
-        <button type="button" className="client-home-preview-toggle" onClick={() => setIsFirstTime((v) => !v)}>
-          {previewLabel}
-        </button>
+        {/* The design's own first-time/returning preview switch: demo only. */}
+        {!remote && (
+          <button type="button" className="client-home-preview-toggle" onClick={() => setIsFirstTime((v) => !v)}>
+            {previewLabel}
+          </button>
+        )}
       </div>
 
       <BottomNav items={navItems} />

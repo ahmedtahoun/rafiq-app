@@ -6,12 +6,15 @@ import {
   ChevronIcon, MoonIcon, SunIcon, ScheduleIcon, TasksIcon, PaymentIcon, MessageIcon, BellIcon,
 } from '../components/icons';
 import {
+  DEMO_MEMBER_CLIENT_ID,
   getClientNotifications, markNotificationRead, markAllNotificationsRead,
   type ClientNotification, type ClientNotificationKind,
 } from '../lib/mockStore';
 import './ClientNotifications.css';
 
-const CLIENT_ID = 'sara';
+// Still the demo member's, signed in or not, until notifications (step 6) moves to
+// Supabase (SUPABASE-MIGRATION-PLAN.md) — see DEMO_MEMBER_CLIENT_ID.
+const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
 
 // Which glyph and colour family a kind belongs to. A Record, so a new kind
 // in the store is a compile error here rather than a silently blank icon.
