@@ -80,12 +80,21 @@ as done below, when signed in; every other screen still reads and writes
       date and time") once times come from real bookings.
 - [ ] 🔴 Loading, empty and error states on every screen. Today every read is
       synchronous localStorage; network reads can be slow or fail.
+      Discover now distinguishes an empty directory ("No pros yet") from a
+      search that matched nothing — it will be empty until real pros sign
+      up, and the search-failed wording read like a broken screen.
 - [ ] 🟡 Discover and coach profiles read the `coach_directory` and
       `coach_reviews` views. The views sign reviews with a **first name and
       last initial**; the app currently shows the reviewer's full name
       publicly — that must go. Half done: signed in, Discover and a coach's
       page read `coach_directory` (and show a review count, no review
       text); `coach_reviews` is still to do.
+      Audited every surface that renders a name: nothing reads
+      `coach_reviews` yet, and the only full names anywhere are Discover's
+      hardcoded sample stories, already hidden when signed in — so no real
+      reviewer's name is exposed today. Whoever wires reviews must select
+      the view's `reviewer_name` and never join back to
+      `profiles.full_name`.
 - [ ] 🟡 Messaging updates live (Supabase Realtime on `messages`).
 - [x] 🟡 Profile and cover photo upload through `src/lib/storage.ts` to the
       private `avatars` / `covers` buckets.

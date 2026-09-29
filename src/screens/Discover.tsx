@@ -98,6 +98,11 @@ export default function Discover() {
   if (remote && load.status === 'loading') return <LoadState status="loading" />;
   if (remote && load.status === 'error') return <LoadState status="error" onRetry={load.retry} />;
   const coaches: DirectoryCoach[] = remote && load.status === 'ready' ? load.data : getDirectoryCoaches();
+  // No coaches at all is not a failed search: until real pros sign up the
+  // whole directory is empty, and "No pros match your search" over an
+  // untouched search box reads like the screen is broken. Search, filters
+  // and the specialty rail are hidden too — there is nothing to filter.
+  const directoryEmpty = coaches.length === 0;
   const rail = specialtyRail(coaches);
 
   // The member's own coaching goal, used to float matching pros to the
@@ -275,6 +280,7 @@ export default function Discover() {
         </div>
       </div>
 
+      {!directoryEmpty && (
       <div className="discover-searchbar">
         <div className="discover-search">
           <SearchIcon size={16} color="var(--ink-soft)" />
@@ -306,8 +312,19 @@ export default function Discover() {
           {filtersActive && <span className="discover-filter-dot" />}
         </button>
       </div>
+      )}
 
       <div className="discover-scroll">
+        {directoryEmpty ? (
+          <div className="discover-no-coaches">
+            <span className="discover-no-coaches-icon">
+              <SearchIcon size={26} color="var(--ink-soft)" />
+            </span>
+            <div className="discover-no-coaches-title">{t('discoverNoCoachesTitle')}</div>
+            <div className="discover-no-coaches-body">{t('discoverNoCoachesBody')}</div>
+          </div>
+        ) : (
+        <>
         <div className="discover-rail" role="group" aria-label={t('discoverFilterTitle')}>
           <button
             type="button"
@@ -457,6 +474,8 @@ export default function Discover() {
             );
           })}
         </section>
+        )}
+        </>
         )}
       </div>
 

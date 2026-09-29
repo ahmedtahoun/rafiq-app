@@ -320,6 +320,43 @@ test('signed in, Discover lists the real coaches — never the demo directory or
   await ctx.close();
 });
 
+test('an empty directory says the marketplace is still filling up, not that the search failed', async ({ browser }) => {
+  // Discover will be empty until real pros sign up. "No pros match your
+  // search", over a search box nobody has typed in, reads like the screen
+  // is broken — and the rail, filters and trending rail are all empty
+  // furniture around it.
+  const tables = memberTables();
+  tables.coach_directory = [];
+  const { page, ctx, errs } = await open(browser, { role: 'client', userId: MEMBER, tables, screen: 'discover' });
+
+  await expect(page.locator('.discover-no-coaches')).toHaveCount(1);
+  await expect(page.locator('.discover-no-coaches-title')).toHaveText('No pros yet');
+  const text = await frame(page).innerText();
+  expect(text).not.toMatch(/match your search/i);
+
+  // Nothing to search, filter or scroll through, so none of it is shown.
+  await expect(page.locator('.discover-searchbar')).toHaveCount(0);
+  await expect(page.locator('.discover-rail')).toHaveCount(0);
+  await expect(page.locator('.discover-card')).toHaveCount(0);
+  await expect(page.locator('.discover-trend-card')).toHaveCount(0);
+  // Still reachable: the member is not trapped on a dead screen.
+  await expect(page.locator('.bottom-nav')).toHaveCount(1);
+
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
+test('an empty directory reads right in Arabic', async ({ browser }) => {
+  const tables = memberTables();
+  tables.coach_directory = [];
+  const { page, ctx, errs } = await open(browser, { role: 'client', userId: MEMBER, tables, screen: 'discover', lang: 'ar', dark: true });
+  const title = await page.locator('.discover-no-coaches-title').innerText();
+  expect(title).toMatch(/[\u0600-\u06FF]/);
+  expect(title).not.toMatch(/pros|yet/i);
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
 test('CoachPreview is the real coach: their bio, offerings, and slots from their weekly hours', async ({ browser }) => {
   const { page, ctx, errs } = await openMember(browser, { screen: 'coachPreview', params: { coachId: 'coach-dina' } });
   await expect(page.locator('.coach-preview-name')).toHaveText('Dina Farouk');

@@ -465,6 +465,38 @@
   font-weight: 700;
 }
 
+.discover-no-coaches {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 56px 28px;
+}
+
+.discover-no-coaches-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.discover-no-coaches-title {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.discover-no-coaches-body {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  max-width: 30ch;
+}
+
 /* ---------- trending rail ---------- */
 
 .discover-trending {
