@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT, type MessageKey } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { getCoachProfile } from '../lib/mockStore';
 import { signInWithOAuth, type OAuthProvider } from '../lib/auth';
+import { onAuthBrowserClosed } from '../lib/nativeAuth';
 import { rememberAuthOrigin } from '../lib/oauthReturn';
 import { isSupabaseConfigured } from '../lib/supabase';
 import './ClientAuth.css';
@@ -53,6 +54,9 @@ export default function ClientAuth() {
   const setLang = useAppStore((s) => s.setLang);
   const setRole = useAppStore((s) => s.setRole);
   const [pending, setPending] = useState<OAuthProvider | null>(null);
+  // Closing the in-app browser without finishing is a cancel, not a
+  // failure: the buttons come back, with no error to show.
+  useEffect(() => onAuthBrowserClosed(() => setPending(null)), []);
   const [errorKey, setErrorKey] = useState<MessageKey | null>(null);
 
   // Same split as Auth: local state for failing to leave for the

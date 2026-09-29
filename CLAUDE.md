@@ -198,11 +198,29 @@ Two rules worth repeating here:
   expectation was wrong and the app was right. Fix the test in that case,
   and say so rather than quietly changing the assertion.
 
-## Not verified
+## Native builds
 
-Nothing native has ever run on a device or simulator — no Xcode, no Android
-SDK in any environment used so far. The iOS and Android shells are
-configured but unproven. Native sign-in also needs
-`app.rafiqie.coach://auth-callback` added to Supabase → Auth → URL
-Configuration → Redirect URLs, which has to be done in the dashboard by
-hand.
+Both apps have been built and run: iOS on the iPhone 17 Pro Max simulator
+and Android on an emulator, 2026-09-29. **Not yet on a real phone, and
+native sign-in has not been completed end to end** (the in-app browser
+opens Google's and Apple's pages; nobody has signed in through them yet).
+Native sign-in needs `app.rafiqie.coach://auth-callback` in Supabase →
+Auth → URL Configuration → Redirect URLs.
+
+```sh
+npm run build && npx cap sync          # every time the web app changes
+# iOS: Swift Package Manager, no CocoaPods
+xcodebuild -project ios/App/App.xcodeproj -scheme App -destination 'platform=iOS Simulator,name=iPhone 17 Pro Max' build
+# Android: needs Java 21. Android Studio's bundled Java 25 fails with
+# "Unsupported class file major version 69".
+JAVA_HOME=<a JDK 21> ./gradlew assembleDebug    # in android/
+```
+
+`npm run build` bakes `.env.local`'s Supabase settings into the app, so a
+local native build talks to the live project.
+
+Known from the first run: on iPhone the onboarding screens' Skip and back
+buttons sit under the status bar, where iOS swallows taps — Skip does
+nothing. Screens need `env(safe-area-inset-*)` (LAUNCH-CHECKLIST §4).
+On the simulator, very short injected taps don't reach the web view; that
+is the tool, not the app.

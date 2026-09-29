@@ -187,3 +187,24 @@ test('web app still loads with the Capacitor imports', async ({ browser }) => {
   if (errs.length) info('  errors', JSON.stringify(errs));
   await ctx.close();
 });
+
+// First seen on the iOS simulator: closing the in-app browser without
+// finishing left "Connecting…" on screen and both buttons disabled until
+// the app was restarted. The browser's own browserFinished event now
+// resets the screen.
+test('closing the in-app browser gives the sign-in buttons back', async ({ browser }) => {
+  for (const [screen, label] of [['auth', 'Continue with Apple'], ['clientAuth', 'Continue with Apple']]) {
+    const { page, ctx } = await open(browser, 'ios');
+    await installSpy(page);
+    await page.evaluate(async (s) => (await import('/src/store/appStore.ts')).useAppStore.getState().nav(s), screen);
+    const apple = page.getByRole('button', { name: label });
+    await apple.click();
+    await expect(page.getByRole('button', { name: /Connecting/ })).toBeDisabled();
+    // Let the sign-in call finish opening the browser before it closes.
+    await page.waitForTimeout(300);
+    await page.evaluate(() => window.Capacitor.Plugins.Browser.notifyListeners('browserFinished', {}));
+    await expect(apple).toBeEnabled();
+    await expect(page.getByRole('button', { name: 'Continue with Google' })).toBeEnabled();
+    await ctx.close();
+  }
+});

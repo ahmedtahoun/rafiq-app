@@ -156,7 +156,11 @@ Apple's App Review Guidelines decide what may be paid outside the App Store:
 Nothing native has ever run on a device or simulator (CLAUDE.md, "Not verified").
 
 - [ ] 🔴 First iOS build in Xcode, on the simulator and a real iPhone.
+      Simulator: done 2026-09-29 (builds, runs, sign-in opens). Real iPhone:
+      not yet.
 - [ ] 🔴 First Android build, on an emulator and a real phone.
+      Emulator: done 2026-09-29 (builds with Java 21, runs, back button
+      works). Real phone: not yet.
 - [ ] 🔴 Google and Apple sign-in end to end on both platforms. Confirm
       `app.rafiqie.coach://auth-callback` is in Supabase → Auth → URL
       Configuration → Redirect URLs (listed as a to-do in `WORK-SPLIT.md`).
