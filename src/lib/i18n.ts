@@ -678,6 +678,7 @@ const en = {
     scheduleAttendanceMarkedCompleted: 'Marked completed', scheduleAttendanceMarkedNoShow: 'Marked as a no-show — a credit was charged',
     scheduleAttendanceMarkedDisputed: "Marked as disputed — held, won't charge or release a credit until resolved",
     scheduleMinutesSuffix: ' · {n} min',
+    scheduleBookingGone: 'This session was already moved or cancelled.', scheduleSessionStarted: 'This session has already started.',
 
     // AddTimeBlock.dc.html has no translations() of its own in the design
     // source (English-only prototype) — copy below is original, matching
@@ -1660,6 +1661,7 @@ const ar: Record<MessageKey, string> = {
     scheduleAttendanceMarkedCompleted: 'تم تمييزها كمكتملة', scheduleAttendanceMarkedNoShow: 'تم تمييزها كغياب — تم خصم جلسة',
     scheduleAttendanceMarkedDisputed: 'تم تمييزها كنزاع — معلّقة، لن يتم خصم أو إعادة جلسة حتى يُحل النزاع',
     scheduleMinutesSuffix: ' · {n} دقيقة',
+    scheduleBookingGone: 'تم نقل هذه الجلسة أو إلغاؤها بالفعل.', scheduleSessionStarted: 'بدأت هذه الجلسة بالفعل.',
 
     addTimeBlockTitle: 'إضافة فترة وقت', addTimeBlockCancel: 'إلغاء', addTimeBlockSave: 'حفظ',
     addTimeBlockDayLabel: 'اليوم',

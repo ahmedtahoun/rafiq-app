@@ -14,7 +14,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PGBIN="${PGBIN:-/usr/lib/postgresql/16/bin}"
 PGROOT="${PGROOT:-/var/tmp/rafiq-pgtest}"
-MIN_ASSERTIONS=299
+MIN_ASSERTIONS=326
 
 OUT=""
 OWN_CLUSTER=""
@@ -111,6 +111,9 @@ OUT="$(mktemp)"
   echo
   echo "=== ACCEPT RACE ==="
   bash "$HERE/14_accept_race.sh" "$CONN"
+  echo
+  echo "=== BOOKING CHANGES ==="
+  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/15_booking_changes.sql"
 } | grep -v '^$' | tee "$OUT"
 
 PASSED="$(grep -c '^PASS' "$OUT" || true)"

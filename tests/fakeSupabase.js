@@ -110,9 +110,54 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
     // session and next session in one step. 13_accept_flow.sql proves the
     // real function; this lets screens drive it.
     const refuse = (code) => ({ data: null, error: { message: `refused (${code})`, code } });
+    // 0011's reschedule_booking / cancel_booking, the same way: the same
+    // refusals, then block, session and next session together.
+    // 15_booking_changes.sql proves the real ones.
+    function refreshNext(clientId) {
+      const client = (db.clients ??= []).find((c) => c.id === clientId);
+      if (!client) return;
+      const next = (db.sessions ??= [])
+        .filter((x) => x.client_id === clientId && Date.parse(x.scheduled_at) > Date.now() && !x.attendance)
+        .sort((a, b) => Date.parse(a.scheduled_at) - Date.parse(b.scheduled_at))[0];
+      client.next_session_at = next ? next.scheduled_at : null;
+      client.next_session_type = next ? ((db.time_blocks ?? []).find((b) => b.id === next.time_block_id)?.session_type ?? null) : null;
+    }
+    function changeBooking(fn, args) {
+      const blocks = (db.time_blocks ??= []);
+      const b = blocks.find((x) => x.id === args.p_block && x.coach_id === userId);
+      if (!b) return refuse('P0002');
+      if (b.kind !== 'booked' || !b.client_id) return refuse('55000');
+      if (Date.parse(b.starts_at) <= Date.now()) return refuse('22023');
+      const sessions = (db.sessions ??= []);
+      if (fn === 'reschedule_booking') {
+        const start = Date.parse(args.p_start);
+        if (start <= Date.now()) return refuse('22023');
+        const end = start + (Date.parse(b.ends_at) - Date.parse(b.starts_at));
+        if (blocks.some((o) => o.id !== b.id && o.coach_id === userId && o.kind === 'booked' && Date.parse(o.starts_at) < end && Date.parse(o.ends_at) > start)) {
+          return refuse('23P01');
+        }
+        b.starts_at = new Date(start).toISOString();
+        b.ends_at = new Date(end).toISOString();
+        for (const x of sessions) if (x.time_block_id === b.id) x.scheduled_at = b.starts_at;
+      } else {
+        const hours = Math.round((Date.parse(b.starts_at) - Date.now()) / 36000) / 100;
+        (db.cancellations ??= []).push({
+          id: `cancellations-${db.cancellations.length + 1}`, client_id: b.client_id, time_block_id: null,
+          cancelled_by_role: 'coach', cancelled_by: userId, hours_until_session: hours, within_grace: hours >= 12, reason: null,
+        });
+        for (const x of sessions) {
+          if (x.time_block_id === b.id) Object.assign(x, { attendance: 'cancelled', attendance_set_by: 'coach', time_block_id: null });
+        }
+        db.time_blocks = blocks.filter((x) => x !== b);
+      }
+      refreshNext(b.client_id);
+      return { data: null, error: null };
+    }
+
     real.rpc = async (fn, args) => {
       log({ op: 'rpc', fn, args });
       if (failing(`rpc.${fn}`)) return { data: null, error: NETWORK };
+      if (fn === 'reschedule_booking' || fn === 'cancel_booking') return changeBooking(fn, args);
       if (fn !== 'accept_session_request') return refuse('42883');
       const r = (db.session_requests ??= []).find((x) => x.id === args.p_request && x.coach_id === userId);
       if (!r) return refuse('P0002');

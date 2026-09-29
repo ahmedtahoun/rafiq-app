@@ -320,11 +320,21 @@ In small PRs, so each can be reviewed on its own:
    weekly is left out signed in, because recurring hours are Availability's.
    The block sheet offers what is real: the member's profile. Messages and
    the session room are later steps.
-2. **Moving and cancelling a booking**, by either side, with the
-   cancellation record and the member's next session kept in step (the
-   booked block and its session are tied by `sessions.time_block_id`).
+2. ✅ **The coach moving and cancelling a booking.** 0011's
+   `reschedule_booking()` moves the block and its session together
+   (`sessions.time_block_id`), keeping the length, and takes 0010's
+   per-coach lock so a move and an accept can't both pass the overlap
+   check. `cancel_booking()` records the cancellation (with or without 12
+   hours' notice), keeps the session in history as cancelled, and frees the
+   time. Both keep the roster row's next session right
+   (`refresh_next_session()`), run as the coach (`SECURITY INVOKER`), and
+   refuse a block that isn't theirs, isn't a booking, has started, or would
+   clash. Schedule offers them on a real booking until it starts; moving
+   needs 12 hours' notice, as in the demo. A session or request is drawn
+   above busy time it overlaps, so it can still be tapped.
 3. **Attendance** after a session, and the member's own Schedule and
-   Booking between people already working together.
+   Booking between people already working together — including the
+   member's side of moving and cancelling.
 
 ## Testing this kind of code
 

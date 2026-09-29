@@ -84,3 +84,38 @@ export async function addOwnTimeBlock(block: {
   });
   return error ? unknown(error) : { ok: true, data: null };
 }
+
+/**
+ * `gone`: already moved away, cancelled, or not a booking. `passed`: the
+ * session has started, or the new time has. `slot_taken`: the new time
+ * overlaps another booked session.
+ */
+export type BookingChangeError = 'gone' | 'passed' | 'slot_taken' | 'unknown';
+
+function changeError(error: { code?: string; message: string }): { ok: false; code: BookingChangeError; message: string } {
+  const code: BookingChangeError =
+    error.code === 'P0002' || error.code === '55000' ? 'gone'
+      : error.code === '22023' ? 'passed'
+        : error.code === '23P01' ? 'slot_taken'
+          : 'unknown';
+  return { ok: false, code, message: error.message };
+}
+
+/** Move a booked session to a new start, keeping its length (0011). */
+export async function rescheduleBooking(
+  blockId: string,
+  startWallMs: number,
+): Promise<{ ok: true } | { ok: false; code: BookingChangeError | 'not_configured'; message: string }> {
+  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const { error } = await getSupabase().rpc('reschedule_booking', { p_block: blockId, p_start: fromWallMs(startWallMs) });
+  return error ? changeError(error) : { ok: true };
+}
+
+/** Cancel a booked session: recorded, the session kept as cancelled, the time freed (0011). */
+export async function cancelBooking(
+  blockId: string,
+): Promise<{ ok: true } | { ok: false; code: BookingChangeError | 'not_configured'; message: string }> {
+  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const { error } = await getSupabase().rpc('cancel_booking', { p_block: blockId });
+  return error ? changeError(error) : { ok: true };
+}
