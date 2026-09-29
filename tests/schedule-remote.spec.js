@@ -112,7 +112,9 @@ test('a booked session opens its member; nothing not yet real is offered', async
   await expect(page.locator('.schedule-sheet-name')).toHaveText('Hana Mostafa');
   const sheet = page.locator('.sheet-panel');
   await expect(sheet.getByRole('button', { name: 'View full profile' })).toBeVisible();
-  for (const name of ['Cancel session', 'Reschedule', 'Remind about session', 'Join Session', 'Confirm session']) {
+  // Moving and cancelling are booking-changes.spec.js's; messages and the
+  // session room aren't real yet.
+  for (const name of ['Remind about session', 'Join Session', 'Confirm session']) {
     await expect(sheet.getByRole('button', { name })).toHaveCount(0);
   }
   await sheet.getByRole('button', { name: 'View full profile' }).click();

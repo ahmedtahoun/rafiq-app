@@ -48,6 +48,10 @@ interface RosterState {
   /** Bumped by every mockStore write, so screens reading mockStore re-render. */
   mockVersion: number;
   load: (userId: string) => Promise<void>;
+  /** Re-read in the background, keeping the current roster on screen: for
+      after a write another screen made (Schedule, Notifications). A failed
+      re-read leaves what's shown. */
+  refresh: (userId: string) => Promise<void>;
   patch: (fn: (r: Roster) => Roster) => void;
   bumpMock: () => void;
 }
@@ -65,6 +69,12 @@ export const useRosterStore = create<RosterState>((set, get) => ({
     if (get().userId !== userId) return;
     if (result.ok) set({ status: 'ready', data: result.data });
     else set({ status: 'error', errorCode: result.code });
+  },
+
+  async refresh(userId) {
+    if (get().userId !== userId || get().status !== 'ready') return;
+    const result = await fetchRoster();
+    if (get().userId === userId && result.ok) set({ data: result.data });
   },
 
   patch(fn) {

@@ -131,7 +131,7 @@ export async function fetchMemberRelationships(): Promise<MemberResult<Relations
       .in('coach_id', coachIds),
     supabase.from('tasks').select('id, client_id, title, description, due_at, due_has_time, recurring, done, created_at').in('client_id', ids).order('due_at', { ascending: true }),
     supabase.from('packages').select('client_id, total, used, expires_at').in('client_id', ids),
-    supabase.from('sessions').select('id, client_id, scheduled_at, recap').in('client_id', ids).order('scheduled_at', { ascending: false }),
+    supabase.from('sessions').select('id, client_id, scheduled_at, recap, attendance').in('client_id', ids).order('scheduled_at', { ascending: false }),
     supabase.from('mood_checkins').select('client_id, mood, created_at').in('client_id', ids).order('created_at', { ascending: false }),
   ]);
   for (const r of [coaches, tasks, packages, sessions, moods]) if (r.error) return unknown(r.error);
@@ -177,7 +177,8 @@ export async function fetchMemberRelationships(): Promise<MemberResult<Relations
           })),
         package: pkg ? { total: pkg.total, used: pkg.used, expiresAtMs: toWallMs(pkg.expires_at) } : null,
         pastSessions: sessions.data!
-          .filter((s) => s.client_id === row.id && Date.parse(s.scheduled_at) <= now)
+          // A cancelled session (0011 keeps it for history) never happened.
+          .filter((s) => s.client_id === row.id && Date.parse(s.scheduled_at) <= now && s.attendance !== 'cancelled')
           .map((s) => ({ id: s.id, atMs: toWallMs(s.scheduled_at), recap: s.recap ?? '' })),
         mood: (moods.data!.find((m) => m.client_id === row.id)?.mood as MoodKey | undefined) ?? null,
       };

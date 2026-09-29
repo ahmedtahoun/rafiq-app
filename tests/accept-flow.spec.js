@@ -236,10 +236,22 @@ test('a time that clashes with a booked session is refused in the sheet, and not
   const { page, ctx, errs } = await openCoach(browser, { tables });
   await page.locator('.notifications-row', { hasText: 'Hana' }).click();
   await page.locator('.notifications-sheet').getByRole('button', { name: 'Accept' }).click();
-  await expect(page.locator('.notifications-sheet').getByRole('alert')).toHaveText('You already have a session booked at this time.');
+  await expect(page.locator('.notifications-sheet').getByRole('alert')).toHaveText('This time clashes with a booked session, or time you marked unavailable.');
   expect((await byId(page, 'session_requests', 'req-hana')).status).toBe('pending');
   expect(await dbRows(page, 'clients')).toEqual([]);
   await expect(page.locator('.notifications-row')).toHaveCount(2);
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
+test('time the coach marked unavailable is refused the same way', async ({ browser }) => {
+  const tables = coachTables();
+  tables.time_blocks.push({ id: 'b-busy', coach_id: COACH, client_id: null, kind: 'busy', starts_at: '2026-09-29T06:00:00Z', ends_at: '2026-09-29T08:00:00Z' });
+  const { page, ctx, errs } = await openCoach(browser, { tables });
+  await page.locator('.notifications-row', { hasText: 'Hana' }).click();
+  await page.locator('.notifications-sheet').getByRole('button', { name: 'Accept' }).click();
+  await expect(page.locator('.notifications-sheet').getByRole('alert')).toHaveText('This time clashes with a booked session, or time you marked unavailable.');
+  expect((await byId(page, 'session_requests', 'req-hana')).status).toBe('pending');
   expect(errs).toEqual([]);
   await ctx.close();
 });

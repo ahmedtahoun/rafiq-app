@@ -58,9 +58,13 @@ select set_config('request.jwt.claim.sub', '$COACH_C', true) \\g /dev/null
 select pg_temp.try_accept('$REQ_S');
 commit;
 SQL
-)"
+)" || SECOND="psql exited $?"
 
-wait "$FIRST"
+# Under set -e a failed first accept would end the script here, and run.sh
+# would stop short of the files after this one with no FAIL line. Keep its
+# status and report it instead.
+FIRST_RC=0
+wait "$FIRST" || FIRST_RC=$?
 
 BOOKED="$(psql "$CONN" -v ON_ERROR_STOP=1 -q -t -A -c "select count(*) from public.time_blocks b join public.clients c on c.id = b.client_id where b.coach_id = '$COACH_C' and b.kind = 'booked' and c.member_id in ('$MEMBER_R', '$MEMBER_S')")"
 
@@ -68,5 +72,6 @@ check() {
   if [ "$2" = "$3" ]; then printf 'PASS  %-44s expected=%-14s actual=%s\n' "$1" "$3" "$2"
   else printf 'FAIL  %-44s expected=%-14s actual=%s\n' "$1" "$3" "$2"; fi
 }
+check 'race: the first accept went through' "$FIRST_RC" '0'
 check 'race: second overlapping accept is refused' "$SECOND" 'DENIED(23P01)'
 check 'race: one booking, not two' "$BOOKED" '1'

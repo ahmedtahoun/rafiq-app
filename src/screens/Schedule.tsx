@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT, dayKey } from '../lib/i18n';
+import { useT, dayKey, type MessageKey } from '../lib/i18n';
 import {
   ArrowForwardIcon,
   ClientsIcon,
@@ -21,8 +21,9 @@ import { LoadState } from '../components/LoadState';
 import { useFormat } from '../lib/format';
 import { useRemoteSession } from '../lib/remoteSession';
 import { fetchOwnWeeklyAvailability, weekdayOf } from '../lib/requestData';
-import { fetchCoachWeek } from '../lib/scheduleData';
-import { wallTodayMs } from '../lib/wallClock';
+import { cancelBooking as cancelRemoteBooking, fetchCoachWeek, removeOwnBusyBlock, type CalendarBlock, rescheduleBooking as rescheduleRemoteBooking, type BookingChangeError } from '../lib/scheduleData';
+import { wallNowMs, wallTodayMs } from '../lib/wallClock';
+import { useRosterStore } from '../store/rosterStore';
 import { useRemoteLoad } from '../store/remoteLoad';
 import { useRoster } from '../store/rosterStore';
 import {
@@ -57,6 +58,7 @@ import {
   type NavTarget,
   type SessionType,
   type TimeBlockKind,
+  type WeeklyAvailabilityDay,
 } from '../lib/mockStore';
 import './Schedule.css';
 
@@ -215,7 +217,7 @@ export default function Schedule() {
   const fmt = useFormat();
   const realTodayMs = wallTodayMs();
   const weekStartMs = realTodayMs - weekdayOf(realTodayMs) * DAY_MS;
-  const week = useRemoteLoad(`coach_week:${weekStartMs}`, remote, async () => {
+  const week = useRemoteLoad<{ blocks: CalendarBlock[]; hours: WeeklyAvailabilityDay[] }>(`coach_week:${weekStartMs}`, remote, async () => {
     const [blocks, hours] = await Promise.all([fetchCoachWeek(weekStartMs), fetchOwnWeeklyAvailability()]);
     return blocks.ok && hours.ok ? { ok: true as const, data: { blocks: blocks.data, hours: hours.data } } : { ok: false as const };
   });
@@ -230,6 +232,10 @@ export default function Schedule() {
   const [rescheduleDay, setRescheduleDay] = useState<number | null>(null);
   const [rescheduleSlot, setRescheduleSlot] = useState<number | null>(null);
   const [rescheduleConfirmError, setRescheduleConfirmError] = useState(false);
+  // Signed in: what went wrong moving or cancelling a real booking, and
+  // whether one of those writes is on its way.
+  const [changeError, setChangeError] = useState<MessageKey | null>(null);
+  const [changing, setChanging] = useState(false);
   // Bumped after any mutation to force the derived data below to
   // recompute from localStorage — mockStore is plain functions, not
   // reactive state (same pattern as Main.tsx/Clients.tsx).
@@ -345,7 +351,8 @@ export default function Schedule() {
       isBusy: b.kind === 'busy',
       isPending: b.kind === 'pending',
       showAvatar: b.kind === 'booked' || b.kind === 'pending',
-      canManage: b.kind === 'booked' || b.kind === 'pending',
+      // Signed in, the coach's own busy time opens too, to be removed.
+      canManage: b.kind === 'booked' || b.kind === 'pending' || (!!live && b.kind === 'busy' && !!b.id),
     };
   });
 
@@ -358,7 +365,7 @@ export default function Schedule() {
       startH: b.startH,
       endH: b.endH,
       kind: b.kind,
-      name: b.name ?? '',
+      name: b.name ?? (b.kind === 'busy' ? b.label : ''),
       range: b.range,
       avatarBg: b.avatarBg,
       initials: b.initials,
@@ -424,9 +431,20 @@ export default function Schedule() {
     : '';
   const attendanceMarkedStyle = ATTENDANCE_STYLE[currentAttendance ?? 'completed'];
 
-  const canRescheduleOrCancel = !live && !sessionHasPassed;
+  // Signed in, a booked session can be moved or cancelled until it starts
+  // (0011); the demo's rule, 12 hours' notice to move, applies to both.
+  const activeStartMs = activeBlock ? weekStartMs + activeBlock.dayIndex * DAY_MS + Math.round(activeBlock.startH * 3600000) : 0;
+  const liveHoursUntil = live && activeBlock ? (activeStartMs - wallNowMs()) / 3600000 : null;
+  const canRescheduleOrCancel = live
+    ? activeBlock?.kind === 'booked' && !!activeBlock.id && liveHoursUntil != null && liveHoursUntil > 0
+    : !sessionHasPassed;
   const canManageReschedule = !!(activeBlock?.id && activeBlock.clientId);
-  const rescheduleElig = canManageReschedule && activeBlock ? getRescheduleEligibility(activeBlock.dayIndex, activeBlock.startH) : null;
+  const graceHours = getCancellationPolicy().graceHours;
+  const rescheduleElig = canManageReschedule && activeBlock
+    ? live
+      ? { eligible: (liveHoursUntil ?? 0) >= graceHours, hoursUntilSession: Math.round(liveHoursUntil ?? 0), graceHours }
+      : getRescheduleEligibility(activeBlock.dayIndex, activeBlock.startH)
+    : null;
   const rescheduleEligible = canRescheduleOrCancel && !!rescheduleElig?.eligible;
   const rescheduleBlockedReason = rescheduleElig && !rescheduleElig.eligible
     ? t('scheduleRescheduleTooLate', { hours: rescheduleElig.graceHours })
@@ -436,10 +454,15 @@ export default function Schedule() {
   // ---- Reschedule sheet ----
   const rescheduleDaySel = rescheduleDay ?? activeBlock?.dayIndex ?? todayIndex;
   const rescheduleRawSlots: number[] = [];
-  getAvailabilityForDayIndex(rescheduleDaySel).forEach((b) => {
+  const rescheduleHours = live
+    ? (live.hours[rescheduleDaySel].enabled ? [live.hours[rescheduleDaySel]] : [])
+    : getAvailabilityForDayIndex(rescheduleDaySel);
+  const nowMs = wallNowMs();
+  rescheduleHours.forEach((b) => {
     let hCur = b.startH;
     while (hCur + RESCHED_SLOT_LEN <= b.endH + 0.001) {
-      rescheduleRawSlots.push(hCur);
+      // A real slot that has already gone by today isn't offered.
+      if (!live || weekStartMs + rescheduleDaySel * DAY_MS + hCur * 3600000 > nowMs) rescheduleRawSlots.push(hCur);
       hCur += RESCHED_SLOT_LEN;
     }
   });
@@ -447,6 +470,7 @@ export default function Schedule() {
 
   function openReschedulePicker() {
     if (!rescheduleEligible || !activeBlock) return;
+    setChangeError(null);
     setShowBlockSheet(false);
     setShowRescheduleSheet(true);
     setRescheduleDay(activeBlock.dayIndex);
@@ -454,13 +478,92 @@ export default function Schedule() {
     setRescheduleConfirmError(false);
   }
   function closeRescheduleSheet() {
+    setChangeError(null);
     setShowRescheduleSheet(false);
     setActiveBlock(null);
     setRescheduleDay(null);
     setRescheduleSlot(null);
     setRescheduleConfirmError(false);
   }
+  /**
+   * After a real change: show it at once, then re-read quietly. The change
+   * went through, so a failed re-read keeps the local update on screen
+   * rather than the old block (or an error), and the roster refreshes in
+   * the background without taking the screen back to a spinner.
+   */
+  async function afterLiveChange(update: (blocks: CalendarBlock[]) => CalendarBlock[]) {
+    if (week.status === 'ready') {
+      week.set({ ...week.data, blocks: update(week.data.blocks) });
+      void week.reload();
+    }
+    const r = useRosterStore.getState();
+    if (r.userId) void r.refresh(r.userId);
+  }
+
+  function liveErrorKey(code: BookingChangeError | 'not_configured'): MessageKey {
+    if (code === 'slot_taken') return 'notificationsSlotTaken';
+    if (code === 'passed') return 'scheduleSessionStarted';
+    if (code === 'gone') return 'scheduleBookingGone';
+    return 'requestFailedRetry';
+  }
+
+  async function confirmLiveReschedule() {
+    if (rescheduleSlot == null || !activeBlock?.id || changing) return;
+    setChanging(true);
+    setChangeError(null);
+    const newStartMs = weekStartMs + rescheduleDaySel * DAY_MS + Math.round(rescheduleSlot * 3600000);
+    const result = await rescheduleRemoteBooking(activeBlock.id, newStartMs);
+    setChanging(false);
+    if (!result.ok) {
+      setChangeError(liveErrorKey(result.code));
+      return;
+    }
+    const day = rescheduleDaySel;
+    const blockId = activeBlock.id;
+    closeRescheduleSheet();
+    setSelectedDay(day);
+    setView('day');
+    await afterLiveChange((blocks) => blocks.map((b) =>
+      (b.id === blockId ? { ...b, startWallMs: newStartMs, endWallMs: newStartMs + (b.endWallMs - b.startWallMs) } : b)));
+  }
+
+  async function confirmLiveCancel() {
+    if (!activeBlock?.id || changing) return;
+    setChanging(true);
+    setChangeError(null);
+    const blockId = activeBlock.id;
+    const result = await cancelRemoteBooking(blockId);
+    setChanging(false);
+    if (!result.ok) {
+      setChangeError(liveErrorKey(result.code));
+      return;
+    }
+    setShowCancelConfirm(false);
+    setActiveBlock(null);
+    await afterLiveChange((blocks) => blocks.filter((b) => b.id !== blockId));
+  }
+
+  async function removeBusyBlock() {
+    if (!activeBlock?.id || changing) return;
+    setChanging(true);
+    setChangeError(null);
+    const blockId = activeBlock.id;
+    const result = await removeOwnBusyBlock(blockId);
+    setChanging(false);
+    if (!result.ok) {
+      setChangeError('requestFailedRetry');
+      return;
+    }
+    setShowBlockSheet(false);
+    setActiveBlock(null);
+    await afterLiveChange((blocks) => blocks.filter((b) => b.id !== blockId));
+  }
+
   function confirmReschedule() {
+    if (live) {
+      void confirmLiveReschedule();
+      return;
+    }
     if (rescheduleSlot == null || !activeBlock?.id || !activeBlock.clientId) return;
     const duration = activeBlock.endH - activeBlock.startH;
     const newEndH = rescheduleSlot + duration;
@@ -481,18 +584,25 @@ export default function Schedule() {
   }
 
   function closeBlockSheet() {
+    setChangeError(null);
     setShowBlockSheet(false);
     setActiveBlock(null);
   }
   function openCancelSheet() {
+    setChangeError(null);
     setShowBlockSheet(false);
     setShowCancelConfirm(true);
   }
   function closeCancelConfirm() {
+    setChangeError(null);
     setShowCancelConfirm(false);
     setActiveBlock(null);
   }
   function confirmCancelBlock() {
+    if (live) {
+      void confirmLiveCancel();
+      return;
+    }
     if (!activeBlock) return;
     // Real bookings persist the cancellation so the member's own Sessions
     // screen agrees it's actually gone; the seed demo blocks have no real
@@ -683,6 +793,9 @@ export default function Schedule() {
                     borderInlineStart: `3px solid ${b.barColor}`,
                     justifyContent: b.allDay ? 'center' : 'flex-start',
                     opacity: b.rowOpacity,
+                    // A session or request sits above busy or open time it
+                    // overlaps, so it can still be tapped.
+                    zIndex: b.isBooked || b.isPending ? 2 : 1,
                   }}
                   onClick={b.canManage ? () => openBlockSheet(b) : undefined}
                 >
@@ -791,7 +904,9 @@ export default function Schedule() {
         {activeBlock && (
           <>
             <div className="schedule-sheet-header">
-              <div className="schedule-sheet-avatar" style={{ background: activeBlock.avatarBg }}>{activeBlock.initials}</div>
+              <div className="schedule-sheet-avatar" style={{ background: activeBlock.kind === 'busy' ? 'var(--red)' : activeBlock.avatarBg }}>
+                {activeBlock.kind === 'busy' ? <LockIcon size={14} color="#FFFFFF" /> : activeBlock.initials}
+              </div>
               <div className="schedule-sheet-header-text">
                 <div className="schedule-sheet-name">{activeBlock.name}</div>
                 <div className="schedule-sheet-range" dir="ltr">{activeBlock.range}</div>
@@ -826,6 +941,15 @@ export default function Schedule() {
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="15" height="12" rx="2.5" /><path d="M22 8.5l-5 3.5 5 3.5v-7z" /></svg>
                 {t('scheduleJoinSession')}
               </button>
+            )}
+
+            {live && activeBlock.kind === 'busy' && (
+              <>
+                {changeError && <div className="schedule-sheet-notice schedule-sheet-notice-red" role="alert">{t(changeError)}</div>}
+                <button type="button" className="schedule-sheet-btn schedule-sheet-btn-red" disabled={changing} onClick={() => void removeBusyBlock()}>
+                  {t('scheduleRemoveBlock')}
+                </button>
+              </>
             )}
 
             {hasProfileLink && (
@@ -910,13 +1034,14 @@ export default function Schedule() {
           )}
         </div>
         {rescheduleConfirmError && <div className="schedule-sheet-notice schedule-sheet-notice-amber">{rescheduleConfirmErrorText}</div>}
+        {changeError && <div className="schedule-sheet-notice schedule-sheet-notice-red" role="alert">{t(changeError)}</div>}
         <div className="schedule-reschedule-actions">
           <button type="button" className="schedule-sheet-btn schedule-sheet-btn-line" onClick={closeRescheduleSheet}>{t('scheduleCancelReschedule')}</button>
           <button
             type="button"
             className="schedule-sheet-btn schedule-sheet-btn-accent"
             style={rescheduleSlot == null ? { background: 'var(--line)', color: 'var(--ink-soft)' } : undefined}
-            disabled={rescheduleSlot == null}
+            disabled={rescheduleSlot == null || changing}
             onClick={confirmReschedule}
           >
             {t('scheduleConfirmNewTime')}
@@ -932,9 +1057,10 @@ export default function Schedule() {
             </div>
             <div className="schedule-modal-title">{t('scheduleCancelConfirmTitle')}</div>
             <div className="schedule-modal-body">{cancelConfirmBody}</div>
+            {changeError && <div className="schedule-sheet-notice schedule-sheet-notice-red" role="alert">{t(changeError)}</div>}
             <div className="schedule-modal-actions">
               <button type="button" className="schedule-modal-btn schedule-modal-btn-neutral" onClick={closeCancelConfirm}>{t('scheduleKeepIt')}</button>
-              <button type="button" className="schedule-modal-btn schedule-modal-btn-danger" onClick={confirmCancelBlock}>{t('scheduleYesCancel')}</button>
+              <button type="button" className="schedule-modal-btn schedule-modal-btn-danger" disabled={changing} onClick={confirmCancelBlock}>{t('scheduleYesCancel')}</button>
             </div>
           </div>
         </div>
