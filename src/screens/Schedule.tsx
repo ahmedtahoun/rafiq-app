@@ -21,7 +21,7 @@ import { LoadState } from '../components/LoadState';
 import { useFormat } from '../lib/format';
 import { useRemoteSession } from '../lib/remoteSession';
 import { fetchOwnWeeklyAvailability, weekdayOf } from '../lib/requestData';
-import { cancelBooking as cancelRemoteBooking, fetchCoachWeek, removeOwnBusyBlock, type CalendarBlock, rescheduleBooking as rescheduleRemoteBooking, type BookingChangeError } from '../lib/scheduleData';
+import { type Attendance, cancelBooking as cancelRemoteBooking, fetchCoachWeek, markAttendance, removeOwnBusyBlock, type CalendarBlock, rescheduleBooking as rescheduleRemoteBooking, type BookingChangeError } from '../lib/scheduleData';
 import { wallNowMs, wallTodayMs } from '../lib/wallClock';
 import { useRosterStore } from '../store/rosterStore';
 import { useRemoteLoad } from '../store/remoteLoad';
@@ -74,6 +74,10 @@ interface UIBlock {
   endH: number;
   allDay?: boolean;
   sessionType?: SessionType;
+  /** Signed in: a booking's session and its recorded attendance. */
+  sessionId?: string;
+  attendance?: Attendance | null;
+  attendanceSetBy?: 'coach' | 'client' | null;
 }
 
 interface ActiveBlock {
@@ -94,6 +98,9 @@ interface ActiveBlock {
   sessionType: SessionType;
   canRemind: boolean;
   remindMessage: string;
+  sessionId?: string;
+  attendance?: Attendance | null;
+  attendanceSetBy?: 'coach' | 'client' | null;
 }
 
 // This app's one fixed fictional week — Wed Oct 22 2025 is "today"
@@ -140,6 +147,18 @@ const ATTENDANCE_STYLE: Record<AttendanceOutcome, { color: string; bg: string }>
   completed: { color: 'var(--green)', bg: 'var(--green-bg)' },
   member_no_show: { color: 'var(--amber)', bg: 'var(--amber-bg)' },
   disputed: { color: 'var(--red)', bg: 'var(--red-bg)' },
+};
+
+// The stored outcome (0012) as the demo names it.
+const OUTCOME_OF: Partial<Record<Attendance, AttendanceOutcome>> = {
+  attended: 'completed',
+  no_show: 'member_no_show',
+  disputed: 'disputed',
+};
+const STORED_OUTCOME: Record<AttendanceOutcome, 'attended' | 'no_show' | 'disputed'> = {
+  completed: 'attended',
+  member_no_show: 'no_show',
+  disputed: 'disputed',
 };
 
 interface MonthCellDef {
@@ -273,6 +292,9 @@ export default function Schedule() {
         startH: (b.startWallMs - dayStart) / 3600000,
         endH: Math.min(24, (b.endWallMs - dayStart) / 3600000),
         sessionType: b.sessionType,
+        sessionId: b.sessionId,
+        attendance: b.attendance,
+        attendanceSetBy: b.attendanceSetBy,
       }));
     return [...open, ...real];
   }
@@ -375,7 +397,11 @@ export default function Schedule() {
       sessionType: b.sessionType ?? 'standard',
       canRemind: b.canRemind,
       remindMessage: b.remindMessage,
+      sessionId: b.sessionId,
+      attendance: b.attendance,
+      attendanceSetBy: b.attendanceSetBy,
     });
+    setChangeError(null);
     setShowBlockSheet(true);
   }
 
@@ -414,27 +440,40 @@ export default function Schedule() {
   }
   const reliabilityWarningText = reliabilityParts.join(isAr ? '، ' : ', ');
 
-  const canTrackAttendance = !live && !!(activeBlock?.id && activeBlock.clientId) && activeBlock?.kind === 'booked';
-  const hoursUntilActive = canTrackAttendance && activeBlock ? getHoursUntilBlock(activeBlock.dayIndex, activeBlock.startH) : null;
-  const sessionHasPassed = hoursUntilActive != null && hoursUntilActive < 0;
+  const activeStartMs = activeBlock ? weekStartMs + activeBlock.dayIndex * DAY_MS + Math.round(activeBlock.startH * 3600000) : 0;
+  const liveHoursUntil = live && activeBlock ? (activeStartMs - wallNowMs()) / 3600000 : null;
+
+  // Signed in, attendance is the booking's session's (0012), once it has
+  // started; the demo keeps its session logs.
+  const canTrackAttendance = live
+    ? activeBlock?.kind === 'booked' && !!activeBlock.sessionId
+    : !!(activeBlock?.id && activeBlock.clientId) && activeBlock?.kind === 'booked';
+  const hoursUntilActive = canTrackAttendance && activeBlock
+    ? live ? liveHoursUntil : getHoursUntilBlock(activeBlock.dayIndex, activeBlock.startH)
+    : null;
+  const sessionHasPassed = hoursUntilActive != null && (live ? hoursUntilActive <= 0 : hoursUntilActive < 0);
   const canMarkAttendance = canTrackAttendance && sessionHasPassed;
-  const existingLog = canMarkAttendance && activeBlock ? getSessionLogs(activeBlock.clientId!).find((s) => s.id === activeBlock.id) : undefined;
-  const currentAttendance = existingLog?.attendance as AttendanceOutcome | undefined;
+  const existingLog = canMarkAttendance && !live && activeBlock ? getSessionLogs(activeBlock.clientId!).find((s) => s.id === activeBlock.id) : undefined;
+  const currentAttendance = live
+    ? (activeBlock?.attendance ? OUTCOME_OF[activeBlock.attendance] : undefined)
+    : (existingLog?.attendance as AttendanceOutcome | undefined);
   const showAttendancePrompt = canMarkAttendance && !currentAttendance;
   const showAttendanceMarked = canMarkAttendance && !!currentAttendance;
+  // Signed in, whether a credit was used depends on the package, so the
+  // no-show label doesn't claim one; a member's own dispute says so.
   const attendanceMarkedLabel = currentAttendance
     ? currentAttendance === 'completed'
       ? t('scheduleAttendanceMarkedCompleted')
       : currentAttendance === 'member_no_show'
-        ? t('scheduleAttendanceMarkedNoShow')
-        : t('scheduleAttendanceMarkedDisputed')
+        ? t(live ? 'scheduleAttendanceMarkedNoShowPlain' : 'scheduleAttendanceMarkedNoShow')
+        : live && activeBlock?.attendanceSetBy === 'client'
+          ? t('scheduleAttendanceDisputedByMember')
+          : t('scheduleAttendanceMarkedDisputed')
     : '';
   const attendanceMarkedStyle = ATTENDANCE_STYLE[currentAttendance ?? 'completed'];
 
   // Signed in, a booked session can be moved or cancelled until it starts
   // (0011); the demo's rule, 12 hours' notice to move, applies to both.
-  const activeStartMs = activeBlock ? weekStartMs + activeBlock.dayIndex * DAY_MS + Math.round(activeBlock.startH * 3600000) : 0;
-  const liveHoursUntil = live && activeBlock ? (activeStartMs - wallNowMs()) / 3600000 : null;
   const canRescheduleOrCancel = live
     ? activeBlock?.kind === 'booked' && !!activeBlock.id && liveHoursUntil != null && liveHoursUntil > 0
     : !sessionHasPassed;
@@ -638,7 +677,29 @@ export default function Schedule() {
     setActiveBlock(null);
     refresh();
   }
+  async function setLiveAttendance(outcome: AttendanceOutcome) {
+    if (!activeBlock?.sessionId || !activeBlock.id || changing) return;
+    setChanging(true);
+    setChangeError(null);
+    const stored = STORED_OUTCOME[outcome];
+    const blockId = activeBlock.id;
+    const result = await markAttendance(activeBlock.sessionId, stored);
+    setChanging(false);
+    if (!result.ok) {
+      // Already recorded elsewhere (another device, a member's dispute):
+      // re-read so the sheet shows what was recorded.
+      if (result.code === 'recorded' && week.status === 'ready') void week.reload();
+      setChangeError(result.code === 'recorded' ? 'scheduleAttendanceRecorded' : result.code === 'gone' ? 'scheduleBookingGone' : 'requestFailedRetry');
+      return;
+    }
+    setActiveBlock((a) => (a && a.id === blockId ? { ...a, attendance: stored, attendanceSetBy: 'coach' } : a));
+    await afterLiveChange((blocks) => blocks.map((b) => (b.id === blockId ? { ...b, attendance: stored, attendanceSetBy: 'coach' } : b)));
+  }
   function setAttendanceOutcome(outcome: AttendanceOutcome) {
+    if (live) {
+      if (canMarkAttendance) void setLiveAttendance(outcome);
+      return;
+    }
     if (!canMarkAttendance || !activeBlock?.clientId || !activeBlock.id) return;
     setAttendance(activeBlock.clientId, activeBlock.id, outcome, 'pro');
     refresh();
@@ -959,10 +1020,11 @@ export default function Schedule() {
             {showAttendancePrompt && (
               <div className="schedule-attendance-prompt">
                 <div className="schedule-attendance-title">{t('scheduleAttendanceTitle')}</div>
+                {changeError && <div className="schedule-sheet-notice schedule-sheet-notice-red" role="alert">{t(changeError)}</div>}
                 <div className="schedule-attendance-actions">
-                  <button type="button" className="schedule-attendance-btn" style={{ background: 'var(--green-bg)', color: 'var(--green)' }} onClick={() => setAttendanceOutcome('completed')}>{t('scheduleMarkCompleted')}</button>
-                  <button type="button" className="schedule-attendance-btn" style={{ background: 'var(--amber-bg)', color: 'var(--amber)' }} onClick={() => setAttendanceOutcome('member_no_show')}>{t('scheduleMarkNoShow')}</button>
-                  <button type="button" className="schedule-attendance-btn" style={{ background: 'var(--red-bg)', color: 'var(--red)' }} onClick={() => setAttendanceOutcome('disputed')}>{t('scheduleMarkDispute')}</button>
+                  <button type="button" className="schedule-attendance-btn" style={{ background: 'var(--green-bg)', color: 'var(--green)' }} disabled={changing} onClick={() => setAttendanceOutcome('completed')}>{t('scheduleMarkCompleted')}</button>
+                  <button type="button" className="schedule-attendance-btn" style={{ background: 'var(--amber-bg)', color: 'var(--amber)' }} disabled={changing} onClick={() => setAttendanceOutcome('member_no_show')}>{t('scheduleMarkNoShow')}</button>
+                  <button type="button" className="schedule-attendance-btn" style={{ background: 'var(--red-bg)', color: 'var(--red)' }} disabled={changing} onClick={() => setAttendanceOutcome('disputed')}>{t('scheduleMarkDispute')}</button>
                 </div>
               </div>
             )}

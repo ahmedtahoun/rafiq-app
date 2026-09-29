@@ -10,7 +10,10 @@
  */
 import { getSupabase, isSupabaseConfigured } from './supabase';
 import { fromWallMs, toWallMs } from './wallClock';
+import type { Database } from './database.types';
 import type { SessionType, TimeBlockKind } from './mockStore';
+
+export type Attendance = Database['public']['Enums']['attendance'];
 
 export type ScheduleErrorCode = 'not_configured' | 'not_signed_in' | 'unknown';
 export type ScheduleResult<T> = { ok: true; data: T } | { ok: false; code: ScheduleErrorCode; message: string };
@@ -30,6 +33,11 @@ export interface CalendarBlock {
   startWallMs: number;
   endWallMs: number;
   sessionType?: SessionType;
+  /** A booking's session on the relationship (0010's sessions.time_block_id). */
+  sessionId?: string;
+  /** What happened at it, once recorded, and by whom. */
+  attendance?: Attendance | null;
+  attendanceSetBy?: 'coach' | 'client' | null;
 }
 
 async function currentUserId(): Promise<string | null> {
@@ -50,17 +58,32 @@ export async function fetchCoachWeek(weekStartWallMs: number): Promise<ScheduleR
     .lt('starts_at', fromWallMs(weekStartWallMs + 7 * DAY))
     .order('starts_at', { ascending: true });
   if (error) return unknown(error);
+  // Each booking's session, for its attendance once it has happened.
+  const bookedIds = data.filter((b) => b.kind === 'booked').map((b) => b.id);
+  let sessions: { id: string; time_block_id: string | null; attendance: Attendance | null; attendance_set_by: 'coach' | 'client' | null }[] = [];
+  if (bookedIds.length) {
+    const read = await getSupabase()
+      .from('sessions')
+      .select('id, time_block_id, attendance, attendance_set_by')
+      .in('time_block_id', bookedIds);
+    if (read.error) return unknown(read.error);
+    sessions = read.data;
+  }
   return {
     ok: true,
-    data: data.map((b) => ({
-      id: b.id,
-      clientId: b.client_id,
-      kind: b.kind,
-      label: b.label ?? '',
-      startWallMs: toWallMs(b.starts_at),
-      endWallMs: toWallMs(b.ends_at),
-      sessionType: b.session_type ?? undefined,
-    })),
+    data: data.map((b) => {
+      const session = sessions.find((s) => s.time_block_id === b.id);
+      return {
+        id: b.id,
+        clientId: b.client_id,
+        kind: b.kind,
+        label: b.label ?? '',
+        startWallMs: toWallMs(b.starts_at),
+        endWallMs: toWallMs(b.ends_at),
+        sessionType: b.session_type ?? undefined,
+        ...(session ? { sessionId: session.id, attendance: session.attendance, attendanceSetBy: session.attendance_set_by } : {}),
+      };
+    }),
   };
 }
 
@@ -133,4 +156,33 @@ export async function removeOwnBusyBlock(blockId: string): Promise<ScheduleResul
     .select('id');
   if (error) return unknown(error);
   return data.length ? { ok: true, data: null } : unknown({ message: 'No such busy block.' });
+}
+
+/**
+ * `recorded`: attendance is already set (by the coach, a member's dispute,
+ * or a cancellation). `not_yet`: the session hasn't started. `gone`: not
+ * this coach's session.
+ */
+export type AttendanceError = 'recorded' | 'not_yet' | 'gone' | 'unknown';
+
+/**
+ * Record what happened at a session that has started (0012). Held or
+ * missed uses one package credit when one is left (never for a free intro);
+ * disputed holds it. `charged` says whether a credit was used.
+ */
+export async function markAttendance(
+  sessionId: string,
+  outcome: 'attended' | 'no_show' | 'disputed',
+): Promise<{ ok: true; charged: boolean } | { ok: false; code: AttendanceError | 'not_configured'; message: string }> {
+  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const { data, error } = await getSupabase().rpc('mark_attendance', { p_session: sessionId, p_outcome: outcome });
+  if (error) {
+    const code: AttendanceError =
+      error.code === '55000' ? 'recorded'
+        : error.code === '22023' ? 'not_yet'
+          : error.code === 'P0002' ? 'gone'
+            : 'unknown';
+    return { ok: false, code, message: error.message };
+  }
+  return { ok: true, charged: data === true };
 }

@@ -1701,6 +1701,10 @@ export type Database = {
       }
       is_coach_of: { Args: { p_client: string }; Returns: boolean }
       is_member_of: { Args: { p_client: string }; Returns: boolean }
+      mark_attendance: {
+        Args: { p_outcome: Database["public"]["Enums"]["attendance"]; p_session: string }
+        Returns: boolean
+      }
       refresh_next_session: { Args: { p_client: string }; Returns: undefined }
       reschedule_booking: { Args: { p_block: string; p_start: string }; Returns: undefined }
       push_notification: {
