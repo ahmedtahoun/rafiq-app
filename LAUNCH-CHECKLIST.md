@@ -302,8 +302,11 @@ Waits on the name decision (§1).
 Reports, verification requests, deletion requests and suspensions are queues
 only Rafiq can resolve (as `service_role`). Nothing works them yet.
 
-- [ ] 🔴 For closed testing: Supabase dashboard table editor + saved queries
+- [x] 🔴 For closed testing: Supabase dashboard table editor + saved queries
       ("open reports", "pending verifications", "pending deletions") is enough.
+      Done: `supabase/admin/README.md` — open reports (suspend, close),
+      pending verifications (approve/reject), pending deletions (through
+      the `account-deletion` Edge Function).
 - [ ] 🟡 Before public launch: a small admin web app (verification review,
       reports with suspend/block, deletion requests, user lookup), behind an
       admin role. The `service_role` key stays server-side, never in a browser.
