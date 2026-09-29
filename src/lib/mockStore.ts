@@ -1012,7 +1012,45 @@ export function getProNotifications(): ProNotification[] {
     }
   });
 
-  return list.map((n) => ({ ...n, unread: !readMap[n.id] }));
+  const prefs = getProNotificationPrefs();
+  if (!prefs.enabled) return [];
+  const categoryOfKind: Record<ProNotificationKind, keyof ProNotificationPrefs> = {
+    'session-request': 'sessions',
+    'payment-received': 'payments',
+  };
+  return list
+    .filter((n) => prefs[categoryOfKind[n.kind]] !== false)
+    .map((n) => ({ ...n, unread: !readMap[n.id] }));
+}
+
+/**
+ * The coach's own notification preferences.
+ *
+ * These used to be pure local component state in Profile.tsx (the design
+ * had them that way), so every toggle reset on navigation and nothing
+ * read them: three switches that did nothing. They gate
+ * getProNotifications above now, the same way NotificationPrefs gates
+ * getClientNotifications.
+ *
+ * There is no 'checkins' category because there is no check-in
+ * notification: ProNotificationKind is requests and payments only. The
+ * row that claimed to control one was removed rather than kept as a
+ * switch over nothing.
+ */
+export interface ProNotificationPrefs {
+  enabled: boolean;
+  sessions: boolean;
+  payments: boolean;
+}
+
+export function getProNotificationPrefs(): ProNotificationPrefs {
+  return readLocal('pro_notif_prefs', { enabled: true, sessions: true, payments: true });
+}
+
+export function setProNotificationPrefs(patch: Partial<ProNotificationPrefs>): ProNotificationPrefs {
+  const prefs = { ...getProNotificationPrefs(), ...patch };
+  writeLocal('pro_notif_prefs', prefs);
+  return prefs;
 }
 
 export function markNotificationRead(id: string): void {
@@ -1830,10 +1868,9 @@ export function getClientNotifications(clientId: string): ClientNotification[] {
 
 // ---------------------------------------------------------------------------
 // Notification preferences (ClientProfile.dc.html) — real, persisted
-// toggles, unlike the coach-side Profile.dc.html equivalent, which the
-// design itself keeps as pure local component state (ported as such in
-// Profile.tsx). This one gates getClientNotifications above, same as
-// store.js's own getNotificationPrefs/setNotificationPrefs.
+// toggles that gate getClientNotifications above, same as store.js's own
+// getNotificationPrefs/setNotificationPrefs. The coach side has its own
+// equivalent, ProNotificationPrefs, next to getProNotifications.
 // ---------------------------------------------------------------------------
 
 export interface NotificationPrefs {

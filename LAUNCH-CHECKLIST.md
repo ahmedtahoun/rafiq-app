@@ -216,11 +216,18 @@ Nothing native has ever run on a device or simulator (CLAUDE.md, "Not verified")
 - [x] targetSdk 36 (`android/variables.gradle`).
 
 ### Both
-- [ ] 🔴 **Push notifications, or honest toggles.** Profile screens offer
+- [x] 🔴 **Push notifications, or honest toggles.** Profile screens offer
       "Session reminders", "Task reminders" and "Payment reminders", but the
       app has no push notifications (no `@capacitor/push-notifications`, no
       APNs/FCM). Either build them (plugin + APNs key + Firebase project +
       send from database triggers) or relabel the toggles as in-app only.
+      Done the second way: both cards now say they control the in-app feed
+      and that no push is sent, and no category calls itself a reminder.
+      The coach's three switches were also pure local state that nothing
+      read — they persist and really filter `getProNotifications()` now,
+      and the "Member check-in alerts" row is gone because no such
+      notification exists. Push itself is still unbuilt; if it is built
+      later, reopen this.
 - [ ] 🔴 **Account deletion must actually happen.** The app files a request
       into `account_deletion_requests`; someone has to process it (§9), within
       a stated time. **Stated: within 30 days**, on the public deletion page.

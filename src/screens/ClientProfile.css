@@ -389,6 +389,14 @@ html[dir='rtl'] .client-profile-name {
   padding: 15px;
 }
 
+.client-profile-notif-scope {
+  padding: 0 15px 13px;
+  margin-top: -6px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
 .client-profile-notif-sub-row {
   display: flex;
   align-items: center;

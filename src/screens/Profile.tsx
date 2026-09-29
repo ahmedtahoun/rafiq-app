@@ -15,8 +15,10 @@ import {
   getClients,
   getProActiveObligations,
   getProAggregateRating,
+  getProNotificationPrefs,
   getUnreadMessageCount,
   isVerified,
+  setProNotificationPrefs,
   requestProAccountDeletion,
   requestVerification,
 } from '../lib/mockStore';
@@ -26,7 +28,9 @@ import './Profile.css';
 // CSS custom property, for the hero's gradient fallback (no cover photo).
 const ACCENT_HEX = '#B75C3D';
 
-const NOTIF_TYPE_KEYS = ['sessions', 'checkins', 'payments'] as const;
+// No 'checkins': ProNotificationKind has no check-in notification, so the
+// row the design gave it controlled nothing. See ProNotificationPrefs.
+const NOTIF_TYPE_KEYS = ['sessions', 'payments'] as const;
 type NotifTypeKey = (typeof NOTIF_TYPE_KEYS)[number];
 
 // 1:1 port of Profile.dc.html — the coach's account hub. Notification
@@ -62,8 +66,6 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
   const [busy, setBusy] = useState(false);
   const [showSupportToast, setShowSupportToast] = useState(false);
   const [supportToastMsg, setSupportToastMsg] = useState('');
-  const [notif, setNotif] = useState(true);
-  const [notifSub, setNotifSub] = useState<Record<NotifTypeKey, boolean>>({ sessions: true, checkins: true, payments: true });
 
   const reviewUrl = storeReviewUrl();
 
@@ -147,7 +149,8 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
   }
 
   function toggleNotifType(key: NotifTypeKey) {
-    setNotifSub((prev) => ({ ...prev, [key]: !prev[key] }));
+    setProNotificationPrefs({ [key]: notifPrefs[key] === false });
+    refresh();
   }
 
   // Mirrors Auth.tsx's own fallback: with no Supabase project wired up,
@@ -195,9 +198,13 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
     });
   }
 
+  // Persisted, and read by getProNotifications — turning one off really
+  // does remove those rows from the Notifications feed.
+  const notifPrefs = getProNotificationPrefs();
+  const notif = notifPrefs.enabled;
+
   const notifTypeDefs: { key: NotifTypeKey; label: string }[] = [
     { key: 'sessions', label: t('profileNotifSessions') },
-    { key: 'checkins', label: t('profileNotifCheckins') },
     { key: 'payments', label: t('profileNotifPayments') },
   ];
 
@@ -443,15 +450,20 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
           <div className="profile-notif-card">
             <div className="profile-notif-main">
               <div className="profile-row-title">{t('profileNotifications')}</div>
-              <button type="button" className={`profile-switch${notif ? ' is-on' : ''}`} onClick={() => setNotif((v) => !v)}>
+              <button
+                type="button"
+                className={`profile-switch${notif ? ' is-on' : ''}`}
+                onClick={() => { setProNotificationPrefs({ enabled: !notif }); refresh(); }}
+              >
                 <span className="profile-switch-thumb" />
               </button>
             </div>
+            <div className="profile-notif-scope">{t('notifInAppOnly')}</div>
             {notif &&
               notifTypeDefs.map((nt) => (
                 <div className="profile-notif-sub-row" key={nt.key}>
                   <div className="profile-notif-sub-label">{nt.label}</div>
-                  <button type="button" className={`profile-switch${notifSub[nt.key] ? ' is-on' : ''}`} onClick={() => toggleNotifType(nt.key)}>
+                  <button type="button" className={`profile-switch${notifPrefs[nt.key] !== false ? ' is-on' : ''}`} onClick={() => toggleNotifType(nt.key)}>
                     <span className="profile-switch-thumb" />
                   </button>
                 </div>
