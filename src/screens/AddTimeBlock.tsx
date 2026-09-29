@@ -2,9 +2,14 @@ import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT, dayKey, type MessageKey } from '../lib/i18n';
 import { addCustomBlock, type TimeBlockKind } from '../lib/mockStore';
+import { useRemoteSession } from '../lib/remoteSession';
+import { weekdayOf } from '../lib/requestData';
+import { addOwnTimeBlock } from '../lib/scheduleData';
+import { wallNowMs, wallTodayMs } from '../lib/wallClock';
 import './AddTimeBlock.css';
 
 const DAY_KEYS = [0, 1, 2, 3, 4, 5, 6];
+const DAY_MS = 86400000;
 
 const TYPE_DEFS: { kind: TimeBlockKind; labelKey: MessageKey; color: string; bg: string }[] = [
   { kind: 'available', labelKey: 'scheduleLegendPreferred', color: 'var(--green)', bg: 'var(--green-bg)' },
@@ -36,27 +41,61 @@ function parseTime(str: string): number | null {
 // week is behaviorally identical to a one-off block — there is no second
 // week for it to repeat into. time_blocks (0001_init.sql) also has no
 // repeat column, matching that same scope decision.
+//
+// Signed in, the block goes on the coach's real calendar (time_blocks), on
+// that weekday of the current week — the one Schedule shows. Days already
+// gone are off. Only Unavailable is offered, and Repeat weekly is left out:
+// when a coach is open is their weekly hours (Availability), which is all
+// members book from — a one-off "Preferred" block would tell the coach a day
+// is open that no member can book.
 export default function AddTimeBlock() {
   const t = useT();
   const nav = useAppStore((s) => s.nav);
   const back = useAppStore((s) => s.back);
+  const remote = useRemoteSession();
+  const todayMs = wallTodayMs();
+  const todayIndex = weekdayOf(todayMs);
+  const weekStartMs = todayMs - todayIndex * DAY_MS;
 
-  const [day, setDay] = useState(0);
-  const [type, setType] = useState<TimeBlockKind>('available');
+  const [day, setDay] = useState(() => (remote ? todayIndex : 0));
+  const [saving, setSaving] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
+  const [type, setType] = useState<TimeBlockKind>(() => (remote ? 'busy' : 'available'));
   const [repeat, setRepeat] = useState(false);
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
 
   const startH = parseTime(startTime);
   const endH = parseTime(endTime);
-  const canSave = startH !== null && endH !== null && endH > startH;
+  const startWallMs = startH === null ? null : weekStartMs + day * DAY_MS + Math.round(startH * 3600000);
+  // Signed in, a block that has already ended today can't be added.
+  const inPast = remote && endH !== null && weekStartMs + day * DAY_MS + endH * 3600000 <= wallNowMs();
+  const canSave = startH !== null && endH !== null && endH > startH && endH <= 24 && !inPast && !saving;
 
-  function saveBlock() {
-    if (startH === null || endH === null || !canSave) return;
+  async function saveBlock() {
+    if (startH === null || endH === null || startWallMs === null || !canSave) return;
+    const label = type === 'busy' ? t('scheduleLegendUnavailable') : t('schedulePreferredHours');
+    if (remote) {
+      setSaving(true);
+      setSaveFailed(false);
+      const result = await addOwnTimeBlock({
+        kind: 'busy',
+        label,
+        startWallMs,
+        endWallMs: weekStartMs + day * DAY_MS + Math.round(endH * 3600000),
+      });
+      setSaving(false);
+      if (!result.ok) {
+        setSaveFailed(true);
+        return;
+      }
+      nav('schedule');
+      return;
+    }
     addCustomBlock({
       clientId: null,
       kind: type,
-      label: type === 'busy' ? t('scheduleLegendUnavailable') : t('schedulePreferredHours'),
+      label,
       dayIndex: day,
       startH,
       endH,
@@ -72,7 +111,7 @@ export default function AddTimeBlock() {
         <button
           type="button"
           className={`add-time-block-save${canSave ? ' is-enabled' : ''}`}
-          onClick={saveBlock}
+          onClick={() => void saveBlock()}
           disabled={!canSave}
         >
           {t('addTimeBlockSave')}
@@ -88,6 +127,7 @@ export default function AddTimeBlock() {
                 key={i}
                 type="button"
                 className={`add-time-block-day-chip${day === i ? ' is-selected' : ''}`}
+                disabled={remote && i < todayIndex}
                 onClick={() => setDay(i)}
               >
                 {t(dayKey('dowShort', i))}
@@ -128,7 +168,7 @@ export default function AddTimeBlock() {
         <div className="add-time-block-field">
           <div className="add-time-block-field-label">{t('addTimeBlockTypeLabel')}</div>
           <div className="add-time-block-chips">
-            {TYPE_DEFS.map((d) => (
+            {TYPE_DEFS.filter((d) => !remote || d.kind === 'busy').map((d) => (
               <button
                 key={d.kind}
                 type="button"
@@ -142,6 +182,7 @@ export default function AddTimeBlock() {
           </div>
         </div>
 
+        {!remote && (
         <div className="add-time-block-recurring">
           <div className="add-time-block-recurring-label">
             <RepeatGlyph />
@@ -158,18 +199,20 @@ export default function AddTimeBlock() {
             <span className="add-time-block-switch-thumb" />
           </button>
         </div>
-        {repeat && (
+        )}
+        {!remote && repeat && (
           <p className="add-time-block-recurring-note">
             {t('addTimeBlockRepeatNote', { day: t(dayKey('dowShort', day)) })}
           </p>
         )}
+        {saveFailed && <p className="add-time-block-error" role="alert">{t('addTimeBlockSaveFailed')}</p>}
       </div>
 
       <div className="add-time-block-footer">
         <button
           type="button"
           className={`add-time-block-submit${canSave ? ' is-enabled' : ''}`}
-          onClick={saveBlock}
+          onClick={() => void saveBlock()}
           disabled={!canSave}
         >
           {t('addTimeBlockSaveButton')}

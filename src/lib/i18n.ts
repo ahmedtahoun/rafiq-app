@@ -690,6 +690,7 @@ const en = {
     addTimeBlockTypeLabel: 'Type',
     addTimeBlockRepeatWeekly: 'Repeat weekly',
     addTimeBlockRepeatNote: 'This block will repeat every {day} until you turn it off from Schedule.',
+    addTimeBlockSaveFailed: "This block wasn't saved. Please try again.",
     addTimeBlockSaveButton: 'Save Block',
 
     // Availability.dc.html — 1:1 from its own translations().
@@ -1667,6 +1668,7 @@ const ar: Record<MessageKey, string> = {
     addTimeBlockTypeLabel: 'النوع',
     addTimeBlockRepeatWeekly: 'التكرار أسبوعيًا',
     addTimeBlockRepeatNote: 'ستتكرر هذه الفترة كل {day} حتى توقفيها من الجدول.',
+    addTimeBlockSaveFailed: 'لم تُحفظ الفترة. يرجى المحاولة مرة أخرى.',
     addTimeBlockSaveButton: 'حفظ الفترة',
 
     availabilityTitle: 'أوقات التوفر', availabilitySubtitle: 'الساعات التي يمكن للأعضاء حجزها معك كل أسبوع.',

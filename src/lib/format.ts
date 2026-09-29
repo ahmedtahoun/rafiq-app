@@ -72,6 +72,16 @@ export function formatSlot(lang: Lang, ms: number): string {
   });
 }
 
+/** A day of a month, the month in full: "October 22" / "22 أكتوبر". */
+export function formatMonthDayLong(lang: Lang, ms: number): string {
+  return new Date(ms).toLocaleDateString(LOCALE[lang], { timeZone: CALENDAR_ZONE, month: 'long', day: 'numeric' });
+}
+
+/** A month and its year: "October 2025" / "أكتوبر 2025". */
+export function formatMonthYear(lang: Lang, ms: number): string {
+  return new Date(ms).toLocaleDateString(LOCALE[lang], { timeZone: CALENDAR_ZONE, month: 'long', year: 'numeric' });
+}
+
 /** A time of day: "6:00 PM" / "6:00 م". */
 export function formatTime(lang: Lang, ms: number): string {
   return new Date(ms).toLocaleTimeString(LOCALE[lang], { timeZone: CALENDAR_ZONE, hour: 'numeric', minute: '2-digit' });
@@ -171,6 +181,8 @@ export function useFormat() {
     date: (ms: number) => formatDisplayDate(lang, ms),
     instantDate: (at: string | number) => formatInstantDate(lang, at),
     monthDay: (ms: number) => formatMonthDay(lang, ms),
+    monthDayLong: (ms: number) => formatMonthDayLong(lang, ms),
+    monthYear: (ms: number) => formatMonthYear(lang, ms),
     slot: (ms: number) => formatSlot(lang, ms),
     time: (ms: number) => formatTime(lang, ms),
     timeParts: (ms: number) => formatTimeParts(lang, ms),
