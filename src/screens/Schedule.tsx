@@ -17,6 +17,14 @@ import {
 import { BottomNav, type BottomNavItem } from '../components/BottomNav';
 import { BottomSheet } from '../components/BottomSheet';
 import { QuickActions } from '../components/QuickActions';
+import { LoadState } from '../components/LoadState';
+import { useFormat } from '../lib/format';
+import { useRemoteSession } from '../lib/remoteSession';
+import { fetchOwnWeeklyAvailability, weekdayOf } from '../lib/requestData';
+import { fetchCoachWeek } from '../lib/scheduleData';
+import { wallTodayMs } from '../lib/wallClock';
+import { useRemoteLoad } from '../store/remoteLoad';
+import { useRoster } from '../store/rosterStore';
 import {
   blockDayIndex,
   blockEndH,
@@ -90,8 +98,10 @@ interface ActiveBlock {
 // (dayIndex 2), same anchor mockStore.ts's TODAY_MS/WEEK_START_MS use.
 const DATE_NUMS = ['20', '21', '22', '23', '24', '25', '26'];
 const TODAY_INDEX = 2;
+// The timeline's default span; a real block outside it widens the day.
 const START_HOUR = 8;
 const END_HOUR = 20;
+const DAY_MS = 86400000;
 const ROW_H = 52;
 const TOP_PAD = 10;
 const RESCHED_SLOT_LEN = 0.75;
@@ -160,6 +170,23 @@ function fmtHour(h: number, amLabel: string, pmLabel: string): string {
   return `${hh}:${mins.toString().padStart(2, '0')} ${period}`;
 }
 
+/** The real month around today, Monday first, in MONTH_RAW's shape: the
+    days of the loaded week carry their index into it, so they are the ones
+    that open the day view (the same as the demo's one live week). */
+function liveMonth(todayMs: number, weekStartMs: number): MonthCellDef[] {
+  const today = new Date(todayMs);
+  const month = today.getUTCMonth();
+  const first = Date.UTC(today.getUTCFullYear(), month, 1);
+  const cells: MonthCellDef[] = [];
+  for (let ms = first - weekdayOf(first) * DAY_MS; ; ms += DAY_MS) {
+    const d = new Date(ms);
+    if (cells.length > 0 && cells.length % 7 === 0 && d.getUTCMonth() !== month && ms > first) break;
+    const idx = Math.round((ms - weekStartMs) / DAY_MS);
+    cells.push({ day: d.getUTCDate(), inMonth: d.getUTCMonth() === month, dataIdx: idx >= 0 && idx < 7 ? idx : undefined });
+  }
+  return cells;
+}
+
 function dominantKind(dayBlocks: UIBlock[]): UIKind | null {
   if (dayBlocks.some((b) => b.allDay)) return 'busy';
   if (dayBlocks.some((b) => b.kind === 'booked')) return 'booked';
@@ -181,7 +208,18 @@ export default function Schedule() {
   const isAr = lang === 'ar';
 
   const [view, setView] = useState<'day' | 'week' | 'month'>('day');
-  const [selectedDay, setSelectedDay] = useState(TODAY_INDEX);
+  // Signed in, the week is the real one (Monday first) with the coach's own
+  // blocks and weekly hours; signed out, the demo's fixed week.
+  const remote = useRemoteSession();
+  const roster = useRoster();
+  const fmt = useFormat();
+  const realTodayMs = wallTodayMs();
+  const weekStartMs = realTodayMs - weekdayOf(realTodayMs) * DAY_MS;
+  const week = useRemoteLoad(`coach_week:${weekStartMs}`, remote, async () => {
+    const [blocks, hours] = await Promise.all([fetchCoachWeek(weekStartMs), fetchOwnWeeklyAvailability()]);
+    return blocks.ok && hours.ok ? { ok: true as const, data: { blocks: blocks.data, hours: hours.data } } : { ok: false as const };
+  });
+  const [selectedDay, setSelectedDay] = useState(() => (remote ? weekdayOf(realTodayMs) : TODAY_INDEX));
   const [activeKinds, setActiveKinds] = useState<Record<UIKind, boolean>>({ available: true, booked: true, pending: true, busy: true });
   const [cancelledKeys, setCancelledKeys] = useState<Record<string, boolean>>({});
   const [confirmedKeys, setConfirmedKeys] = useState<Record<string, boolean>>({});
@@ -198,7 +236,45 @@ export default function Schedule() {
   const [, setTick] = useState(0);
   const refresh = () => setTick((v) => v + 1);
 
+  if (remote && (week.status === 'loading' || roster.status === 'loading')) return <LoadState status="loading" />;
+  if (remote && week.status === 'error') return <LoadState status="error" onRetry={week.retry} />;
+  if (remote && roster.status === 'error') return <LoadState status="error" onRetry={roster.retry} />;
+  const live = remote && week.status === 'ready' ? week.data : null;
+  const todayIndex = live ? weekdayOf(realTodayMs) : TODAY_INDEX;
+  const dateNums = live
+    ? Array.from({ length: 7 }, (_, i) => String(new Date(weekStartMs + i * DAY_MS).getUTCDate()))
+    : DATE_NUMS;
+  const clientOf = (id: string) => (live ? (roster.status === 'ready' ? roster.client(id) : undefined) : getClient(id));
+
+  // A real day: the coach's weekly hours as an open block, then their
+  // blocks that start that day (a booked session, a request, busy time).
+  function liveBlocksForDay(dayIndex: number): UIBlock[] {
+    if (!live) return [];
+    const dayStart = weekStartMs + dayIndex * DAY_MS;
+    const hours = live.hours[dayIndex];
+    const open: UIBlock[] = hours.enabled
+      ? [{ key: `avail-${dayIndex}`, id: null, clientId: null, kind: 'available', label: t('schedulePreferredHours'), startH: hours.startH, endH: hours.endH }]
+      : [];
+    const real: UIBlock[] = live.blocks
+      .filter((b) => b.startWallMs >= dayStart && b.startWallMs < dayStart + DAY_MS)
+      .map((b) => ({
+        key: `real-${b.id}`,
+        id: b.id,
+        clientId: b.clientId,
+        kind: b.kind,
+        label: b.label || (b.kind === 'busy' ? t('scheduleLegendUnavailable') : t('schedulePreferredHours')),
+        startH: (b.startWallMs - dayStart) / 3600000,
+        endH: Math.min(24, (b.endWallMs - dayStart) / 3600000),
+        sessionType: b.sessionType,
+      }));
+    return [...open, ...real];
+  }
+
   function blocksForDay(dayIndex: number): UIBlock[] {
+    if (live) {
+      return liveBlocksForDay(dayIndex)
+        .filter((b) => !cancelledKeys[b.key]);
+    }
     const seed: UIBlock[] = SEED_BLOCKS[dayIndex].map((b, i) => ({ ...b, key: `seed-${dayIndex}-${i}` }));
     const avail: UIBlock[] = getAvailabilityForDayIndex(dayIndex).map((b, i) => ({
       key: `avail-${dayIndex}-${i}`,
@@ -227,15 +303,20 @@ export default function Schedule() {
   }
 
   const dayBlocksRaw = blocksForDay(selectedDay);
+  // Widen the timeline for a real block before 8 AM or after 8 PM.
+  const startHour = Math.min(START_HOUR, ...dayBlocksRaw.map((b) => Math.floor(b.startH)));
+  const endHour = Math.max(END_HOUR, ...dayBlocksRaw.map((b) => Math.ceil(b.endH)));
   const blocks = dayBlocksRaw.map((b) => {
-    const client = b.clientId ? getClient(b.clientId) : undefined;
+    const client = b.clientId ? clientOf(b.clientId) : undefined;
     const name = client?.name ?? null;
     const avatarBg = client?.avatarBg ?? 'var(--accent)';
     const initials = client?.initials ?? '';
     const detailHref = b.clientId ? getClientDetailHref(b.clientId) : null;
-    const messagesHref = b.clientId ? getMessagesHref(b.clientId) : null;
-    const sessionRoomHref = b.clientId ? getSessionRoomHref(b.clientId) : null;
-    const canRemind = b.clientId ? canInteract(b.clientId) : false;
+    // Messages (step 5) and the session room aren't real yet: signed in, the
+    // sheet offers neither.
+    const messagesHref = b.clientId && !live ? getMessagesHref(b.clientId) : null;
+    const sessionRoomHref = b.clientId && !live ? getSessionRoomHref(b.clientId) : null;
+    const canRemind = b.clientId && !live ? canInteract(b.clientId) : false;
     const range = hourRangeLabel(b.startH, b.endH);
     const durationSuffix = b.sessionType ? t('scheduleMinutesSuffix', { n: getSessionTypeInfo(b.sessionType).minutes }) : '';
     const style = KIND_STYLE[b.kind];
@@ -252,8 +333,8 @@ export default function Schedule() {
       sessionRoomHref,
       canRemind,
       remindMessage,
-      top: (b.startH - START_HOUR) * ROW_H + TOP_PAD + 1,
-      height: (Math.min(b.endH, END_HOUR) - b.startH) * ROW_H - 3,
+      top: (b.startH - startHour) * ROW_H + TOP_PAD + 1,
+      height: (Math.min(b.endH, endHour) - b.startH) * ROW_H - 3,
       barColor: style.bar,
       tagBg: style.bg,
       tagColor: style.color,
@@ -290,19 +371,19 @@ export default function Schedule() {
     setShowBlockSheet(true);
   }
 
-  const timelineHeight = (END_HOUR - START_HOUR) * ROW_H + TOP_PAD * 2;
+  const timelineHeight = (endHour - startHour) * ROW_H + TOP_PAD * 2;
   const hourMarks: { top: number; labelTop: number; label: string }[] = [];
-  for (let h = START_HOUR; h <= END_HOUR; h++) {
+  for (let h = startHour; h <= endHour; h++) {
     const period = h >= 12 ? 'PM' : 'AM';
     let hh = h % 12;
     if (hh === 0) hh = 12;
-    hourMarks.push({ top: (h - START_HOUR) * ROW_H + TOP_PAD, labelTop: (h - START_HOUR) * ROW_H + TOP_PAD - 6, label: `${hh} ${period}` });
+    hourMarks.push({ top: (h - startHour) * ROW_H + TOP_PAD, labelTop: (h - startHour) * ROW_H + TOP_PAD - 6, label: `${hh} ${period}` });
   }
 
   // ---- Block detail sheet (derived fresh from activeBlock each render) ----
   const hasProfileLink = !!activeBlock?.detailHref;
   const hasReminderLink = !!activeBlock?.messagesHref && activeBlock.canRemind;
-  const hasJoinLink = !!activeBlock?.sessionRoomHref && activeBlock.kind !== 'pending' && activeBlock.dayIndex === TODAY_INDEX;
+  const hasJoinLink = !!activeBlock?.sessionRoomHref && activeBlock.kind !== 'pending' && activeBlock.dayIndex === todayIndex;
 
   const memberBlocked = activeBlock?.clientId ? isRelationshipBlocked(activeBlock.clientId) : false;
   const memberInactive = activeBlock?.clientId ? getMemberAccountStatus(activeBlock.clientId) !== 'active' : false;
@@ -325,7 +406,7 @@ export default function Schedule() {
   }
   const reliabilityWarningText = reliabilityParts.join(isAr ? '، ' : ', ');
 
-  const canTrackAttendance = !!(activeBlock?.id && activeBlock.clientId) && activeBlock?.kind === 'booked';
+  const canTrackAttendance = !live && !!(activeBlock?.id && activeBlock.clientId) && activeBlock?.kind === 'booked';
   const hoursUntilActive = canTrackAttendance && activeBlock ? getHoursUntilBlock(activeBlock.dayIndex, activeBlock.startH) : null;
   const sessionHasPassed = hoursUntilActive != null && hoursUntilActive < 0;
   const canMarkAttendance = canTrackAttendance && sessionHasPassed;
@@ -342,7 +423,7 @@ export default function Schedule() {
     : '';
   const attendanceMarkedStyle = ATTENDANCE_STYLE[currentAttendance ?? 'completed'];
 
-  const canRescheduleOrCancel = !sessionHasPassed;
+  const canRescheduleOrCancel = !live && !sessionHasPassed;
   const canManageReschedule = !!(activeBlock?.id && activeBlock.clientId);
   const rescheduleElig = canManageReschedule && activeBlock ? getRescheduleEligibility(activeBlock.dayIndex, activeBlock.startH) : null;
   const rescheduleEligible = canRescheduleOrCancel && !!rescheduleElig?.eligible;
@@ -352,7 +433,7 @@ export default function Schedule() {
   const showRescheduleBlockedMsg = canRescheduleOrCancel && !rescheduleEligible;
 
   // ---- Reschedule sheet ----
-  const rescheduleDaySel = rescheduleDay ?? activeBlock?.dayIndex ?? TODAY_INDEX;
+  const rescheduleDaySel = rescheduleDay ?? activeBlock?.dayIndex ?? todayIndex;
   const rescheduleRawSlots: number[] = [];
   getAvailabilityForDayIndex(rescheduleDaySel).forEach((b) => {
     let hCur = b.startH;
@@ -476,7 +557,7 @@ export default function Schedule() {
       i,
       dow: t(dayKey('dowShort', i)),
       dowFull: t(dayKey('dowFull', i)),
-      date: DATE_NUMS[i],
+      date: dateNums[i],
       summary,
       dots: kindsPresent.map((k) => KIND_STYLE[k].bar),
       isSel: i === selectedDay,
@@ -484,7 +565,7 @@ export default function Schedule() {
   });
 
   // ---- Month view ----
-  const monthCells = MONTH_RAW.map((c, idx) => {
+  const monthCells = (live ? liveMonth(realTodayMs, weekStartMs) : MONTH_RAW).map((c, idx) => {
     const isSelCell = c.dataIdx !== undefined && c.dataIdx === selectedDay && view === 'month';
     const kind = c.dataIdx !== undefined ? dominantKind(blocksForDay(c.dataIdx)) : null;
     return { key: idx, day: c.day, inMonth: c.inMonth, dataIdx: c.dataIdx, isSelCell, dotColor: kind ? KIND_STYLE[kind].bar : null };
@@ -539,7 +620,7 @@ export default function Schedule() {
         {view === 'day' && (
           <div className="schedule-day-view">
             <div className="schedule-day-strip">
-              {DATE_NUMS.map((date, i) => (
+              {dateNums.map((date, i) => (
                 <button
                   key={i}
                   type="button"
@@ -579,7 +660,7 @@ export default function Schedule() {
             </div>
 
             <div className="schedule-selected-label">
-              {t(dayKey('dowFull', selectedDay))}, {t('scheduleMonthName')} {DATE_NUMS[selectedDay]}
+              {t(dayKey('dowFull', selectedDay))}{isAr ? '، ' : ', '}{live ? fmt.monthDayLong(weekStartMs + selectedDay * DAY_MS) : `${t('scheduleMonthName')} ${DATE_NUMS[selectedDay]}`}
             </div>
 
             <div className="schedule-timeline" style={{ height: timelineHeight }}>
@@ -638,7 +719,11 @@ export default function Schedule() {
 
         {view === 'week' && (
           <div className="schedule-week-view">
-            <div className="schedule-section-label">{t('scheduleThisWeek')} · {t('scheduleMonthName')} 20 – 26</div>
+            <div className="schedule-section-label">
+              {t('scheduleThisWeek')} · {live
+                ? `${fmt.monthDayLong(weekStartMs)} – ${fmt.monthDayLong(weekStartMs + 6 * DAY_MS)}`
+                : `${t('scheduleMonthName')} 20 – 26`}
+            </div>
             {weekRows.map((w) => (
               <button
                 key={w.i}
@@ -667,7 +752,7 @@ export default function Schedule() {
 
         {view === 'month' && (
           <div className="schedule-month-view">
-            <div className="schedule-section-label">{t('scheduleMonthName')} 2025</div>
+            <div className="schedule-section-label">{live ? fmt.monthYear(realTodayMs) : `${t('scheduleMonthName')} 2025`}</div>
             <div className="schedule-month-card">
               <div className="schedule-month-weekdays">
                 {Array.from({ length: 7 }, (_, i) => (
@@ -722,7 +807,9 @@ export default function Schedule() {
               </button>
             )}
 
-            {activeBlock.kind === 'pending' && (
+            {/* Signed in, a request is answered from Notifications (0010);
+                moving, cancelling and attendance come with the booking PR. */}
+            {activeBlock.kind === 'pending' && !live && (
               confirmBlocked ? (
                 <div className="schedule-sheet-notice schedule-sheet-notice-red">{confirmBlockedReason}</div>
               ) : (
@@ -783,9 +870,9 @@ export default function Schedule() {
         </div>
         <div className="schedule-reschedule-instructions">{t('scheduleRescheduleInstructions')}</div>
         <div className="schedule-day-strip">
-          {DATE_NUMS.map((date, i) => {
+          {dateNums.map((date, i) => {
             const isSel = i === rescheduleDaySel;
-            const isPast = i < TODAY_INDEX;
+            const isPast = i < todayIndex;
             return (
               <button
                 key={i}
