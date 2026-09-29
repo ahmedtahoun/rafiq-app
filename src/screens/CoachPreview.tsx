@@ -178,7 +178,9 @@ function CoachMissing() {
   return (
     <div className="phone-frame coach-preview-screen">
       <div className="coach-preview-missing">
-        <div className="coach-preview-missing-text">{t('discoverNoResults')}</div>
+        {/* Not a failed search: this id did not resolve, either because it
+            was never valid or because the coach is gone from the directory. */}
+        <div className="coach-preview-missing-text">{t('coachPreviewMissing')}</div>
         <button type="button" className="coach-preview-primary" onClick={() => nav('discover')}>
           {t('coachPreviewBack')}
         </button>

@@ -220,6 +220,10 @@ test('COACH PREVIEW: bad coachId', async ({ browser }) => {
   });
   await page.waitForTimeout(400);
   expect.soft(String(await count(page, '.coach-preview-missing')), 'shows not-found instead of crashing').toBe('1');
+  // An id that does not resolve is not a search that matched nothing.
+  const missing = await page.locator('.coach-preview-missing-text').innerText();
+  expect.soft(String(/match your search/i.test(missing)), '  and not the search-failed wording').toBe('false');
+  expect.soft(missing, '  says the pro is gone').toBe("This pro isn't available any more");
   expect.soft(String(errs.length), 'no errors').toBe('0');
   await ctx.close();
 });

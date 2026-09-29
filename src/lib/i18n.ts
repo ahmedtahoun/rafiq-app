@@ -707,7 +707,7 @@ const en = {
     discoverMatchesGoal: 'Matches your goal',
     discoverNoResults: 'No pros match your search',
     discoverNoCoachesTitle: 'No pros yet',
-    discoverNoCoachesBody: 'Rafiq is just getting started and pros are still signing up. Check back soon.',
+    discoverNoCoachesBody: 'Rafiq Pro is just getting started and pros are still signing up. Check back soon.',
     discoverResultCount: '{n} pros', discoverResultCountOne: '1 pro',
     discoverYearsExp: '{n} yrs exp',
     discoverAvailableToday: 'Available today',
@@ -732,6 +732,7 @@ const en = {
 
     // CoachPreview.dc.html — one pro, seen before booking.
     coachPreviewBack: 'Back to discover', coachPreviewVerified: 'Verified pro',
+    coachPreviewMissing: "This pro isn't available any more",
     coachPreviewBio: 'Helping members grow through {specialty}, backed by {years} years of hands-on experience and a warm, practical approach.',
     coachPreviewCertified: '{n}+ yrs certified',
     coachPreviewRatingStat: 'Rating', coachPreviewReviewsStat: 'Reviews', coachPreviewYearsStat: 'Years exp.', coachPreviewMembersStat: 'Members',
@@ -1710,6 +1711,7 @@ const ar: Record<MessageKey, string> = {
 
     // CoachPreview.dc.html
     coachPreviewBack: 'العودة إلى الاستكشاف', coachPreviewVerified: 'محترف موثّق',
+    coachPreviewMissing: 'هذا المحترف لم يعد متاحًا',
     coachPreviewBio: 'مساعدة الأعضاء على التطور من خلال {specialty}، بخبرة {years} سنوات عملية ونهج داعم وعملي.',
     coachPreviewCertified: 'خبرة معتمدة +{n} سنوات',
     coachPreviewRatingStat: 'التقييم', coachPreviewReviewsStat: 'التقييمات', coachPreviewYearsStat: 'سنوات الخبرة', coachPreviewMembersStat: 'الأعضاء',
