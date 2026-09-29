@@ -68,6 +68,13 @@ begin
   v_type := case when r.offering_id is null and r.price = 0 then 'intro' else 'standard' end;
   v_end  := r.requested_start + make_interval(mins => case when v_type = 'intro' then 20 else 50 end);
 
+  -- The row lock above only covers this request. Two different requests
+  -- for the same slot, accepted at the same instant (two tabs, a double
+  -- tap), would both pass the overlap check before either inserts its
+  -- block. One lock per coach, held to the end of the transaction, makes
+  -- the second accept wait and then see the first one's booking.
+  perform pg_advisory_xact_lock(hashtextextended('accept_session_request:' || r.coach_id::text, 0));
+
   if exists (
     select 1 from public.time_blocks b
     where b.coach_id = r.coach_id
