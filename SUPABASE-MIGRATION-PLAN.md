@@ -265,6 +265,185 @@ relationships through `src/store/memberStore.ts`'s `useMemberSpace()`:
   the agreement, the Full Access upgrade and standing slot) are hidden
   signed in rather than showing the demo's.
 
+## Step 3, the gap: inviting a client who has no account
+
+**Design only — the migration is Ahmed's side, then the UI is wired.**
+
+`0008` is the reason this is needed. A coach may set `clients.member_id`
+only for a member who has a pending or accepted `session_requests` row
+with that coach, because user ids are not secret (every avatar's storage
+path starts with one) and without the guard any coach could link any
+member and read their name, email and phone. The marketplace path
+satisfies it: the member asks, the coach accepts, `accept_session_request()`
+creates the roster row already linked.
+
+A coach's existing clients don't come that way. A coach adds them by hand
+in AddClient — a name and a phone number, no account — and `addClient`
+writes a walk-in row with `member_id` null. That row can never become the
+member's, however much both sides want it to: the member has no request
+to that coach and cannot make the row's owner link them. They would have
+to go to Discover, find their own coach among strangers and request a
+session they have already agreed, which is a bad flow and produces a
+second roster row.
+
+So: the coach hands out an invite, and the member claims it.
+
+### What the coach sees
+
+On a walk-in client's ClientDetail (a row with no linked account), a card
+reading roughly *"{name} hasn't joined Rafiq yet"* with **Invite to
+Rafiq**. Tapping it generates a code and offers the system share sheet
+(WhatsApp, SMS), with the code also shown to read out. Once generated,
+the card shows the code, when it expires and **Revoke**; revoking is
+immediate, and generating again replaces the old code rather than adding
+a second.
+
+A coach must not be able to claim their own invite, and the card is never
+shown on a row that already has a `member_id`.
+
+Nothing else on the roster row changes. `client_private` (the coach's
+notes and favourite flag) stays coach-only after linking, by its own
+policies — worth stating plainly, because a coach will reasonably worry
+that inviting someone exposes what they wrote about them. Tasks,
+sessions, package and payments on that row do become visible to the
+member, which is the point, so the coach should be told that in the
+sheet before the code is generated.
+
+### What the member sees
+
+Two ways in, one destination:
+
+1. **A link** (`https://rafiqpro.com/join/<code>`, once §1's domain
+   exists) — opens the app on the claim screen with the code filled in,
+   or the web app if it isn't installed.
+2. **Typing the code**, for a code read out or sent as plain text.
+   ClientHome's "No coach yet" empty state gets a second action next to
+   Discover: **I have an invite code**.
+
+Either lands on a claim screen showing the coach's name, photo and title
+— read from the `coach_directory` view by the coach id the code resolves
+to, so the member can see who they are about to link to *before*
+confirming, not after. Confirming calls the function. On success the app
+switches to that relationship (the same per-account selection MyCoaches
+already writes) and lands on ClientCoach.
+
+A member who is signed out is sent through sign-in first and returned to
+the claim, code intact. A member who already has that coach sees "You're
+already working with {coach}" rather than an error.
+
+Every failure below needs its own message; "something went wrong" on a
+code someone typed off a WhatsApp message is not enough to act on.
+
+### What the schema needs
+
+Smallest version that works — columns on `clients`, not a second table,
+since an invite belongs to exactly one roster row and dies with it:
+
+```
+alter table public.clients
+  add column invite_code       text,
+  add column invite_expires_at timestamptz,
+  add column invite_created_at timestamptz;
+
+create unique index clients_invite_code_uniq
+  on public.clients (invite_code) where invite_code is not null;
+```
+
+The code is **never** granted to `authenticated` for select — the member
+cannot read `clients` at all before linking, and the coach reads their own
+rows anyway. It is only ever returned by the generate function to the
+coach who owns the row.
+
+`0004` turned default privileges off, so every new function needs an
+explicit `grant execute ... to authenticated`, and any new column the app
+writes needs its own column grant.
+
+**Code format:** 10 characters of Crockford base32 (no I/L/O/U, so it
+survives being read aloud), ~50 bits, shown grouped as `XXXXX-XXXXX`.
+Generated with `gen_random_bytes`, never a sequence or a short numeric
+PIN: this is a bearer token, and anyone holding it becomes that client.
+**Expiry:** 14 days, and single use.
+
+### `claim_client_invite(code text)`
+
+`SECURITY DEFINER` — unavoidably, unlike `0010`'s `accept_session_request()`,
+which is `SECURITY INVOKER` because the coach genuinely holds every
+privilege it uses. Here the caller is the member, who may not select
+`clients`, may not update it, and must still set `member_id` on a row
+`0008`'s trigger is specifically written to stop them setting. So it runs
+as the owner, `set search_path = public`, and does its own authorisation.
+Everything below is a check the invoker's own policies would otherwise
+have made:
+
+In order, each with its own error code so the screen can say which:
+
+1. **Caller is signed in** — `auth.uid()` is not null. (`28000`)
+2. **Caller is a member**, not a coach: a `member_profiles` row exists,
+   or at least `profiles.role = 'client'`. A coach claiming an invite
+   would put a coach account on another coach's roster. (`42501`)
+3. **The code resolves** to exactly one `clients` row. (`P0002` — same
+   "no such thing for you" code 0010 uses.)
+4. **Not expired** — `invite_expires_at > now()`. (`22023`)
+5. **Not already claimed** — that row's `member_id` is null. A code on a
+   linked row is spent, whatever its expiry says. (`55000`)
+6. **The caller isn't the coach who owns the row** —
+   `clients.coach_id <> auth.uid()`. (`42501`)
+7. **The caller has no other row with this coach** — the
+   `clients_coach_member_uniq` index would refuse the write anyway, but
+   raising here lets the screen say "you're already working with them"
+   instead of surfacing a constraint violation. (`23505`)
+8. **Rate limit** — see below. (`53400`)
+
+Then, in one transaction: set `member_id = auth.uid()`, clear
+`invite_code`, `invite_expires_at` and `invite_created_at` so the code
+cannot be replayed, and return the `clients.id` and `coach_id` so the app
+can select that relationship and show who it linked.
+
+It must **not** create a `session_requests` row to satisfy `0008`. The
+guard returns early for a non-`authenticated` `current_user`, so a
+definer function does not trip it; faking a request to get past it would
+put a session nobody asked for on the coach's calendar.
+
+**A lookup companion:** the claim screen wants the coach's name before
+the member commits, and the member cannot read `clients`. So a second,
+read-only `SECURITY DEFINER` function — `peek_client_invite(code)` —
+returning just `coach_id`, the coach's display name and photo from
+`coach_directory`, and the roster row's `full_name` so the member can
+confirm it is really their record. It must apply checks 1–5 and the rate
+limit, and must return nothing identifying on a bad code.
+
+### The one thing that needs a decision
+
+**Rate limiting.** Both functions are online guess oracles for a bearer
+token, and `peek` is the cheaper target. 50 bits is far beyond guessing
+at any sane request rate, so the limit is defence in depth rather than
+the primary control — but without one, nothing stops a signed-in account
+grinding. Options, cheapest first:
+
+- Count failed attempts per `auth.uid()` in a rolling window inside the
+  function, in a small `client_invite_attempts` table (needs its own
+  table, grants and a cleanup job).
+- Do it at the edge instead, if Supabase's own rate limiting can be
+  pointed at an RPC.
+- Ship without it, on the strength of the entropy and the 14-day expiry,
+  and add it if abuse appears.
+
+My recommendation is the first, with a low limit (10 failures per account
+per hour) — it is maybe fifteen lines and it is the only one that
+survives the code length ever being shortened for usability, which is
+exactly the change someone will ask for.
+
+### What the app does after the migration lands
+
+`src/lib/rosterData.ts` gains `createClientInvite(clientId)` and
+`revokeClientInvite(clientId)`; `src/lib/memberData.ts` gains
+`peekInvite(code)` and `claimInvite(code)`. Both follow the module
+convention: `{ ok: true, data } | { ok: false, code, message }`, with
+`code` mapped to an i18n key at the call site. Screens touched:
+ClientDetail (the invite card), a new claim screen, and ClientHome's
+empty state. `supabase/tests/` gets a file issuing each of these as both
+roles, covering every refusal above.
+
 ## Step 4, the accept flow: `src/lib/requestData.ts`
 
 How a member and a coach who don't know each other start working together —
