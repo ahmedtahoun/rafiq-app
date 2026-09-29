@@ -1672,6 +1672,18 @@ export function getBlockStatus(clientId: string): BlockStatus {
   });
 }
 
+/** One side's own block, on or off — the demo's counterpart of 0014's
+    set_relationship_block(). Neither side can lift the other's. */
+export function setBlockStatus(clientId: string, side: MessageRole, blocked: boolean): BlockStatus {
+  const current = getBlockStatus(clientId);
+  const next: BlockStatus = side === 'pro'
+    ? { ...current, blockedByPro: blocked }
+    : { ...current, blockedByMember: blocked };
+  next.blockedAtMs = next.blockedByMember || next.blockedByPro ? (current.blockedAtMs ?? Date.now()) : null;
+  writeLocal(`block_${clientId}`, next);
+  return next;
+}
+
 export function isRelationshipBlocked(clientId: string): boolean {
   const status = getBlockStatus(clientId);
   return status.blockedByMember || status.blockedByPro;
