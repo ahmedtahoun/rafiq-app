@@ -105,12 +105,28 @@ where data goes, grep the copy.
 under a `rafiq_` prefix, written as drop-in Supabase seams. `directory.ts`
 is the same for the marketplace side.
 
-**Calendar maths runs on a fixed fictional week, not the wall clock.**
+**Signed out, calendar maths runs on a fixed fictional week.**
 `TODAY_MS = Date.UTC(2025, 9, 22)` — Wednesday 22 October 2025.
 `WEEK_START_MS` is two days earlier, so the visible week is Mon 20 – Sun 26
-and today sits at index 2. Screens hardcode `const TODAY_INDEX = 2`
-locally. Anything date-dependent must anchor to these, or it drifts with
-the real date and the seeded demo data stops making sense.
+and today sits at index 2. Screens still on the demo clock hardcode
+`const TODAY_INDEX = 2` locally. Anything date-dependent on that path must
+anchor to these, or it drifts with the real date and the seeded demo data
+stops making sense.
+
+**Signed in, the converted screens are on the real clock** — the coach's
+roster and Schedule, AddTimeBlock, the member's space, and the accept
+flow. They take "today" from `wallTodayMs()` or their store's `todayMs`,
+and the week from `weekdayOf(todayMs)`, never `TODAY_INDEX`. Which screens
+are still on the demo clock is one grep: `TODAY_INDEX` (ClientSchedule,
+ClientBooking and CoachPreview move with the member's own calendar,
+SUPABASE-MIGRATION-PLAN.md step 4).
+
+**One month grid, `getMonthGrid()`.** Both arguments default to the demo
+week, so a screen on the fixed clock calls it bare and a real one passes
+`(todayMs, weekStartMs)`. They are separate on purpose: a real week
+straddles a month boundary twice a year, and then which month to draw and
+which seven days are live disagree. There were three implementations of
+this grid at one point — don't add a fourth.
 
 **Display every date and time through `src/lib/format.ts`.** Calendar
 values are built with `Date.UTC`, so their UTC fields *are* the wall-clock

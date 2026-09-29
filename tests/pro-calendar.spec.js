@@ -66,10 +66,10 @@ test('Schedule: the month grid agrees with the one the store derives', async ({ 
   );
   const derived = await store(page, `(m) => m.getMonthGrid().map(c => ({ day: c.day, inMonth: c.inMonth }))`);
 
-  // Schedule still carries a hand-written month literal while the store
-  // derives the same grid from the fixed week. mockStore's own comment says
-  // Schedule should move onto getMonthGrid(); until it does, this is what
-  // stops the two drifting apart unnoticed.
+  // Schedule renders getMonthGrid() now rather than its own literal, so
+  // this no longer guards two sources against each other. It still earns
+  // its place: it proves the screen renders every cell the grid produces,
+  // in order, and marks the same ones as out-of-month.
   expect.soft(rendered.length, 'same number of cells as the derived grid').toBe(derived.length);
   expect.soft(rendered.map((c) => c.day), 'same day numbers, in the same order')
     .toEqual(derived.map((c) => c.day));
@@ -294,4 +294,43 @@ test('Calendar screens render in Arabic and dark without raw keys', async ({ bro
     expect.soft(errs, `${screen}: no page errors`).toEqual([]);
     await ctx.close();
   }
+});
+
+/**
+ * getMonthGrid's two arguments exist for one reason: a real week straddles
+ * a month boundary twice a year, and then "which month to draw" and "which
+ * seven days are live" disagree. Schedule passes today and the week start
+ * separately for exactly this. Asserted on the function rather than a
+ * screen, because reaching it through the UI needs the clock on one of the
+ * few weeks a year where it happens.
+ */
+test('getMonthGrid: a week straddling a month boundary draws the right month', async ({ browser }) => {
+  const { page, ctx } = await open(browser);
+
+  // Wed 1 Oct 2025. The week starts Mon 29 Sep — in September.
+  const grid = await store(page, `(m) => m.getMonthGrid(Date.UTC(2025, 9, 1), Date.UTC(2025, 8, 29))`);
+
+  const inMonth = grid.filter((c) => c.inMonth);
+  expect.soft(inMonth.length, 'October has 31 days in the month').toBe(31);
+  expect.soft(inMonth[0].day, 'the month drawn is October, not September').toBe(1);
+  expect.soft(grid[0].day, '  and it opens on Mon 29 Sep').toBe(29);
+  expect.soft(grid[0].inMonth, '  which is outside the month').toBe(false);
+
+  // The live week spans the boundary: 29, 30 Sep then 1-5 Oct.
+  const live = grid.filter((c) => c.dayIndex !== null);
+  expect.soft(live.length, 'seven live days').toBe(7);
+  expect.soft(live.map((c) => c.day), '  spanning the boundary').toEqual([29, 30, 1, 2, 3, 4, 5]);
+  expect.soft(live.map((c) => c.dayIndex), '  indexed Monday-first from the week start')
+    .toEqual([0, 1, 2, 3, 4, 5, 6]);
+
+  // Whole Monday-start weeks, always.
+  expect.soft(grid.length % 7, 'grid is whole weeks').toBe(0);
+
+  // Called with no arguments it is the demo week's October, unchanged.
+  const demo = await store(page, `(m) => m.getMonthGrid()`);
+  expect.soft(demo.length, 'the demo grid is five weeks').toBe(35);
+  expect.soft(demo.filter((c) => c.dayIndex !== null).map((c) => c.day), '  live week is Oct 20-26')
+    .toEqual([20, 21, 22, 23, 24, 25, 26]);
+
+  await ctx.close();
 });
