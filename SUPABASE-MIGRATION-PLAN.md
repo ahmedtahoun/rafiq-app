@@ -94,7 +94,11 @@ Matches LAUNCH-CHECKLIST.md §2's own list, expanded with why:
    for a member with a pending or accepted session request to that coach
    (`0008`); a coach can't attach an arbitrary account. Walk-in rows
    (`member_id` null) are unaffected.
-4. **Scheduling** — `time_blocks`, depends on real clients existing.
+4. **Scheduling** — `time_blocks`, depends on real clients existing. In
+   two parts: ✅ the accept flow (a member asks a real coach for a first
+   session and the coach accepts, which is how a relationship starts), then
+   the calendar itself (Schedule, booking and rescheduling between people
+   already working together, attendance).
 5. **Messaging** — depends on real clients; also where Realtime
    subscriptions replace `mockStore`'s "read on every render" pattern,
    which is where the loading/empty/error work above matters most (a
@@ -254,12 +258,53 @@ relationships through `src/store/memberStore.ts`'s `useMemberSpace()`:
   sessions, a booked one). Signed in, it used to read the demo member's,
   which always has sessions left.
 - **Still the demo member's, signed in:** Schedule and Booking (step 4),
-  Messages (step 5), Notifications, Programs, RateCoach and Discover
-  (step 6). Each reads `DEMO_MEMBER_CLIENT_ID` from mockStore with a note
+  Messages (step 5), Notifications, Programs and RateCoach (step 6), and
+  Discover's goal matching — Discover's coaches are real since step 4. Each reads `DEMO_MEMBER_CLIENT_ID` from mockStore with a note
   naming its step, so what's left is one grep. The pieces of converted
   screens that belong to those steps (milestones, the live-session badge,
   the agreement, the Full Access upgrade and standing slot) are hidden
   signed in rather than showing the demo's.
+
+## Step 4, the accept flow: `src/lib/requestData.ts`
+
+How a member and a coach who don't know each other start working together —
+until this, no real member could ever get a coach:
+
+- **The coach sets their hours** (Availability) on `weekly_availability`,
+  one row per weekday, inserted the first time a day is saved. Members book
+  from these hours; they're wall-clock hours, read in each viewer's own
+  time zone (below).
+- **The member finds them** (Discover) in the `coach_directory` view: real
+  coaches only, never the demo's eight or its sample stories. "Available
+  today / this week" comes from the coach's hours; fewer than
+  `MIN_REVIEWS_FOR_RATING` reviews reads "New", and a coach with only free
+  offerings reads "Free". Matching the member's own goal is still the demo
+  member's (step 6), so signed in it is off.
+- **The member asks** (CoachPreview): the coach's active offerings plus the
+  design's free intro call, and slots on the hour through the coach's hours
+  for the next three weeks, none in the past. Sending inserts a
+  `session_requests` row; the one open request per coach (0005's unique
+  index) means an earlier one is withdrawn first, so a new time replaces
+  it. Members can't see a coach's bookings, so no slot shows as taken —
+  accepting refuses a clash instead. MyCoaches lists open requests; one
+  opens that coach again.
+- **The coach answers** (Notifications, and the dot on Home's bell): each
+  waiting request opens a sheet with Accept and Decline. Declining is an
+  update, limited to a still-pending row. Accepting is **`0010`'s
+  `accept_session_request()`**: one transaction that marks the request
+  accepted, creates the member's roster row (or brings back an archived
+  one), books the block on the coach's calendar and the session on the
+  relationship (`sessions.time_block_id`, new in 0010, ties the two for the
+  calendar work next), and sets the row's next session. It is `SECURITY
+  INVOKER`, so every policy and trigger that guards those tables for the
+  app's own writes applies to it too. It refuses a request that isn't the
+  caller's (P0002), isn't pending (55000), whose time has passed (22023),
+  or that overlaps a booked session (23P01); the sheet says which.
+  `supabase/tests/13_accept_flow.sql` covers each, as the coach and member.
+- **Time zones:** weekly hours carry no zone. A coach in Cairo and a member
+  in Dubai each read "9–5" in their own zone, an hour apart. Fine while
+  both sides are in one country; storing the coach's zone is the fix when
+  that stops being true.
 
 ## Testing this kind of code
 

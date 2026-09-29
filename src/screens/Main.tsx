@@ -40,6 +40,9 @@ import {
   type Client,
   type NavTarget,
 } from '../lib/mockStore';
+import { useRemoteSession } from '../lib/remoteSession';
+import { fetchIncomingRequests } from '../lib/requestData';
+import { useRemoteLoad } from '../store/remoteLoad';
 import './Main.css';
 
 // Fixed demo week — Main.dc.html hardcodes this same data directly inside
@@ -120,6 +123,8 @@ export default function Main() {
   const nav = useAppStore((s) => s.nav);
   const isAr = lang === 'ar';
 
+  const remote = useRemoteSession();
+  const incomingRequests = useRemoteLoad('incoming_requests', remote, fetchIncomingRequests);
   const [showNudgeSheet, setShowNudgeSheet] = useState(false);
   // Bumped after any mutation (mark paid, remind/nudge, follow-up) to
   // force the derived data below to recompute from localStorage —
@@ -138,7 +143,11 @@ export default function Main() {
     ? Math.round(activeRoster.reduce((sum, c) => sum + c.progress, 0) / activeRoster.length)
     : 0;
 
-  const hasUnreadNotifications = getProNotifications().some((n) => n.unread);
+  // Signed in, what needs the coach is session requests waiting on an answer
+  // (Notifications lists them); the demo's feed otherwise.
+  const hasUnreadNotifications = remote
+    ? incomingRequests.status === 'ready' && incomingRequests.data.length > 0
+    : getProNotifications().some((n) => n.unread);
 
   // --- This Week bar chart -------------------------------------------------
   const maxCount = Math.max(...WEEK_DATA.map((d) => d.count));

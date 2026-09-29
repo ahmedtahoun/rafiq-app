@@ -52,17 +52,21 @@ as done below, when signed in; every other screen still reads and writes
       sessions → scheduling → messaging → the rest.
       Done: admin queues, profile and onboarding, and the coach's roster
       (Members, member detail with tasks/sessions/package/payments, add/edit
-      member, add task), and the member's Home, Tasks, My Pros, coach page
-      and profile. Still on `mockStore` when signed in: the coach's Home,
-      Profile stats, Earnings' totals, Schedule and Messages, and the member
-      screens listed under the demo identities below.
+      member, add task), the member's Home, Tasks, My Pros, coach page
+      and profile, and the accept flow (the coach's weekly hours, Discover,
+      a coach's page and the request a member sends from it, the coach
+      accepting or declining it in Notifications). Still on `mockStore`
+      when signed in: the coach's Home (apart from the bell), Profile stats,
+      Earnings' totals, Schedule and Messages, and the member screens listed
+      under the demo identities below.
 - [ ] 🔴 **Remove the demo identities.** 14 member screens hardcoded
       `const CLIENT_ID = 'sara'`, and the Pro side is the seeded
       `DEFAULT_PRO_ID = 'pro-yasmin'`. Both must come from the signed-in user.
       Done for the coach's roster and the member's Home, Tasks, My Pros,
       coach page and profile (SUPABASE-MIGRATION-PLAN.md, step 3). Left:
       the member screens still on `DEMO_MEMBER_CLIENT_ID` (scheduling,
-      messaging, programs, ratings, notifications, discovery).
+      messaging, programs, ratings, notifications, and Discover's goal
+      matching).
 - [ ] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,
       the 8 fictional `DIRECTORY_COACHES`, and any other `DEFAULT_*` seed.
@@ -78,7 +82,9 @@ as done below, when signed in; every other screen still reads and writes
 - [ ] 🟡 Discover and coach profiles read the `coach_directory` and
       `coach_reviews` views. The views sign reviews with a **first name and
       last initial**; the app currently shows the reviewer's full name
-      publicly — that must go.
+      publicly — that must go. Half done: signed in, Discover and a coach's
+      page read `coach_directory` (and show a review count, no review
+      text); `coach_reviews` is still to do.
 - [ ] 🟡 Messaging updates live (Supabase Realtime on `messages`).
 - [x] 🟡 Profile and cover photo upload through `src/lib/storage.ts` to the
       private `avatars` / `covers` buckets.

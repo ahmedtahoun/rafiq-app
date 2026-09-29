@@ -82,7 +82,8 @@ export interface DirectoryCoach {
   /** Full country name, as COUNTRIES stores it (not an ISO code). */
   country: string;
   languages: string[];
-  availability: Availability;
+  /** null: a real coach who hasn't set any weekly hours yet. */
+  availability: Availability | null;
   verified?: boolean;
   featured?: boolean;
 }
@@ -208,7 +209,7 @@ export function filterCoaches(
       if (filters.minRating && c.rating < filters.minRating) return false;
       if (filters.country && c.country !== filters.country) return false;
       if (filters.availability !== 'all'
-        && AVAILABILITY_RANK[c.availability] > AVAILABILITY_RANK[filters.availability]) return false;
+        && (c.availability === null || AVAILABILITY_RANK[c.availability] > AVAILABILITY_RANK[filters.availability])) return false;
       if (filters.language && !c.languages.includes(filters.language)) return false;
       if (filters.minYears && c.years < filters.minYears) return false;
       return true;

@@ -188,3 +188,61 @@
   font-size: 12.5px;
   color: var(--ink-soft);
 }
+
+/* What just happened to a request the coach answered. */
+.notifications-banner {
+  background: var(--green-bg);
+  color: var(--green);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+/* The accept / decline sheet for a session request. */
+.notifications-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notifications-sheet-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  font-size: 13.5px;
+}
+
+.notifications-sheet-label {
+  color: var(--ink-soft);
+  min-width: 0;
+}
+
+.notifications-sheet-error {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--red);
+  line-height: 1.4;
+}
+
+.notifications-sheet-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.notifications-sheet-btn {
+  flex: 1;
+  text-align: center;
+  border-radius: 14px;
+  padding: 13px;
+  font-size: 13.5px;
+  font-weight: 700;
+  min-height: 44px;
+}
+
+.notifications-sheet-btn.is-neutral { background: var(--line); color: var(--ink); }
+.notifications-sheet-btn.is-accent { background: var(--accent); color: #FFFFFF; }
+.notifications-sheet-btn:disabled { opacity: 0.6; cursor: default; }
