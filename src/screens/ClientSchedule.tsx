@@ -8,6 +8,14 @@ import {
   SearchIcon, HomeIcon, ProgramsIcon, TasksIcon, PersonIcon,
 } from '../components/icons';
 import { BottomNav, type BottomNavItem } from '../components/BottomNav';
+import { LoadState } from '../components/LoadState';
+import { NoCoachYet } from '../components/NoCoachYet';
+import { useRemoteSession } from '../lib/remoteSession';
+import { withdrawSessionRequest } from '../lib/requestData';
+import { fetchMemberSchedule, memberCancelSession, type MemberSchedule } from '../lib/memberScheduleData';
+import { wallNowMs } from '../lib/wallClock';
+import { useMemberSpace, useMemberStore, type MemberRelationshipView } from '../store/memberStore';
+import { useRemoteLoad } from '../store/remoteLoad';
 import {
   DEMO_MEMBER_CLIENT_ID,
   getClient, getCoachProfile, getCustomBlocks, getAvailabilityForDayIndex,
@@ -19,8 +27,8 @@ import {
 } from '../lib/mockStore';
 import './ClientSchedule.css';
 
-// Still the demo member's, signed in or not, until scheduling (step 4) moves to
-// Supabase (SUPABASE-MIGRATION-PLAN.md) — see DEMO_MEMBER_CLIENT_ID.
+// Signed out, the demo member's. Signed in, the screen is
+// LiveClientSchedule below (SUPABASE-MIGRATION-PLAN.md step 4, part 4).
 const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
 // Same fixed fictional week every other screen's calendar math anchors to:
 // Wednesday is "today", so Mon/Tue have already passed.
@@ -46,13 +54,69 @@ function hourLabel(h: number, am: string, pm: string): string {
   return `${hh}:${String(mins).padStart(2, '0')} ${period}`;
 }
 
-export default function ClientSchedule() {
+function useNavItems(): BottomNavItem[] {
   const t = useT();
-  const fmt = useFormat();
+  return [
+    { key: 'discover', label: t('discoverNav'), icon: SearchIcon, screen: 'discover' },
+    { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'clientHome' },
+    { key: 'programs', label: t('myProgramsNav'), icon: ProgramsIcon, screen: 'myPrograms' },
+    { key: 'tasks', label: t('clientTasksNav'), icon: TasksIcon, screen: 'clientTasks' },
+    { key: 'schedule', label: t('clientScheduleNav'), icon: ScheduleIcon, screen: 'clientSchedule' },
+    { key: 'coach', label: t('clientCoachNav'), icon: PersonIcon, screen: 'clientCoach' },
+  ];
+}
+
+/** The title, whose sessions these are, and the language and theme toggles. */
+function HeroTop({ coachName }: { coachName: string | null }) {
+  const t = useT();
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
   const dark = useAppStore((s) => s.dark);
   const setDark = useAppStore((s) => s.setDark);
+  const isAr = lang === 'ar';
+  return (
+    <div className="client-schedule-hero-top">
+      <div>
+        <h1 className="client-schedule-title">{t('clientScheduleTitle')}</h1>
+        {coachName && <div className="client-schedule-subtitle">{t('clientScheduleWithCoach', { coach: coachName })}</div>}
+      </div>
+      <div className="client-schedule-hero-actions">
+        <button
+          type="button"
+          className="client-schedule-hero-btn"
+          aria-label={t('switchLanguage')}
+          onClick={() => setLang(isAr ? 'en' : 'ar')}
+        >
+          {isAr ? 'EN' : 'ع'}
+        </button>
+        <button
+          type="button"
+          className="client-schedule-hero-btn"
+          aria-label={t('toggleDarkMode')}
+          onClick={() => setDark(!dark)}
+        >
+          {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default function ClientSchedule() {
+  const remote = useRemoteSession();
+  const space = useMemberSpace();
+  if (!remote) return <DemoClientSchedule />;
+  if (space.status === 'loading') return <LoadState status="loading" />;
+  if (space.status === 'error') return <LoadState status="error" onRetry={space.retry} />;
+  if (!space.remote) return <DemoClientSchedule />;
+  // Keyed by relationship, so switching coach in My Pros starts clean.
+  return <LiveClientSchedule key={space.current?.clientId ?? 'none'} rel={space.current} />;
+}
+
+function DemoClientSchedule() {
+  const t = useT();
+  const fmt = useFormat();
+  const lang = useAppStore((s) => s.lang);
   const nav = useAppStore((s) => s.nav);
   const isAr = lang === 'ar';
 
@@ -217,42 +281,12 @@ export default function ClientSchedule() {
     refresh();
   }
 
-  const navItems: BottomNavItem[] = [
-    { key: 'discover', label: t('discoverNav'), icon: SearchIcon, screen: 'discover' },
-    { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'clientHome' },
-    { key: 'programs', label: t('myProgramsNav'), icon: ProgramsIcon, screen: 'myPrograms' },
-    { key: 'tasks', label: t('clientTasksNav'), icon: TasksIcon, screen: 'clientTasks' },
-    { key: 'schedule', label: t('clientScheduleNav'), icon: ScheduleIcon, screen: 'clientSchedule' },
-    { key: 'coach', label: t('clientCoachNav'), icon: PersonIcon, screen: 'clientCoach' },
-  ];
+  const navItems = useNavItems();
 
   return (
     <div className="phone-frame client-schedule-screen">
       <div className="client-schedule-hero" style={{ background: heroGrad }}>
-        <div className="client-schedule-hero-top">
-          <div>
-            <h1 className="client-schedule-title">{t('clientScheduleTitle')}</h1>
-            <div className="client-schedule-subtitle">{t('clientScheduleWithCoach', { coach: coachName })}</div>
-          </div>
-          <div className="client-schedule-hero-actions">
-            <button
-              type="button"
-              className="client-schedule-hero-btn"
-              aria-label={t('switchLanguage')}
-              onClick={() => setLang(isAr ? 'en' : 'ar')}
-            >
-              {isAr ? 'EN' : 'ع'}
-            </button>
-            <button
-              type="button"
-              className="client-schedule-hero-btn"
-              aria-label={t('toggleDarkMode')}
-              onClick={() => setDark(!dark)}
-            >
-              {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}
-            </button>
-          </div>
-        </div>
+        <HeroTop coachName={coachName} />
 
         {hasUpcoming ? (
           <div className="client-schedule-upcoming">
@@ -454,6 +488,213 @@ export default function ClientSchedule() {
                 onClick={confirmReschedule}
               >
                 {t('clientScheduleConfirmNewTime')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <BottomNav items={navItems} />
+    </div>
+  );
+}
+
+const ATTENDANCE_NOTE_KEYS: Partial<Record<string, MessageKey>> = {
+  no_show: 'clientScheduleMissedNote',
+  disputed: 'clientScheduleDisputedNote',
+};
+
+/**
+ * Signed in: this relationship's real sessions (memberScheduleData.ts).
+ * The next booked session, or else the open request to this coach; the
+ * sessions that have happened; cancelling a booked one (0016), or
+ * withdrawing the request. Moving one, joining the session room and rating
+ * a session aren't real yet, so they aren't offered.
+ */
+function LiveClientSchedule({ rel }: { rel: MemberRelationshipView | null }) {
+  const t = useT();
+  const fmt = useFormat();
+  const nav = useAppStore((s) => s.nav);
+  const navItems = useNavItems();
+  const heroGrad = `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 40)} 100%)`;
+  const coachId = rel?.coach.id ?? null;
+
+  const load = useRemoteLoad<MemberSchedule>(`member-schedule:${rel?.clientId ?? ''}`, !!rel && !!coachId, async () => {
+    const result = await fetchMemberSchedule(rel!.clientId, coachId!);
+    return result.ok ? { ok: true, data: result.data } : { ok: false };
+  });
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<MessageKey | null>(null);
+
+  if (!rel || !coachId) {
+    return (
+      <div className="phone-frame client-schedule-screen">
+        <div className="client-schedule-hero" style={{ background: heroGrad }}>
+          <HeroTop coachName={null} />
+        </div>
+        <div className="client-schedule-scroll">
+          <NoCoachYet />
+        </div>
+        <BottomNav items={navItems} />
+      </div>
+    );
+  }
+  if (load.status === 'loading') return <LoadState status="loading" />;
+  if (load.status === 'error') return <LoadState status="error" onRetry={load.retry} />;
+
+  const { upcoming, request, history } = load.data;
+  const coachName = rel.coach.name;
+  // A booked session first; a request waiting on the coach otherwise.
+  const shown = upcoming ?? request;
+  const isPending = !upcoming && !!request;
+  const sessionTypeLabel = shown ? t(TYPE_LABEL_KEYS[getSessionTypeInfo(shown.sessionType).key]) : '';
+
+  // Cancelling inside the grace window uses a package credit — 0016 does
+  // that when one is left and the session isn't a free intro, so the
+  // confirmation says so only then.
+  const graceHours = getCancellationPolicy().graceHours;
+  const hoursUntil = upcoming ? (upcoming.startWallMs - wallNowMs()) / 3600000 : null;
+  const cancelForfeitsCredit = !!upcoming && hoursUntil != null && hoursUntil < graceHours
+    && upcoming.sessionType !== 'intro' && !!rel.pkg && rel.pkg.remaining > 0;
+
+  function openCancel() {
+    setCancelError(null);
+    setShowCancelConfirm(true);
+  }
+
+  async function confirmCancel() {
+    if (cancelling || load.status !== 'ready') return;
+    setCancelling(true);
+    setCancelError(null);
+    let error: MessageKey | null = null;
+    if (upcoming) {
+      const result = await memberCancelSession(upcoming.sessionId);
+      if (!result.ok) error = result.code === 'gone' ? 'scheduleBookingGone' : result.code === 'passed' ? 'scheduleSessionStarted' : 'requestFailedRetry';
+    } else if (request) {
+      const result = await withdrawSessionRequest(request.id);
+      if (!result.ok) error = result.code === 'gone' ? 'notificationsRequestGone' : 'requestFailedRetry';
+    }
+    setCancelling(false);
+    if (error) {
+      setCancelError(error);
+      // Changed elsewhere: re-read, so what's shown is what's there.
+      if (error !== 'requestFailedRetry') void load.reload();
+      return;
+    }
+    setShowCancelConfirm(false);
+    load.set(upcoming ? { ...load.data, upcoming: null } : { ...load.data, request: null });
+    // The next session, if any, and Home's next session and package.
+    void load.reload();
+    const member = useMemberStore.getState();
+    if (member.userId) void member.refresh(member.userId);
+  }
+
+  return (
+    <div className="phone-frame client-schedule-screen">
+      <div className="client-schedule-hero" style={{ background: heroGrad }}>
+        <HeroTop coachName={coachName} />
+
+        {shown ? (
+          <div className="client-schedule-upcoming">
+            <button type="button" className="client-schedule-upcoming-card" onClick={() => nav('clientCoach')}>
+              <span className="client-schedule-upcoming-icon">
+                <ScheduleIcon size={20} color="#FFFFFF" />
+              </span>
+              <span className="client-schedule-upcoming-body">
+                <span className="client-schedule-upcoming-head">
+                  <span className="client-schedule-upcoming-label">{t('clientScheduleUpcoming')}</span>
+                  <span className={`client-schedule-status client-schedule-status-${isPending ? 'pending' : 'confirmed'}`}>
+                    {isPending ? t('clientSchedulePending') : t('clientScheduleConfirmed')}
+                  </span>
+                </span>
+                <span className="client-schedule-upcoming-when">
+                  <bdi>{fmt.slot(shown.startWallMs)}</bdi>
+                </span>
+                <span className="client-schedule-upcoming-type">{sessionTypeLabel}</span>
+              </span>
+              <span className="client-schedule-upcoming-chevron">
+                <ArrowForwardIcon size={16} color="#FFFFFF" />
+              </span>
+            </button>
+
+            <div className="client-schedule-actions">
+              <button type="button" className="client-schedule-action" onClick={openCancel}>
+                {isPending ? t('clientScheduleWithdrawRequest') : t('clientScheduleCancelSession')}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="client-schedule-empty-upcoming">
+            <span className="client-schedule-empty-icon">
+              <ScheduleIcon size={20} color="#FFFFFF" />
+            </span>
+            <div className="client-schedule-empty-title">{t('clientScheduleNoUpcomingTitle')}</div>
+            <div className="client-schedule-empty-sub">{t('clientScheduleNoUpcomingSub')}</div>
+          </div>
+        )}
+      </div>
+
+      <div className="client-schedule-scroll">
+        <div className="client-schedule-section">
+          <h2 className="client-schedule-h2">{t('clientScheduleHistory')}</h2>
+          {history.length > 0 ? (
+            history.map((s) => {
+              const noteKey = s.attendance ? ATTENDANCE_NOTE_KEYS[s.attendance] : undefined;
+              return (
+                <div key={s.id} className="client-schedule-history-row">
+                  <span className={`client-schedule-history-icon${noteKey ? ' client-schedule-history-icon-amber' : ''}`}>
+                    {noteKey ? <WarningIcon size={16} color="var(--amber)" /> : <CheckIcon size={16} color="var(--green)" />}
+                  </span>
+                  <div className="client-schedule-history-body">
+                    <div className="client-schedule-history-date"><bdi>{fmt.date(s.atWallMs)}</bdi></div>
+                    <div className="client-schedule-history-note">
+                      <bdi>{s.recap.trim() || t(noteKey ?? 'clientScheduleDefaultNote')}</bdi>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="client-schedule-no-history">{t('clientScheduleNoHistory')}</div>
+          )}
+        </div>
+
+        {/* The coach's own page books a real request: their hours, their
+            offerings, one open request at a time. */}
+        <button
+          type="button"
+          className="client-schedule-request"
+          onClick={() => nav({ screen: 'coachPreview', params: { coachId } })}
+        >
+          {t('clientScheduleRequestSession')}
+        </button>
+      </div>
+
+      {showCancelConfirm && (
+        <div className="client-schedule-overlay">
+          <div className="client-schedule-dialog" role="dialog" aria-modal="true">
+            <span className="client-schedule-dialog-icon">
+              <WarningIcon size={20} color="var(--red)" />
+            </span>
+            <div className="client-schedule-dialog-title">
+              {isPending ? t('clientScheduleWithdrawTitle') : t('clientScheduleConfirmTitle')}
+            </div>
+            <p className="client-schedule-dialog-body">
+              {isPending ? t('clientScheduleWithdrawBody', { coach: coachName }) : t('clientScheduleConfirmBody', { coach: coachName })}
+            </p>
+            {cancelForfeitsCredit && (
+              <p className="client-schedule-dialog-warn">{t('clientScheduleConfirmForfeit', { hours: graceHours })}</p>
+            )}
+            {cancelError && <p className="client-schedule-dialog-warn" role="alert">{t(cancelError)}</p>}
+            <div className="client-schedule-dialog-actions">
+              {/* Disabled while the cancel is on its way, so its answer
+                  always lands in this dialog. */}
+              <button type="button" className="client-schedule-dialog-keep" disabled={cancelling} onClick={() => setShowCancelConfirm(false)}>
+                {t('clientScheduleKeepSession')}
+              </button>
+              <button type="button" className="client-schedule-dialog-cancel" disabled={cancelling} onClick={() => void confirmCancel()}>
+                {t('clientScheduleYesCancel')}
               </button>
             </div>
           </div>

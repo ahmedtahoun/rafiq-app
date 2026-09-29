@@ -357,9 +357,27 @@ In small PRs, so each can be reviewed on its own:
    dispute come with payments (§3). A missed session no longer counts as
    one held on the member's side. Only this week's sessions can be marked,
    since Schedule shows one week.
-4. **The member's own Schedule** and Booking between people already
-   working together — including the member's side of moving and
-   cancelling.
+4. ✅ **The member's own Schedule** (`src/lib/memberScheduleData.ts`).
+   Signed in, Sessions is the member's own sessions with the coach they're
+   viewing: the next booked one (its length and type from its block), or
+   else their open request to that coach, and the sessions that have
+   happened, newest first, with the coach's recap — a missed or disputed
+   one says so, a cancelled one isn't listed. They can cancel a booked
+   session with 0016's `member_cancel_session()`: the member's side of
+   `cancel_booking()`, recorded as theirs, and with less than 12 hours'
+   notice it uses one package credit when one is left (never for a free
+   intro), as the demo's `cancelBooking()` does; the confirmation says so
+   only then. The coach is told by 0011's trigger. A member may not update
+   a session or delete a block themselves (0005), so this one is `SECURITY
+   DEFINER` and checks the caller is the member on that relationship. A
+   request is withdrawn as MyCoaches already does. "Request a session"
+   opens the coach's own page (CoachPreview), which sends a real request
+   an existing pair's coach accepts like any other; the demo's booking
+   screen, with its 25-minute type that 0010 doesn't book, stays the
+   demo's. Moving, joining the session room and rating a session aren't
+   offered signed in yet.
+5. **The member moving a session**, and the booking screen's other entry
+   points (Home, the coach page, programs).
 
 ## Testing this kind of code
 

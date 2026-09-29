@@ -866,6 +866,10 @@ const en = {
     clientScheduleDefaultNote: 'Session completed',
     clientScheduleJoinSession: 'Join Session', clientScheduleRejoinSession: 'Rejoin session',
     clientScheduleNav: 'Sessions',
+    clientScheduleWithdrawRequest: 'Withdraw request',
+    clientScheduleWithdrawTitle: 'Withdraw this request?',
+    clientScheduleWithdrawBody: "{coach} won't see it any more. You can send a new one anytime.",
+    clientScheduleMissedNote: 'Missed session', clientScheduleDisputedNote: 'Attendance disputed',
 
     clientTasksTitle: 'My Tasks', clientTasksFromCoach: 'From {coach}',
     clientTasksHowFeeling: 'How are you feeling today?',
@@ -1847,6 +1851,10 @@ const ar: Record<MessageKey, string> = {
     clientScheduleDefaultNote: 'تم إكمال الجلسة',
     clientScheduleJoinSession: 'الانضمام للجلسة', clientScheduleRejoinSession: 'العودة للجلسة',
     clientScheduleNav: 'الجلسات',
+    clientScheduleWithdrawRequest: 'سحب الطلب',
+    clientScheduleWithdrawTitle: 'سحب هذا الطلب؟',
+    clientScheduleWithdrawBody: 'لن يراه {coach} بعد الآن. يمكنك إرسال طلب جديد في أي وقت.',
+    clientScheduleMissedNote: 'جلسة فائتة', clientScheduleDisputedNote: 'الحضور محل نزاع',
 
     clientTasksTitle: 'مهامي', clientTasksFromCoach: 'من {coach}',
     clientTasksHowFeeling: 'كيف تشعرين اليوم؟',
