@@ -265,6 +265,50 @@ relationships through `src/store/memberStore.ts`'s `useMemberSpace()`:
   the agreement, the Full Access upgrade and standing slot) are hidden
   signed in rather than showing the demo's.
 
+## Step 3, the gap: inviting a client who has no account
+
+`0008` lets a coach set `clients.member_id` only for a member who has a
+pending or accepted `session_requests` row with them — user ids are not
+secret, so without that guard any coach could link any member and read
+their name, email and phone. The marketplace path satisfies it. A coach's
+existing clients do not: `AddClient` writes a walk-in row with `member_id`
+null, and nothing could ever link it.
+
+`0013` turns it around. The coach issues a bearer code on the walk-in row
+and the *member* claims it, so nobody is linked without holding the code.
+
+- **The coach** sees an invite card on a walk-in row (ClientDetail,
+  signed in only — there are no accounts to link on the demo path). It
+  issues a code, shows when it expires, copies it, and revokes it.
+  Generating again replaces the old one. The card is hidden once the row
+  has a `member_id`, and on an archived row.
+- **The member** reaches the claim screen from ClientHome's "no coach
+  yet" state — the only place a member with no relationship lands. It is
+  two steps, not one: they cannot read `clients`, so `peek_client_invite`
+  names the coach and the record *before* they confirm. Confirming blind
+  would mean linking to a stranger's row on the strength of a string
+  someone sent them. On success the app selects that relationship, the
+  way MyCoaches does, and opens on the coach.
+- **Every refusal has its own line.** `not_found`, `expired`,
+  `already_used`, `own_invite`, `already_linked` (which names the coach,
+  since peek resolves it anyway), `rate_limited`, `not_a_member`. A code
+  typed off a WhatsApp message deserves better than "something went
+  wrong". A code can also be spent between the peek and the confirm, so a
+  refusal at that point returns the member to the field with the reason
+  rather than dead-ending.
+- **Both functions return their refusals in the payload** rather than
+  raising, because a raised error would roll back the rate-limit attempt
+  they just counted. So a call can succeed at the transport level and
+  still carry a refusal; `rosterData.ts` and `memberData.ts` fold that
+  into the usual `{ ok: false, code: 'refused', message }`, and the
+  screens map `message` to a key. It is never rendered raw.
+- **`client_private` stays coach-only** after linking, by its own
+  policies. The card says so before the coach generates anything: tasks,
+  sessions, package and payments do become visible, private notes do not.
+
+`tests/client-invite.spec.js` covers both sides, including every refusal
+and the rate limit.
+
 ## Step 4, the accept flow: `src/lib/requestData.ts`
 
 How a member and a coach who don't know each other start working together —

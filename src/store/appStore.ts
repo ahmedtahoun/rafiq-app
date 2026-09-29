@@ -49,7 +49,7 @@ export type Screen =
   | 'clientCoach' | 'clientBooking'
   | 'clientSchedule' | 'clientTasks'
   | 'myPrograms' | 'programDetail'
-  | 'rateCoach' | 'coachMessages' | 'myCoaches'
+  | 'rateCoach' | 'coachMessages' | 'myCoaches' | 'claimInvite'
   | 'clientNotifications' | 'clientHelpCenter' | 'clientPrivacyPolicy' | 'clientTermsOfService'
   | 'schedule' | 'addTimeBlock' | 'availability'
   | 'comingSoon'; // placeholder landing spot for whatever's not built yet
@@ -140,6 +140,10 @@ const PARENT: Partial<Record<Screen, Screen | typeof RET>> = {
   rateCoach: 'clientSchedule',
   coachMessages: 'clientCoach',
   myCoaches: 'clientCoach',
+  // Reached from ClientHome's "no coach yet" state, which is where a member
+  // with no relationship lands — so back goes there, not to clientCoach,
+  // which has nothing to show them.
+  claimInvite: 'clientHome',
   clientNotifications: 'clientHome',
   clientHelpCenter: 'clientProfile',
   clientPrivacyPolicy: 'clientProfile',

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT, type MessageKey } from '../lib/i18n';
+import { useT, isolate, type MessageKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import {
   ArrowForwardIcon,
@@ -101,8 +101,45 @@ function ClientDetailView({ roster, client, record }: { roster: Ready<RosterView
   // A write in flight (disables what started it) and the last one's failure.
   const [busy, setBusy] = useState(false);
   const [actionFailed, setActionFailed] = useState(false);
+  // The invite card's own refusal, which is not a failure to retry but a
+  // reason ('already_linked', 'archived') the coach needs told.
+  const [inviteRefusal, setInviteRefusal] = useState<MessageKey | null>(null);
+  const [inviteCopied, setInviteCopied] = useState(false);
   // Remote recaps save when the field loses focus, not on every keystroke.
   const [recapDrafts, setRecapDrafts] = useState<Record<string, string>>({});
+
+  /** 0013 refusals the coach can act on; anything else is a retry. */
+  const INVITE_REFUSAL: Record<string, MessageKey> = {
+    already_linked: 'clientDetailInviteRefusedLinked',
+    archived: 'clientDetailInviteRefusedArchived',
+  };
+
+  /**
+   * Invite writes report a *reason*, not just success, so they do not go
+   * through run(): a refused invite is not the generic "try again" the
+   * other actions show.
+   */
+  async function runInvite(write: () => Promise<string | null>) {
+    if (busy) return;
+    setBusy(true);
+    setInviteRefusal(null);
+    setInviteCopied(false);
+    const refusal = await write();
+    setBusy(false);
+    if (refusal) setInviteRefusal(INVITE_REFUSAL[refusal] ?? 'requestFailedRetry');
+  }
+
+  async function copyInvite() {
+    const code = client.invite?.code;
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code);
+      setInviteCopied(true);
+    } catch {
+      // No clipboard permission (or no clipboard at all): the code is on
+      // screen to read out, so this is not worth an error.
+    }
+  }
 
   async function run(write: () => Promise<boolean>): Promise<boolean> {
     if (busy) return false;
@@ -349,6 +386,58 @@ function ClientDetailView({ roster, client, record }: { roster: Ready<RosterView
             </div>
           )}
         </div>
+
+        {/* A roster row the coach added by hand has no account behind it.
+            0008 stops the coach linking one, so the way in is an invite the
+            member claims (0013). Signed out there are no accounts at all,
+            so the card is real-rows-only. */}
+        {roster.remote && !client.memberId && client.active && (
+          <div className="client-detail-card client-detail-invite-card">
+            <div className="client-detail-invite-title">
+              {t('clientDetailInviteTitle', { name: isolate(client.name) })}
+            </div>
+            <div className="client-detail-invite-body">{t('clientDetailInviteBody')}</div>
+            {client.invite ? (
+              <>
+                {/* Crockford base32: always LTR, even in Arabic. */}
+                <div className="client-detail-invite-code" dir="ltr">{client.invite.code}</div>
+                <div className="client-detail-invite-expires">
+                  {t('clientDetailInviteExpires', { date: fmt.instantDate(client.invite.expiresAtMs) })}
+                </div>
+                <div className="client-detail-invite-actions">
+                  <button
+                    type="button"
+                    className="client-detail-invite-copy"
+                    disabled={busy}
+                    onClick={() => void copyInvite()}
+                  >
+                    {inviteCopied ? t('clientDetailInviteCopied') : t('clientDetailInviteCopy')}
+                  </button>
+                  <button
+                    type="button"
+                    className="client-detail-invite-revoke"
+                    disabled={busy}
+                    onClick={() => void runInvite(() => roster.actions.revokeInvite(clientId))}
+                  >
+                    {t('clientDetailInviteRevoke')}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="client-detail-invite-create"
+                disabled={busy}
+                onClick={() => void runInvite(() => roster.actions.createInvite(clientId))}
+              >
+                {t('clientDetailInviteCreate')}
+              </button>
+            )}
+            {inviteRefusal && (
+              <div className="client-detail-invite-error" role="alert">{t(inviteRefusal)}</div>
+            )}
+          </div>
+        )}
 
         <div className="client-detail-card client-detail-goal-card">
           <div className="client-detail-goal-row">

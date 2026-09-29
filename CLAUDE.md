@@ -37,6 +37,13 @@ npm run dev
 This has cost time three separate times. Check it before you start
 bisecting.
 
+**Run that kill on its own line, with nothing else on it.** `-f` matches
+the whole command line, so the shell running it dies if the command
+contains the string anywhere — `rm -rf node_modules/.vite` on the same
+line does it, and so does a path or an identifier that merely spells it:
+`src/screens/ClaimIn*vite*.tsx`. The tell is the shell exiting 144 with no
+other output.
+
 **Typecheck and lint prove almost nothing about a screen.** Every real bug
 found in this codebase so far passed `tsc` and `oxlint`: Arabic text
 reordered into nonsense, a rating written to the wrong row, an icon

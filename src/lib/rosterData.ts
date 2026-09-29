@@ -22,7 +22,7 @@ import { fromWallMs, toWallMs } from './wallClock';
 import type { Client, NewClientFields, PaymentStatus, RawPackage, Task } from './mockStore';
 import type { Database, Tables, TablesUpdate } from './database.types';
 
-export type RosterErrorCode = 'not_configured' | 'not_signed_in' | 'unknown';
+export type RosterErrorCode = 'not_configured' | 'not_signed_in' | 'refused' | 'unknown';
 export type RosterResult<T> = { ok: true; data: T } | { ok: false; code: RosterErrorCode; message: string };
 
 const NOT_CONFIGURED = { ok: false, code: 'not_configured', message: 'Supabase credentials are missing — see .env.local.example.' } as const;
@@ -43,17 +43,23 @@ async function currentUserId(): Promise<string | null> {
 // ---------------------------------------------------------------------------
 
 const CLIENT_COLUMNS =
-  'id, full_name, age, phone, country_code, email, city, program, specialty, plan, initials, avatar_bg, active, progress, needs_checkin, next_session_at, next_session_type, program_completed, payment_status, goal, focus, signup_completed_at';
+  'id, member_id, full_name, age, phone, country_code, email, city, program, specialty, plan, initials, avatar_bg, active, progress, needs_checkin, next_session_at, next_session_type, program_completed, payment_status, goal, focus, signup_completed_at, invite_code, invite_expires_at';
 type ClientRow = Pick<
   Tables<'clients'>,
-  | 'id' | 'full_name' | 'age' | 'phone' | 'country_code' | 'email' | 'city' | 'program' | 'specialty' | 'plan' | 'initials'
+  | 'id' | 'member_id' | 'full_name' | 'age' | 'phone' | 'country_code' | 'email' | 'city' | 'program' | 'specialty' | 'plan' | 'initials'
   | 'avatar_bg' | 'active' | 'progress' | 'needs_checkin' | 'next_session_at' | 'next_session_type' | 'program_completed'
-  | 'payment_status' | 'goal' | 'focus' | 'signup_completed_at'
+  | 'payment_status' | 'goal' | 'focus' | 'signup_completed_at' | 'invite_code' | 'invite_expires_at'
 >;
 
 function toClient(r: ClientRow, notes: string): Client {
   return {
     id: r.id,
+    memberId: r.member_id,
+    // An expired code is not an invite any more: the functions refuse it,
+    // so the card must not offer it as if it still works.
+    invite: r.invite_code && r.invite_expires_at && Date.parse(r.invite_expires_at) > Date.now()
+      ? { code: r.invite_code, expiresAtMs: Date.parse(r.invite_expires_at) }
+      : null,
     name: r.full_name,
     age: r.age,
     phone: r.phone ?? '',
@@ -380,4 +386,66 @@ export async function refundRosterPayment(clientId: string, charge: PaymentEntry
 async function setPaymentStatus(clientId: string, status: PaymentStatus): Promise<RosterResult<null>> {
   const { error } = await getSupabase().from('clients').update({ payment_status: status }).eq('id', clientId);
   return error ? unknown(error) : ok(null);
+}
+
+// ---------------------------------------------------------------------------
+// Inviting a walk-in client (0013)
+//
+// A roster row the coach added by hand has no member_id, and 0008 stops the
+// coach setting one: user ids are not secret, so a coach may only link a
+// member who asked them. An invite turns that around — the coach hands over
+// a bearer code and the member claims it themselves.
+//
+// The four functions are SECURITY DEFINER and *return* their failures as
+// {"error": "..."} rather than raising, because a raised error would roll
+// back the rate-limit attempt they just counted. So a call can succeed at
+// the transport level and still carry a refusal, and both are handled here
+// rather than at each call site.
+// ---------------------------------------------------------------------------
+
+/** Every refusal 0013's coach-side functions can return. */
+export type InviteAdminError = 'not_found' | 'already_linked' | 'archived';
+
+export interface ClientInvite {
+  code: string;
+  expiresAtMs: number;
+}
+
+/** Narrows the jsonb a 0013 function returns; `error` is its own field. */
+function inviteError(data: unknown): string | null {
+  if (data && typeof data === 'object' && 'error' in data) {
+    const err = (data as { error: unknown }).error;
+    if (typeof err === 'string') return err;
+  }
+  return null;
+}
+
+/**
+ * Issue a code for a walk-in row, replacing any outstanding one.
+ *
+ * Returns `ok: false` with `code: 'refused'` and the refusal in `message`
+ * when the row is already linked, archived, or not this coach's — the
+ * screen maps that to copy; it is never shown raw.
+ */
+export async function createClientInvite(clientId: string): Promise<RosterResult<ClientInvite>> {
+  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const uid = await currentUserId();
+  if (!uid) return NOT_SIGNED_IN;
+  const { data, error } = await getSupabase().rpc('create_client_invite', { p_client: clientId });
+  if (error) return unknown(error);
+  const refused = inviteError(data);
+  if (refused) return { ok: false, code: 'refused', message: refused };
+  const row = data as { code: string; expires_at: string };
+  return ok({ code: row.code, expiresAtMs: Date.parse(row.expires_at) });
+}
+
+/** Withdraw the outstanding code. Idempotent on a row with none. */
+export async function revokeClientInvite(clientId: string): Promise<RosterResult<null>> {
+  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const uid = await currentUserId();
+  if (!uid) return NOT_SIGNED_IN;
+  const { data, error } = await getSupabase().rpc('revoke_client_invite', { p_client: clientId });
+  if (error) return unknown(error);
+  const refused = inviteError(data);
+  return refused ? { ok: false, code: 'refused', message: refused } : ok(null);
 }

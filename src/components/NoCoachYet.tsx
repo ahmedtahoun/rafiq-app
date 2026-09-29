@@ -21,6 +21,12 @@ export function NoCoachYet() {
       <button type="button" className="no-coach-yet-cta" onClick={() => nav('discover')}>
         {t('memberNoCoachCta')}
       </button>
+      {/* The other way in: a coach who already works with this member added
+          them by hand before they had an account, and sent them a code
+          (0013). Without this there is no way to redeem one. */}
+      <button type="button" className="no-coach-yet-alt" onClick={() => nav('claimInvite')}>
+        {t('memberNoCoachInviteCta')}
+      </button>
     </div>
   );
 }
