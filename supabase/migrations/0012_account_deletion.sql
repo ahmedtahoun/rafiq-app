@@ -67,25 +67,25 @@ begin
     where (c.member_id = v_uid or c.coach_id = v_uid)
       and s.scheduled_at > now() and s.attendance is null
   ) then
-    v_open := v_open || 'upcoming_session';
+    v_open := array_append(v_open, 'upcoming_session');
   end if;
   if exists (
     select 1 from public.sessions s join public.clients c on c.id = s.client_id
     where (c.member_id = v_uid or c.coach_id = v_uid) and s.attendance = 'disputed'
   ) then
-    v_open := v_open || 'open_dispute';
+    v_open := array_append(v_open, 'open_dispute');
   end if;
   if who.role = 'client' and exists (
     select 1 from public.packages p join public.clients c on c.id = p.client_id
     where c.member_id = v_uid and p.total > p.used and p.expires_at > now()
   ) then
-    v_open := v_open || 'unused_credits';
+    v_open := array_append(v_open, 'unused_credits');
   end if;
   if exists (
     select 1 from public.payouts where coach_id = v_uid
       and status in ('requested', 'processing', 'pending', 'unknown')
   ) then
-    v_open := v_open || 'unsettled_payout';
+    v_open := array_append(v_open, 'unsettled_payout');
   end if;
   if cardinality(v_open) > 0 then
     raise exception 'still open: %', array_to_string(v_open, ', ') using errcode = '55006';
