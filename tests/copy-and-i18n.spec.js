@@ -92,10 +92,14 @@ test('policy pages render every section in both languages', async ({ browser }) 
   for (const lang of ['en', 'ar']) {
     for (const screen of ['coachPrivacyPolicy', 'clientPrivacyPolicy', 'coachTermsOfService', 'clientTermsOfService']) {
       const { page, ctx, errs } = await open(browser, { screen, lang });
-      expect.soft(await page.locator('.policy-page-section').count(), `${screen}/${lang}: six sections`).toBe(6);
+      // Six numbered sections, and a seventh block on the two Terms
+      // documents: "Coaching is not therapy" plus the crisis lines, which
+      // <NotTherapySection> renders with the same section class.
+      const expected = screen.toLowerCase().includes('terms') ? 7 : 6;
+      expect.soft(await page.locator('.policy-page-section').count(), `${screen}/${lang}: ${expected} sections`).toBe(expected);
       const text = await frame(page);
       // A key that is missing renders as its own name; this catches that.
-      expect.soft(/privacySection|termsSection|clientPrivacySection|clientTermsSection/.test(text),
+      expect.soft(/privacySection|termsSection|clientPrivacySection|clientTermsSection|notTherapy|crisis[A-Z]/.test(text),
         `${screen}/${lang}: no raw i18n keys`).toBe(false);
       expect.soft(errs, `${screen}/${lang}: no page errors`).toEqual([]);
       await ctx.close();

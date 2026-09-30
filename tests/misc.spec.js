@@ -188,7 +188,10 @@ test('Policy screens', async ({ browser }) => {
   const { page, errs } = await open(browser, { screen: 'clientTermsOfService' });
   expect.soft(String(errs.length), 'no console/page errors').toBe('0');
   expect.soft(String(await txt(page, '.policy-page-title')), 'title').toBe('Terms of Service');
-  expect.soft(String(await n(page, '.policy-page-section')), 'six sections').toBe('6');
+  // Seven, not six: the Terms carry "Coaching is not therapy" and the
+  // crisis lines after the numbered sections. The privacy policy above
+  // still has six.
+  expect.soft(String(await n(page, '.policy-page-section')), 'seven sections').toBe('7');
   const body = await page.evaluate(() => document.querySelector('.policy-page-body').innerText);
   // The app enforces a real grace window, so the terms name it.
   expect.soft(String(/12 hours/.test(body)), 'names the real 12-hour grace window').toBe('true');

@@ -164,3 +164,40 @@
   margin-top: 10px;
   line-height: 1.4;
 }
+
+/* "Coaching is not therapy", at the foot of the form. Deliberately not a
+   warning colour: it is a boundary, not an error, and a red block here
+   would read as something the member did wrong. */
+.client-onboarding-care {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.client-onboarding-care-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.client-onboarding-care-body {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.client-onboarding-care-link {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--accent);
+  text-align: start;
+  padding: 10px 0;
+  min-height: 44px;
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
+}

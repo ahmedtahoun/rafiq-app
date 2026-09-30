@@ -32,6 +32,7 @@ globalThis.localStorage = { getItem: () => null, setItem() {}, removeItem() {} }
 const vite = await createServer({ root: ROOT, server: { middlewareMode: true }, appType: 'custom', logLevel: 'error' });
 const { translate } = await vite.ssrLoadModule('/src/lib/i18n.ts');
 const { SUPPORT_EMAIL } = await vite.ssrLoadModule('/src/lib/support.ts');
+const { CRISIS_RESOURCES } = await vite.ssrLoadModule('/src/lib/crisisResources.ts');
 await vite.close();
 
 const LANGS = ['en', 'ar'];
@@ -51,13 +52,38 @@ const DOCS = {
     titleKey: 'termsTitle',
     introKey: 'termsIntro',
     parts: [
-      { labelKey: 'forCoaches', updatedKey: 'termsUpdated', prefix: 'termsSection' },
-      { labelKey: 'forMembers', updatedKey: 'clientTermsUpdated', prefix: 'clientTermsSection' },
+      // notTherapyKey mirrors <NotTherapySection> in the app: a last block
+      // after the numbered sections, carrying "Coaching is not therapy" and
+      // the crisis lines. It is the reason this page is worth hosting —
+      // someone can reach it with no account and no app installed.
+      { labelKey: 'forCoaches', updatedKey: 'termsUpdated', prefix: 'termsSection', notTherapyKey: 'termsNotTherapyBody' },
+      { labelKey: 'forMembers', updatedKey: 'clientTermsUpdated', prefix: 'clientTermsSection', notTherapyKey: 'clientTermsNotTherapyBody' },
     ],
   },
 };
 
 const PAGES = ['', 'privacy', 'terms', 'support', 'delete-account'];
+
+/** The crisis list, matching src/components/CrisisResources.tsx. A row
+    whose number is still null says so rather than rendering a dead link —
+    src/lib/crisisResources.ts explains why they all start null. */
+function crisisBlock(t) {
+  const rows = CRISIS_RESOURCES.map((r) => `
+        <li>
+          <strong><bdi>${esc(t(r.nameKey))}</bdi></strong>
+          <span>${esc(t(r.forKey))}</span>
+          ${r.phone
+            ? `<a class="crisis-call" href="tel:${esc(r.phone.replace(/[^\d+]/g, ''))}" dir="ltr"><bdi>${esc(r.phone)}</bdi></a>`
+            : `<em class="crisis-unconfirmed">${esc(t('crisisUnconfirmed'))}</em>`}
+        </li>`).join('');
+  return `
+        <p>${esc(t('crisisLead'))}</p>
+        <p class="crisis-emergency">${esc(t('crisisEmergencyLead'))}</p>
+        <ul class="crisis-list">${rows}
+        </ul>
+        <p>${esc(t('crisisOutsideEgypt'))}</p>
+        <p>${esc(t('crisisTellSomeone'))}</p>`;
+}
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
@@ -109,7 +135,9 @@ function render(lang, slug) {
         <p class="updated">${esc(t(p.updatedKey))}</p>
         ${SECTIONS.map((n) => `
         <h3>${esc(t(`${p.prefix}${n}Heading`))}</h3>
-        <p>${text(t(`${p.prefix}${n}Body`))}</p>`).join('')}
+        <p>${text(t(`${p.prefix}${n}Body`))}</p>`).join('')}${p.notTherapyKey ? `
+        <h3>${esc(t('notTherapyTitle'))}</h3>
+        <p>${text(t(p.notTherapyKey))}</p>${crisisBlock(t)}` : ''}
       </section>`).join('')}`;
   } else if (slug === 'support') {
     title = c.supportTitle;

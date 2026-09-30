@@ -303,8 +303,21 @@ Waits on the name decision (§1).
       and terms users accept that forbid objectionable content.
 - [ ] 🟡 Age rating (Apple) and content rating questionnaire (Google); target
       audience adults, not children.
-- [ ] 🟡 "Coaching is not therapy or medical advice" in the terms and onboarding,
-      with crisis resources for the wellness categories.
+- [x] 🟡 "Coaching is not therapy or medical advice" in the terms and onboarding,
+      with crisis resources for the wellness categories. Done: a last
+      section on both Terms documents (and on the public terms page, which
+      is reachable with no account), and a notice at the foot of member
+      onboarding — where the member picks a focus, four of which are
+      stress, sleep, relationships and life — with the crisis list one tap
+      away. Both languages.
+- [ ] 🔴 **Confirm the crisis numbers before submitting.** Every entry in
+      `src/lib/crisisResources.ts` has `phone: null` and renders as "number
+      not confirmed yet", because a wrong number on that screen is worse
+      than none. The organisation names are leads, not verified facts. For
+      each: check it still runs a line, dial the number, note the hours
+      (several are not 24/7) and whether it answers in Arabic, English or
+      both. Delete a row that turns out not to exist — an empty list still
+      renders "contact your local emergency services", which is honest.
 - [ ] 🟡 Coaching Service Agreement text (`AGREEMENT_TEXT` in `mockStore.ts`)
       reviewed.
 
