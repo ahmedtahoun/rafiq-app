@@ -278,8 +278,15 @@ Waits on the name decision (§1).
       3–10 per language; Google Play: at least 2 phone screenshots, a 1024×500
       feature graphic and a 512×512 icon. Take them from the connected app, not
       the demo data.
-- [ ] 🔴 Store text in English and Arabic: name (iOS: 30 characters),
+- [x] 🔴 Store text in English and Arabic: name (iOS: 30 characters),
       subtitle, description, keywords, category, "what's new".
+      **Drafted in `store/listing.md`**, both languages, both stores, every
+      character count measured against its field's limit (the Arabic
+      subtitle needed rewriting — the obvious translation is 31). Written
+      for coaches and members, and deliberately claiming nothing the app
+      does not do: no push, no in-app payment, no WhatsApp, no full
+      Discover. Waiting on Ahmed for the name option, the category, and
+      whether the Arabic keywords match how Egyptians search.
 - [ ] 🔴 Public URLs: privacy policy, terms, support. **Pages ready** in
       `site/public/`, EN + AR, generated from the app's own copy
       (`npm run build:site`, see `site/README.md` for hosting and which URL
@@ -297,6 +304,15 @@ Waits on the name decision (§1).
       payment status, plus crash data once §10 lands. For coaches who set up
       payouts: **national ID and wallet number or bank account** — financial
       info, and it must be in the privacy policy too.
+      **The input is ready:** `store/privacy-inventory.md` works every table
+      in `0001`–`0017` through to an Apple type and a Google category, with
+      what deletion (0012) keeps and removes. Filling the two forms is still
+      Ahmed's, and eleven questions in it need answering first — among them
+      where a national ID goes on Apple's form (it has no type for a
+      government ID), whether coaching focus counts as health data, which
+      region the Supabase project is in, and that `index.html` fetches its
+      two webfonts from Google at every launch, which discloses every user's
+      IP to a company otherwise nowhere in the app.
 - [ ] 🔴 Apple requires apps where users message each other to have reporting
       (✓ exists), blocking (✓ since step 5 — until then only a status the app
       read and nothing could set) and **timely action on reports** (§9),
