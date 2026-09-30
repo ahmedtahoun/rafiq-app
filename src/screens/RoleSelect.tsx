@@ -3,6 +3,7 @@ import { useAppStore, type Role } from '../store/appStore';
 import { setProfileRole } from '../lib/auth';
 import { useT } from '../lib/i18n';
 import { ChevronIcon, CheckIcon, CoachIcon, PersonIcon } from '../components/icons';
+import { Logo } from '../components/Logo';
 import './RoleSelect.css';
 
 export default function RoleSelect() {
@@ -47,8 +48,8 @@ export default function RoleSelect() {
         <button className="role-select-back" aria-label={t('back')} onClick={back}>
           <ChevronIcon size={16} />
         </button>
-        <div className="role-select-mark" style={{ background: 'linear-gradient(135deg, var(--accent), #7A3D26)' }}>
-          <span>R</span>
+        <div className="role-select-mark">
+          <Logo />
         </div>
       </div>
 
