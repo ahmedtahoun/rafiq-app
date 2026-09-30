@@ -69,6 +69,20 @@ test('Android has the launcher icon at every density, and an adaptive icon', () 
   expect(existsSync(new URL('android/app/src/main/res/drawable-night/splash.png', ROOT))).toBe(true);
 });
 
+test('Android 12+ draws its splash from the mark, on the page colour in both themes', () => {
+  // Android 12+ ignores splash.png and draws its own splash; without these it
+  // shows the 192px launcher icon, blown up and blurred, on the system grey.
+  const styles = file('android/app/src/main/res/values/styles.xml').toString();
+  expect(styles).toContain('<item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>');
+  expect(styles).toContain('<item name="windowSplashScreenBackground">@color/splash_background</item>');
+  const color = (dir) => /<color name="splash_background">(#\w+)<\/color>/.exec(file(`android/app/src/main/res/${dir}/splash.xml`).toString())?.[1];
+  expect(color('values')).toBe('#FAF9F5');
+  expect(color('values-night')).toBe('#18140F');
+  const icon = file('android/app/src/main/res/drawable/splash_icon.xml').toString();
+  expect(icon).toContain('<vector');
+  expect(icon).toContain('#B75C3D');
+});
+
 test('the source artwork is committed, at the sizes the generator expects', () => {
   expect(png('assets/icon-only.png')).toEqual({ width: 1024, height: 1024, colorType: 2 });
   expect(png('assets/icon-foreground.png')).toMatchObject({ width: 1024, height: 1024, colorType: 6 });
