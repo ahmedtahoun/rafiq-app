@@ -237,6 +237,17 @@ function demoView(): MemberRelationshipView {
 }
 
 /**
+ * Where "book a session" goes. Signed in, the coach's own page: their hours
+ * and offerings, and a real request (0010). The demo's booking screen offers
+ * a 25-minute type the real calendar doesn't book, so it stays the demo's.
+ */
+export function bookSessionTarget(remote: boolean, rel: MemberRelationshipView | null) {
+  return remote && rel?.coach.id
+    ? { screen: 'coachPreview' as const, params: { coachId: rel.coach.id } }
+    : { screen: 'clientBooking' as const };
+}
+
+/**
  * Signed out (or unconfigured) this is the demo member, read fresh from
  * mockStore on every render as the screens always did. Signed in, it is the
  * member's own relationships, with loading and error states to render.

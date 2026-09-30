@@ -1192,6 +1192,7 @@ export type Database = {
           offering_id: string | null
           price: number
           requested_start: string
+          reschedule_of: string | null
           responded_at: string | null
           status: Database["public"]["Enums"]["request_status"]
         }
@@ -1204,6 +1205,7 @@ export type Database = {
           offering_id?: string | null
           price: number
           requested_start: string
+          reschedule_of?: string | null
           responded_at?: string | null
           status?: Database["public"]["Enums"]["request_status"]
         }
@@ -1216,6 +1218,7 @@ export type Database = {
           offering_id?: string | null
           price?: number
           requested_start?: string
+          reschedule_of?: string | null
           responded_at?: string | null
           status?: Database["public"]["Enums"]["request_status"]
         }
@@ -1741,6 +1744,7 @@ export type Database = {
         Args: { p_block: string; p_reason?: string }
         Returns: undefined
       }
+      can_request_session: { Args: { p_coach: string }; Returns: boolean }
       check_client_invite: {
         Args: { p_code: string }
         Returns: Record<string, unknown>

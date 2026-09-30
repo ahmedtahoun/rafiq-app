@@ -14,7 +14,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PGBIN="${PGBIN:-/usr/lib/postgresql/16/bin}"
 PGROOT="${PGROOT:-/var/tmp/rafiq-pgtest}"
-MIN_ASSERTIONS=455
+MIN_ASSERTIONS=488
 
 OUT=""
 OWN_CLUSTER=""
@@ -129,6 +129,9 @@ OUT="$(mktemp)"
   echo
   echo "=== MEMBER CANCEL ==="
   psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/20_member_cancel_session.sql"
+  echo
+  echo "=== MEMBER MOVE ==="
+  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/21_member_move_request.sql"
 } | grep -v '^$' | tee "$OUT"
 
 PASSED="$(grep -c '^PASS' "$OUT" || true)"

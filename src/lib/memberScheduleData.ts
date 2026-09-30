@@ -11,7 +11,8 @@
 import { getSupabase, isSupabaseConfigured } from './supabase';
 import { toWallMs } from './wallClock';
 import type { Database } from './database.types';
-import type { SessionType } from './mockStore';
+import type { SessionType, WeeklyAvailabilityDay } from './mockStore';
+import { toWeek } from './requestData';
 
 type Attendance = Database['public']['Enums']['attendance'];
 
@@ -24,6 +25,8 @@ const unknown = (error: { message: string }) => ({ ok: false, code: 'unknown', m
 
 export interface MemberUpcoming {
   sessionId: string;
+  /** Its block on the coach's calendar: what a move request names (0017). */
+  blockId: string | null;
   startWallMs: number;
   endWallMs: number;
   sessionType: SessionType;
@@ -45,7 +48,11 @@ export interface MemberPastSession {
 
 export interface MemberSchedule {
   upcoming: MemberUpcoming | null;
+  /** The member's pending request to move `upcoming`, if any. */
+  move: { id: string; startWallMs: number } | null;
   request: MemberOpenRequest | null;
+  /** The coach's weekly hours, Monday first: where a move can go. */
+  hours: WeeklyAvailabilityDay[];
   /** Newest first. A cancelled session never happened, so it isn't here. */
   history: MemberPastSession[];
 }
@@ -60,12 +67,14 @@ export async function fetchMemberSchedule(clientId: string, coachId: string): Pr
   const uid = await currentUserId();
   if (!uid) return NOT_SIGNED_IN;
   const supabase = getSupabase();
-  const [sessions, requests] = await Promise.all([
+  const [sessions, requests, hours] = await Promise.all([
     supabase.from('sessions').select('id, scheduled_at, time_block_id, attendance, recap').eq('client_id', clientId).order('scheduled_at', { ascending: false }),
-    supabase.from('session_requests').select('id, requested_start, offering_id, price').eq('member_id', uid).eq('coach_id', coachId).eq('status', 'pending'),
+    supabase.from('session_requests').select('id, requested_start, offering_id, price, reschedule_of').eq('member_id', uid).eq('coach_id', coachId).eq('status', 'pending'),
+    supabase.from('weekly_availability').select('day_of_week, enabled, start_hour, end_hour').eq('coach_id', coachId),
   ]);
   if (sessions.error) return unknown(sessions.error);
   if (requests.error) return unknown(requests.error);
+  if (hours.error) return unknown(hours.error);
 
   const now = Date.now();
   const next = sessions.data
@@ -86,17 +95,22 @@ export async function fetchMemberSchedule(clientId: string, coachId: string): Pr
     const startWallMs = toWallMs(next.scheduled_at);
     upcoming = {
       sessionId: next.id,
+      blockId: next.time_block_id,
       startWallMs,
       endWallMs: endsAt ? toWallMs(endsAt) : startWallMs + 50 * 60000,
       sessionType,
     };
   }
 
-  const r = requests.data[0];
+  // A new-session request, and a move of the upcoming booking (0017).
+  const r = requests.data.find((x) => !x.reschedule_of);
+  const m = upcoming?.blockId ? requests.data.find((x) => x.reschedule_of === upcoming.blockId) : undefined;
   return {
     ok: true,
     data: {
       upcoming,
+      move: m ? { id: m.id, startWallMs: toWallMs(m.requested_start) } : null,
+      hours: toWeek(hours.data),
       request: r
         ? { id: r.id, startWallMs: toWallMs(r.requested_start), sessionType: !r.offering_id && Number(r.price) === 0 ? 'intro' : 'standard' }
         : null,

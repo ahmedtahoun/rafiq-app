@@ -410,7 +410,8 @@ test('asking for a paid session, then a free intro: one open request, at the tim
   expect(rows.map((r) => r.status)).toEqual(['withdrawn', 'pending']);
   expect(rows[1]).toMatchObject({ offering_id: null, price: 0, requested_start: '2026-10-01T16:00:00.000Z' });
   const withdraw = (await callsTo(page, 'session_requests', 'update')).at(-1);
-  expect(withdraw.filters).toEqual([['member_id', MEMBER], ['coach_id', 'coach-dina'], ['status', 'pending']]);
+  // Never a pending move of a booked session (0017): that's another request.
+  expect(withdraw.filters).toEqual([['member_id', MEMBER], ['coach_id', 'coach-dina'], ['status', 'pending'], ['reschedule_of', null, 'is']]);
   expect(errs).toEqual([]);
   await ctx.close();
 });

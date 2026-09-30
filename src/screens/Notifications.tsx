@@ -91,7 +91,7 @@ export default function Notifications() {
     const result = await acceptSessionRequest(r.id);
     setBusy(false);
     if (result.ok) {
-      settle(r, t('notificationsAccepted', { name: isolate(r.memberName) }));
+      settle(r, t(r.movesFromWallMs != null ? 'notificationsMoveAccepted' : 'notificationsAccepted', { name: isolate(r.memberName) }));
       // The new roster row (or the archived one brought back) is the roster
       // store's to show, so it re-reads.
       const roster = useRosterStore.getState();
@@ -101,6 +101,7 @@ export default function Notifications() {
     if (result.code === 'gone') settle(r, t('notificationsRequestGone'));
     else if (result.code === 'passed') setSheetError('notificationsRequestPassed');
     else if (result.code === 'slot_taken') setSheetError('notificationsSlotTaken');
+    else if (result.code === 'blocked') setSheetError('notificationsRequestBlocked');
     else setSheetError('requestFailedRetry');
   }
 
@@ -115,6 +116,11 @@ export default function Notifications() {
   }
 
   const whenOf = (r: IncomingRequest) => fmt.slot(r.startWallMs);
+  // A move (0017): from the booking's time now to the one asked for.
+  const moveOf = (r: IncomingRequest) =>
+    r.movesFromWallMs != null ? `${fmt.slot(r.movesFromWallMs)} ${lang === 'ar' ? '←' : '→'} ${fmt.slot(r.startWallMs)}` : null;
+  const titleOf = (r: IncomingRequest) =>
+    t(r.movesFromWallMs != null ? 'notificationsMoveRequest' : 'notificationsSessionRequest', { name: isolate(r.memberName) });
   const whatOf = (r: IncomingRequest) => r.offeringName ?? t('coachPreviewIntroCallName');
   const priceOf = (r: IncomingRequest) => (r.price > 0 ? fmt.money(r.price) : t('offeringsFree'));
   const empty = remote ? requests.length === 0 : items.length === 0;
@@ -169,10 +175,8 @@ export default function Notifications() {
                 </span>
                 <span className="notifications-avatar" style={{ background: REQUEST_AVATAR }}>{initialsOf(r.memberName || '?')}</span>
                 <span className="notifications-text">
-                  <span className="notifications-row-title is-unread">
-                    {t('notificationsSessionRequest', { name: isolate(r.memberName) })}
-                  </span>
-                  <span className="notifications-row-sub">{whenOf(r)} · <bdi>{whatOf(r)}</bdi></span>
+                  <span className="notifications-row-title is-unread">{titleOf(r)}</span>
+                  <span className="notifications-row-sub">{moveOf(r) ?? <>{whenOf(r)} · <bdi>{whatOf(r)}</bdi></>}</span>
                 </span>
                 <span className="notifications-dot" aria-label={t('notificationsUnread')} />
               </button>
@@ -215,17 +219,32 @@ export default function Notifications() {
         )}
       </div>
 
-      <BottomSheet open={!!openRequest} onClose={closeSheet} title={openRequest ? t('notificationsSessionRequest', { name: isolate(openRequest.memberName) }) : ''}>
+      <BottomSheet open={!!openRequest} onClose={closeSheet} title={openRequest ? titleOf(openRequest) : ''}>
         {openRequest && (
           <div className="notifications-sheet">
-            <div className="notifications-sheet-row">
-              <span className="notifications-sheet-label">{t('coachPreviewDateLabel')}</span>
-              <strong>{whenOf(openRequest)}</strong>
-            </div>
-            <div className="notifications-sheet-row">
-              <span className="notifications-sheet-label"><bdi>{whatOf(openRequest)}</bdi></span>
-              <strong>{priceOf(openRequest)}</strong>
-            </div>
+            {openRequest.movesFromWallMs != null ? (
+              <>
+                <div className="notifications-sheet-row">
+                  <span className="notifications-sheet-label">{t('notificationsMoveBookedFor')}</span>
+                  <strong>{fmt.slot(openRequest.movesFromWallMs)}</strong>
+                </div>
+                <div className="notifications-sheet-row">
+                  <span className="notifications-sheet-label">{t('notificationsMoveAskedFor')}</span>
+                  <strong>{whenOf(openRequest)}</strong>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="notifications-sheet-row">
+                  <span className="notifications-sheet-label">{t('coachPreviewDateLabel')}</span>
+                  <strong>{whenOf(openRequest)}</strong>
+                </div>
+                <div className="notifications-sheet-row">
+                  <span className="notifications-sheet-label"><bdi>{whatOf(openRequest)}</bdi></span>
+                  <strong>{priceOf(openRequest)}</strong>
+                </div>
+              </>
+            )}
             {sheetError && (
               <div className="notifications-sheet-error" role="alert">
                 {t(sheetError, { name: isolate(openRequest.memberName) })}

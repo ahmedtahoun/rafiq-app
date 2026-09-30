@@ -612,3 +612,24 @@
   color: var(--ink-soft);
   cursor: default;
 }
+
+/* Signed in: a move waiting on the coach (0017), or why it couldn't be asked. */
+.client-schedule-move-note {
+  margin-top: 10px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #FFFFFF;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.client-schedule-move-error {
+  background: rgba(0, 0, 0, 0.22);
+}
+
+/* Two weeks of days, one row each. */
+.client-schedule-days-week + .client-schedule-days-week {
+  margin-top: 7px;
+}

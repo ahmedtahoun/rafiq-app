@@ -66,11 +66,12 @@ as done below, when signed in; every other screen still reads and writes
       `DEFAULT_PRO_ID = 'pro-yasmin'`. Both must come from the signed-in user.
       Done for the coach's roster and the member's Home, Tasks, My Pros,
       coach page and profile (SUPABASE-MIGRATION-PLAN.md, step 3), and the
-      member's Sessions screen (step 4: their real sessions, cancelling one
-      or withdrawing a request, and requesting one from their coach's
-      page). Left: the member screens still on `DEMO_MEMBER_CLIENT_ID`
-      (the booking screen, moving a session, messaging, programs, ratings,
-      notifications, and Discover's goal matching).
+      member's Sessions screen (step 4: their real sessions, cancelling one,
+      asking to move one, withdrawing a request, and booking from their
+      coach's page, which Home and the coach page now open too). Left: the
+      member screens still on `DEMO_MEMBER_CLIENT_ID` (the demo booking
+      screen, reached signed in only from the programs screens, messaging,
+      programs, ratings, notifications, and Discover's goal matching).
 - [ ] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,
       the 8 fictional `DIRECTORY_COACHES`, and any other `DEFAULT_*` seed.
