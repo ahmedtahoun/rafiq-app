@@ -10,7 +10,7 @@ itself.
 
 **"Ahmed to confirm"** marks anything the code cannot settle — a business
 decision, a third party's own behaviour, or a legal question. There are
-eleven of them, collected at the end.
+twelve of them, collected at the end.
 
 **Where it is stored** means the table or bucket in the live Supabase
 project, unless it says otherwise. Signed out, everything in the app is in
@@ -294,19 +294,45 @@ functionality".
 
 ---
 
-## 10. Diagnostics — not collected today
+## 10. Diagnostics — built, and off
 
 | What | Status | Apple | Google |
 |---|---|---|---|
-| Crash reports | **Not collected.** No Sentry, no crash SDK | Diagnostics → Crash Data, *once §10 lands* | App info and performance → Crash logs, *once §10 lands* |
+| Crash reports | **Not collected while `VITE_SENTRY_DSN` is unset**, which it is. The code is in place; the switch is the DSN | Diagnostics → Crash Data, *the day the DSN is set* | App info and performance → Crash logs, *the day the DSN is set* |
 | Analytics | **Not collected.** No analytics SDK of any kind | — | — |
 | Advertising identifiers | **Not collected.** No ad SDK, no IDFA request | — | — |
 
-Checklist §10 is Sentry through `@sentry/capacitor`, reported from
-`ErrorBoundary`. When it ships, both forms gain a Diagnostics /
-App-info-and-performance row, and the PR that adds it has to list exactly
-what a crash report carries — a stack trace can contain a message body or
-a member's name if it is not scrubbed.
+`src/lib/crashReporting.ts` wires `@sentry/capacitor` to `ErrorBoundary`.
+With no DSN the SDK is not merely disabled, it is **never imported** — it
+is a separate chunk that is never fetched — so nothing is installed and
+nothing can be sent. Setting the DSN is therefore a privacy decision, not
+a configuration one, and it is what turns the two rows above on.
+
+**What a crash report would carry, once the DSN is set:**
+
+| Sent | Not sent |
+|---|---|
+| The error type, message and stack trace, scrubbed | Breadcrumbs of any kind — dropped twice over |
+| The React component stack, so the failing screen is named (component names, never props) | Any user: no id, email or name is attached |
+| Device model, OS version, app version, locale | The device's *name* — "Ahmed's iPhone" is its owner's |
+| The release and environment | Request headers, cookies, query string or body |
+| A timestamp | Performance traces and session replay, both off |
+
+Everything that does go carries emails, phone numbers, 14-digit national
+IDs, uuids and JWTs replaced with `[email]`, `[phone]`, `[id]`, `[uuid]`
+and `[token]` first. Stack frames are deliberately left intact — file
+paths and line numbers are the point of a crash report, and the phone
+pattern would otherwise eat them.
+
+**Names are the one thing no pattern can find**, so they are kept out
+structurally rather than filtered: no user context, nothing attached from
+props or state, and no breadcrumbs. Breadcrumbs are where a name would
+actually have appeared — Sentry records the text of every element a user
+taps, every console line, and every request URL, so a member's name, a
+message body and a row id all travel that way by default. All of it is
+dropped, and `tests/crash-reporting.spec.js` proves it by putting a name
+and a message body into breadcrumbs and reading what the transport tried
+to send.
 
 ---
 
@@ -318,26 +344,21 @@ a member's name if it is not scrubbed.
 | **Google** (Sign in with Google) | Whatever Google already knows; it returns a name and an email | Sign-in |
 | **Apple** (Sign in with Apple) | Same, and the email may be a private relay address | Sign-in |
 | **Paymob** | A coach's name, national ID, wallet or bank account number, and the amount | Sending a coach their payout. Nothing about members reaches Paymob today |
-| **Google Fonts** — see below | Every user's IP address and User-Agent | Two webfonts |
+| **Sentry** | Nothing today. Once a DSN is set: crash reports, as broken down in §10 | Knowing the app crashed, and where |
 
-### Google Fonts is a real disclosure, and it is easy to miss
+### Google Fonts: fixed, and worth not undoing
 
-`index.html` loads Lora and Cairo from `fonts.googleapis.com` at runtime,
-which pulls the font files from `fonts.gstatic.com`. In the native shells
-that is a request to Google from the WebView, before the user has done
-anything, and it discloses their IP address and User-Agent to a company
-that is not otherwise in this inventory. The WebView caches the response,
-so it is not literally every launch — but it is the first one, every
-reinstall, and every time the cache is evicted, on every device.
+An earlier revision of this inventory listed Google as a fourth party
+because `index.html` fetched Lora and Cairo from `fonts.googleapis.com` at
+runtime, which handed every user's IP address and User-Agent to Google
+from the WebView before they had done anything. The fonts are now bundled
+(`@fontsource/lora`, `@fontsource/cairo` in `src/main.tsx`), so that
+request is gone and the app also renders correctly offline — Cairo has no
+good Arabic system fallback.
 
-It is also an availability problem: on a slow or offline connection the
-app renders in a fallback font, and the Arabic side has no good system
-fallback for Cairo.
-
-Self-hosting both families in `public/` removes the row from this table
-entirely and makes the app work offline. That is a code change, not a
-document one, so it is flagged here rather than done — **Ahmed to
-confirm** whether to raise it as its own task.
+Kept here rather than deleted: adding a `<link>` to any font, icon or
+script CDN puts the row straight back, and it is the kind of line that
+gets added without anyone thinking of it as a data disclosure.
 
 **Ahmed to confirm** — where the Supabase project is hosted. The region
 decides whether personal data about Egyptian users leaves Egypt, which is
@@ -415,8 +436,8 @@ schema.
    government identity number.
 6. **Whether Paymob genuinely requires `national_id`** (already §3, the
    staging payout run). If not, stop collecting it.
-7. **Whether to self-host the fonts** and remove Google from the
-   third-party table.
+7. ~~Whether to self-host the fonts.~~ Done — they are bundled, and
+   Google is out of the third-party table.
 8. **Which region the Supabase project is in** — Law 151/2020 and, for EU
    users, GDPR transfers.
 9. **A retention period** for data not covered by a deletion request.
@@ -425,6 +446,10 @@ schema.
     invisible from this repo.
 11. **The age rating and content questionnaires** (§8) — this inventory
     is the input to them, but the answers are Ahmed's.
+12. **Whether to switch crash reporting on at all**, and if so which
+    Sentry region the project lives in — the same data-residency question
+    as 8, for a second processor. Setting `VITE_SENTRY_DSN` is what adds
+    the Diagnostics rows to both forms.
 
 ---
 

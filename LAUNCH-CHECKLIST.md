@@ -369,9 +369,24 @@ only Rafiq can resolve (as `service_role`). Nothing works them yet.
 
 ## 10. Monitoring and performance (Dev)
 
-- [ ] 🟡 Crash reporting (e.g. Sentry: `@sentry/capacitor`), reported from
-      `src/components/ErrorBoundary.tsx`. Needs an account (*Ahmed*); add it to
-      the privacy forms (§8).
+- [x] 🟡 **Crash reporting — the code half.** `@sentry/capacitor`, reported
+      from `src/components/ErrorBoundary.tsx` through
+      `src/lib/crashReporting.ts`. Off unless `VITE_SENTRY_DSN` is set, and
+      off means the SDK is never imported: it is a separate 168 KB chunk
+      that is not fetched, so nothing is installed and nothing can be sent.
+      Breadcrumbs (where a tapped member's name, a console line and a
+      request URL would otherwise go), tracing, session replay, failed-
+      request capture and session tracking are all off, and every event
+      goes through a scrubber that removes emails, phone numbers, national
+      IDs, uuids, JWTs and the device's name, and deletes the user, request
+      headers, cookies, query string and body. `tests/crash-reporting.spec.js`
+      drives a real crash through a real client at a fake DSN on 127.0.0.1
+      and reads what it tried to send.
+- [ ] 🟡 *Ahmed:* create the Sentry project, put its DSN in the build
+      environment, and add the crash-data rows to both store forms (§8).
+      Until the DSN is set nothing is collected, so this is what switches it
+      on. What it would then collect is listed in the PR that added it and
+      in `store/privacy-inventory.md` §10.
 - [ ] ⚪ Split the ~960 KB JavaScript bundle by screen for a faster start.
 - [ ] ⚪ Analytics, if wanted — disclosed in the privacy forms.
 

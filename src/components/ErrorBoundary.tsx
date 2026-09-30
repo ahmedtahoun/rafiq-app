@@ -1,6 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { useAppStore } from '../store/appStore';
 import { translate, isRtl, type Lang } from '../lib/i18n';
+import { reportCrash } from '../lib/crashReporting';
 import './ErrorBoundary.css';
 
 interface Props {
@@ -34,6 +35,10 @@ export class ErrorBoundary extends Component<Props, State> {
     // Keep the component stack in the console: it is the only place the
     // failing screen is named once the tree has been replaced.
     console.error('Unhandled render error', error, info.componentStack);
+    // And send it, if a DSN is configured. A no-op otherwise, which is the
+    // normal case today. The component stack names the screen that threw
+    // and carries no props, so nothing about a person goes with it.
+    reportCrash(error, info.componentStack);
   }
 
   render() {
