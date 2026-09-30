@@ -1251,6 +1251,13 @@ export type Database = {
             referencedRelation: "offerings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "session_requests_reschedule_of_fkey"
+            columns: ["reschedule_of"]
+            isOneToOne: false
+            referencedRelation: "time_blocks"
+            referencedColumns: ["id"]
+          },
         ]
       }
       sessions: {
@@ -1733,18 +1740,13 @@ export type Database = {
       }
     }
     Functions: {
-      relationship_can_message: { Args: { p_client: string }; Returns: boolean }
-      set_relationship_block: {
-        Args: { p_blocked: boolean; p_client: string }
-        Returns: Json
-      }
       accept_session_request: { Args: { p_request: string }; Returns: string }
+      can_request_session: { Args: { p_coach: string }; Returns: boolean }
       can_see_client: { Args: { p_client: string }; Returns: boolean }
       cancel_booking: {
         Args: { p_block: string; p_reason?: string }
         Returns: undefined
       }
-      can_request_session: { Args: { p_coach: string }; Returns: boolean }
       check_client_invite: {
         Args: { p_code: string }
         Returns: Record<string, unknown>
@@ -1758,10 +1760,16 @@ export type Database = {
       is_coach_of: { Args: { p_client: string }; Returns: boolean }
       is_member_of: { Args: { p_client: string }; Returns: boolean }
       mark_attendance: {
-        Args: { p_outcome: Database["public"]["Enums"]["attendance"]; p_session: string }
+        Args: {
+          p_outcome: Database["public"]["Enums"]["attendance"]
+          p_session: string
+        }
         Returns: boolean
       }
-      member_cancel_session: { Args: { p_reason?: string; p_session: string }; Returns: boolean }
+      member_cancel_session: {
+        Args: { p_reason?: string; p_session: string }
+        Returns: boolean
+      }
       new_invite_code: { Args: never; Returns: string }
       normalize_invite_code: { Args: { p_code: string }; Returns: string }
       peek_client_invite: { Args: { p_code: string }; Returns: Json }
@@ -1776,11 +1784,16 @@ export type Database = {
         Returns: undefined
       }
       refresh_next_session: { Args: { p_client: string }; Returns: undefined }
+      relationship_can_message: { Args: { p_client: string }; Returns: boolean }
       reschedule_booking: {
         Args: { p_block: string; p_start: string }
         Returns: undefined
       }
       revoke_client_invite: { Args: { p_client: string }; Returns: Json }
+      set_relationship_block: {
+        Args: { p_blocked: boolean; p_client: string }
+        Returns: Json
+      }
     }
     Enums: {
       account_status: "active" | "suspended" | "deleted"
