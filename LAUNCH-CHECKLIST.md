@@ -1,7 +1,7 @@
 # Launch checklist — App Store & Google Play
 
 Everything between today and a published Rafiq, checked against the repo on
-2026-09-29. Tick items off in the PR that does them (`- [x]`), so this file
+2026-09-30. Tick items off in the PR that does them (`- [x]`), so this file
 stays the source of truth the same way `WORK-SPLIT.md` is.
 
 **Tags:** 🔴 **blocker** — the stores reject the app, or it doesn't work for a
@@ -39,8 +39,8 @@ calendar time no matter how fast the code moves:
 
 ## 2. Connect the app to the database (Dev)
 
-The live Supabase project has the full schema (migrations `0001`–`0009`,
-locked down, 248 schema tests in CI). The app uses it for the screens listed
+The live Supabase project has the full schema (migrations `0001`–`0017`,
+locked down, 488 schema assertions in CI). The app uses it for the screens listed
 as done below, when signed in; every other screen still reads and writes
 `src/lib/mockStore.ts` / `src/lib/directory.ts` (localStorage on the phone).
 
@@ -57,10 +57,12 @@ as done below, when signed in; every other screen still reads and writes
       a coach's page and the request a member sends from it, the coach
       accepting or declining it in Notifications), and the coach's Schedule
       (their real week, busy time, moving and cancelling a booking, and
-      recording attendance, which uses a package credit). Still on
+      recording attendance, which uses a package credit), messaging (both
+      threads, the inbox, live updates and blocking, `0014`), and client
+      invites (a coach invites a walk-in member by code, `0013`). Still on
       `mockStore` when signed in: the coach's Home (apart from the bell),
-      Profile stats, Earnings' totals, Messages, and the member screens
-      listed under the demo identities below.
+      Profile stats, Earnings' totals, and the member screens listed under
+      the demo identities below — Reem's current tasks.
 - [ ] 🔴 **Remove the demo identities.** 14 member screens hardcoded
       `const CLIENT_ID = 'sara'`, and the Pro side is the seeded
       `DEFAULT_PRO_ID = 'pro-yasmin'`. Both must come from the signed-in user.
@@ -68,22 +70,30 @@ as done below, when signed in; every other screen still reads and writes
       coach page and profile (SUPABASE-MIGRATION-PLAN.md, step 3), and the
       member's Sessions screen (step 4: their real sessions, cancelling one,
       asking to move one, withdrawing a request, and booking from their
-      coach's page, which Home and the coach page now open too). Left: the
-      member screens still on `DEMO_MEMBER_CLIENT_ID` (the demo booking
-      screen, reached signed in only from the programs screens, messaging,
-      programs, ratings, notifications, and Discover's goal matching).
+      coach's page, which Home and the coach page now open too). Left: My
+      programs, Program detail, Rate coach, the member's Notifications,
+      Discover's goal matching, and the demo booking screen reached from
+      the programs screens. `grep -rl DEMO_MEMBER_CLIENT_ID src/screens`
+      lists 12 files, most of them only for the signed-out demo path.
 - [ ] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,
       the 8 fictional `DIRECTORY_COACHES`, and any other `DEFAULT_*` seed.
       Apple rejects placeholder content, and fake coaches in a marketplace
-      mislead users.
+      mislead users. Signed out, Discover still shows the 8 fictional
+      coaches (found by #73) — decide whether the signed-out demo stays at
+      all; App Review signs in, but a reviewer may look first.
 - [ ] 🔴 **Use the real clock.** Calendar maths runs on a fixed fictional week
       (`TODAY_MS = Date.UTC(2025, 9, 22)`; screens hardcode `TODAY_INDEX = 2`).
       Real users would see October 2025. Replace with the current time, and
       re-check `format.ts`'s UTC wall-clock rule (CLAUDE.md, "Display every
-      date and time") once times come from real bookings.
+      date and time") once times come from real bookings. Signed in, every
+      converted screen is on the real clock; `grep -rl TODAY_INDEX src`
+      still lists ClientSchedule, ClientBooking, CoachPreview and Schedule.
 - [ ] 🔴 Loading, empty and error states on every screen. Today every read is
       synchronous localStorage; network reads can be slow or fail.
+      Done on every converted screen (26 use `LoadState`: loading, then an
+      error with a working retry — never the demo data as a fallback); the
+      rest land with §2's remaining screens.
       Discover now distinguishes an empty directory ("No pros yet") from a
       search that matched nothing — it will be empty until real pros sign
       up, and the search-failed wording read like a broken screen.
@@ -154,7 +164,10 @@ Apple's App Review Guidelines decide what may be paid outside the App Store:
 
 ## 4. Native builds and device testing (Dev)
 
-Nothing native has ever run on a device or simulator (CLAUDE.md, "Not verified").
+Both apps built and ran on the iPhone simulator and an Android 15 emulator
+(2026-09-29), and the safe-area fix was re-checked on both (2026-09-30).
+Nothing has run on a real phone yet. Build commands: CLAUDE.md, "Native
+builds".
 
 - [ ] 🔴 First iOS build in Xcode, on the simulator and a real iPhone.
       Simulator: done 2026-09-29 (builds, runs, sign-in opens). Real iPhone:
@@ -165,6 +178,9 @@ Nothing native has ever run on a device or simulator (CLAUDE.md, "Not verified")
 - [ ] 🔴 Google and Apple sign-in end to end on both platforms. Confirm
       `app.rafiqie.coach://auth-callback` is in Supabase → Auth → URL
       Configuration → Redirect URLs (listed as a to-do in `WORK-SPLIT.md`).
+      The in-app browser opens Google's and Apple's pages, and closing it
+      without finishing no longer leaves the buttons stuck (#68). Waiting
+      on *Ahmed*: the redirect URL, then one real sign-in per platform.
 - [x] 🔴 **Android hardware back button.** Nothing listens for it, so it exits
       the app from any screen. Wire `App.addListener('backButton', …)` from
       `@capacitor/app` to `appStore.back()`, exiting only on a tab root.
@@ -261,12 +277,18 @@ Nothing native has ever run on a device or simulator (CLAUDE.md, "Not verified")
       and the "Member check-in alerts" row is gone because no such
       notification exists. Push itself is still unbuilt; if it is built
       later, reopen this.
-- [ ] 🔴 **Account deletion must actually happen.** The app files a request
+- [x] 🔴 **Account deletion must actually happen.** The app files a request
       into `account_deletion_requests`; someone has to process it (§9), within
       a stated time. **Stated: within 30 days**, on the public deletion page.
       Processing a coach must also delete their `coach_payout_accounts` row
       (the page promises the saved national ID and account number go);
       `payouts` rows stay as the financial record.
+      Done: `process_account_deletion()` (`0012`) and the admin-only
+      `account-deletion` Edge Function, run from `supabase/admin/README.md`.
+      It refuses while a session, dispute, credit or payout is still open,
+      scrubs the member from every roster, deletes the payout account, and
+      deletes the login — or locks it, for a coach whose members and
+      payouts must keep a record. Meeting the 30 days is a process (§9).
 
 ## 7. Branding and store listing (Design + Ahmed)
 
@@ -323,10 +345,11 @@ Waits on the name decision (§1).
       what deletion (0012) keeps and removes. Filling the two forms is still
       Ahmed's, and eleven questions in it need answering first — among them
       where a national ID goes on Apple's form (it has no type for a
-      government ID), whether coaching focus counts as health data, which
-      region the Supabase project is in, and that `index.html` fetches its
-      two webfonts from Google at every launch, which discloses every user's
-      IP to a company otherwise nowhere in the app.
+      government ID), whether coaching focus counts as health data, and
+      what Law 151/2020 asks of hosting in `eu-west-1` (Ireland), where the
+      Supabase project is. Two are answered: the region, and the fonts —
+      they ship inside the app now (#75), so Google Fonts is off the
+      third-party list.
 - [ ] 🔴 Apple requires apps where users message each other to have reporting
       (✓ exists), blocking (✓ since step 5 — until then only a status the app
       read and nothing could set) and **timely action on reports** (§9),
@@ -394,13 +417,14 @@ only Rafiq can resolve (as `service_role`). Nothing works them yet.
 ## Already done — don't redo
 
 - Google + Apple OAuth configured and working in the web app.
-- Supabase schema live (`0001`–`0009`), locked down (signed-out access refused
-  at the grant; six security holes closed), 248 schema tests in CI; generated
-  types in `src/lib/database.types.ts`.
+- Supabase schema live (`0001`–`0017`), locked down (signed-out access refused
+  at the grant; six security holes closed), 488 schema assertions in CI;
+  generated types in `src/lib/database.types.ts`.
 - Payouts backend (`0007`, `payouts` Edge Function, payout-account screen,
   payout history); the ledger never stores a national ID (`0009`).
-- Browser test suite (~180 tests) in CI: Arabic ordering, dark-mode
-  contrast, timezone (tests run in Cairo time), money formatting, support rows.
+- Browser test suite (~370 tests) in CI: Arabic ordering, dark-mode
+  contrast, timezone (tests run in Cairo time), money formatting, support
+  rows, safe areas, 200% text, and no request to Google's font servers.
 - Contact Us opens `support@rafiqpro.com`; Rate Rafiq opens the store; privacy
   policies give the support address.
 - iOS target is iPhone-only (no iPad screenshots or iPad review needed).
