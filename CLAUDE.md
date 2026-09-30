@@ -234,6 +234,8 @@ JAVA_HOME=<a JDK 21> ./gradlew assembleDebug    # in android/
 `npm run build` bakes `.env.local`'s Supabase settings into the app, so a
 local native build talks to the live project.
 
+Store builds (signing, version numbers, uploading) are in `RELEASE.md`.
+
 Known from the first run: on iPhone the onboarding screens' Skip and back
 buttons sit under the status bar, where iOS swallows taps — Skip does
 nothing. Screens need `env(safe-area-inset-*)` (LAUNCH-CHECKLIST §4).
