@@ -11,7 +11,9 @@
     "test:ui": "playwright test --ui",
     "preview": "vite preview",
     "build:site": "node scripts/build-site.mjs",
-    "app-version": "node scripts/set-version.mjs"
+    "app-version": "node scripts/set-version.mjs",
+    "assets:render": "node scripts/render-brand-assets.mjs",
+    "assets": "node scripts/render-brand-assets.mjs && capacitor-assets generate --ios --android"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",
@@ -29,6 +31,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@playwright/test": "^1.63.0",
     "@types/node": "^24.13.3",
     "@types/react": "^19.2.18",

@@ -17,6 +17,11 @@
 
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
+        <!-- Android 11 and older: the full-screen image. -->
         <item name="android:background">@drawable/splash</item>
+        <!-- Android 12+: the system splash, the mark on the page colour
+             (values-night for dark). -->
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon</item>
     </style>
 </resources>

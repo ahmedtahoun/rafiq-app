@@ -191,10 +191,12 @@ builds".
       the home-indicator inset on every bottom bar rather than the frame, so
       their backgrounds still reach the edge. `viewport-fit=cover` was already
       in `index.html`.
-- [ ] 🟡 Keyboard covering inputs, status bar in dark mode, splash screen —
-      still to do. The status bar now sits over the page background on every
-      screen rather than over a coloured hero, so its style is a
-      `@capacitor/status-bar` decision, not a CSS one.
+- [ ] 🟡 Keyboard covering inputs, status bar in dark mode, splash screen.
+      Status bar: done (#79), its icons follow the app's theme. Splash: done,
+      light and dark, with the icon (§7). Keyboard: fine on Android (checked
+      on the emulator, Capacitor pads for it); **iOS not checked yet** —
+      the simulator uses the Mac's keyboard, so it needs ⌘K with a message
+      thread open.
 - [x] 🟡 **Large system text sizes.** Every font size is in px and Android
       scales WebView text with the system setting. Checked at 130% and 200% in
       both languages: chips, the Profile actions, the seven-day strip, the
@@ -304,12 +306,20 @@ Waits on the name decision (§1).
       Arabic home-screen names (`ar.lproj/InfoPlist.strings`,
       `values-ar/strings.xml`). `package.json`'s `name` stays `rafiq-app`:
       it is an internal id, never shown.
-- [ ] 🔴 **App icon** — both platforms still ship Capacitor's placeholder.
+- [x] 🔴 **App icon** — both platforms still ship Capacitor's placeholder.
       iOS 1024×1024 into `ios/App/App/Assets.xcassets/AppIcon.appiconset/`;
       Android adaptive icon (foreground + background) into
       `android/app/src/main/res/mipmap-*/`.
-- [ ] 🟡 Logo inside the app — Welcome, RoleSelect and Auth show a CSS "R"
+      Done with the app's R mark (Ahmed's choice, 2026-09-30): drawn from
+      `src/lib/logoMark.ts` into `assets/` by `npm run assets`, which also
+      generates every iOS and Android size and the light and dark splash
+      screens. A designed logo later: replace the files in `assets/` and run
+      `npx capacitor-assets generate --ios --android`.
+- [x] 🟡 Logo inside the app — Welcome, RoleSelect and Auth show a CSS "R"
       placeholder; plus a splash screen.
+      Done: one inline-SVG `<Logo>` on RoleSelect and Auth (Welcome never had
+      one), the same glyph as the icon, so it no longer changes font in
+      Arabic.
 - [ ] 🔴 **Screenshots, in English and Arabic:** iPhone 6.9" (1320×2868),
       3–10 per language; Google Play: at least 2 phone screenshots, a 1024×500
       feature graphic and a 512×512 icon. Take them from the connected app, not

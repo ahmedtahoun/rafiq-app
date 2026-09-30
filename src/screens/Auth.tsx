@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT, type MessageKey } from '../lib/i18n';
-import { darken } from '../lib/color';
 import { ChevronIcon } from '../components/icons';
+import { Logo } from '../components/Logo';
 import { signInWithOAuth, type OAuthProvider } from '../lib/auth';
 import { onAuthBrowserClosed } from '../lib/nativeAuth';
 import { rememberAuthOrigin } from '../lib/oauthReturn';
@@ -10,8 +10,7 @@ import { isSupabaseConfigured } from '../lib/supabase';
 import './Auth.css';
 
 // Same accent the design prototype's Auth.dc.html carries as its default
-// prop. Kept literal rather than read from tokens.css because darken()
-// needs a hex, not a CSS custom property — same reason Profile.tsx does it.
+// prop, for the decorative blob behind the header.
 const ACCENT = '#B75C3D';
 
 // Brand marks live here rather than in components/icons.tsx: they are
@@ -103,11 +102,8 @@ export default function Auth() {
           <ChevronIcon size={16} />
         </button>
 
-        <div
-          className="auth-mark"
-          style={{ background: `linear-gradient(135deg, ${ACCENT}, ${darken(ACCENT, 35)})`, boxShadow: `0 12px 24px -8px ${ACCENT}55` }}
-        >
-          <span>R</span>
+        <div className="auth-mark">
+          <Logo />
         </div>
 
         <div className="auth-eyebrow">{t('authEyebrow')}</div>
