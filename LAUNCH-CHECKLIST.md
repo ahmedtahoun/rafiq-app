@@ -168,10 +168,24 @@ Nothing native has ever run on a device or simulator (CLAUDE.md, "Not verified")
 - [x] 🔴 **Android hardware back button.** Nothing listens for it, so it exits
       the app from any screen. Wire `App.addListener('backButton', …)` from
       `@capacitor/app` to `appStore.back()`, exiting only on a tab root.
-- [ ] 🟡 Safe areas and notch, keyboard covering inputs, status bar in dark
-      mode, splash screen.
-- [ ] 🟡 Large system text sizes. Every font size is in px, and Android scales
-      WebView text with the system setting — check layouts at the largest size.
+- [x] 🟡 **Safe areas and notch.** Done: `--safe-top` / `--safe-bottom` in
+      `tokens.css`, one `padding-block-start` on `.phone-frame` for the status
+      bar (it has to be the frame, not each header — Welcome's Skip and back
+      are positioned inside the hero, which is why they were unreachable), and
+      the home-indicator inset on every bottom bar rather than the frame, so
+      their backgrounds still reach the edge. `viewport-fit=cover` was already
+      in `index.html`.
+- [ ] 🟡 Keyboard covering inputs, status bar in dark mode, splash screen —
+      still to do. The status bar now sits over the page background on every
+      screen rather than over a coloured hero, so its style is a
+      `@capacitor/status-bar` decision, not a CSS one.
+- [x] 🟡 **Large system text sizes.** Every font size is in px and Android
+      scales WebView text with the system setting. Checked at 130% and 200% in
+      both languages: chips, the Profile actions, the seven-day strip, the
+      offering and programme rows and the support rows were all clipped away
+      by the frame, and are fixed with logical properties (wrapping rows,
+      `max-inline-size`, `min-inline-size: 0`, `overflow-wrap`).
+      `tests/large-text.spec.js` walks all 53 screens at both sizes.
 - [ ] 🟡 Photo picker from Edit Profile, including the camera option (§6).
 - [ ] 🟡 `mailto:` (Contact Us) and store links (Rate Rafiq) hand off to the
       Mail app and store.

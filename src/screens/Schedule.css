@@ -111,11 +111,14 @@
 
 .schedule-day-strip {
   display: flex;
+  /* Seven chips fit on one line at the normal text size and fall onto a
+     second at the largest, instead of the week running off the screen. */
+  flex-wrap: wrap;
   gap: 7px;
 }
 
 .schedule-day-chip {
-  flex: 1;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   align-items: center;

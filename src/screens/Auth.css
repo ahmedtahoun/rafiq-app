@@ -106,7 +106,7 @@ html[dir='rtl'] .auth-headline { font-family: var(--font-display-ar); }
   flex-shrink: 0;
   background: var(--surface);
   border-radius: 32px 32px 0 0;
-  padding: 28px 28px 34px;
+  padding: 28px 28px max(34px, var(--safe-bottom));
   box-shadow: 0 -16px 32px -12px rgba(0, 0, 0, 0.12);
   position: relative;
   display: flex;

@@ -139,7 +139,7 @@ html[dir='rtl'] .messages-row.is-mine .messages-bubble {
 
 .messages-composer {
   flex-shrink: 0;
-  padding: 12px 16px;
+  padding: 12px 16px max(12px, var(--safe-bottom));
   background: var(--surface);
   box-shadow: 0 -8px 20px -12px rgba(0, 0, 0, 0.12);
 }

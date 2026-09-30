@@ -31,6 +31,19 @@
   --font-display-ar: 'Cairo', sans-serif;
   --font-body-en: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   --font-body-ar: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+
+  /* The device's safe areas, behind variables so that one rule can read them
+     and a test can simulate a notch — env() is always 0 in a desktop browser.
+     These are the only two places the app names env() directly.
+
+     --safe-top is applied once, on .phone-frame below.
+     --safe-bottom is applied by each bottom bar (BottomNav, BottomSheet, the
+     composers and the footers) rather than by the frame: those bars have a
+     --surface background that has to reach the bottom edge, with only their
+     content lifted off the home indicator. Frame padding would leave a strip
+     of page gradient under them. */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 :root[data-theme='dark'] {
@@ -119,6 +132,14 @@ button:active, a:active { transform: scale(0.96); }
   overflow: hidden;
   position: relative;
   background: var(--bg-grad);
+  /* The status bar / notch, for every screen at once. It goes on the frame
+     rather than on each header because the buttons that were unreachable are
+     positioned (Welcome's Skip and back are `position: absolute; top: 26px`
+     inside the hero): padding on the header would not move them, padding on
+     the frame moves the whole containing block. iOS swallows taps in the
+     status bar, so Skip did nothing on the simulator.
+     The bottom inset is deliberately not here — see --safe-bottom. */
+  padding-block-start: var(--safe-top);
 }
 
 /* Direction-sensitive glyphs (back/forward chevrons) mirror automatically
