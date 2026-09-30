@@ -318,31 +318,19 @@ a member's name if it is not scrubbed.
 | **Google** (Sign in with Google) | Whatever Google already knows; it returns a name and an email | Sign-in |
 | **Apple** (Sign in with Apple) | Same, and the email may be a private relay address | Sign-in |
 | **Paymob** | A coach's name, national ID, wallet or bank account number, and the amount | Sending a coach their payout. Nothing about members reaches Paymob today |
-| **Google Fonts** — see below | Every user's IP address and User-Agent | Two webfonts |
 
-### Google Fonts is a real disclosure, and it is easy to miss
+Google Fonts used to be on this list: `index.html` fetched Lora and Cairo
+from `fonts.googleapis.com`, which handed every user's IP and User-Agent
+to Google. Both fonts ship inside the app now (#75, `@fontsource/*`), and
+`tests/fonts.spec.js` fails if a request to Google's font servers comes
+back. Keep it that way — a webfont link is the easiest way to add a
+third party to this table without noticing.
 
-`index.html` loads Lora and Cairo from `fonts.googleapis.com` at runtime,
-which pulls the font files from `fonts.gstatic.com`. In the native shells
-that is a request to Google from the WebView, before the user has done
-anything, and it discloses their IP address and User-Agent to a company
-that is not otherwise in this inventory. The WebView caches the response,
-so it is not literally every launch — but it is the first one, every
-reinstall, and every time the cache is evicted, on every device.
-
-It is also an availability problem: on a slow or offline connection the
-app renders in a fallback font, and the Arabic side has no good system
-fallback for Cairo.
-
-Self-hosting both families in `public/` removes the row from this table
-entirely and makes the app work offline. That is a code change, not a
-document one, so it is flagged here rather than done — **Ahmed to
-confirm** whether to raise it as its own task.
-
-**Ahmed to confirm** — where the Supabase project is hosted. The region
-decides whether personal data about Egyptian users leaves Egypt, which is
-a Law 151/2020 question and, if the app takes EU users, a GDPR transfer
-question (§8). It is in the Supabase dashboard, not in this repo.
+**Where the data is hosted: Supabase region `eu-west-1` (Ireland)**,
+read from `supabase projects list`. Personal data about Egyptian users
+therefore leaves Egypt, which is a cross-border transfer under Law
+151/2020 — **Ahmed to confirm** what that requires (§8). For EU users the
+data stays in the EU.
 
 ---
 
@@ -415,10 +403,11 @@ schema.
    government identity number.
 6. **Whether Paymob genuinely requires `national_id`** (already §3, the
    staging payout run). If not, stop collecting it.
-7. **Whether to self-host the fonts** and remove Google from the
-   third-party table.
-8. **Which region the Supabase project is in** — Law 151/2020 and, for EU
-   users, GDPR transfers.
+7. ~~Whether to self-host the fonts~~ — done (#75); Google Fonts is off
+   the third-party table.
+8. **What Law 151/2020 requires for the transfer to Ireland.** The
+   region is known now: `eu-west-1`. What is not is whether hosting there
+   needs a licence or a clause in the policy.
 9. **A retention period** for data not covered by a deletion request.
    Neither policy states one.
 10. **Supabase's own log retention**, which holds IP addresses and is
