@@ -216,6 +216,10 @@
   font-weight: 700;
   margin-top: 3px;
   line-height: 1.4;
+  /* At the largest system text size a single word is wider than its
+     column; breaking it keeps it on screen, where the frame's
+     overflow:hidden would otherwise cut it off entirely */
+  overflow-wrap: anywhere;
 }
 
 .client-tasks-progress-sessions {

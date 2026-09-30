@@ -45,6 +45,11 @@
 
 .offerings-card {
   display: flex;
+  /* The trailing price/progress squeezes the name into a column narrower
+     than one word at the largest system text size. Let it drop to a second
+     line instead, and give the name a text-relative basis so it is the last
+     thing to move. */
+  flex-wrap: wrap;
   align-items: center;
   gap: 13px;
   background: var(--surface);
@@ -69,13 +74,17 @@
 }
 
 .offerings-card-text {
-  flex: 1;
+  flex: 1 1 10em;
   min-width: 0;
 }
 
 .offerings-card-name {
   font-size: 14px;
   font-weight: 700;
+  /* Last resort once the row above has wrapped: a single word can still be
+     wider than the whole card at 200% ("Transformation"), and a broken
+     word beats one the frame clips away. */
+  overflow-wrap: anywhere;
 }
 
 .offerings-card-meta {

@@ -128,6 +128,7 @@
 
 .add-task-chips {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
@@ -138,9 +139,13 @@
   font-weight: 700;
   background: var(--surface);
   color: var(--ink);
-  white-space: nowrap;
+  /* No `white-space: nowrap`: at the largest system text size a long
+     specialty ("Stress & anxiety coaching") is wider than the row, and a
+     chip that cannot wrap is clipped by the frame instead. */
+  max-inline-size: 100%;
   box-shadow: var(--shadow-soft);
   min-height: 44px;
+  overflow-wrap: anywhere;
 }
 .add-task-chip.is-selected {
   background: var(--accent);
@@ -252,7 +257,7 @@
 
 .add-task-footer {
   flex-shrink: 0;
-  padding: 16px 24px 24px;
+  padding: 16px 24px max(24px, var(--safe-bottom));
   background: var(--surface);
   box-shadow: 0 -8px 20px -12px rgba(0, 0, 0, 0.12);
 }

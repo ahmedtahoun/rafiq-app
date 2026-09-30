@@ -198,7 +198,7 @@
 
 .add-time-block-footer {
   flex-shrink: 0;
-  padding: 16px 24px 24px;
+  padding: 16px 24px max(24px, var(--safe-bottom));
   background: var(--surface);
   box-shadow: 0 -8px 20px -12px rgba(0, 0, 0, 0.12);
 }

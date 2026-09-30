@@ -329,6 +329,7 @@ html[dir='rtl'] .client-profile-name {
 
 .client-profile-lang-toggle {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
@@ -432,12 +433,18 @@ html[dir='rtl'] .client-profile-name {
 
 .client-profile-help-label {
   flex: 1;
+  /* Without this a flex item will not shrink below its longest word, and
+     support@rafiqpro.com at the largest text size is one 290px word. */
+  min-inline-size: 0;
   font-size: 14px;
   font-weight: 700;
 }
 
 .client-profile-help-sub {
   margin-top: 2px;
+  /* An address has no spaces to break at; let it break anywhere rather
+     than push the row past the edge of the screen. */
+  overflow-wrap: anywhere;
   font-size: 12px;
   font-weight: 600;
   color: var(--ink-soft);

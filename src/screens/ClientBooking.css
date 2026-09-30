@@ -252,6 +252,8 @@
   gap: 14px;
   font-size: 11px;
   color: var(--ink-soft);
+  /* Falls onto a second line at the largest text size instead of running off the screen */
+  flex-wrap: wrap;
 }
 
 .client-booking-legend span {
@@ -356,7 +358,7 @@
 
 .client-booking-bar {
   flex-shrink: 0;
-  padding: 12px 20px 18px;
+  padding: 12px 20px max(18px, var(--safe-bottom));
   background: var(--surface);
   box-shadow: 0 -12px 28px -14px rgba(0, 0, 0, 0.3);
 }

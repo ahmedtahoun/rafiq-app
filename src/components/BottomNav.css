@@ -1,6 +1,6 @@
 .bottom-nav {
   flex-shrink: 0;
-  margin: 0 16px calc(18px + env(safe-area-inset-bottom));
+  margin: 0 16px calc(18px + var(--safe-bottom));
   background: var(--surface);
   border-radius: 26px;
   box-shadow: var(--nav-shadow);

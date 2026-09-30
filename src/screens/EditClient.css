@@ -121,10 +121,14 @@
   border-radius: 999px;
   font-size: 13px;
   font-weight: 700;
-  white-space: nowrap;
+  /* No `white-space: nowrap`: at the largest system text size a long
+     specialty ("Stress & anxiety coaching") is wider than the row, and a
+     chip that cannot wrap is clipped by the frame instead. */
+  max-inline-size: 100%;
   background: var(--surface);
   color: var(--ink);
   box-shadow: var(--shadow-soft);
+  overflow-wrap: anywhere;
 }
 .edit-client-chip.is-selected {
   background: var(--accent);
