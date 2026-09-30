@@ -15,6 +15,9 @@ dist-ssr
 # Signing — never commit this
 android/keystore/
 
+# iOS archives from RELEASE.md's command-line build
+/build/
+
 # Env
 .env
 .env.local

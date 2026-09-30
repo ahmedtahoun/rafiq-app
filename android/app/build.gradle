@@ -1,5 +1,16 @@
 apply plugin: 'com.android.application'
 
+// Release signing. The upload key and its passwords live in
+// android/keystore/ (gitignored, never committed): keystore.properties names
+// the .jks file next to it. RELEASE.md has the one-time setup. Debug builds
+// don't need any of it; a release build without it stops with the reason
+// instead of producing an unsigned bundle Play would reject.
+def keystorePropsFile = rootProject.file('keystore/keystore.properties')
+def keystoreProps = new Properties()
+if (keystorePropsFile.exists()) {
+    keystorePropsFile.withInputStream { keystoreProps.load(it) }
+}
+
 android {
     namespace = "app.rafiqie.coach"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,8 +27,21 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (keystorePropsFile.exists()) {
+                storeFile rootProject.file("keystore/${keystoreProps['storeFile']}")
+                storePassword keystoreProps['storePassword']
+                keyAlias keystoreProps['keyAlias']
+                keyPassword keystoreProps['keyPassword']
+            }
+        }
+    }
     buildTypes {
         release {
+            if (keystorePropsFile.exists()) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
@@ -43,6 +67,14 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
+
+tasks.matching { it.name in ['bundleRelease', 'assembleRelease'] }.configureEach {
+    doFirst {
+        if (!keystorePropsFile.exists()) {
+            throw new GradleException('No upload key: android/keystore/keystore.properties is missing. See RELEASE.md, "Android: the upload key".')
+        }
+    }
+}
 
 try {
     def servicesJSON = file('google-services.json')

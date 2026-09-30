@@ -51,7 +51,7 @@ export const CRISIS_RESOURCES: CrisisResource[] = [
 ];
 
 /** True once every row has a number. False is the pre-launch state, and
-    `tests/crisis-resources.spec.js` asserts the unconfirmed rows still
+    `tests/not-therapy.spec.js` asserts the unconfirmed rows still
     render something a person can act on rather than a blank. */
 export function crisisNumbersConfirmed(): boolean {
   return CRISIS_RESOURCES.every((r) => r.phone !== null);

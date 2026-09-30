@@ -4,6 +4,7 @@ import { isRtl } from './lib/i18n';
 import { initSession } from './lib/session';
 import { initOAuthDeepLinks } from './lib/auth';
 import { initBackButton } from './lib/nativeBack';
+import { applySystemBarsStyle } from './lib/nativeSystemBars';
 import Welcome from './screens/Welcome';
 import RoleSelect from './screens/RoleSelect';
 import Auth from './screens/Auth';
@@ -83,6 +84,8 @@ export default function App() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    // The status bar's icons follow the app's theme, not the phone's.
+    applySystemBarsStyle(dark);
   }, [dark]);
 
   switch (screen) {

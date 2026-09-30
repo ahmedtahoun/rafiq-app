@@ -354,24 +354,18 @@ to send.
 | **Paymob** | A coach's name, national ID, wallet or bank account number, and the amount | Sending a coach their payout. Nothing about members reaches Paymob today |
 | **Sentry** | Nothing today. Once a DSN is set: crash reports, as broken down in §10 | Knowing the app crashed, and where |
 
-### Google Fonts: fixed, and worth not undoing
+Google Fonts used to be on this list: `index.html` fetched Lora and Cairo
+from `fonts.googleapis.com`, which handed every user's IP and User-Agent
+to Google. Both fonts ship inside the app now (#75, `@fontsource/*`), and
+`tests/fonts.spec.js` fails if a request to Google's font servers comes
+back. Keep it that way — a webfont link is the easiest way to add a
+third party to this table without noticing.
 
-An earlier revision of this inventory listed Google as a fourth party
-because `index.html` fetched Lora and Cairo from `fonts.googleapis.com` at
-runtime, which handed every user's IP address and User-Agent to Google
-from the WebView before they had done anything. The fonts are now bundled
-(`@fontsource/lora`, `@fontsource/cairo` in `src/main.tsx`), so that
-request is gone and the app also renders correctly offline — Cairo has no
-good Arabic system fallback.
-
-Kept here rather than deleted: adding a `<link>` to any font, icon or
-script CDN puts the row straight back, and it is the kind of line that
-gets added without anyone thinking of it as a data disclosure.
-
-**Ahmed to confirm** — where the Supabase project is hosted. The region
-decides whether personal data about Egyptian users leaves Egypt, which is
-a Law 151/2020 question and, if the app takes EU users, a GDPR transfer
-question (§8). It is in the Supabase dashboard, not in this repo.
+**Where the data is hosted: Supabase region `eu-west-1` (Ireland)**,
+read from `supabase projects list`. Personal data about Egyptian users
+therefore leaves Egypt, which is a cross-border transfer under Law
+151/2020 — **Ahmed to confirm** what that requires (§8). For EU users the
+data stays in the EU.
 
 ---
 
@@ -444,10 +438,11 @@ schema.
    government identity number.
 6. **Whether Paymob genuinely requires `national_id`** (already §3, the
    staging payout run). If not, stop collecting it.
-7. ~~Whether to self-host the fonts.~~ Done — they are bundled, and
-   Google is out of the third-party table.
-8. **Which region the Supabase project is in** — Law 151/2020 and, for EU
-   users, GDPR transfers.
+7. ~~Whether to self-host the fonts~~ — done (#75); Google Fonts is off
+   the third-party table.
+8. **What Law 151/2020 requires for the transfer to Ireland.** The
+   region is known now: `eu-west-1`. What is not is whether hosting there
+   needs a licence or a clause in the policy.
 9. **A retention period** for data not covered by a deletion request.
    Neither policy states one.
 10. **Supabase's own log retention**, which holds IP addresses and is
