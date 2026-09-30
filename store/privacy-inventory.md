@@ -324,6 +324,14 @@ and `[token]` first. Stack frames are deliberately left intact — file
 paths and line numbers are the point of a crash report, and the phone
 pattern would otherwise eat them.
 
+**Only JavaScript errors are reported.** `@sentry/capacitor` ships Sentry's
+native iOS and Android SDKs, but they are never started
+(`enableNative: false`). Started, they would send every event onward after
+the scrubber has run, adding their own breadcrumbs (request URLs among
+them), and would report native crashes without going through it at all.
+The cost is that a crash in native plugin code is not reported; the app's
+own code is all JavaScript.
+
 **Names are the one thing no pattern can find**, so they are kept out
 structurally rather than filtered: no user context, nothing attached from
 props or state, and no breadcrumbs. Breadcrumbs are where a name would

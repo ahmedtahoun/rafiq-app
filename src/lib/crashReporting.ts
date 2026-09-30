@@ -127,6 +127,13 @@ export function sentryOptions(dsn: string): Record<string, unknown> {
     // No performance tracing and no session replay: both stream what is on
     // screen, and what is on screen here is somebody's coaching record.
     tracesSampleRate: 0,
+    // JavaScript only. On a phone @sentry/capacitor otherwise also starts
+    // Sentry's native iOS/Android SDK and sends every event through it —
+    // after beforeSend, so the native side adds what it collects (its own
+    // breadcrumbs, including request URLs that carry row ids) past the
+    // scrubber, and native crashes skip the scrubber entirely. The tests run
+    // in a browser, where native is always off, so they could not see this.
+    enableNative: false,
     sendDefaultPii: false,
     enableCaptureFailedRequests: false,
     enableAutoSessionTracking: false,

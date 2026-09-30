@@ -85,6 +85,21 @@ test('a crash still shows the fallback when reporting is off', async ({ browser 
   await ctx.close();
 });
 
+test('on a phone too, reports stay on the scrubbed JavaScript path', async ({ browser }) => {
+  // In a browser the native SDK is always off, so the transport test below
+  // cannot tell whether a phone would bypass beforeSend. This pins the
+  // option that decides it.
+  const { ctx, page, errs } = await openApp(browser);
+  const opts = await page.evaluate(async () => {
+    const { sentryOptions } = await import('/src/lib/crashReporting.ts');
+    const o = sentryOptions('http://k@127.0.0.1:5173/1');
+    return { enableNative: o.enableNative, sendDefaultPii: o.sendDefaultPii, tracesSampleRate: o.tracesSampleRate };
+  });
+  expect(opts).toEqual({ enableNative: false, sendDefaultPii: false, tracesSampleRate: 0 });
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
 test('scrubEvent removes every kind of personal detail it can recognise', async ({ browser }) => {
   const { ctx, page } = await openApp(browser);
 
