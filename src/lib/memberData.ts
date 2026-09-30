@@ -21,7 +21,7 @@ import { getProfilePhotoUrl, type PhotoKind } from './storage';
 import type { Client, MoodKey, RawPackage, Task } from './mockStore';
 import type { Tables } from './database.types';
 
-export type MemberErrorCode = 'not_configured' | 'not_signed_in' | 'unknown';
+export type MemberErrorCode = 'not_configured' | 'not_signed_in' | 'refused' | 'unknown';
 export type MemberResult<T> = { ok: true; data: T } | { ok: false; code: MemberErrorCode; message: string };
 
 const NOT_CONFIGURED = { ok: false, code: 'not_configured', message: 'Supabase credentials are missing — see .env.local.example.' } as const;
@@ -246,4 +246,84 @@ export async function saveOwnMemberContact(contact: MemberContact): Promise<Memb
     .update({ full_name: contact.fullName, phone: contact.phone, country_code: contact.countryCode })
     .eq('id', uid);
   return error ? unknown(error) : ok(null);
+}
+
+// ---------------------------------------------------------------------------
+// Claiming a coach's invite (0013)
+//
+// A coach who added someone by hand before they had an account hands over a
+// code; this is the member's side of redeeming it. `peek` is what lets the
+// member see whose roster they are about to join *before* committing —
+// they cannot read `clients` themselves, so without it they would be
+// confirming blind.
+//
+// Both functions return their refusals in the payload rather than raising,
+// so that the rate limit they just counted is not rolled back. Every code
+// below is one the screen has copy for; an unrecognised one falls back to
+// the generic retry line rather than being shown raw.
+// ---------------------------------------------------------------------------
+
+export type InviteError =
+  | 'not_signed_in' | 'not_a_member' | 'rate_limited' | 'not_found'
+  | 'expired' | 'already_used' | 'own_invite' | 'already_linked';
+
+export interface InvitePreview {
+  coachId: string;
+  coachName: string;
+  coachTitle: string;
+  coachPhoto: string | null;
+  /** The name on the roster row, so the member can confirm it is theirs. */
+  clientName: string;
+  /**
+   * Set when the code resolves but the member already has this row — peek
+   * still returns the coach so the screen can say who, rather than a bare
+   * error. Claim refuses it.
+   */
+  alreadyLinked: boolean;
+}
+
+function payloadError(data: unknown): string | null {
+  if (data && typeof data === 'object' && 'error' in data) {
+    const err = (data as { error: unknown }).error;
+    if (typeof err === 'string') return err;
+  }
+  return null;
+}
+
+/** Who a code belongs to, without spending it. */
+export async function peekInvite(code: string): Promise<MemberResult<InvitePreview>> {
+  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const uid = await currentUserId();
+  if (!uid) return NOT_SIGNED_IN;
+  const { data, error } = await getSupabase().rpc('peek_client_invite', { p_code: code });
+  if (error) return unknown(error);
+  const refused = payloadError(data);
+  // 'already_linked' is the one refusal peek answers anyway, so the screen
+  // can name the coach instead of showing a bare error.
+  if (refused && refused !== 'already_linked') return { ok: false, code: 'refused', message: refused };
+  const row = data as {
+    coach_id: string; coach_name: string | null; coach_title: string | null;
+    coach_photo: string | null; client_name: string | null;
+  };
+  return ok({
+    coachId: row.coach_id,
+    coachName: row.coach_name ?? '',
+    coachTitle: row.coach_title ?? '',
+    coachPhoto: row.coach_photo,
+    clientName: row.client_name ?? '',
+    alreadyLinked: refused === 'already_linked',
+  });
+}
+
+/** Link this member to the row the code names, and spend the code. */
+export async function claimInvite(code: string): Promise<MemberResult<{ clientId: string; coachId: string }>> {
+  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const uid = await currentUserId();
+  if (!uid) return NOT_SIGNED_IN;
+  const { data, error } = await getSupabase().rpc('claim_client_invite', { p_code: code });
+  if (error) return unknown(error);
+  const refused = payloadError(data);
+  if (refused) return { ok: false, code: 'refused', message: refused };
+  const row = data as { client_id: string; coach_id: string };
+  return ok({ clientId: row.client_id, coachId: row.coach_id });
 }

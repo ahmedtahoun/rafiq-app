@@ -120,6 +120,20 @@ export interface Client {
       same role store.js's field of the same name plays for a coach's
       completeCoachSignup, and null before then, same as DEFAULT_COACH_PROFILE. */
   signupCompletedAtMs: number | null;
+  /**
+   * The member account this roster row belongs to, or null for a walk-in
+   * the coach added by hand. Optional because the demo path has no
+   * accounts at all: undefined there, never a real id.
+   *
+   * A walk-in can be linked by inviting them (0013) — see `invite`.
+   */
+  memberId?: string | null;
+  /**
+   * The outstanding invite on a walk-in row, if the coach has issued one.
+   * Only `create_client_invite` and `revoke_client_invite` write it, so it
+   * is read-only here. Undefined on the demo path.
+   */
+  invite?: { code: string; expiresAtMs: number } | null;
 }
 
 // Same 6 seed clients as store.js's DEFAULT_CLIENTS. age/phone/countryCode/

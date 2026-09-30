@@ -42,3 +42,15 @@
   font-weight: 700;
   box-shadow: 0 6px 14px -4px var(--accent-glow);
 }
+
+.no-coach-yet-alt {
+  border: none;
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: transparent;
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}

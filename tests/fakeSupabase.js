@@ -207,6 +207,78 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       return { data: charged, error: null };
     }
 
+    // 0013's four invite functions. They *return* refusals as
+    // {error: '...'} rather than raising, because a raised error would roll
+    // back the rate-limit attempt they counted — so these do the same, and
+    // the failure counter is modelled too, since it changes behaviour.
+    const DAY = 86400000;
+    function inviteCheck(code) {
+      const norm = String(code ?? '').toUpperCase().replace(/[^0-9A-Z]/g, '');
+      const me = (db.profiles ??= []).find((p) => p.id === userId);
+      const attempts = (db.client_invite_attempts ??= []);
+      const fail = (err) => {
+        attempts.push({ profile_id: userId, at: Date.now() });
+        return { err };
+      };
+      if (!userId) return { err: 'not_signed_in' };
+      if (me?.role === 'coach') return fail('not_a_member');
+      if (attempts.filter((a) => a.profile_id === userId && a.at > Date.now() - 3600000).length >= 10) {
+        return { err: 'rate_limited' };
+      }
+      const c = (db.clients ??= []).find((x) => x.invite_code && x.invite_code === norm);
+      if (!c) return fail('not_found');
+      if (c.invite_expires_at && Date.parse(c.invite_expires_at) <= Date.now()) return fail('expired');
+      if (c.coach_id === userId) return fail('own_invite');
+      if (c.member_id === userId) return { c, err: 'already_linked' };
+      if (c.member_id) return fail('already_used');
+      return { c };
+    }
+    function clientInvite(fn, args) {
+      const clients = (db.clients ??= []);
+      if (fn === 'create_client_invite') {
+        const c = clients.find((x) => x.id === args.p_client && x.coach_id === userId);
+        if (!c) return { data: { error: 'not_found' }, error: null };
+        if (c.member_id) return { data: { error: 'already_linked' }, error: null };
+        if (!c.active) return { data: { error: 'archived' }, error: null };
+        c.invite_code = `T3ST${String(clients.indexOf(c)).padStart(6, '0')}`.slice(0, 10);
+        c.invite_created_at = new Date().toISOString();
+        c.invite_expires_at = new Date(Date.now() + 14 * DAY).toISOString();
+        return { data: { code: c.invite_code, expires_at: c.invite_expires_at }, error: null };
+      }
+      if (fn === 'revoke_client_invite') {
+        const c = clients.find((x) => x.id === args.p_client && x.coach_id === userId);
+        if (!c) return { data: { error: 'not_found' }, error: null };
+        c.invite_code = null;
+        c.invite_created_at = null;
+        c.invite_expires_at = null;
+        return { data: { ok: true }, error: null };
+      }
+      const chk = inviteCheck(args.p_code);
+      if (fn === 'peek_client_invite') {
+        if (chk.err && chk.err !== 'already_linked') return { data: { error: chk.err }, error: null };
+        const coach = (db.profiles ??= []).find((p) => p.id === chk.c.coach_id) ?? {};
+        const cp = (db.coach_profiles ??= []).find((x) => x.profile_id === chk.c.coach_id) ?? {};
+        return {
+          data: {
+            error: chk.err ?? null,
+            coach_id: chk.c.coach_id,
+            coach_name: coach.full_name ?? null,
+            coach_title: cp.title ?? null,
+            coach_photo: coach.avatar_photo_url ?? null,
+            client_name: chk.c.full_name ?? null,
+          },
+          error: null,
+        };
+      }
+      // claim
+      if (chk.err) return { data: { error: chk.err }, error: null };
+      chk.c.member_id = userId;
+      chk.c.invite_code = null;
+      chk.c.invite_created_at = null;
+      chk.c.invite_expires_at = null;
+      return { data: { client_id: chk.c.id, coach_id: chk.c.coach_id }, error: null };
+    }
+
     real.rpc = async (fn, args) => {
       log({ op: 'rpc', fn, args });
       // window.__fake.rpcDelay (ms) keeps a call in flight, for a test that
@@ -215,6 +287,7 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       if (failing(`rpc.${fn}`)) return { data: null, error: NETWORK };
       if (fn === 'reschedule_booking' || fn === 'cancel_booking') return changeBooking(fn, args);
       if (fn === 'mark_attendance') return markAttendance(args);
+      if (fn.endsWith('_client_invite')) return clientInvite(fn, args);
       if (fn === 'member_cancel_session') return memberCancel(args);
       if (fn !== 'accept_session_request') return refuse('42883');
       const r = (db.session_requests ??= []).find((x) => x.id === args.p_request && x.coach_id === userId);

@@ -20,6 +20,8 @@ import {
 } from '../lib/mockStore';
 import {
   addRosterClient,
+  createClientInvite,
+  revokeClientInvite,
   addRosterTask,
   deleteRosterTask,
   fetchRoster,
@@ -95,6 +97,14 @@ export interface RosterActions {
   addTask: (clientId: string, task: NewTask) => Promise<boolean>;
   updateTask: (clientId: string, taskId: string, patch: TaskPatch) => Promise<boolean>;
   deleteTask: (clientId: string, taskId: string) => Promise<boolean>;
+  /**
+   * Issue or withdraw a walk-in client's invite code (0013). Both return
+   * the refusal string when 0013 declined ('already_linked', 'archived',
+   * 'not_found'), null on success, and 'unknown' on anything else — the
+   * screen maps that to copy, and never shows it raw.
+   */
+  createInvite: (clientId: string) => Promise<string | null>;
+  revokeInvite: (clientId: string) => Promise<string | null>;
 }
 
 export type RosterView =
@@ -135,6 +145,10 @@ function mockActions(bump: () => void): RosterActions {
     addTask: (clientId, task) => done(!!mockAddTask(clientId, { ...task, id: `t${Date.now().toString(36)}` })),
     updateTask: (clientId, taskId, patch) => done(!!mockUpdateTask(clientId, taskId, patch)),
     deleteTask: (clientId, taskId) => done(!!mockDeleteTask(clientId, taskId)),
+    // Invites exist only against real rows: there are no accounts to link
+    // on the demo path, and the card that calls these is hidden there.
+    createInvite: () => Promise.resolve('unknown'),
+    revokeInvite: () => Promise.resolve('unknown'),
   };
 }
 
@@ -182,6 +196,18 @@ function remoteActions(patch: RosterState['patch'], favourites: () => Record<str
       if (!result.ok) return false;
       patch((r) => replaceTasks(r, clientId, (tasks) => tasks.filter((t) => t.id !== taskId)));
       return true;
+    },
+    async createInvite(clientId) {
+      const result = await createClientInvite(clientId);
+      if (!result.ok) return result.code === 'refused' ? result.message : 'unknown';
+      patch((r) => replaceClient(r, clientId, (c) => ({ ...c, invite: result.data })));
+      return null;
+    },
+    async revokeInvite(clientId) {
+      const result = await revokeClientInvite(clientId);
+      if (!result.ok) return result.code === 'refused' ? result.message : 'unknown';
+      patch((r) => replaceClient(r, clientId, (c) => ({ ...c, invite: null })));
+      return null;
     },
   };
 }
