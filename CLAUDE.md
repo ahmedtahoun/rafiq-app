@@ -101,6 +101,14 @@ screen reader in Arabic. If the control sits in a list, interpolate what it
 acts on — "Toggle complete: {task}", not a bare "Toggle task complete"
 repeated once per row. `tests/a11y-labels.spec.js` enforces all of this.
 
+**Never write a phone number into the crisis list.** `crisisResources.ts`
+carries the rows behind "Coaching is not therapy"; every `phone` is `null`
+until Ahmed has dialled it, and a row with no number says so rather than
+showing one. A wrong number there is worse than no number — someone calls
+it at the worst moment of their life and reaches a dead line.
+`tests/not-therapy.spec.js` fails if anything renders a number the data
+does not carry.
+
 **Do not let copy claim something the app does not do.** The onboarding
 carousel promised everything happened "over WhatsApp" long after in-app
 messaging shipped and the privacy policy said otherwise. If you change

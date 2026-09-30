@@ -21,6 +21,10 @@ const DOCS = {
   terms: ['termsSection', 'clientTermsSection'],
 };
 const UPDATED = { privacySection: 'privacyUpdated', clientPrivacySection: 'clientPrivacyUpdated', termsSection: 'termsUpdated', clientTermsSection: 'clientTermsUpdated' };
+// The block after the numbered sections: "Coaching is not therapy" and the
+// crisis lines, on the Terms documents only. It can fall behind the app the
+// same way the numbered sections can, so it is checked the same way.
+const NOT_THERAPY = { termsSection: 'termsNotTherapyBody', clientTermsSection: 'clientTermsNotTherapyBody' };
 const pageFile = (lang, slug) => join(SITE, lang === 'ar' ? 'ar' : '', slug, 'index.html');
 
 function htmlFiles(dir) {
@@ -46,19 +50,31 @@ async function mainText(browser, file) {
 test('the published policies say exactly what the app says, in both languages', async ({ browser, page }) => {
   // The app's own copy, straight from i18n.ts through the dev server.
   await page.goto('/');
-  const expected = await page.evaluate(async ({ DOCS, UPDATED }) => {
+  const expected = await page.evaluate(async ({ DOCS, UPDATED, NOT_THERAPY }) => {
     const { translate } = await import('/src/lib/i18n.ts');
+    const { CRISIS_RESOURCES } = await import('/src/lib/crisisResources.ts');
     const out = {};
     for (const lang of ['en', 'ar']) {
       for (const [slug, prefixes] of Object.entries(DOCS)) {
         out[`${lang}/${slug}`] = prefixes.flatMap((p) => [
           translate(lang, UPDATED[p]),
           ...[1, 2, 3, 4, 5, 6].flatMap((n) => [translate(lang, `${p}${n}Heading`), translate(lang, `${p}${n}Body`)]),
+          ...(NOT_THERAPY[p]
+            ? [
+                translate(lang, 'notTherapyTitle'),
+                translate(lang, NOT_THERAPY[p]),
+                translate(lang, 'crisisLead'),
+                translate(lang, 'crisisEmergencyLead'),
+                translate(lang, 'crisisOutsideEgypt'),
+                translate(lang, 'crisisTellSomeone'),
+                ...CRISIS_RESOURCES.flatMap((r) => [translate(lang, r.nameKey), translate(lang, r.forKey)]),
+              ]
+            : []),
         ]);
       }
     }
     return out;
-  }, { DOCS, UPDATED });
+  }, { DOCS, UPDATED, NOT_THERAPY });
 
   for (const [key, strings] of Object.entries(expected)) {
     const [lang, slug] = key.split('/');

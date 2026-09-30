@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT, type MessageKey } from '../lib/i18n';
 import { ChevronIcon } from '../components/icons';
@@ -17,6 +18,13 @@ interface PolicyPageProps {
   /** Section copy lives at `${sectionPrefix}{n}Heading` / `...Body`, 1-based. */
   sectionPrefix: SectionPrefix;
   sectionCount: SectionNumber;
+  /** Rendered after the numbered sections. The Terms screens put
+      "Coaching is not therapy" and the crisis list here rather than
+      extending SECTION_NUMBERS to 7: the numbered keys are checked by
+      expanding `${prefix}${n}Heading` over every prefix, so a seventh
+      number would demand privacySection7Heading too. A footer names its
+      keys outright and stays just as checked. */
+  footer?: ReactNode;
 }
 
 /**
@@ -29,7 +37,7 @@ interface PolicyPageProps {
  * supply their own i18n keys rather than carrying two copies of the same
  * markup that would drift the first time one is touched.
  */
-export function PolicyPage({ titleKey, updatedKey, sectionPrefix, sectionCount }: PolicyPageProps) {
+export function PolicyPage({ titleKey, updatedKey, sectionPrefix, sectionCount, footer }: PolicyPageProps) {
   const t = useT();
   const back = useAppStore((s) => s.back);
   const lang = useAppStore((s) => s.lang);
@@ -61,6 +69,7 @@ export function PolicyPage({ titleKey, updatedKey, sectionPrefix, sectionCount }
             <p className="policy-page-text">{t(`${sectionPrefix}${n}Body`)}</p>
           </section>
         ))}
+        {footer}
       </div>
     </div>
   );

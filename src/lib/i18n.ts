@@ -318,6 +318,30 @@ const en = {
     clientOnboardingGoalPlaceholder: 'e.g. Feel more in control of my daily routine',
     clientOnboardingWhatsappNote: "So your pro can reach you in the app between sessions.",
     clientOnboardingCityPlaceholder: 'e.g. Cairo',
+
+    // Coaching is not therapy — the notice on member onboarding, the
+    // heading both Terms screens share, and the crisis list itself.
+    // Deliberately one set of keys: two wordings of "we are not a
+    // therapist" drift apart, and this is the one place they must not.
+    notTherapyTitle: 'Coaching is not therapy',
+    notTherapyOnboarding: 'Coaching is not therapy or medical advice, and a pro on Rafiq Pro is not a doctor. If you are struggling with your mental health, please also talk to someone qualified to help.',
+    crisisOpenAction: 'Where to get urgent help',
+    crisisSheetTitle: 'Urgent help',
+    crisisLead: 'Rafiq Pro is a coaching app, not an emergency service. Nobody here is watching your conversations, and nothing you write raises an alarm with anyone.',
+    crisisEmergencyLead: 'If you or someone else is in immediate danger, contact emergency services first.',
+    crisisUnconfirmed: 'Number not confirmed yet',
+    crisisOutsideEgypt: 'Outside Egypt: your local emergency number, and your country\u2019s own mental health line.',
+    crisisTellSomeone: 'Telling your pro what is going on is still worth doing. They are not a therapist and cannot take the place of one, but they can stop, and help you reach someone who can.',
+    crisisEmergencyName: 'Emergency services (Egypt)',
+    crisisEmergencyFor: 'Ambulance, police, fire \u2014 immediate danger',
+    crisisMentalHealthName: 'General Secretariat of Mental Health and Addiction Treatment',
+    crisisMentalHealthFor: 'The Ministry of Health line for mental health and addiction',
+    crisisBefriendersName: 'Befrienders Cairo',
+    crisisBefriendersFor: 'Emotional support, and suicide prevention',
+    crisisWomenName: 'National Council for Women \u2014 complaints office',
+    crisisWomenFor: 'Violence, abuse or harassment against women',
+    crisisChildName: 'National Council for Childhood and Motherhood \u2014 child helpline',
+    crisisChildFor: 'A child who is at risk',
     clientOnboardingMissingGoal: 'what you want to work on',
     clientFocusLife: 'Life coaching', clientFocusMeditation: 'Meditation', clientFocusBreathwork: 'Breathwork',
     clientFocusFreeDiving: 'Free diving', clientFocusScuba: 'Scuba diving', clientFocusYoga: 'Yoga',
@@ -652,6 +676,7 @@ const en = {
     termsSection5Body: "Don't use Rafiq Pro for anything illegal, abusive, or to harass members or other users. We may suspend accounts that violate this.",
     termsSection6Heading: 'Changes',
     termsSection6Body: 'We may update these terms occasionally. Continued use of Rafiq Pro after a change means you accept the updated terms.',
+    termsNotTherapyBody: 'Coaching is not therapy, counselling, or medical advice, and Rafiq Pro is not a healthcare provider. Do not diagnose or treat a medical or psychological condition through Rafiq Pro, and do not hold yourself out as qualified to unless you are licensed and can show it. If a member tells you they are in danger, or you believe they are, stop coaching and point them to emergency services and the lines below.',
 
     // ShareProfile.dc.html — English-only in the prototype; Arabic authored.
     shareProfileTitle: 'Share Profile',
@@ -1057,6 +1082,7 @@ const en = {
     clientTermsSection5Body: 'Don\u2019t use Rafiq Pro for anything illegal, abusive, or to harass your pro or other users. We may suspend accounts that violate this.',
     clientTermsSection6Heading: 'Changes',
     clientTermsSection6Body: 'We may update these terms occasionally. Continued use of Rafiq Pro after a change means you accept the updated terms.',
+    clientTermsNotTherapyBody: 'Coaching is not therapy, counselling, or medical advice. A pro on Rafiq Pro is not a doctor or a licensed mental health professional unless they have told you so and you have checked. Nothing in this app replaces medical care, and it is not a place to get help in an emergency \u2014 the lines below come first.',
 };
 
 /** Every key the app can translate, derived from the English dictionary.
@@ -1373,6 +1399,26 @@ const ar: Record<MessageKey, string> = {
     clientOnboardingGoalPlaceholder: 'مثال: الشعور بمزيد من التحكم في روتيني اليومي',
     clientOnboardingWhatsappNote: 'حتى يتمكن محترفك من التواصل معك داخل التطبيق بين الجلسات.',
     clientOnboardingCityPlaceholder: 'مثال: القاهرة',
+
+    notTherapyTitle: 'التدريب ليس علاجًا نفسيًا',
+    notTherapyOnboarding: 'التدريب ليس علاجًا نفسيًا ولا استشارة طبية، والمحترف على رفيق ليس طبيبًا. وإن كنت تمر بضيق نفسي، فمن المهم أيضًا التحدث إلى مختص مؤهل.',
+    crisisOpenAction: 'أين تجد مساعدة عاجلة',
+    crisisSheetTitle: 'مساعدة عاجلة',
+    crisisLead: 'رفيق تطبيق تدريب، وليس خدمة طوارئ. لا أحد هنا يراقب محادثاتك، ولا يثير ما تكتبه تنبيهًا لدى أحد.',
+    crisisEmergencyLead: 'عند وجود خطر مباشر عليك أو على غيرك، يكون الاتصال بخدمات الطوارئ أولًا.',
+    crisisUnconfirmed: 'الرقم لم يُؤكَّد بعد',
+    crisisOutsideEgypt: 'خارج مصر: رقم الطوارئ المحلي، والخط الوطني للصحة النفسية في بلدك.',
+    crisisTellSomeone: 'ويبقى إخبار محترفك بما يحدث أمرًا مفيدًا. هو ليس معالجًا نفسيًا ولا يغني عن واحد، لكنه يستطيع أن يتوقف وأن يساعدك في الوصول إلى من يستطيع.',
+    crisisEmergencyName: 'خدمات الطوارئ (مصر)',
+    crisisEmergencyFor: 'الإسعاف والشرطة والحريق \u2014 خطر مباشر',
+    crisisMentalHealthName: 'الأمانة العامة للصحة النفسية وعلاج الإدمان',
+    crisisMentalHealthFor: 'خط وزارة الصحة للصحة النفسية وعلاج الإدمان',
+    crisisBefriendersName: 'بيفريندرز القاهرة',
+    crisisBefriendersFor: 'دعم نفسي، والوقاية من الانتحار',
+    crisisWomenName: 'المجلس القومي للمرأة \u2014 مكتب الشكاوى',
+    crisisWomenFor: 'العنف أو الإساءة أو التحرش ضد النساء',
+    crisisChildName: 'المجلس القومي للطفولة والأمومة \u2014 خط نجدة الطفل',
+    crisisChildFor: 'طفل في خطر',
     clientOnboardingMissingGoal: 'ما ترغب في العمل عليه',
     clientFocusLife: 'تدريب حياة', clientFocusMeditation: 'تأمل', clientFocusBreathwork: 'تنفس',
     clientFocusFreeDiving: 'غوص حر', clientFocusScuba: 'غوص بالمعدات', clientFocusYoga: 'يوغا',
@@ -1695,6 +1741,7 @@ const ar: Record<MessageKey, string> = {
     termsSection5Body: 'لا تستخدم رفيق لأي غرض غير قانوني أو مسيء أو لمضايقة الأعضاء أو المستخدمين الآخرين. قد نعلّق الحسابات التي تخالف ذلك.',
     termsSection6Heading: 'التغييرات',
     termsSection6Body: 'قد نحدّث هذه الشروط من حين لآخر. استمرار استخدامك لرفيق بعد أي تغيير يعني موافقتك على الشروط المحدثة.',
+    termsNotTherapyBody: 'التدريب ليس علاجًا نفسيًا ولا إرشادًا نفسيًا ولا استشارة طبية، ورفيق ليس مقدم رعاية صحية. لا تُشخّص حالة طبية أو نفسية ولا تعالجها عبر رفيق، ولا تقدّم نفسك على أنك مؤهل لذلك ما لم تكن مرخصًا وقادرًا على إثبات ذلك. وإذا أخبرك عضو بأنه في خطر، أو رأيت أنه كذلك، فتوقف عن التدريب ووجّهه إلى خدمات الطوارئ وإلى الخطوط أدناه.',
 
     // ShareProfile.dc.html — authored: no translations() block in the prototype.
     shareProfileTitle: 'مشاركة الملف',
@@ -2080,6 +2127,7 @@ const ar: Record<MessageKey, string> = {
     clientTermsSection5Body: 'لا تستخدمي رفيق لأي غرض غير قانوني أو مسيء أو لمضايقة محترفتك أو المستخدمين الآخرين. قد نعلّق الحسابات التي تخالف ذلك.',
     clientTermsSection6Heading: 'التغييرات',
     clientTermsSection6Body: 'قد نحدّث هذه الشروط من حين لآخر. استمرار استخدامك لرفيق بعد أي تغيير يعني موافقتك على الشروط المحدثة.',
+    clientTermsNotTherapyBody: 'التدريب ليس علاجًا نفسيًا ولا إرشادًا نفسيًا ولا استشارة طبية. والمحترف على رفيق ليس طبيبًا ولا أخصائيًا نفسيًا مرخصًا ما لم يذكر ذلك ويجري التحقق منه. لا شيء في هذا التطبيق يغني عن الرعاية الطبية، وهو ليس مكانًا لطلب المساعدة في حالات الطوارئ \u2014 الخطوط أدناه تأتي أولًا.',
 };
 
 const dict: Record<Lang, Record<MessageKey, string>> = { en, ar };

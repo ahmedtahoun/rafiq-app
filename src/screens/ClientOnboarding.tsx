@@ -4,6 +4,8 @@ import { useT, type MessageKey } from '../lib/i18n';
 import { COUNTRIES, DEFAULT_COUNTRY } from '../lib/countries';
 import { SpecialtyIcon, type SpecialtyIconKey } from '../components/specialtyIcons';
 import { CountryPicker } from '../components/CountryPicker';
+import { BottomSheet } from '../components/BottomSheet';
+import { CrisisResources } from '../components/CrisisResources';
 import { Button } from '../components/Button';
 import { TextField, TextAreaField } from '../components/TextField';
 import { useRemoteSession } from '../lib/remoteSession';
@@ -54,6 +56,7 @@ export default function ClientOnboarding() {
   const [city, setCity] = useState('');
   const [showValidation, setShowValidation] = useState(false);
   const [showDialPicker, setShowDialPicker] = useState(false);
+  const [showCrisis, setShowCrisis] = useState(false);
 
   const dialCountry = COUNTRIES.find((c) => c.code === dialCode) ?? DEFAULT_COUNTRY;
 
@@ -180,6 +183,18 @@ export default function ClientOnboarding() {
           onChange={(e) => setCity(e.target.value)}
           placeholder={t('clientOnboardingCityPlaceholder')}
         />
+
+        {/* Onboarding is where a member says what they want to work on, and
+            four of the twelve options are stress, sleep, relationships and
+            life. Saying what coaching is not belongs next to that choice,
+            not only in a document nobody opens. */}
+        <div className="client-onboarding-care">
+          <div className="client-onboarding-care-title">{t('notTherapyTitle')}</div>
+          <p className="client-onboarding-care-body">{t('notTherapyOnboarding')}</p>
+          <button type="button" className="client-onboarding-care-link" onClick={() => setShowCrisis(true)}>
+            {t('crisisOpenAction')}
+          </button>
+        </div>
       </div>
 
       <div className="client-onboarding-footer">
@@ -211,6 +226,10 @@ export default function ClientOnboarding() {
           setShowDialPicker(false);
         }}
       />
+
+      <BottomSheet open={showCrisis} onClose={() => setShowCrisis(false)} title={t('crisisSheetTitle')}>
+        <CrisisResources />
+      </BottomSheet>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { PolicyPage } from '../components/PolicyPage';
+import { NotTherapySection } from '../components/NotTherapySection';
 
 // The member-facing terms, over the same shared PolicyPage body.
 //
@@ -6,6 +7,9 @@ import { PolicyPage } from '../components/PolicyPage';
 // design's copy left as "your pro's specific policy, shared with you
 // directly" — the app enforces a real one (cancelBooking forfeits a
 // credit inside it), so the terms say what it is.
+// The last block is "Coaching is not therapy" plus the crisis lines,
+// which is the point of putting them in the terms at all: this is a page a
+// member can reach without a coach, a session, or a conversation.
 export default function ClientTermsOfService() {
   return (
     <PolicyPage
@@ -13,6 +17,7 @@ export default function ClientTermsOfService() {
       updatedKey="clientTermsUpdated"
       sectionPrefix="clientTermsSection"
       sectionCount={6}
+      footer={<NotTherapySection bodyKey="clientTermsNotTherapyBody" />}
     />
   );
 }
