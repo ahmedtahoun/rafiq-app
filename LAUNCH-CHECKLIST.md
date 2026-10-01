@@ -59,10 +59,15 @@ as done below, when signed in; every other screen still reads and writes
       (their real week, busy time, moving and cancelling a booking, and
       recording attendance, which uses a package credit), messaging (both
       threads, the inbox, live updates and blocking, `0014`), and client
-      invites (a coach invites a walk-in member by code, `0013`). Still on
-      `mockStore` when signed in: the coach's Home (apart from the bell),
-      Profile stats, Earnings' totals, and the member screens listed under
-      the demo identities below — Reem's current tasks.
+      invites (a coach invites a walk-in member by code, `0013`). The coach's Home is real
+      too (2026-10-01): their name, counts, today's booked sessions, who
+      needs them, and a "Get set up" list for a new coach. Still on
+      `mockStore` when signed in: **Offerings and OfferingDetail** (a real
+      coach can't create an offering, so their coach page has none to book,
+      and Home's setup list leaves the step out until this is done), Home's
+      package and follow-up alerts, Profile stats, Earnings' totals, and the
+      member screens listed under the demo identities below — Reem's
+      current tasks.
 - [ ] 🔴 **Remove the demo identities.** 14 member screens hardcoded
       `const CLIENT_ID = 'sara'`, and the Pro side is the seeded
       `DEFAULT_PRO_ID = 'pro-yasmin'`. Both must come from the signed-in user.
