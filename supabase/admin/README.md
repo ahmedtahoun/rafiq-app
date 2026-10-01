@@ -95,3 +95,38 @@ A `409` with `still open: …` means the person has an upcoming session,
 unused credits, an open dispute or a payout in flight. Settle it with them
 first; the request stays pending. Then email them from
 `support@rafiqpro.com` that it's done — the page promises that too.
+
+## Coach plans (Rafiq Pro)
+
+The free plan holds 3 active members (`0021`). Until In-App Purchase and
+Play Billing are built, a coach who pays by Paymob link (the founding-coach
+offer) is put on Pro here. The app cannot change its own plan: only this
+dashboard, and later the billing webhook, writes `subscriptions`.
+
+Save as **Coach plans**:
+
+```sql
+select p.full_name, p.email, s.tier, s.renews_at,
+       (select count(*) from public.clients c where c.coach_id = cp.profile_id and c.active) as active_members
+from public.coach_profiles cp
+join public.profiles p on p.id = cp.profile_id
+left join public.subscriptions s on s.coach_id = cp.profile_id
+order by p.full_name;
+```
+
+To put a coach on Pro (replace the email, and the date they paid up to):
+
+```sql
+insert into public.subscriptions (coach_id, tier, renews_at)
+select id, 'pro', '2026-11-01 00:00+02' from public.profiles where email = 'coach@example.com'
+on conflict (coach_id) do update set tier = 'pro', renews_at = excluded.renews_at;
+```
+
+`renews_at` is when Pro ends unless they pay again. After it passes, the coach
+is on the free plan: they keep every member they have, but can't add a
+4th active one until they renew or archive down to 2. Use `null` for Pro with
+no end date, for example a coach you have agreed a free year with, and
+remember to set a date later.
+
+To take a coach off Pro now: `update public.subscriptions set tier = 'free',
+renews_at = null where coach_id = '…';`

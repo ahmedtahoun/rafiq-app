@@ -9,6 +9,7 @@ import { TextField, TextAreaField } from '../components/TextField';
 import { PersonIcon } from '../components/icons';
 import { LoadState } from '../components/LoadState';
 import { useRoster, type RosterView } from '../store/rosterStore';
+import { FREE_MEMBER_CAP, atMemberCap, usePlan } from '../lib/planData';
 import './AddClient.css';
 
 const PLANS: { value: string; labelKey: MessageKey }[] = [
@@ -18,9 +19,34 @@ const PLANS: { value: string; labelKey: MessageKey }[] = [
 
 export default function AddClient() {
   const roster = useRoster();
-  if (roster.status === 'loading') return <LoadState status="loading" />;
+  const plan = usePlan();
+  if (roster.status === 'loading' || plan.status === 'loading') return <LoadState status="loading" />;
   if (roster.status === 'error') return <LoadState status="error" onRetry={roster.retry} showBack />;
+  if (plan.status === 'error') return <LoadState status="error" onRetry={plan.retry} showBack />;
+  // The database refuses a 4th active member on the free plan (0021), so
+  // say so before the coach fills in a form that can't be saved.
+  if (atMemberCap(plan.plan, roster.clients.filter((c) => c.active).length)) return <AddClientCap />;
   return <AddClientView roster={roster} />;
+}
+
+function AddClientCap() {
+  const t = useT();
+  const nav = useAppStore((s) => s.nav);
+  return (
+    <div className="phone-frame add-client-screen">
+      <div className="add-client-header">
+        <button type="button" className="add-client-header-btn" onClick={() => nav('clients')}>{t('addClientCancel')}</button>
+        <div className="add-client-header-title">{t('addClientTitle')}</div>
+        {/* Holds the Save button's place, so the title stays centred. */}
+        <span className="add-client-header-btn" aria-hidden="true" style={{ visibility: 'hidden' }}>{t('addClientSave')}</span>
+      </div>
+      <div className="add-client-cap" role="status">
+        <div className="add-client-cap-title">{t('addClientCapTitle')}</div>
+        <p className="add-client-cap-body">{t('addClientCapBody', { cap: FREE_MEMBER_CAP })}</p>
+        <button type="button" className="add-client-cap-btn" onClick={() => nav('subscription')}>{t('addClientCapSeePlans')}</button>
+      </div>
+    </div>
+  );
 }
 
 function AddClientView({ roster }: { roster: Extract<RosterView, { status: 'ready' }> }) {

@@ -148,6 +148,14 @@ The sources, read on 2026-10-01, and what they mean for the build are in
       later. `0020`; live once Ahmed pushes it, after Reem's `0019`.
       Commission stays off.
 - [x] 🟡 *Dev:* prices show the offering's own currency, not always EGP.
+- [x] 🔴 *Dev:* a real free plan: **3 active members**, enforced by the
+      database (`0021`), read from the coach's `subscriptions` row. Pro has
+      no limit and is granted by hand until billing exists
+      (`supabase/admin/README.md`, "Coach plans"). Photos are free for
+      everyone, and the Pro plan no longer promises a verified badge,
+      featured placement or priority support. *Ahmed:* the Pro price on the
+      plans screen still says 450 EGP; change it once the pricing test
+      settles 300 or 500.
 - [ ] 🔴 *Dev:* Rafiq Pro through In-App Purchase + Play Billing (RevenueCat
       handles both stores and receipt validation). Tier changes arrive from its
       webhook as `service_role` — the app has no write access to

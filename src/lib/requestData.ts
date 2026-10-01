@@ -32,7 +32,7 @@ import type { Enums } from './database.types';
  */
 /** `blocked`: either side has blocked the other, or an account isn't active
     (0017) — or, for a move, the session is no longer this member's to move. */
-export type RequestErrorCode = 'not_configured' | 'not_signed_in' | 'gone' | 'passed' | 'slot_taken' | 'blocked' | 'unknown';
+export type RequestErrorCode = 'not_configured' | 'not_signed_in' | 'gone' | 'passed' | 'slot_taken' | 'blocked' | 'member_cap' | 'unknown';
 export type RequestResult<T> = { ok: true; data: T } | { ok: false; code: RequestErrorCode; message: string };
 
 const NOT_CONFIGURED = { ok: false, code: 'not_configured', message: 'Supabase credentials are missing — see .env.local.example.' } as const;
@@ -472,7 +472,9 @@ export async function acceptSessionRequest(requestId: string): Promise<RequestRe
       : error.code === '22023' ? 'passed'
         : error.code === '23P01' ? 'slot_taken'
           : error.code === '42501' ? 'blocked'
-            : 'unknown';
+            // 0021: the free plan already has its 3 active members.
+            : error.code === '53400' ? 'member_cap'
+              : 'unknown';
   return { ok: false, code, message: error.message };
 }
 

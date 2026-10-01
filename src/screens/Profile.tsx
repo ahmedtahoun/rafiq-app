@@ -17,11 +17,11 @@ import {
   getProAggregateRating,
   getProNotificationPrefs,
   getUnreadMessageCount,
-  isVerified,
   setProNotificationPrefs,
   requestProAccountDeletion,
   requestVerification,
 } from '../lib/mockStore';
+import { usePlan } from '../lib/planData';
 import './Profile.css';
 
 // Matches tokens.css's --accent — darken() needs a literal hex, not the
@@ -87,9 +87,11 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
   const verificationBadgeColor = verificationStatus === 'verified' ? 'var(--green)' : verificationStatus === 'pending' ? 'var(--amber)' : 'var(--ink-soft)';
   const verificationBadgeBg = verificationStatus === 'verified' ? 'var(--green-bg)' : verificationStatus === 'pending' ? 'var(--amber-bg)' : 'var(--line)';
 
-  const pro = isVerified();
+  const plan = usePlan();
+  const pro = plan.status === 'ready' && plan.plan.tier === 'pro';
   const subscriptionSub = pro ? t('profileSubscriptionSubPro') : t('profileSubscriptionSubFree');
-  const subscriptionBadge = pro ? t('profileSubscriptionBadgePro') : t('profileSubscriptionBadgeFree');
+  // No badge until the plan is known, rather than "Upgrade" flashing at a Pro.
+  const subscriptionBadge = plan.status !== 'ready' ? null : pro ? t('profileSubscriptionBadgePro') : t('profileSubscriptionBadgeFree');
 
   const aggRating = getProAggregateRating();
   const ratingLabel = aggRating.average.toFixed(1);
@@ -339,7 +341,7 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
               <div className="profile-row-title">{t('profileSubscription')}</div>
               <div className="profile-row-sub">{subscriptionSub}</div>
             </div>
-            <div className="profile-row-badge">{subscriptionBadge}</div>
+            {subscriptionBadge && <div className="profile-row-badge">{subscriptionBadge}</div>}
             <ArrowForwardIcon size={15} color="var(--ink-soft)" />
           </button>
           <button type="button" className="profile-row" onClick={tapVerification} disabled={busy}>

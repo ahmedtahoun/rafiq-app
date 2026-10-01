@@ -234,10 +234,6 @@ export function toggleFavorite(clientId: string): Record<string, boolean> {
   return favs;
 }
 
-// Free-tier active-member cap (Clients.dc.html's upgrade banner) — same
-// value store.js's FREE_MEMBER_CAP uses.
-export const FREE_MEMBER_CAP = 5;
-
 // ---------------------------------------------------------------------------
 // Tasks
 // ---------------------------------------------------------------------------
@@ -1282,10 +1278,6 @@ export function getSubscription(): Subscription {
   return readLocal('subscription', { tier: 'pro', renewsAtMs: TODAY_MS + 30 * DAY_MS });
 }
 
-export function isVerified(): boolean {
-  return getSubscription().tier === 'pro';
-}
-
 // 1:1 port of store.js's setSubscriptionTier — a real renewal date on
 // upgrade, cleared on downgrade, same as the prototype's demo billing.
 export function setSubscriptionTier(tier: Subscription['tier']): Subscription {
@@ -1382,8 +1374,8 @@ export function getSelectedOfferingId(): string | null {
 }
 
 // ---------------------------------------------------------------------------
-// Credential verification — deliberately separate from isVerified()/
-// subscription above (a Pro can be subscribed without their credentials
+// Credential verification — deliberately separate from the subscription
+// above (a Pro can be subscribed without their credentials
 // having been reviewed, and vice versa).
 // ---------------------------------------------------------------------------
 

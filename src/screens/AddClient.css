@@ -210,3 +210,36 @@
   line-height: 1.5;
   flex-shrink: 0;
 }
+
+/* The free plan is full (0021): what to do instead of a form that can't save. */
+.add-client-cap {
+  margin: 24px 20px;
+  padding: 22px 20px;
+  border-radius: 18px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.add-client-cap-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.add-client-cap-body {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+.add-client-cap-btn {
+  margin-block-start: 6px;
+  text-align: center;
+  background: var(--accent);
+  color: #FFFFFF;
+  border-radius: 14px;
+  padding: 13px;
+  font-size: 14px;
+  font-weight: 700;
+}

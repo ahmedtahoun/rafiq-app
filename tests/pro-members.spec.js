@@ -81,29 +81,30 @@ test('Clients: the roster and its stats match the data', async ({ browser }) => 
 test('Clients: the free-tier cap banner follows the subscription tier', async ({ browser }) => {
   const { page, ctx } = await open(browser);
 
-  // A fresh install is seeded on the Pro tier, so the cap does not apply —
-  // `isVerified()` reads the subscription, not credential verification,
-  // which is a separate thing entirely.
-  expect.soft(await store(page, `(m) => m.isVerified()`), 'seeded on the Pro tier').toBe(true);
+  // A fresh install is seeded on the Pro tier, so the cap does not apply.
+  // The tier is the subscription, not credential verification, which is a
+  // separate thing entirely.
+  expect.soft(await store(page, `(m) => m.getSubscription().tier`), 'seeded on the Pro tier').toBe('pro');
   expect.soft(await n(page, '.clients-cap-banner'), 'no cap banner on Pro').toBe(0);
 
-  // Downgrade and the cap bites: five active members against a cap of five.
+  // Downgrade and the cap bites: five active members against a cap of three
+  // (a lapsed Pro keeps them all; 0021 only refuses the next one).
   await store(page, `(m) => m.setSubscriptionTier('free')`);
   await go(page, 'main');
   await go(page, 'clients');
-  expect.soft(await n(page, '.clients-cap-banner'), 'free tier at the cap shows the banner').toBe(1);
+  expect.soft(await n(page, '.clients-cap-banner'), 'free tier over the cap shows the banner').toBe(1);
   const banner = await txt(page, '.clients-cap-banner');
-  expect.soft(banner, 'the banner names the count and the cap').toContain('5');
+  expect.soft(banner, 'the banner names the count and the cap').toContain('5/3');
 
-  // Archiving a member drops below the cap, so the banner goes away — it
+  // Archiving members drops below the cap, so the banner goes away — it
   // tracks the active roster, not the total.
-  await store(page, `(m) => m.updateClient('mona', { active: false })`);
+  for (const id of ['mona', 'khaled', 'laila']) await store(page, `(m) => m.updateClient('${id}', { active: false })`);
   await go(page, 'main');
   await go(page, 'clients');
   expect.soft(await n(page, '.clients-cap-banner'), 'below the cap, no banner').toBe(0);
 
   // Upgrading again clears it regardless of roster size.
-  await store(page, `(m) => m.updateClient('mona', { active: true })`);
+  for (const id of ['mona', 'khaled', 'laila']) await store(page, `(m) => m.updateClient('${id}', { active: true })`);
   await store(page, `(m) => m.setSubscriptionTier('pro')`);
   await go(page, 'main');
   await go(page, 'clients');
