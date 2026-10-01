@@ -1762,6 +1762,7 @@ export type Database = {
         Args: { p_actor: string; p_client: string }
         Returns: string
       }
+      coach_on_pro: { Args: { p_coach: string }; Returns: boolean }
       create_client_invite: { Args: { p_client: string }; Returns: Json }
       is_coach_of: { Args: { p_client: string }; Returns: boolean }
       is_member_of: { Args: { p_client: string }; Returns: boolean }
