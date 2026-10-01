@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT, isolate } from '../lib/i18n';
+import { useT, isolate, greetingKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import { BellIcon, MoonIcon, SunIcon, CheckIcon, TasksIcon, ScheduleIcon, ArrowForwardIcon, SearchIcon, ProgramsIcon, PersonIcon, HomeIcon } from '../components/icons';
@@ -133,7 +133,7 @@ function ClientHomeView({ space }: { space: Extract<MemberSpaceView, { status: '
       <div className="client-home-hero" style={{ background: heroGrad }}>
         <div className="client-home-hero-top">
           <div>
-            <div className="client-home-greeting">{t('mainGreeting')}</div>
+            <div className="client-home-greeting">{t(greetingKey(new Date().getHours()))}</div>
             {(client?.name || !remote) && <div className="client-home-name">{client?.name || t('clientHomeName')}</div>}
             {!remote && <div className="client-home-streak">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none">
@@ -202,7 +202,7 @@ function ClientHomeView({ space }: { space: Extract<MemberSpaceView, { status: '
               </div>
               <div className="client-home-progress-text">
                 <div className="client-home-progress-label">{t('clientHomeProgressLabel')}</div>
-                <div className="client-home-progress-goal">{client?.goal || t('clientHomeGoalFallback')}</div>
+                <div className="client-home-progress-goal"><bdi>{client?.goal || t('clientHomeGoalFallback')}</bdi></div>
                 <div className="client-home-progress-note">{t('clientHomeProgressAssessedBy', { name: isolate(coachName) })}</div>
               </div>
             </div>
@@ -336,7 +336,7 @@ function ClientHomeView({ space }: { space: Extract<MemberSpaceView, { status: '
                       {tk.done && <CheckIcon size={12} color="#FFFFFF" />}
                     </button>
                     <div className="client-home-task-text">
-                      <div className={`client-home-task-title${tk.done ? ' is-done' : ''}`}>{tk.title}</div>
+                      <div className={`client-home-task-title${tk.done ? ' is-done' : ''}`}><bdi>{tk.title}</bdi></div>
                       <div className="client-home-task-due"><bdi>{fmt.taskDue(tk.dueAtMs, tk.dueHasTime, todayMs)}</bdi></div>
                     </div>
                   </div>

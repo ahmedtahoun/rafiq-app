@@ -141,7 +141,7 @@ const en = {
     validationPrefix: 'Please add ',
     validationSuffix: ' to continue.',
     listSeparator: ', ',
-    welcomePrefix: 'Welcome to Rafiq Pro, ',
+    welcomePrefix: 'Welcome to Rafiq Pro, ', welcomeNoName: 'Welcome to Rafiq Pro',
     // QuickActions.dc.html
     quickActionsTitle: 'Quick actions', quickActionsClose: 'Close',
     qaAddMember: 'Add member', qaAddMemberSub: 'Bring a new member onboard',
@@ -153,7 +153,7 @@ const en = {
     qaSendMessage: 'Message', qaSendMessageSub: 'Send them a message in the app',
 
     // Main.dc.html
-    mainGreeting: 'Good Morning', mainCoachName: 'Yasmin El-Sayed', mainStreak: '12-day streak',
+    greetingMorning: 'Good morning', greetingAfternoon: 'Good afternoon', greetingEvening: 'Good evening', mainCoachName: 'Yasmin El-Sayed', mainStreak: '12-day streak',
     mainSessions: 'Sessions', mainActiveClients: 'active members', mainCompletionRate: 'completion rate',
     mainThisWeek: 'This Week', mainSessionsWord: 'sessions',
     mainTodaysSchedule: "Today's Schedule", mainSeeAll: 'See all', mainNoSessions: 'No sessions scheduled today',
@@ -793,6 +793,7 @@ const en = {
     discoverSearchPlaceholder: 'Search pros or specialties',
     discoverSpecialtyAll: 'All',
     discoverRecommended: 'Recommended for you',
+    discoverAllPros: 'Pros on Rafiq',
     discoverRecommendedSub: 'Matched to your {specialty} goal',
     discoverMatchesGoal: 'Matches your goal',
     discoverNoResults: 'No pros match your search',
@@ -1221,7 +1222,7 @@ const ar: Record<MessageKey, string> = {
     validationPrefix: 'الرجاء إضافة ',
     validationSuffix: ' للمتابعة.',
     listSeparator: '، ',
-    welcomePrefix: 'مرحبًا بك في رفيق، ',
+    welcomePrefix: 'مرحبًا بك في رفيق، ', welcomeNoName: 'مرحبًا بك في رفيق',
     // QuickActions.dc.html
     quickActionsTitle: 'إجراءات سريعة', quickActionsClose: 'إغلاق',
     qaAddMember: 'إضافة عضو', qaAddMemberSub: 'أضف عضوًا جديدًا',
@@ -1233,7 +1234,7 @@ const ar: Record<MessageKey, string> = {
     qaSendMessage: 'مراسلة', qaSendMessageSub: 'أرسل له رسالة داخل التطبيق',
 
     // Main.dc.html
-    mainGreeting: 'صباح الخير', mainCoachName: 'ياسمين السيد', mainStreak: 'مواظبة 12 يومًا',
+    greetingMorning: 'صباح الخير', greetingAfternoon: 'نهارك سعيد', greetingEvening: 'مساء الخير', mainCoachName: 'ياسمين السيد', mainStreak: 'مواظبة 12 يومًا',
     mainSessions: 'الجلسات', mainActiveClients: 'عضو نشط', mainCompletionRate: 'نسبة الإنجاز',
     mainThisWeek: 'هذا الأسبوع', mainSessionsWord: 'جلسة',
     mainTodaysSchedule: 'جدول اليوم', mainSeeAll: 'عرض الكل', mainNoSessions: 'لا توجد جلسات اليوم',
@@ -1849,6 +1850,7 @@ const ar: Record<MessageKey, string> = {
     discoverSearchPlaceholder: 'ابحث عن محترف أو تخصص',
     discoverSpecialtyAll: 'الكل',
     discoverRecommended: 'موصى به لك',
+    discoverAllPros: 'المحترفون على رفيق',
     discoverRecommendedSub: 'يناسب هدفك في {specialty}',
     discoverMatchesGoal: 'يناسب هدفك',
     discoverNoResults: 'لا يوجد محترفون مطابقون لبحثك',
@@ -2180,6 +2182,15 @@ type DayIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 export function dayKey(kind: 'dowShort' | 'dowFull', index: number): MessageKey {
   const i = (((Math.trunc(index) % 7) + 7) % 7) as DayIndex;
   return `${kind}${i}`;
+}
+
+/** The greeting for an hour of the day (0–23): morning from 5, afternoon
+    from noon, evening from 5 PM and through the night. Both Homes said
+    "Good Morning" at every hour. */
+export function greetingKey(hour: number): MessageKey {
+  if (hour >= 5 && hour < 12) return 'greetingMorning';
+  if (hour >= 12 && hour < 17) return 'greetingAfternoon';
+  return 'greetingEvening';
 }
 
 export function isRtl(lang: Lang): boolean {

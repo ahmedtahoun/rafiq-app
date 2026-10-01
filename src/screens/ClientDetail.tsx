@@ -362,7 +362,7 @@ function ClientDetailView({ roster, client, record }: { roster: Ready<RosterView
                   {task.done && <CheckIcon size={13} color="#FFFFFF" />}
                 </button>
                 <button type="button" className="client-detail-task-main" onClick={() => openEditTask(task)}>
-                  <div className={`client-detail-task-title${task.done ? ' is-done' : ''}${!task.done && task.overdue ? ' is-overdue' : ''}`}>{task.title}</div>
+                  <div className={`client-detail-task-title${task.done ? ' is-done' : ''}${!task.done && task.overdue ? ' is-overdue' : ''}`}><bdi>{task.title}</bdi></div>
                   <div className="client-detail-task-due-row">
                     <span className={`client-detail-task-due${task.overdue ? ' is-overdue' : ''}`}><bdi>{fmt.taskDue(task.dueAtMs, task.dueHasTime, todayMs)}</bdi></span>
                     {task.recurring && (
@@ -441,7 +441,7 @@ function ClientDetailView({ roster, client, record }: { roster: Ready<RosterView
 
         <div className="client-detail-card client-detail-goal-card">
           <div className="client-detail-goal-row">
-            <div className="client-detail-goal-text">{t('clientDetailGoalPrefix')}{client.goal || t('clientDetailNoGoalSet')}</div>
+            <div className="client-detail-goal-text">{t('clientDetailGoalPrefix')}{client.goal ? <bdi>{client.goal}</bdi> : t('clientDetailNoGoalSet')}</div>
             <div className="client-detail-goal-pct">{taskCompletionPct}% {t('clientDetailPctTasksDone')}</div>
           </div>
           <div className="client-detail-progress-track">

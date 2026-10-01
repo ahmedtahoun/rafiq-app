@@ -372,13 +372,18 @@ export default function Schedule() {
     setShowBlockSheet(true);
   }
 
+  // A block's time range, in the app's language. Each end is its own <bdi>
+  // (CLAUDE.md, "Isolate each end of a range separately"): this was one
+  // English string under a single dir="ltr", "9:00 AM – 1:00 PM" in Arabic.
+  // `range` still carries the English for the reminder message, which is
+  // English throughout.
+  const hourAt = (h: number) => fmt.time(Date.UTC(1970, 0, 1) + Math.round(h * 60) * 60000);
+  const rangeView = (startH: number, endH: number) => <><bdi>{hourAt(startH)}</bdi> – <bdi>{hourAt(endH)}</bdi></>;
+
   const timelineHeight = (endHour - startHour) * ROW_H + TOP_PAD * 2;
   const hourMarks: { top: number; labelTop: number; label: string }[] = [];
   for (let h = startHour; h <= endHour; h++) {
-    const period = h % 24 >= 12 ? 'PM' : 'AM';
-    let hh = h % 12;
-    if (hh === 0) hh = 12;
-    hourMarks.push({ top: (h - startHour) * ROW_H + TOP_PAD, labelTop: (h - startHour) * ROW_H + TOP_PAD - 6, label: `${hh} ${period}` });
+    hourMarks.push({ top: (h - startHour) * ROW_H + TOP_PAD, labelTop: (h - startHour) * ROW_H + TOP_PAD - 6, label: fmt.hour(Date.UTC(1970, 0, 1, h % 24)) });
   }
 
   // ---- Block detail sheet (derived fresh from activeBlock each render) ----
@@ -849,7 +854,7 @@ export default function Schedule() {
                       </div>
                     )}
                     <div className="schedule-block-text">
-                      <div className="schedule-block-range" dir="ltr" style={{ color: b.tagColor }}>{b.range}</div>
+                      <div className="schedule-block-range" style={{ color: b.tagColor }}>{rangeView(b.startH, b.endH)}</div>
                       <div className="schedule-block-label">{b.displayLabel}</div>
                     </div>
                   </div>
@@ -941,7 +946,7 @@ export default function Schedule() {
               </div>
               <div className="schedule-sheet-header-text">
                 <div className="schedule-sheet-name">{activeBlock.name}</div>
-                <div className="schedule-sheet-range" dir="ltr">{activeBlock.range}</div>
+                <div className="schedule-sheet-range">{rangeView(activeBlock.startH, activeBlock.endH)}</div>
               </div>
               <button type="button" className="schedule-sheet-close" aria-label={t('close')} onClick={closeBlockSheet}>
                 <CloseIcon size={14} />
