@@ -47,18 +47,13 @@ export function BottomNav({ items }: BottomNavProps) {
             key={item.key}
             type="button"
             className={`bottom-nav-item${isActive ? ' bottom-nav-item-active' : ''}`}
-            aria-label={item.label}
             aria-current={isActive ? 'page' : undefined}
             onClick={() => nav({ screen: item.screen, params: item.params })}
           >
-            {isActive ? (
-              <span className="bottom-nav-pill">
-                <Icon size={19} />
-                <span className="bottom-nav-label">{item.label}</span>
-              </span>
-            ) : (
-              <Icon size={22} />
-            )}
+            <span className="bottom-nav-icon">
+              <Icon size={21} />
+            </span>
+            <span className="bottom-nav-label">{item.label}</span>
           </button>
         );
       })}

@@ -54,6 +54,12 @@
   color: #FFFFFF;
 }
 
+.main-hero-qa .qa-fab {
+  width: 36px;
+  height: 36px;
+  background: #FFFFFF;
+}
+
 .main-lang-label {
   font-size: 12px;
   font-weight: 700;

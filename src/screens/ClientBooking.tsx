@@ -52,7 +52,6 @@ function hourLabel(h: number, am: string, pm: string): string {
 export default function ClientBooking() {
   const t = useT();
   const lang = useAppStore((s) => s.lang);
-  const setLang = useAppStore((s) => s.setLang);
   const nav = useAppStore((s) => s.nav);
   const back = useAppStore((s) => s.back);
   const isAr = lang === 'ar';
@@ -252,14 +251,6 @@ export default function ClientBooking() {
           <CloseIcon size={14} color="currentColor" />
         </button>
         <h1 className="client-booking-title">{t('clientBookingTitle')}</h1>
-        <button
-          type="button"
-          className="client-booking-lang"
-          aria-label={t('switchLanguage')}
-          onClick={() => setLang(isAr ? 'en' : 'ar')}
-        >
-          {isAr ? 'EN' : 'ع'}
-        </button>
       </div>
 
       <div className="client-booking-scroll">

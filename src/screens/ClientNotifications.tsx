@@ -3,7 +3,7 @@ import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import {
-  ChevronIcon, MoonIcon, SunIcon, ScheduleIcon, TasksIcon, PaymentIcon, MessageIcon, BellIcon,
+  ChevronIcon, ScheduleIcon, TasksIcon, PaymentIcon, MessageIcon, BellIcon,
 } from '../components/icons';
 import {
   DEMO_MEMBER_CLIENT_ID,
@@ -45,13 +45,8 @@ function iconFor(family: IconFamily) {
 export default function ClientNotifications() {
   const t = useT();
   const fmt = useFormat();
-  const lang = useAppStore((s) => s.lang);
-  const setLang = useAppStore((s) => s.setLang);
-  const dark = useAppStore((s) => s.dark);
-  const setDark = useAppStore((s) => s.setDark);
   const nav = useAppStore((s) => s.nav);
   const back = useAppStore((s) => s.back);
-  const isAr = lang === 'ar';
 
   // mockStore is plain functions over localStorage, not reactive state.
   const [, setTick] = useState(0);
@@ -119,24 +114,6 @@ export default function ClientNotifications() {
               <ChevronIcon size={16} color="currentColor" />
             </button>
             <div className="client-notifications-title">{t('clientNotificationsTitle')}</div>
-          </div>
-          <div className="client-notifications-actions">
-            <button
-              type="button"
-              className="client-notifications-icon-btn"
-              aria-label={t('switchLanguage')}
-              onClick={() => setLang(isAr ? 'en' : 'ar')}
-            >
-              {isAr ? 'EN' : 'ع'}
-            </button>
-            <button
-              type="button"
-              className="client-notifications-icon-btn"
-              aria-label={t('toggleDarkMode')}
-              onClick={() => setDark(!dark)}
-            >
-              {dark ? <SunIcon size={18} color="currentColor" /> : <MoonIcon size={18} color="currentColor" />}
-            </button>
           </div>
         </div>
         {/* Only offered when it would do something. The design showed it

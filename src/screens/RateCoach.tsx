@@ -21,13 +21,10 @@ const STARS = [1, 2, 3, 4, 5];
 export default function RateCoach() {
   const t = useT();
   const fmt = useFormat();
-  const lang = useAppStore((s) => s.lang);
-  const setLang = useAppStore((s) => s.setLang);
   const nav = useAppStore((s) => s.nav);
   const back = useAppStore((s) => s.back);
   // Set when ClientSchedule's per-row Rate button sent us here.
   const requestedSessionId = useAppStore((s) => s.params).sessionId ?? '';
-  const isAr = lang === 'ar';
 
   const [rating, setRatingValue] = useState(0);
   const [comment, setComment] = useState('');
@@ -91,14 +88,6 @@ export default function RateCoach() {
       <div className="rate-coach-top">
         <button type="button" className="rate-coach-cancel" onClick={back}>{t('rateCoachCancel')}</button>
         <div className="rate-coach-title">{title}</div>
-        <button
-          type="button"
-          className="rate-coach-lang"
-          aria-label={t('switchLanguage')}
-          onClick={() => setLang(isAr ? 'en' : 'ar')}
-        >
-          {isAr ? 'EN' : 'ع'}
-        </button>
       </div>
     );
   }

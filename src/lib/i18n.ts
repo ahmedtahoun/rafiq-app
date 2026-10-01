@@ -59,7 +59,7 @@ const en = {
     clientsSearchMembers: 'Search members',
     clientsFilterMembers: 'Filter members',
     clientsToggleFavourite: 'Toggle favourite: {name}',
-    clientsViewProgress: 'View progress: {name}',
+
     profileEditProfile: 'Edit profile',
     profileVerifiedPro: 'Verified pro',
     clientHomeYourProfile: 'Your profile',
@@ -179,7 +179,7 @@ const en = {
     mainNudgeAll: 'Nudge all', mainNudgeSheetTitle: 'Nudge members', mainNudgeSheetSub: 'Send a quick in-app check-in to everyone below.',
     mainNudged: 'Nudged', mainDone: 'Done',
     mainEarningsReceived: 'received', mainEarningsDueOne: '1 member due', mainEarningsDueMany: '{n} members due', mainEarningsAllPaid: 'Everyone is paid up',
-    mainHome: 'Home', mainClientsNav: 'Clients', mainMessagesNav: 'Messages', mainProfileNav: 'Profile',
+    mainHome: 'Home', tabProfile: 'Profile', mainClientsNav: 'Members', mainMessagesNav: 'Messages',
 
     // Profile.dc.html
     profilePreview: 'Preview', profileShare: 'Share', profileEdit: 'Edit',
@@ -613,7 +613,7 @@ const en = {
     messagesInboxSubtitle: 'Your conversations with members, in one place.',
     messagesInboxNoMembers: 'No members yet',
     messagesInboxNoMembersSub: 'Add a member to start messaging them.',
-    messagesInboxNoMessagesYet: 'No messages yet',
+    messagesInboxNoMessagesYet: 'Tap to send the first message', messagesInboxStartHeading: 'Start a conversation',
     messagesInboxDraftPrefix: 'Draft: ',
     messagesInboxYouPrefix: 'You: ',
     messagesInboxUnreadLabel: '{count} unread',
@@ -621,7 +621,7 @@ const en = {
     notificationsTitle: 'Notifications',
     notificationsMarkAllRead: 'Mark all read',
     notificationsAllCaughtUp: "You're all caught up!",
-    notificationsNothingNew: 'Nothing new to show right now.',
+    notificationsNothingNew: 'Booking requests from members appear here.',
     notificationsAccept: 'Accept', notificationsDecline: 'Decline',
     notificationsAccepted: 'Booked — {name} is on your Clients list now.',
     notificationsRequestGone: 'This request was withdrawn or already answered.',
@@ -1031,7 +1031,7 @@ const en = {
 
     clientNotificationsTitle: 'Notifications', clientNotificationsMarkAll: 'Mark all read',
     clientNotificationsEmptyTitle: "You're all caught up!",
-    clientNotificationsEmptyBody: 'Nothing new to show right now.',
+    clientNotificationsEmptyBody: 'Updates about your sessions appear here.',
     clientNotifSessionPending: 'Your session request is pending confirmation',
     clientNotifSessionConfirmed: 'Your session with {coach} is coming up',
     clientNotifTaskOverdueOne: 'You have an overdue task',
@@ -1152,7 +1152,7 @@ const ar: Record<MessageKey, string> = {
     clientsSearchMembers: 'بحث في الأعضاء',
     clientsFilterMembers: 'تصفية الأعضاء',
     clientsToggleFavourite: 'تبديل المفضلة: {name}',
-    clientsViewProgress: 'عرض التقدم: {name}',
+
     profileEditProfile: 'تعديل الملف الشخصي',
     profileVerifiedPro: 'محترف موثّق',
     clientHomeYourProfile: 'ملفك الشخصي',
@@ -1272,7 +1272,7 @@ const ar: Record<MessageKey, string> = {
     mainNudgeAll: 'تذكير الكل', mainNudgeSheetTitle: 'تذكير الأعضاء', mainNudgeSheetSub: 'أرسل رسالة تواصل سريعة داخل التطبيق لكل من في القائمة.',
     mainNudged: 'تم التذكير', mainDone: 'تم',
     mainEarningsReceived: 'مستلم', mainEarningsDueOne: 'عضو واحد بحاجة للدفع', mainEarningsDueMany: '{n} أعضاء بحاجة للدفع', mainEarningsAllPaid: 'الجميع دفعوا',
-    mainHome: 'الرئيسية', mainClientsNav: 'الأعضاء', mainMessagesNav: 'الرسائل', mainProfileNav: 'الملف الشخصي',
+    mainHome: 'الرئيسية', tabProfile: 'حسابي', mainClientsNav: 'الأعضاء', mainMessagesNav: 'الرسائل',
 
     // Profile.dc.html
     profilePreview: 'معاينة', profileShare: 'مشاركة', profileEdit: 'تعديل',
@@ -1696,7 +1696,7 @@ const ar: Record<MessageKey, string> = {
     messagesInboxSubtitle: 'محادثاتك مع أعضائك، في مكان واحد.',
     messagesInboxNoMembers: 'لا يوجد أعضاء بعد',
     messagesInboxNoMembersSub: 'أضف عضوًا لبدء مراسلته.',
-    messagesInboxNoMessagesYet: 'لا توجد رسائل بعد',
+    messagesInboxNoMessagesYet: 'اضغط لإرسال أول رسالة', messagesInboxStartHeading: 'ابدأ محادثة',
     messagesInboxDraftPrefix: 'مسودة: ',
     messagesInboxYouPrefix: 'أنت: ',
     messagesInboxUnreadLabel: '{count} غير مقروءة',
@@ -1704,7 +1704,7 @@ const ar: Record<MessageKey, string> = {
     notificationsTitle: 'الإشعارات',
     notificationsMarkAllRead: 'تعليم الكل كمقروء',
     notificationsAllCaughtUp: 'كل شيء على ما يرام!',
-    notificationsNothingNew: 'لا يوجد جديد لعرضه الآن.',
+    notificationsNothingNew: 'طلبات الحجز من الأعضاء تظهر هنا.',
     notificationsAccept: 'قبول', notificationsDecline: 'رفض',
     notificationsAccepted: 'تم الحجز — أصبح {name} ضمن قائمة عملائك.',
     notificationsRequestGone: 'تم سحب هذا الطلب أو الرد عليه بالفعل.',
@@ -2095,7 +2095,7 @@ const ar: Record<MessageKey, string> = {
 
     clientNotificationsTitle: 'الإشعارات', clientNotificationsMarkAll: 'تعليم الكل كمقروء',
     clientNotificationsEmptyTitle: 'كل شيء على ما يرام!',
-    clientNotificationsEmptyBody: 'لا يوجد جديد لعرضه الآن.',
+    clientNotificationsEmptyBody: 'تحديثات جلساتك تظهر هنا.',
     clientNotifSessionPending: 'طلب جلستك قيد انتظار التأكيد',
     clientNotifSessionConfirmed: 'جلستك مع {coach} قادمة قريبًا',
     clientNotifTaskOverdueOne: 'لديك مهمة متأخرة',

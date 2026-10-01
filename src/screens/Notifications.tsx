@@ -12,7 +12,7 @@ import {
   fetchIncomingRequests,
   type IncomingRequest,
 } from '../lib/requestData';
-import { BellIcon, ChevronIcon, MoonIcon, PaymentIcon, ScheduleIcon, SunIcon } from '../components/icons';
+import { BellIcon, ChevronIcon, PaymentIcon, ScheduleIcon } from '../components/icons';
 import { BottomSheet } from '../components/BottomSheet';
 import { LoadState } from '../components/LoadState';
 import {
@@ -37,9 +37,6 @@ export default function Notifications() {
   const nav = useAppStore((s) => s.nav);
   const back = useAppStore((s) => s.back);
   const lang = useAppStore((s) => s.lang);
-  const setLang = useAppStore((s) => s.setLang);
-  const dark = useAppStore((s) => s.dark);
-  const setDark = useAppStore((s) => s.setDark);
   const remote = useRemoteSession();
   const incoming = useRemoteLoad('incoming_requests', remote, fetchIncomingRequests);
 
@@ -134,22 +131,6 @@ export default function Notifications() {
               <ChevronIcon size={16} />
             </button>
             <div className="notifications-title">{t('notificationsTitle')}</div>
-          </div>
-          <div className="notifications-header-actions">
-            <button
-              className="notifications-icon-btn"
-              aria-label={t('switchLanguage')}
-              onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
-            >
-              {lang === 'ar' ? 'EN' : 'ع'}
-            </button>
-            <button
-              className="notifications-icon-btn"
-              aria-label={t('toggleDarkMode')}
-              onClick={() => setDark(!dark)}
-            >
-              {dark ? <SunIcon size={18} /> : <MoonIcon size={18} />}
-            </button>
           </div>
         </div>
         {items.length > 0 && (

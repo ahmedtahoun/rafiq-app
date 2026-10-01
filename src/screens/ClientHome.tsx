@@ -3,8 +3,8 @@ import { useAppStore } from '../store/appStore';
 import { useT, isolate, greetingKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
-import { BellIcon, MoonIcon, SunIcon, CheckIcon, TasksIcon, ScheduleIcon, ArrowForwardIcon, SearchIcon, ProgramsIcon, PersonIcon, HomeIcon } from '../components/icons';
-import { BottomNav, type BottomNavItem } from '../components/BottomNav';
+import { BellIcon, CheckIcon, TasksIcon, ScheduleIcon, ArrowForwardIcon, PersonIcon } from '../components/icons';
+import { MemberTabBar } from '../components/TabBars';
 import { LoadState } from '../components/LoadState';
 import { NoCoachYet } from '../components/NoCoachYet';
 import { bookSessionTarget, useMemberSpace, type MemberSpaceView } from '../store/memberStore';
@@ -35,12 +35,7 @@ export default function ClientHome() {
 function ClientHomeView({ space }: { space: Extract<MemberSpaceView, { status: 'ready' }> }) {
   const t = useT();
   const fmt = useFormat();
-  const lang = useAppStore((s) => s.lang);
-  const setLang = useAppStore((s) => s.setLang);
-  const dark = useAppStore((s) => s.dark);
-  const setDark = useAppStore((s) => s.setDark);
   const nav = useAppStore((s) => s.nav);
-  const isAr = lang === 'ar';
 
   const [isFirstTime, setIsFirstTime] = useState(false);
   // Bumped after a demo-only mutation (milestone dismiss) to force the
@@ -119,14 +114,6 @@ function ClientHomeView({ space }: { space: Extract<MemberSpaceView, { status: '
 
   const previewLabel = isFirstTime ? t('clientHomePreviewToNormal') : t('clientHomePreviewToFirst');
 
-  const navItems: BottomNavItem[] = [
-    { key: 'discover', label: t('clientHomeDiscoverNav'), icon: SearchIcon, screen: 'discover' },
-    { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'clientHome' },
-    { key: 'programs', label: t('myProgramsNav'), icon: ProgramsIcon, screen: 'myPrograms' },
-    { key: 'tasks', label: t('clientTasksNav'), icon: TasksIcon, screen: 'clientTasks' },
-    { key: 'schedule', label: t('clientScheduleNav'), icon: ScheduleIcon, screen: 'clientSchedule' },
-    { key: 'coach', label: t('clientHomeCoachNav'), icon: PersonIcon, screen: 'clientCoach' },
-  ];
 
   return (
     <div className="phone-frame client-home-screen">
@@ -143,12 +130,6 @@ function ClientHomeView({ space }: { space: Extract<MemberSpaceView, { status: '
             </div>}
           </div>
           <div className="client-home-hero-actions">
-            <button type="button" className="client-home-icon-btn" aria-label={t('switchLanguage')} onClick={() => setLang(isAr ? 'en' : 'ar')}>
-              <span style={{ fontSize: 12, fontWeight: 700 }}>{isAr ? 'EN' : 'ع'}</span>
-            </button>
-            <button type="button" className="client-home-icon-btn" aria-label={t('toggleDarkMode')} onClick={() => setDark(!dark)}>
-              {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}
-            </button>
             <button
               type="button"
               className="client-home-icon-btn"
@@ -368,7 +349,7 @@ function ClientHomeView({ space }: { space: Extract<MemberSpaceView, { status: '
         )}
       </div>
 
-      <BottomNav items={navItems} />
+      <MemberTabBar />
     </div>
   );
 }
