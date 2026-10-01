@@ -304,6 +304,33 @@ builds".
       and the "Member check-in alerts" row is gone because no such
       notification exists. Push itself is still unbuilt; if it is built
       later, reopen this.
+- [ ] 🟡 **Phone notifications (wanted, Ahmed 2026-10-01).** The kind
+      ProCoach advertises: a banner on the lock screen, with the app's icon,
+      the moment something happens. The ones Rafiq has events for:
+      | Banner | Who gets it | Event today |
+      |---|---|---|
+      | New booking: "Hana asked for Tue 10:00 AM" | coach | `session_requests` insert. **No notification row yet**: 0002's trigger is on the old `time_blocks` request. Needs a trigger. |
+      | Booking confirmed / moved / cancelled | member | 0011's trigger on `sessions` (`session-moved`), plus accept and cancel |
+      | Task done: "Omar finished Evening walk" | coach | 0002 `task-completed` |
+      | New message | both | 0002 `message` |
+      | Payment received: "Sara paid 750 EGP" | coach | 0002 `payment-received`. Only means real money once Paymob collects session fees (§3); until then it fires when the coach records a payment, so don't send that one as push. |
+      | Session reminder, an hour before | both | Nothing yet: needs a scheduled job. |
+      How: every event above already writes a `notifications` row, so push is
+      delivery, not new logic. Add `@capacitor/push-notifications`; a
+      `device_tokens` table (one row per device; the user writes only their
+      own); an APNs key (Apple) and a Firebase project for FCM (Android);
+      then a Database Webhook on `notifications` insert → an Edge Function
+      that sends to that user's devices. Respect the existing notification
+      switches in Profile, and add one per kind. In both languages: the
+      banner text is built server-side, so it needs the recipient's
+      language stored.
+      Before it ships: the Profile cards and the privacy policy currently
+      say **no push is sent**. Change that copy in the same PR. Add Firebase
+      and device tokens to `store/privacy-inventory.md` and both store forms.
+      On iOS, ask for permission at a moment that explains why (after the
+      first booking request, for example), not at first launch.
+      Reference: ProCoach's ads (payment, booking and "workout crushed"
+      banners) and an Arabic coach dashboard Ahmed shared, same date.
 - [x] 🔴 **Account deletion must actually happen.** The app files a request
       into `account_deletion_requests`; someone has to process it (§9), within
       a stated time. **Stated: within 30 days**, on the public deletion page.
