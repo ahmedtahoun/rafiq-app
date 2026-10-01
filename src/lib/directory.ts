@@ -89,15 +89,46 @@ export interface DirectoryCoach {
 }
 
 /**
+ * Whether the seeded demo coaches below exist in this build.
+ *
+ * All eight are illustrative records: they are not people, and their
+ * ratings, prices and years are invented too. That is
+ * fine in development, where the signed-out demo is how the app is
+ * driven and how the browser suite reaches most screens. It is not fine
+ * in the app Ahmed ships. A marketplace that lists sellers who do not
+ * exist misleads the people browsing it, and placeholder content is a
+ * rejection reason at App Review (LAUNCH-CHECKLIST §2).
+ *
+ * So the seed is a development fixture, not shipped data. In a
+ * production build the directory is empty and Discover shows its
+ * "No pros yet" state — which is also what a signed-in member sees until
+ * real pros sign up, so the two paths finally tell the same truth about
+ * launch day. Signing in is untouched: that path has read the real
+ * `coach_directory` view since migration step 4 and never looks here.
+ *
+ * `import.meta.env.PROD` is true only in `vite build` output, so this
+ * flips on exactly the bundle `npx cap sync` copies into the native
+ * apps. `tests/demo-content.spec.js` builds the app and fails if any
+ * invented name reaches `dist/`.
+ *
+ * Deleting the seed outright is the other half of §2 and is Ahmed's
+ * call, not this gate's: it would take the whole signed-out demo with
+ * it, and most of the test suite runs through that demo.
+ */
+export const DEMO_DIRECTORY: boolean = !import.meta.env.PROD;
+
+/**
  * The seed. Ported 1:1 from Discover.dc.html's own `baseCoaches`, with
  * its ad-hoc specialty keys mapped onto the app's real SPECIALTIES
  * values so one vocabulary covers both.
  *
- * These are illustrative demo records, not real people. They are a
- * constant rather than a seeded-then-mutable store because nothing in the
- * app writes a coach — only a real directory backend ever will.
+ * These are illustrative demo records, not real people — see
+ * DEMO_DIRECTORY above for why a production build has none of them.
+ * They are a constant rather than a seeded-then-mutable store because
+ * nothing in the app writes a coach — only a real directory backend
+ * ever will.
  */
-export const DIRECTORY_COACHES: DirectoryCoach[] = [
+export const DIRECTORY_COACHES: DirectoryCoach[] = !DEMO_DIRECTORY ? [] : [
   { id: 'mariam', name: 'Mariam Adel', specialty: 'Meditation coaching', icon: 'meditation', color: '#7A6BAE', rating: 4.8, price: 750, years: 6, country: 'Egypt', languages: ['Arabic', 'English'], availability: 'this-week' },
   { id: 'ahmed', name: 'Ahmed Nabil', specialty: 'Yoga coaching', icon: 'yoga', color: '#5C8A6B', rating: 4.7, price: 600, years: 4, country: 'Jordan', languages: ['Arabic'], availability: 'today' },
   { id: 'dina', name: 'Dina Kamal', specialty: 'Career coaching', icon: 'career', color: '#3E6F6F', rating: 4.9, price: 900, years: 8, country: 'Saudi Arabia', languages: ['Arabic', 'English'], availability: 'today', verified: true, featured: true },

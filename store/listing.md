@@ -57,13 +57,16 @@ a listing would normally say that this one must not:
 
    Worth knowing while writing this, because it decides which screens can
    be screenshotted: **the eight fictional coaches in
-   `src/lib/directory.ts` are still there** on the signed-out demo path
-   (`Discover.tsx:100` picks `getDirectoryCoaches()` when there is no
-   session). Removing them is still open on the checklist, §2. A reviewer
-   who opens the app without signing in sees Mariam Adel, Ahmed Nabil and
-   six others who do not exist, and placeholder content is a rejection
-   reason — so App Review notes (§11) have to hand them a real account,
-   and no screenshot may come from that path.
+   `src/lib/directory.ts` no longer ship.** They are a development
+   fixture now (`DEMO_DIRECTORY`, false in a `vite build`), so the
+   signed-out path a reviewer might open first shows "No pros yet"
+   instead of eight people who do not exist.
+   Two consequences for this document. Screenshots of a populated
+   Discover can only come from a signed-in session against real
+   `coach_directory` rows — the demo cannot produce them any more, and a
+   screenshot that shows coaches the store build cannot show is itself a
+   metadata problem. And App Review notes (§11) must hand them a real
+   account, because signed out there is now very little to see.
 
 ---
 
