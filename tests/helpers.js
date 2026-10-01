@@ -40,10 +40,10 @@ export async function simulateNotch(page, top = SAFE_TOP, bottom = SAFE_BOTTOM) 
  */
 export async function setTextScale(page, factor) {
   await page.evaluate((f) => {
-    for (const el of document.querySelectorAll('.phone-frame, .phone-frame *')) {
-      const base = el.dataset.baseFontSize ?? getComputedStyle(el).fontSize;
-      el.dataset.baseFontSize = base;
-      el.style.fontSize = `${parseFloat(base) * f}px`;
-    }
+    // Read every size first, then scale: scaling a parent before reading its
+    // child made an inheriting child (a <bdi>, a <b>) scale twice.
+    const els = [...document.querySelectorAll('.phone-frame, .phone-frame *')];
+    for (const el of els) el.dataset.baseFontSize ??= getComputedStyle(el).fontSize;
+    for (const el of els) el.style.fontSize = `${parseFloat(el.dataset.baseFontSize) * f}px`;
   }, factor);
 }

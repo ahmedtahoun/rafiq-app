@@ -40,11 +40,12 @@ async function clippedText(page, screens, factor) {
     for (const screen of list) {
       useAppStore.getState().nav({ screen, params: { clientId: 'sara', coachId: 'c1' } });
       await new Promise((r) => setTimeout(r, 200));
-      for (const el of document.querySelectorAll('.phone-frame, .phone-frame *')) {
-        const base = el.dataset.baseFontSize ?? getComputedStyle(el).fontSize;
-        el.dataset.baseFontSize = base;
-        el.style.fontSize = `${parseFloat(base) * f}px`;
-      }
+      // Read every element's size before scaling any of them: scaling a
+      // parent first made a child that inherits its size (a <bdi>, a <b>)
+      // read the already-doubled size and double again, 4x instead of 2x.
+      const els = [...document.querySelectorAll('.phone-frame, .phone-frame *')];
+      for (const el of els) el.dataset.baseFontSize ??= getComputedStyle(el).fontSize;
+      for (const el of els) el.style.fontSize = `${parseFloat(el.dataset.baseFontSize) * f}px`;
       await new Promise((r) => setTimeout(r, 130));
 
       const frame = document.querySelector('.phone-frame');
