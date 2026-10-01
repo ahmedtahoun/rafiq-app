@@ -108,6 +108,8 @@ interface PreviewOffering {
   duration: string;
   formatLabel: string;
   price: number;
+  /** The offering's own (ISO 4217); absent on the demo path, which is all EGP. */
+  currency?: string;
   /** For the .ics: 20 for the intro call, 50 otherwise (as 0010 books them). */
   minutes: number;
 }
@@ -343,6 +345,7 @@ function RemoteCoachPreviewReady({ data }: { data: CoachPreviewData }) {
       duration: o.duration || t('coachPreviewMinutes', { n: 50 }),
       formatLabel: t(FORMAT_KEY[o.format]),
       price: o.price,
+      currency: o.currency,
       minutes: 50,
     })),
     // The design's free first call, offered by every coach: a request with
@@ -510,7 +513,7 @@ function CoachPreviewBody({ source }: { source: PreviewSource }) {
               <span><bdi>{selectedOffering.name}</bdi></span>
               <strong>
                 {selectedOffering.price > 0
-                  ? money(selectedOffering.price)
+                  ? money(selectedOffering.price, selectedOffering.currency)
                   : t('offeringsFree')}
               </strong>
             </div>
@@ -644,7 +647,7 @@ function CoachPreviewBody({ source }: { source: PreviewSource }) {
                   <div className="coach-preview-offering-foot">
                     <span><bdi>{offering.duration}</bdi> · {offering.formatLabel}</span>
                     <strong>
-                      {offering.price > 0 ? money(offering.price) : t('offeringsFree')}
+                      {offering.price > 0 ? money(offering.price, offering.currency) : t('offeringsFree')}
                     </strong>
                   </div>
                 </button>

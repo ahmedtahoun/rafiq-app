@@ -187,7 +187,7 @@ function PayoutHistory() {
               return (
                 <li key={p.id} className="earnings-payout-row">
                   <div className="earnings-row-text">
-                    <div className="earnings-payout-amount">{p.currency === 'EGP' ? fmt.money(p.amount) : `${fmt.amount(p.amount)} ${p.currency}`}</div>
+                    <div className="earnings-payout-amount">{fmt.money(p.amount, p.currency)}</div>
                     <div className="earnings-payout-date">{fmt.instantDate(p.createdAt)}</div>
                   </div>
                   <div className={`earnings-payout-status is-${status.tone}`}>{t(status.label)}</div>

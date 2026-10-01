@@ -122,7 +122,7 @@ export default function Notifications() {
   const titleOf = (r: IncomingRequest) =>
     t(r.movesFromWallMs != null ? 'notificationsMoveRequest' : 'notificationsSessionRequest', { name: isolate(r.memberName) });
   const whatOf = (r: IncomingRequest) => r.offeringName ?? t('coachPreviewIntroCallName');
-  const priceOf = (r: IncomingRequest) => (r.price > 0 ? fmt.money(r.price) : t('offeringsFree'));
+  const priceOf = (r: IncomingRequest) => (r.price > 0 ? fmt.money(r.price, r.currency) : t('offeringsFree'));
   const empty = remote ? requests.length === 0 : items.length === 0;
 
   return (
