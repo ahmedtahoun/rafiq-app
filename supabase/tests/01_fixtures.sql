@@ -9,6 +9,13 @@ insert into public.coach_profiles (profile_id, title) values
   ('11111111-1111-1111-1111-111111111111','Life coaching'),
   ('22222222-2222-2222-2222-222222222222','Nutrition');
 
+-- Both on Pro, so 0021's free-plan limit (3 active members) stays out of
+-- the way of everything these coaches are used to test. The limit itself is
+-- 25_free_tier.sql's.
+insert into public.subscriptions (coach_id, tier) values
+  ('11111111-1111-1111-1111-111111111111','pro'),
+  ('22222222-2222-2222-2222-222222222222','pro');
+
 insert into public.clients (id, coach_id, member_id, full_name) values
   ('aaaaaaaa-0000-0000-0000-000000000001','11111111-1111-1111-1111-111111111111','33333333-3333-3333-3333-333333333333','Member M'),
   ('aaaaaaaa-0000-0000-0000-000000000002','11111111-1111-1111-1111-111111111111', null, 'Walk-in W'),
