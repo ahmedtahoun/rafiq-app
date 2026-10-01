@@ -61,9 +61,9 @@ select pg_temp.expect('...and the coach cannot relabel it',
   pg_temp.as_user(:coachO, format(
     'with u as (update public.clients set origin = ''marketplace'' where id = %L returning 1) select count(*)::text from u', :walkE)),
   'DENIED(42501)');
-select pg_temp.as_user(:coachO, format('select public.create_client_invite(%L) ->> ''code''', :walkE)) as codeE \gset
+select pg_temp.as_user(:coachO, format('select public.create_client_invite(%L) ->> ''code''', :walkE)) as code_e \gset
 select pg_temp.expect('E claims the coach''s invite',
-  pg_temp.as_user(:memberE, format('select public.claim_client_invite(%L) ->> ''client_id''', :'codeE')),
+  pg_temp.as_user(:memberE, format('select public.claim_client_invite(%L) ->> ''client_id''', :'code_e')),
   trim(both '''' from :'walkE'));
 select pg_temp.expect('...and the row is still coach_invited',
   pg_temp.as_user(:memberE, format('select origin::text from public.clients where id = %L', :walkE)), 'coach_invited');
@@ -82,10 +82,10 @@ select pg_temp.expect('...nor can the coach',
     'with u as (update public.session_requests set origin = ''coach_invited'' where member_id = %L returning 1) select count(*)::text from u', :memberD)),
   'DENIED(42501)');
 select pg_temp.as_user(:memberD, format(
-  'select id::text from public.session_requests where member_id = %L and status = ''pending''', :memberD)) as reqD \gset
+  'select id::text from public.session_requests where member_id = %L and status = ''pending''', :memberD)) as req_d \gset
 select pg_temp.expect('the coach accepts D''s request',
   pg_temp.as_user(:coachO, format(
-    'select (public.accept_session_request(%L) is not null)::text', :'reqD')), 'true');
+    'select (public.accept_session_request(%L) is not null)::text', :'req_d')), 'true');
 select pg_temp.expect('...D''s roster row is marketplace',
   pg_temp.as_user(:coachO, format(
     'select origin::text from public.clients where coach_id = %L and member_id = %L', :coachO, :memberD)), 'marketplace');
