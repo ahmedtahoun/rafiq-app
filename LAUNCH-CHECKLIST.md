@@ -435,7 +435,16 @@ only Rafiq can resolve (as `service_role`). Nothing works them yet.
       Until the DSN is set nothing is collected, so this is what switches it
       on. What it would then collect is listed in the PR that added it and
       in `store/privacy-inventory.md` §10.
-- [ ] ⚪ Split the ~960 KB JavaScript bundle by screen for a faster start.
+- [x] ⚪ Split the JavaScript bundle by screen for a faster start. Done in
+      `App.tsx`: the 54 static screen imports are `lazy(() => import(…))`,
+      behind one `<Suspense>` showing the app's own loading state. The
+      startup path drops from 1,097 kB to 401 kB of JavaScript (285 kB →
+      121 kB gzipped) and from 237 kB to 23 kB of render-blocking CSS; the
+      rest arrives per screen, and inside the native shell every chunk is
+      already on the device. What is left in the entry chunk is mostly
+      `i18n.ts`, which is 175 kB of source because it holds every string
+      twice, and the Supabase client, which `session.ts` pulls in at
+      startup — both splittable later, neither part of this change.
 - [ ] ⚪ Analytics, if wanted — disclosed in the privacy forms.
 
 ## 11. Before each submission (Dev)
