@@ -1,4 +1,4 @@
--- 0020: where a relationship and a request came from — set by the database
+-- 0019: where a relationship and a request came from — set by the database
 -- from who made the first move, whatever the app sends, and fixed after.
 -- Coach O is new here; member D finds them as a stranger (marketplace),
 -- member E is the coach's walk-in who claims an invite (coach_invited).

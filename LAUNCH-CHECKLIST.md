@@ -145,7 +145,7 @@ The sources, read on 2026-10-01, and what they mean for the build are in
       first subscription is sold. The 15% rate is not automatic.
 - [x] 🔴 *Dev:* record where each booking came from (marketplace or the
       coach's own client), so that commission can be switched on fairly
-      later. `0020`; live once Ahmed pushes it, after Reem's `0019`.
+      later. `0019`; live once Ahmed pushes it.
       Commission stays off.
 - [x] 🟡 *Dev:* prices show the offering's own currency, not always EGP.
 - [ ] 🔴 *Dev:* Rafiq Pro through In-App Purchase + Play Billing (RevenueCat
