@@ -156,7 +156,7 @@ const en = {
     greetingMorning: 'Good morning', greetingAfternoon: 'Good afternoon', greetingEvening: 'Good evening',
     mainStatMembers: 'Active members', mainStatToday: 'Sessions today', mainStatRequests: 'Requests',
     mainSetupTitle: 'Get set up', mainSetupCount: '{n} of {total} done',
-    mainSetupProfile: 'Add your photo and bio', mainSetupHours: 'Set the hours members can book',
+    mainSetupProfile: 'Add your photo and bio', mainSetupOffering: 'Add what you offer, with a price', mainSetupHours: 'Set the hours members can book',
     mainSetupMember: 'Add or invite your first member',
     mainTodayFailed: "Today's sessions didn't load.",
     mainPaidUp: '{n} of {total} members paid up',
@@ -457,6 +457,8 @@ const en = {
     offeringDetailDeleteOffering: 'Delete Offering', offeringDetailDeleteConfirmTitle: 'Delete this offering?',
     offeringDetailDeleteConfirmBodyTemplate: "{name} will no longer show on your profile. This doesn't affect sessions already booked.",
     offeringDetailDelete: 'Delete',
+    offeringDetailSaveFailed: "Your offering wasn't saved. Please try again.", offeringDetailDeleteFailed: "The offering wasn't deleted. Please try again.",
+    offeringDetailNotFound: 'This offering no longer exists.',
 
     // Subscription.dc.html
     subscriptionTitle: 'Rafiq Pro Plus', subscriptionCurrentPlan: 'Current plan',
@@ -1249,7 +1251,7 @@ const ar: Record<MessageKey, string> = {
     greetingMorning: 'صباح الخير', greetingAfternoon: 'نهارك سعيد', greetingEvening: 'مساء الخير',
     mainStatMembers: 'أعضاء نشطون', mainStatToday: 'جلسات اليوم', mainStatRequests: 'طلبات',
     mainSetupTitle: 'جهّز حسابك', mainSetupCount: 'تم {n} من {total}',
-    mainSetupProfile: 'أضف صورتك ونبذة عنك', mainSetupHours: 'حدد الساعات المتاحة للحجز',
+    mainSetupProfile: 'أضف صورتك ونبذة عنك', mainSetupOffering: 'أضف ما تقدمه وسعره', mainSetupHours: 'حدد الساعات المتاحة للحجز',
     mainSetupMember: 'أضف أول عضو أو ادعه',
     mainTodayFailed: 'لم يتم تحميل جلسات اليوم.',
     mainPaidUp: '{n} من {total} أعضاء دفعوا',
@@ -1538,11 +1540,13 @@ const ar: Record<MessageKey, string> = {
     offeringDetailDuration: 'المدة', offeringDetailDurationPlaceholder: 'مثال: 50 دقيقة، 3 ساعات، 8 أسابيع',
     offeringDetailPriceLabel: 'السعر (جنيه)', offeringDetailPricePlaceholder: '0 = مجانية',
     offeringDetailSessionsTotal: 'إجمالي عدد الجلسات (لتتبع التقدم)', offeringDetailSessionsTotalPlaceholder: 'مثال: 8',
-    offeringDetailSessionsTotalHint: 'اتركي الحقل فارغًا إذا لم يكن لهذا العرض مدة ثابتة — جلسات فردية/جماعية مستمرة، أو ورشة/فعالية لمرة واحدة.',
+    offeringDetailSessionsTotalHint: 'اترك الحقل فارغًا إذا لم يكن لهذا العرض مدة ثابتة — جلسات فردية/جماعية مستمرة، أو ورشة/فعالية لمرة واحدة.',
     offeringDetailFormat: 'الصيغة', offeringDetailFormatOnline: 'عبر الإنترنت', offeringDetailFormatInPerson: 'حضوريًا', offeringDetailFormatBoth: 'كلاهما',
     offeringDetailDeleteOffering: 'حذف العرض', offeringDetailDeleteConfirmTitle: 'حذف هذا العرض؟',
     offeringDetailDeleteConfirmBodyTemplate: 'لن يظهر {name} بعد الآن في ملفك الشخصي. هذا لا يؤثر على الجلسات المحجوزة بالفعل.',
     offeringDetailDelete: 'حذف',
+    offeringDetailSaveFailed: 'لم يتم حفظ العرض. حاول مرة أخرى.', offeringDetailDeleteFailed: 'لم يتم حذف العرض. حاول مرة أخرى.',
+    offeringDetailNotFound: 'هذا العرض لم يعد موجودًا.',
 
     // Subscription.dc.html
     subscriptionTitle: 'رفيق برو بلس', subscriptionCurrentPlan: 'الباقة الحالية',

@@ -45,6 +45,7 @@ const busy = () => ({
     client('c-old', 'Old Member', { active: false }),
   ],
   weekly_availability: [{ coach_id: UID, day_of_week: 0, enabled: true, start_hour: 10, end_hour: 18 }],
+  offerings: [{ id: 'off-1', coach_id: UID, name: '1:1 Session', description: '', type: 'session', duration: '50 min', format: 'online', price: 600, currency: 'EGP', session_count: null, active: true, created_at: '2026-09-01T00:00:00Z' }],
   time_blocks: [
     // Today 15:00–15:50 Cairo, and one tomorrow that must not count as today.
     { id: 'tb-1', coach_id: UID, client_id: 'c-rana', kind: 'booked', label: 'Session', starts_at: '2026-09-28T12:00:00Z', ends_at: '2026-09-28T12:50:00Z', session_type: 'standard' },
@@ -100,15 +101,15 @@ for (const lang of ['en', 'ar']) {
 
     const setup = page.locator('.main-setup');
     await expect(setup).toContainText(lang === 'ar' ? 'جهّز حسابك' : 'Get set up');
-    await expect(setup).toContainText(lang === 'ar' ? 'تم 0 من 3' : '0 of 3 done');
-    await expect(setup.locator('.main-setup-step:not(.is-done)')).toHaveCount(3);
+    await expect(setup).toContainText(lang === 'ar' ? 'تم 0 من 4' : '0 of 4 done');
+    await expect(setup.locator('.main-setup-step:not(.is-done)')).toHaveCount(4);
     expect(errs).toEqual([]);
     await ctx.close();
   });
 }
 
 test('each setup step opens the screen that completes it', async ({ browser }) => {
-  for (const [i, screen] of [[0, 'editProfile'], [1, 'availability'], [2, 'addClient']]) {
+  for (const [i, screen] of [[0, 'editProfile'], [1, 'offeringDetail'], [2, 'availability'], [3, 'addClient']]) {
     const { page, ctx, errs } = await open(browser, { tables: { ...empty, ...profile() } });
     await page.locator('.main-setup-step').nth(i).click();
     expect(await currentScreen(page)).toBe(screen);
@@ -118,11 +119,18 @@ test('each setup step opens the screen that completes it', async ({ browser }) =
 });
 
 test('setup steps tick themselves from real rows, and the card goes when all are done', async ({ browser }) => {
-  // Hours set and a member added, but no photo: 2 of 3.
+  // An offering, hours and a member, but no photo: 3 of 4.
   const partial = { ...busy(), ...profile({ photo: false, bio: 'Life coach in Cairo.' }) };
   let { page, ctx } = await open(browser, { tables: partial });
-  await expect(page.locator('.main-setup')).toContainText('2 of 3 done');
+  await expect(page.locator('.main-setup')).toContainText('3 of 4 done');
   await expect(page.locator('.main-setup-step:not(.is-done)')).toHaveText(['Add your photo and bio']);
+  await ctx.close();
+
+  // An archived offering doesn't count: members can't book it.
+  const archived = busy();
+  archived.offerings = archived.offerings.map((o) => ({ ...o, active: false }));
+  ({ page, ctx } = await open(browser, { tables: archived }));
+  await expect(page.locator('.main-setup-step:not(.is-done)')).toHaveText(['Add what you offer, with a price']);
   await ctx.close();
 
   ({ page, ctx } = await open(browser, { tables: busy() }));

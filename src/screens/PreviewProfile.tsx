@@ -12,8 +12,12 @@ import {
   getProAggregateRating,
   getRatings,
   setSelectedOfferingId,
+  type Offering,
   type OfferingType,
 } from '../lib/mockStore';
+import { fetchOwnOfferings } from '../lib/offeringData';
+import { useRemoteSession } from '../lib/remoteSession';
+import { useRemoteLoad } from '../store/remoteLoad';
 import './PreviewProfile.css';
 
 const ACCENT = '#B75C3D';
@@ -36,18 +40,22 @@ const TYPE_LABEL_KEY: Record<OfferingType, MessageKey> = {
 // illustrative: no sample reviews, no stand-in rating.
 export default function PreviewProfile() {
   const own = useOwnCoachProfile();
-  if (own.status === 'loading') return <LoadState status="loading" />;
+  // Signed in, the offerings are the coach's own rows, the same ones members
+  // see on the coach page; it showed the demo catalogue to every coach.
+  const remote = useRemoteSession();
+  const load = useRemoteLoad('own_offerings', remote, fetchOwnOfferings);
+  if (own.status === 'loading' || (remote && load.status === 'loading')) return <LoadState status="loading" />;
   if (own.status === 'error') return <LoadState status="error" onRetry={own.retry} showBack />;
-  return <PreviewProfileView own={own} />;
+  if (remote && load.status === 'error') return <LoadState status="error" onRetry={load.retry} showBack />;
+  return <PreviewProfileView own={own} offerings={remote && load.status === 'ready' ? load.data : getOfferings()} remote={remote} />;
 }
 
-function PreviewProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }> }) {
+function PreviewProfileView({ own, offerings, remote }: { own: Extract<OwnProfileView, { status: 'ready' }>; offerings: Offering[]; remote: boolean }) {
   const t = useT();
   const back = useAppStore((s) => s.back);
   const nav = useAppStore((s) => s.nav);
 
   const profile = own.profile;
-  const offerings = getOfferings();
   const [selectedId, setSelectedId] = useState<string | null>(offerings[0]?.id ?? null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
@@ -254,7 +262,9 @@ function PreviewProfileView({ own }: { own: Extract<OwnProfileView, { status: 'r
       </div>
 
       <div className="preview-profile-cta">
-        <button type="button" className="preview-profile-book" onClick={book} disabled={!selected}>
+        {/* Shown as members see it. Signed in it doesn't book: a coach can't
+            book themselves, and ClientBooking is still the demo's. */}
+        <button type="button" className="preview-profile-book" onClick={book} disabled={!selected || remote}>
           {selected ? t('previewProfileBookOffering', { name: isolate(selected.name) }) : t('previewProfileTryBooking')}
         </button>
       </div>
