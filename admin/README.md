@@ -176,4 +176,8 @@ fails loudly, as a `list_failed` with PostgREST's own message.
 Creating, sending and syncing payouts (§3, *"an admin screen to create,
 send and sync payouts (§9)"*). The `payouts` function is already written
 and already admin-only, so it is UI over a finished backend and belongs
-in this app — next commit on this branch.
+in this app — but as its own PR, not bolted onto this one. It needs a
+`listPayouts` operation adding here (the `payouts` function has create,
+send, sync and balance, but no list, and the table is behind RLS), which
+is a change worth reviewing on its own rather than inside a PR about the
+queues.
