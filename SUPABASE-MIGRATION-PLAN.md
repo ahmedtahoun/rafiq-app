@@ -439,6 +439,18 @@ In small PRs, so each can be reviewed on its own:
    demo booking screen is still reached from the programs screens, which
    are step 6's.
 
+## Step 6, the member side: reviews
+
+No schema change. Signed in, a coach's page and Discover's "Member
+Stories" show members' own reviews from the `coach_reviews` view
+(src/lib/reviewData.ts): only ratings with a comment, signed with
+`reviewer_name` (first name and last initial). Nothing joins back to
+`profiles.full_name` or `clients.full_name`: a reviewer's full name must
+not be public. The coach's page shows their 5 newest, beside the average
+once there are enough ratings for one; Discover shows the 3 newest of
+coaches on the list. Signed out, Discover keeps its sample stories. A
+failed read shows LoadState with retry. Tests: tests/coach-reviews.spec.js.
+
 ## Testing this kind of code
 
 `tests/README.md`'s existing pattern (`native-oauth.spec.js`) already

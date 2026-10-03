@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, isolate } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { useFormat } from '../lib/format';
 import {
@@ -19,6 +19,7 @@ import { useRemoteSession } from '../lib/remoteSession';
 import { fetchDirectory, type RealDirectoryCoach } from '../lib/requestData';
 import { wallNowMs } from '../lib/wallClock';
 import { useRemoteLoad } from '../store/remoteLoad';
+import { fetchRecentReviews, type CoachReview } from '../lib/reviewData';
 import {
   getDirectoryCoaches, getTrendingCoaches, filterCoaches, hasActiveFilters,
   getFavouriteCoaches, toggleFavouriteCoach, initialsOf, countryFlagOf,
@@ -76,9 +77,14 @@ const STORY_QUOTES: Record<string, { en: string; ar: string }> = {
   },
 };
 
+/** Signed in: how many of the newest reviews to look through, and how
+    many to show (some may be of coaches no longer listed). */
+const REVIEW_POOL = 20;
+const STORIES_SHOWN = 3;
+
 export default function Discover() {
   const t = useT();
-  const { money } = useFormat();
+  const { money, instantDate } = useFormat();
   const lang = useAppStore((s) => s.lang);
   const nav = useAppStore((s) => s.nav);
   const isAr = lang === 'ar';
@@ -91,10 +97,23 @@ export default function Discover() {
   const [favourites, setFavourites] = useState(getFavouriteCoaches);
   const remote = useRemoteSession();
   const load = useRemoteLoad('directory', remote, () => fetchDirectory(wallNowMs()));
+  // Members' own reviews (coach_reviews, step 6), newest first.
+  const reviewsLoad = useRemoteLoad<CoachReview[]>('discover-reviews', remote, () => fetchRecentReviews(REVIEW_POOL));
 
   if (remote && load.status === 'loading') return <LoadState status="loading" />;
   if (remote && load.status === 'error') return <LoadState status="error" onRetry={load.retry} />;
+  if (remote && reviewsLoad.status === 'loading') return <LoadState status="loading" />;
+  if (remote && reviewsLoad.status === 'error') return <LoadState status="error" onRetry={reviewsLoad.retry} />;
   const coaches: DirectoryCoach[] = remote && load.status === 'ready' ? load.data : getDirectoryCoaches();
+  // Only reviews of coaches the member can see on the list.
+  const stories = remote && reviewsLoad.status === 'ready'
+    ? reviewsLoad.data
+        .flatMap((review) => {
+          const coach = coaches.find((c) => c.id === review.coachId);
+          return coach ? [{ review, coach }] : [];
+        })
+        .slice(0, STORIES_SHOWN)
+    : [];
   // No coaches at all is not a failed search: until real pros sign up the
   // whole directory is empty, and "No pros match your search" over an
   // untouched search box reads like the screen is broken. Search, filters
@@ -420,8 +439,40 @@ export default function Discover() {
         </section>
         )}
 
-        {/* Sample stories about the demo's coaches: nothing to show signed
-            in until real reviews reach Discover (step 6). */}
+        {/* Signed in, members' own reviews of coaches on the list, signed
+            with a first name and last initial (coach_reviews). */}
+        {stories.length > 0 && (
+        <section className="discover-section">
+          <div>
+            <h2 className="discover-section-title">{t('discoverStories')}</h2>
+            <div className="discover-section-sub">{t('discoverStoriesSub')}</div>
+          </div>
+          {stories.map(({ review, coach }) => (
+            <div key={review.id} className="discover-story">
+              <div className="discover-story-head">
+                <span className="discover-story-avatar" style={{ background: review.avatarBg }}>
+                  {initialsOf(review.reviewerName)}
+                </span>
+                <div className="discover-story-who">
+                  <div className="discover-story-name"><bdi>{review.reviewerName}</bdi></div>
+                  <div className="discover-story-meta">
+                    {t('discoverStoryWith', { coach: isolate(coach.name) })} · {instantDate(review.createdAt)}
+                  </div>
+                </div>
+                <svg width="20" height="16" viewBox="0 0 24 20" fill="var(--accent-soft)" aria-hidden="true">
+                  <path d="M4 10c0-4 2.5-7 6.5-8l1 2.3C8.8 5.2 7.5 7 7.3 9H10v7H2v-6zm11 0c0-4 2.5-7 6.5-8l1 2.3C19.8 5.2 18.5 7 18.3 9H21v7h-8v-6z" />
+                </svg>
+              </div>
+              <p className="discover-story-quote" dir="auto">{review.comment}</p>
+              <div className="discover-story-helpful" role="img" aria-label={t('rateCoachStarLabel', { n: review.rating })}>
+                {'★'.repeat(review.rating)}
+              </div>
+            </div>
+          ))}
+        </section>
+        )}
+
+        {/* Sample stories about the demo's coaches, signed out only. */}
         {!remote && (
         <section className="discover-section">
           <div>
