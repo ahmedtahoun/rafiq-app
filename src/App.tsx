@@ -1,64 +1,83 @@
-import { useEffect } from 'react';
-import { useAppStore } from './store/appStore';
+import { lazy, Suspense, useEffect } from 'react';
+import { useAppStore, type Screen } from './store/appStore';
+import { LoadState } from './components/LoadState';
 import { isRtl } from './lib/i18n';
 import { initSession } from './lib/session';
 import { initOAuthDeepLinks } from './lib/auth';
 import { initBackButton } from './lib/nativeBack';
 import { applySystemBarsStyle } from './lib/nativeSystemBars';
-import Welcome from './screens/Welcome';
-import RoleSelect from './screens/RoleSelect';
-import Auth from './screens/Auth';
-import ClientAuth from './screens/ClientAuth';
-import Onboarding from './screens/Onboarding';
-import Main from './screens/Main';
-import Profile from './screens/Profile';
-import EditProfile from './screens/EditProfile';
-import AccountDetails from './screens/AccountDetails';
-import Clients from './screens/Clients';
-import AddClient from './screens/AddClient';
-import ClientDetail from './screens/ClientDetail';
-import EditClient from './screens/EditClient';
-import Offerings from './screens/Offerings';
-import OfferingDetail from './screens/OfferingDetail';
-import Subscription from './screens/Subscription';
-import Earnings from './screens/Earnings';
-import PayoutAccount from './screens/PayoutAccount';
-import ClientOnboarding from './screens/ClientOnboarding';
-import ClientHome from './screens/ClientHome';
-import ClientProfile from './screens/ClientProfile';
-import EditClientProfile from './screens/EditClientProfile';
-import AddTask from './screens/AddTask';
-import Messages from './screens/Messages';
-import MessagesInbox from './screens/MessagesInbox';
-import SessionRoom from './screens/SessionRoom';
-import Notifications from './screens/Notifications';
-import ShareProfile from './screens/ShareProfile';
-import PreviewProfile from './screens/PreviewProfile';
-import HelpCenter from './screens/HelpCenter';
-import CoachPrivacyPolicy from './screens/CoachPrivacyPolicy';
-import CoachTermsOfService from './screens/CoachTermsOfService';
-import Templates from './screens/Templates';
-import TemplateDetail from './screens/TemplateDetail';
-import Schedule from './screens/Schedule';
-import AddTimeBlock from './screens/AddTimeBlock';
-import Availability from './screens/Availability';
-import Discover from './screens/Discover';
-import CoachPreview from './screens/CoachPreview';
-import ClientCoach from './screens/ClientCoach';
-import ClientBooking from './screens/ClientBooking';
-import ClientSchedule from './screens/ClientSchedule';
-import ClientTasks from './screens/ClientTasks';
-import MyPrograms from './screens/MyPrograms';
-import ProgramDetail from './screens/ProgramDetail';
-import RateCoach from './screens/RateCoach';
-import CoachMessages from './screens/CoachMessages';
-import MyCoaches from './screens/MyCoaches';
-import ClaimInvite from './screens/ClaimInvite';
-import ClientNotifications from './screens/ClientNotifications';
-import ClientHelpCenter from './screens/ClientHelpCenter';
-import ClientPrivacyPolicy from './screens/ClientPrivacyPolicy';
-import ClientTermsOfService from './screens/ClientTermsOfService';
-import ComingSoon from './screens/ComingSoon';
+
+/**
+ * Every screen, split into its own chunk.
+ *
+ * Fifty-four static imports meant the first paint waited for all of
+ * them: Welcome, the very first screen, could not render until the
+ * coach's Earnings screen had been parsed. Now a screen's code arrives
+ * when someone navigates to it.
+ *
+ * What is left in the entry chunk is not "nothing": i18n.ts alone is
+ * 175 KB of source because it holds every string twice, and session.ts
+ * pulls in the Supabase client at startup. Both are splittable, and
+ * neither is this change.
+ *
+ * The switch below is unchanged, including its exhaustiveness check:
+ * `lazy()` returns a component, so a Screen value with no case here is
+ * still a compile error rather than a blank page.
+ */
+const Welcome = lazy(() => import('./screens/Welcome'));
+const RoleSelect = lazy(() => import('./screens/RoleSelect'));
+const Auth = lazy(() => import('./screens/Auth'));
+const ClientAuth = lazy(() => import('./screens/ClientAuth'));
+const Onboarding = lazy(() => import('./screens/Onboarding'));
+const Main = lazy(() => import('./screens/Main'));
+const Profile = lazy(() => import('./screens/Profile'));
+const EditProfile = lazy(() => import('./screens/EditProfile'));
+const AccountDetails = lazy(() => import('./screens/AccountDetails'));
+const Clients = lazy(() => import('./screens/Clients'));
+const AddClient = lazy(() => import('./screens/AddClient'));
+const ClientDetail = lazy(() => import('./screens/ClientDetail'));
+const EditClient = lazy(() => import('./screens/EditClient'));
+const Offerings = lazy(() => import('./screens/Offerings'));
+const OfferingDetail = lazy(() => import('./screens/OfferingDetail'));
+const Subscription = lazy(() => import('./screens/Subscription'));
+const Earnings = lazy(() => import('./screens/Earnings'));
+const PayoutAccount = lazy(() => import('./screens/PayoutAccount'));
+const ClientOnboarding = lazy(() => import('./screens/ClientOnboarding'));
+const ClientHome = lazy(() => import('./screens/ClientHome'));
+const ClientProfile = lazy(() => import('./screens/ClientProfile'));
+const EditClientProfile = lazy(() => import('./screens/EditClientProfile'));
+const AddTask = lazy(() => import('./screens/AddTask'));
+const Messages = lazy(() => import('./screens/Messages'));
+const MessagesInbox = lazy(() => import('./screens/MessagesInbox'));
+const SessionRoom = lazy(() => import('./screens/SessionRoom'));
+const Notifications = lazy(() => import('./screens/Notifications'));
+const ShareProfile = lazy(() => import('./screens/ShareProfile'));
+const PreviewProfile = lazy(() => import('./screens/PreviewProfile'));
+const HelpCenter = lazy(() => import('./screens/HelpCenter'));
+const CoachPrivacyPolicy = lazy(() => import('./screens/CoachPrivacyPolicy'));
+const CoachTermsOfService = lazy(() => import('./screens/CoachTermsOfService'));
+const Templates = lazy(() => import('./screens/Templates'));
+const TemplateDetail = lazy(() => import('./screens/TemplateDetail'));
+const Schedule = lazy(() => import('./screens/Schedule'));
+const AddTimeBlock = lazy(() => import('./screens/AddTimeBlock'));
+const Availability = lazy(() => import('./screens/Availability'));
+const Discover = lazy(() => import('./screens/Discover'));
+const CoachPreview = lazy(() => import('./screens/CoachPreview'));
+const ClientCoach = lazy(() => import('./screens/ClientCoach'));
+const ClientBooking = lazy(() => import('./screens/ClientBooking'));
+const ClientSchedule = lazy(() => import('./screens/ClientSchedule'));
+const ClientTasks = lazy(() => import('./screens/ClientTasks'));
+const MyPrograms = lazy(() => import('./screens/MyPrograms'));
+const ProgramDetail = lazy(() => import('./screens/ProgramDetail'));
+const RateCoach = lazy(() => import('./screens/RateCoach'));
+const CoachMessages = lazy(() => import('./screens/CoachMessages'));
+const MyCoaches = lazy(() => import('./screens/MyCoaches'));
+const ClaimInvite = lazy(() => import('./screens/ClaimInvite'));
+const ClientNotifications = lazy(() => import('./screens/ClientNotifications'));
+const ClientHelpCenter = lazy(() => import('./screens/ClientHelpCenter'));
+const ClientPrivacyPolicy = lazy(() => import('./screens/ClientPrivacyPolicy'));
+const ClientTermsOfService = lazy(() => import('./screens/ClientTermsOfService'));
+const ComingSoon = lazy(() => import('./screens/ComingSoon'));
 
 export default function App() {
   const { lang, dark, screen } = useAppStore();
@@ -88,6 +107,18 @@ export default function App() {
     applySystemBarsStyle(dark);
   }, [dark]);
 
+  return (
+    // The same spinner every other wait in the app uses, rather than a
+    // second kind of loading screen. Only the first visit to a screen
+    // suspends: after that its module is cached, and inside the native
+    // shell every chunk is already on the device.
+    <Suspense fallback={<LoadState status="loading" />}>
+      {renderScreen(screen)}
+    </Suspense>
+  );
+}
+
+function renderScreen(screen: Screen) {
   switch (screen) {
     case 'welcome':
       return <Welcome />;

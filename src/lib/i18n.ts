@@ -1010,6 +1010,8 @@ const en = {
     rateCoachThanksTitle: 'Thanks for your feedback!',
     rateCoachThanksBody: 'Your review helps {coach} improve and helps other members find the right pro.',
     rateCoachDone: 'Done',
+    rateCoachFailed: "Your review wasn't sent. Please try again.",
+    rateCoachAlready: "You've already rated this session.",
 
     coachMessagesSubtitle: 'In-app messages',
     coachMessagesEmptyTitle: 'No messages yet',
@@ -2077,6 +2079,8 @@ const ar: Record<MessageKey, string> = {
     rateCoachThanksTitle: 'شكرًا لملاحظاتك!',
     rateCoachThanksBody: 'تقييمك يساعد {coach} على التحسن ويساعد أعضاء آخرين على إيجاد المحترف المناسب.',
     rateCoachDone: 'تم',
+    rateCoachFailed: 'لم يُرسل تقييمك. يرجى المحاولة مرة أخرى.',
+    rateCoachAlready: 'لقد قيّمتِ هذه الجلسة من قبل.',
 
     coachMessagesSubtitle: 'رسائل داخل التطبيق',
     coachMessagesEmptyTitle: 'لا توجد رسائل بعد',

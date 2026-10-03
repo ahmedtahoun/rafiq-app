@@ -29,9 +29,9 @@ const NOT_CONFIGURED = { ok: false, code: 'not_configured', message: 'Supabase c
 const NOT_SIGNED_IN = { ok: false, code: 'not_signed_in', message: 'No signed-in user.' } as const;
 const unknown = (error: { message: string }) => ({ ok: false, code: 'unknown', message: error.message }) as const;
 
-const COLUMNS = 'id, type, name, description, duration, price, format, session_count';
+export const OFFERING_COLUMNS = 'id, type, name, description, duration, price, format, session_count';
 
-interface OfferingRow {
+export interface OfferingRow {
   id: string;
   type: Offering['type'];
   name: string;
@@ -42,7 +42,7 @@ interface OfferingRow {
   session_count: number | null;
 }
 
-function toOffering(r: OfferingRow): Offering {
+export function toOffering(r: OfferingRow): Offering {
   return {
     id: r.id,
     type: r.type,
@@ -79,7 +79,7 @@ export async function fetchOwnOfferings(): Promise<OfferingResult<Offering[]>> {
   if (!uid) return NOT_SIGNED_IN;
   const { data, error } = await getSupabase()
     .from('offerings')
-    .select(COLUMNS)
+    .select(OFFERING_COLUMNS)
     .eq('coach_id', uid)
     .eq('active', true)
     .order('created_at', { ascending: true });
@@ -94,7 +94,7 @@ export async function createOwnOffering(fields: OfferingFields): Promise<Offerin
   const { data, error } = await getSupabase()
     .from('offerings')
     .insert({ coach_id: uid, ...toRow(fields) })
-    .select(COLUMNS)
+    .select(OFFERING_COLUMNS)
     .single();
   if (error) return unknown(error);
   return { ok: true, data: toOffering(data as OfferingRow) };

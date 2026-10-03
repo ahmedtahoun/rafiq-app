@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { IGNORED_CONSOLE } from './helpers.js';
+import { IGNORED_CONSOLE, installScreenSettle } from './helpers.js';
 
 /**
  * No text renders pure black in dark mode.
@@ -30,6 +30,7 @@ test('no screen renders black text in dark mode', async ({ browser }) => {
   test.setTimeout(90_000);
   const ctx = await browser.newContext({ viewport: { width: 420, height: 900 } });
   const page = await ctx.newPage();
+  await installScreenSettle(page);
   const errs = [];
   page.on('pageerror', (e) => errs.push(e.message));
   page.on('console', (m) => {
@@ -48,7 +49,10 @@ test('no screen renders black text in dark mode', async ({ browser }) => {
     const found = {};
     for (const screen of screens) {
       useAppStore.getState().nav({ screen, params: { clientId: 'sara' } });
-      await new Promise((r) => setTimeout(r, 300));
+      // Not a fixed delay: each screen is its own chunk now, and half of
+      // them were still showing the Suspense fallback at 300ms — so this
+      // walk was scanning two elements per screen and finding nothing.
+      await window.__screenSettled();
       const hits = [];
       for (const el of document.querySelectorAll('.phone-frame *')) {
         const hasText = [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim());

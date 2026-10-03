@@ -17,6 +17,7 @@ import { DEMO_MEMBER_CLIENT_ID, MIN_REVIEWS_FOR_RATING, getClient } from '../lib
 import { LoadState } from '../components/LoadState';
 import { useRemoteSession } from '../lib/remoteSession';
 import { fetchDirectory, type RealDirectoryCoach } from '../lib/requestData';
+import { fetchOwnFocus } from '../lib/memberData';
 import { wallNowMs } from '../lib/wallClock';
 import { useRemoteLoad } from '../store/remoteLoad';
 import { fetchRecentReviews, type CoachReview } from '../lib/reviewData';
@@ -27,9 +28,9 @@ import {
 } from '../lib/directory';
 import './Discover.css';
 
-// Signed in, the coaches are the real directory (step 4); the member's own
-// goal, which floats matching coaches up, is still only the demo member's
-// (step 6, SUPABASE-MIGRATION-PLAN.md) — so signed in it isn't used.
+// Signed in, the coaches are the real directory (step 4) and the goal that
+// floats matching coaches up is the member's own focus from onboarding
+// (member_profiles, step 6). Signed out, both are the demo's.
 const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
 
 const isReal = (coach: DirectoryCoach): coach is RealDirectoryCoach => 'ratingCount' in coach;
@@ -96,7 +97,12 @@ export default function Discover() {
   // them into render state so a tapped heart repaints immediately.
   const [favourites, setFavourites] = useState(getFavouriteCoaches);
   const remote = useRemoteSession();
-  const load = useRemoteLoad('directory', remote, () => fetchDirectory(wallNowMs()));
+  const load = useRemoteLoad<{ coaches: RealDirectoryCoach[]; focus: string | null }>('directory', remote, async () => {
+    const [directory, focus] = await Promise.all([fetchDirectory(wallNowMs()), fetchOwnFocus()]);
+    return directory.ok && focus.ok
+      ? { ok: true as const, data: { coaches: directory.data, focus: focus.data } }
+      : { ok: false as const };
+  });
   // Members' own reviews (coach_reviews, step 6), newest first.
   const reviewsLoad = useRemoteLoad<CoachReview[]>('discover-reviews', remote, () => fetchRecentReviews(REVIEW_POOL));
 
@@ -104,7 +110,7 @@ export default function Discover() {
   if (remote && load.status === 'error') return <LoadState status="error" onRetry={load.retry} />;
   if (remote && reviewsLoad.status === 'loading') return <LoadState status="loading" />;
   if (remote && reviewsLoad.status === 'error') return <LoadState status="error" onRetry={reviewsLoad.retry} />;
-  const coaches: DirectoryCoach[] = remote && load.status === 'ready' ? load.data : getDirectoryCoaches();
+  const coaches: DirectoryCoach[] = remote && load.status === 'ready' ? load.data.coaches : getDirectoryCoaches();
   // Only reviews of coaches the member can see on the list.
   const stories = remote && reviewsLoad.status === 'ready'
     ? reviewsLoad.data
@@ -125,8 +131,11 @@ export default function Discover() {
   // top and to caption the section. Absent for a member who has not
   // finished onboarding — in which case the section is simply unlabelled
   // rather than claiming a match that was never made.
-  const member = remote ? undefined : getClient(CLIENT_ID);
-  const goalSpecialty = member?.specialty ?? null;
+  // Signed in, the focus slug onboarding stored names the specialty by its
+  // icon key; signed out, the demo member's roster row carries the value.
+  const goalSpecialty = remote
+    ? (load.status === 'ready' ? SPECIALTIES.find((s) => s.icon === load.data.focus)?.value ?? null : null)
+    : getClient(CLIENT_ID)?.specialty ?? null;
   const goalLabelKey = SPECIALTIES.find((s) => s.value === goalSpecialty)?.labelKey ?? null;
 
   // A coach's specialty label, translated. Used for display and, in
