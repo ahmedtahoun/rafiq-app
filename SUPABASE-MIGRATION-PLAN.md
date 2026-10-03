@@ -258,7 +258,7 @@ relationships through `src/store/memberStore.ts`'s `useMemberSpace()`:
   sessions, a booked one). Signed in, it used to read the demo member's,
   which always has sessions left.
 - **Still the demo member's, signed in:** Schedule and Booking (step 4),
-  Messages (step 5) and Notifications (step 6).
+  Messages (step 5).
   Each reads `DEMO_MEMBER_CLIENT_ID` from mockStore with a note
   naming its step, so what's left is one grep. The pieces of converted
   screens that belong to those steps (milestones, the live-session badge,
@@ -458,7 +458,7 @@ in place.
 - ✅ **Rate Coach** → `ratings`; reviews on the coach's page and Discover
   from the `coach_reviews` view, signed with its `reviewer_name` (first
   name and last initial) — never a reviewer's full name.
-- **The member's Notifications** → `notifications`, and Home's dot.
+- ✅ **The member's Notifications** → `notifications`, and Home's dot.
 - **The real clock** in ClientBooking, ClientSchedule and CoachPreview.
 - **The demo member is demo-only**: nothing signed in reads
   `DEMO_MEMBER_CLIENT_ID`.
@@ -503,6 +503,23 @@ not be public. The coach's page shows their 5 newest, beside the average
 once there are enough ratings for one; Discover shows the 3 newest of
 coaches on the list. Signed out, Discover keeps its sample stories. A
 failed read shows LoadState with retry. Tests: tests/coach-reviews.spec.js.
+
+## Step 6, the member side: notifications
+
+No schema change. Signed in, the member's Notifications screen is their
+own `notifications` rows (src/lib/notificationData.ts;
+notifications_select_own), newest 50, of the four kinds the database
+sends a member today: a message from their coach (0002), a payment
+recorded (0002), and a session their coach moved or cancelled (0011).
+Other kinds are left out rather than shown blank, and payloads are read
+defensively. Session times are wall-clock. Opening one marks it read
+(notifications_update_own: `read_at` only, where it is still null),
+switches to the relationship it is about, and opens its screen; "Mark all
+read" marks only theirs, and says so if it fails. Home's bell dot is
+whether any of them is unread, re-read each time Home mounts; a failed
+read shows no dot. Nothing yet tells a member when a coach accepts or
+declines their request: that would need a trigger (a later migration).
+Tests: tests/member-notifications.spec.js.
 
 ## Testing this kind of code
 
