@@ -6,69 +6,18 @@ import { useFormat } from '../lib/format';
 import { ChevronIcon, CheckIcon, StarIcon, MessageIcon, ScheduleIcon } from '../components/icons';
 import { LoadState } from '../components/LoadState';
 import { SPECIALTIES } from '../lib/specialties';
-import { MIN_REVIEWS_FOR_RATING, getMonthAnchorMs } from '../lib/mockStore';
+import { MIN_REVIEWS_FOR_RATING } from '../lib/mockStore';
 import { useRemoteSession } from '../lib/remoteSession';
 import { wallNowMs, wallTodayMs } from '../lib/wallClock';
 import { useRemoteLoad } from '../store/remoteLoad';
 import {
-  getDirectoryCoach, getFavouriteCoaches, toggleFavouriteCoach,
-  initialsOf, countryFlagOf, requestSession, type DirectoryCoach,
+  getFavouriteCoaches, toggleFavouriteCoach, initialsOf, countryFlagOf,
 } from '../lib/directory';
 import {
   fetchCoachPreview, sendSessionRequest, weekdayOf,
   type CoachOffering, type CoachPreviewData,
 } from '../lib/requestData';
 import './CoachPreview.css';
-
-// ---------------------------------------------------------------------------
-// The demo's calendar (signed out)
-// ---------------------------------------------------------------------------
-
-// Four daily slots, matching the design's own booking grid and the hours
-// Schedule.tsx already uses for the real Pro.
-const TIME_HOURS = [9, 10, 11, 14];
-const DAY_MS = 86400000;
-const HOUR_MS = 3600000;
-
-/**
- * Three illustrative weeks of openings.
- *
- * The demo's coaches have no real calendar. Rather than show a week of
- * uniformly free slots (which would imply availability nobody has stated),
- * each week carries a plausible, uneven pattern including one fully booked
- * day, so the empty-day state is reachable and the picker behaves like a
- * real one. `openByDay[d]` indexes into TIME_HOURS, Monday to Saturday.
- *
- * The weeks start at the demo week's Monday (Mon 20 Oct 2025, the same
- * week every other signed-out screen shows). They used to be fixed dates
- * from the 11th, whose weekdays were wrong: "WED 13" was a Monday.
- */
-const WEEKS = [
-  [[0, 1, 2, 3], [0, 1, 3], [1, 2, 3], [0, 2], [], [0, 1, 2]],
-  [[0, 2, 3], [1, 2], [0, 1, 2, 3], [], [0, 3], [1, 2]],
-  [[1, 2], [0, 1, 3], [2, 3], [0, 1, 2], [], [0, 2, 3]],
-];
-// Which day of the visible week counts as "today" — the first week starts
-// here rather than at its Monday, so the picker never offers a past slot.
-const TODAY_INDEX = 2;
-
-/** One slot per day is shown already taken, so a booked slot is visible. */
-function bookedPos(open: number[]): number {
-  return open.length > 1 ? 1 : -1;
-}
-
-/**
- * A stable pseudo-count derived from the coach's id.
- *
- * The demo directory has no review or member counts. Deriving them from the
- * id keeps them from re-rolling on every render — a number that changes
- * while you look at it is worse than an obviously illustrative one.
- */
-function idHash(id: string): number {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
-  return h;
-}
 
 /** Directory languages reuse Discover's filter labels, so a language
     reads the same wherever a member meets it. */
@@ -159,19 +108,18 @@ function firstOpen(weeks: PickerWeek[], fromWeek: number, fromDay: number): Pos 
 /**
  * Resolves which coach to show, so the body below can take a real one.
  *
- * Signed in, the coach and their calendar come from Supabase (step 4);
- * signed out, from the demo directory. A coachId that names nobody means a
- * stale link or a bad param, not a crash: say so and offer the way back.
+ * The coach and their calendar come from Supabase (step 4). Signed out
+ * there is no directory — the demo's eight fictional coaches are gone — so
+ * any coachId is missing. A coachId that names nobody means a stale link or
+ * a bad param, not a crash: say so and offer the way back.
  */
 export default function CoachPreview() {
   const coachId = useAppStore((s) => s.params).coachId ?? '';
   const remote = useRemoteSession();
-  if (remote) return <RemoteCoachPreview key={coachId} coachId={coachId} />;
-  const coach = getDirectoryCoach(coachId);
-  if (!coach) return <CoachMissing />;
+  if (!remote) return <CoachMissing />;
   // Keyed by coach so switching pros resets the booking state rather than
   // carrying one coach's chosen slot over to another's calendar.
-  return <DemoCoachPreview key={coach.id} coach={coach} />;
+  return <RemoteCoachPreview key={coachId} coachId={coachId} />;
 }
 
 function CoachMissing() {
@@ -189,107 +137,6 @@ function CoachMissing() {
       </div>
     </div>
   );
-}
-
-function DemoCoachPreview({ coach }: { coach: DirectoryCoach }) {
-  const t = useT();
-  const fmt = useFormat();
-  const lang = useAppStore((s) => s.lang);
-  const isAr = lang === 'ar';
-
-  const specDef = SPECIALTIES.find((s) => s.value === coach.specialty);
-  const specialtyLabel = specDef ? t(specDef.labelKey) : coach.specialty;
-  const hash = idHash(coach.id);
-  const reviewCount = 20 + (hash % 40);
-  const memberCount = reviewCount + 8 + (hash % 15);
-
-  const weekStartMs = getMonthAnchorMs();
-  const weeks: PickerWeek[] = WEEKS.map((openByDay, w) => {
-    const days: PickerDay[] = openByDay.map((open, d) => {
-      const dayMs = weekStartMs + (w * 7 + d) * DAY_MS;
-      return {
-        wallMs: dayMs,
-        dow: d,
-        date: new Date(dayMs).getUTCDate(),
-        slots: open.map((timeIdx, pos) => {
-          const wallMs = dayMs + TIME_HOURS[timeIdx] * HOUR_MS;
-          return { wallMs, label: fmt.time(wallMs), taken: pos === bookedPos(open) };
-        }),
-      };
-    });
-    return { label: `${fmt.monthDay(days[0].wallMs)} – ${fmt.monthDay(days[days.length - 1].wallMs)}`, days };
-  });
-  const nextAvailable = firstOpen(weeks, 0, TODAY_INDEX);
-
-  const source: PreviewSource = {
-    coach: {
-      id: coach.id,
-      name: coach.name,
-      color: coach.color,
-      verified: !!coach.verified,
-      specialtyLabel,
-      country: coach.country,
-      years: coach.years,
-      languages: coach.languages,
-      avatarPhotoUrl: '',
-      stats: [
-        { value: coach.rating.toFixed(1), label: t('coachPreviewRatingStat'), star: true },
-        { value: String(coach.years), label: t('coachPreviewYearsStat') },
-        { value: String(memberCount), label: t('coachPreviewMembersStat') },
-      ],
-      // A fixed template filled with a bounded specialty name, so it runs to
-      // two or three lines for every coach in both languages.
-      bio: t('coachPreviewBio', { specialty: specialtyLabel, years: coach.years }),
-      canMessage: true,
-      review: {
-        rating: coach.rating.toFixed(1),
-        count: reviewCount,
-        quote: t('coachPreviewReviewQuote', { name: coach.name.split(' ')[0], specialty: specialtyLabel }),
-      },
-    },
-    // Two offerings per coach: their own priced session, and a free intro
-    // call. Generated from the coach's own card rather than hand-authored,
-    // so it can never describe a specialty or price they do not have.
-    offerings: [
-      {
-        id: 'main',
-        typeLabel: t('offeringTypeSession'),
-        name: t('coachPreviewSessionName', { specialty: specialtyLabel }),
-        description: t('coachPreviewSessionDesc', { specialty: specialtyLabel }),
-        duration: isAr ? '50 دقيقة' : '50 min',
-        formatLabel: t('offeringFormatBoth'),
-        price: coach.price,
-        minutes: 50,
-      },
-      {
-        id: 'intro',
-        typeLabel: t('offeringTypeSession'),
-        name: t('coachPreviewIntroCallName'),
-        description: t('coachPreviewIntroCallDesc'),
-        duration: isAr ? '20 دقيقة' : '20 min',
-        formatLabel: t('offeringFormatBoth'),
-        price: 0,
-        minutes: 20,
-      },
-    ],
-    weeks,
-    initialDay: nextAvailable?.day ?? TODAY_INDEX,
-    nextAvailable,
-    noHours: false,
-    existingRequest: null,
-    request(offering, _slot, whenLabel) {
-      requestSession({
-        coachId: coach.id,
-        coachName: coach.name,
-        offeringId: offering.id,
-        offeringName: offering.name,
-        when: whenLabel,
-        price: offering.price,
-      });
-      return Promise.resolve(true);
-    },
-  };
-  return <CoachPreviewBody source={source} />;
 }
 
 /** How far ahead a member can pick a first session. */

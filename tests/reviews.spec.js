@@ -278,17 +278,19 @@ test('MyCoaches', async ({ browser }) => {
 });
 
 test('MyCoaches: the pending requests nothing used to read', async ({ browser }) => {
-  const seed = `(m, d) => { d.requestSession({ coachId: 'mariam', coachName: 'Mariam Adel', offeringId: 'off-1to1', offeringName: '1:1 Coaching Session', when: 'Thu, 10:00 AM', price: 750 }); return 1; }`;
+  const seed = `(m, d) => { d.requestSession({ coachId: 'c-laila', coachName: 'Laila Hassan', offeringId: 'off-1to1', offeringName: '1:1 Coaching Session', when: 'Thu, 10:00 AM', price: 750 }); return 1; }`;
   const { page, errs } = await open(browser, { screen: 'myCoaches', seed });
   expect.soft(String(errs.length), 'no console/page errors').toBe('0');
   expect.soft(String(await n(page, '.my-coaches-pending')), 'the request shows up').toBe('1');
-  expect.soft(String(await txt(page, '.my-coaches-pending-name')), 'named').toBe('Mariam Adel');
-  expect.soft(String(await txt(page, '.my-coaches-pending-specialty')), 'specialty translated from the directory record').toBe('Meditation coaching');
-  expect.soft(String(await txt(page, '.my-coaches-pending-avatar')), 'initials').toBe('MA');
+  expect.soft(String(await txt(page, '.my-coaches-pending-name')), 'named').toBe('Laila Hassan');
+  // What was asked for: there is no demo directory record to read a
+  // specialty from any more.
+  expect.soft(String(await txt(page, '.my-coaches-pending-specialty')), 'the offering requested').toBe('1:1 Coaching Session');
+  expect.soft(String(await txt(page, '.my-coaches-pending-avatar')), 'initials').toBe('LH');
   expect.soft(String((await page.locator('.my-coaches-empty').allInnerTexts())[0].trim()), 'no empty-pending message now').toBe('No past pros yet');
 
   // De-duped by coach, per directory.ts's own contract.
-  await store(page, `(m, d) => d.requestSession({ coachId: 'mariam', coachName: 'Mariam Adel', offeringId: 'off-1to1', offeringName: '1:1', when: 'Fri, 11:00 AM', price: 750 })`);
+  await store(page, `(m, d) => d.requestSession({ coachId: 'c-laila', coachName: 'Laila Hassan', offeringId: 'off-1to1', offeringName: '1:1', when: 'Fri, 11:00 AM', price: 750 })`);
   await page.evaluate(async () => (await import('/src/store/appStore.ts')).useAppStore.getState().nav('clientHome'));
   await page.waitForTimeout(300);
   await page.evaluate(async () => (await import('/src/store/appStore.ts')).useAppStore.getState().nav('myCoaches'));
@@ -327,12 +329,12 @@ test('Arabic RTL + dark', async ({ browser }) => {
   await page.close();
 }
 {
-  const seed = `(m, d) => { d.requestSession({ coachId: 'mariam', coachName: 'Mariam Adel', offeringId: 'off-1to1', offeringName: '1:1', when: 'Thu', price: 750 }); return 1; }`;
+  const seed = `(m, d) => { d.requestSession({ coachId: 'c-laila', coachName: 'Laila Hassan', offeringId: 'off-1to1', offeringName: '1:1', when: 'Thu', price: 750 }); return 1; }`;
   const { page, errs } = await open(browser, { screen: 'myCoaches', lang: 'ar', dark: false, seed });
   expect.soft(String(errs.length), 'no console/page errors').toBe('0');
   expect.soft(String(await txt(page, '.my-coaches-title')), 'title translated').toBe('محترفوني');
   expect.soft(String(await txt(page, '.my-coaches-section-label')), 'active label translated').toBe('نشط');
-  expect.soft(String(await txt(page, '.my-coaches-pending-specialty')), 'pending specialty translated').toBe('تدريب التأمل');
+  expect.soft(String(await txt(page, '.my-coaches-pending-specialty')), 'pending shows the offering requested').toBe('1:1');
   expect.soft(String(await txt(page, '.my-coaches-pending-badge')), 'badge translated').toBe('قيد الانتظار');
   const raw = await page.evaluate(() => document.querySelector('.my-coaches-scroll').innerText);
   expect.soft(String(/Active|Pending|No past pros/.test(raw)), 'no raw English chrome in AR').toBe('false');

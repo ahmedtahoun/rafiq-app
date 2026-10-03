@@ -20,7 +20,7 @@ import { fetchDirectory, type RealDirectoryCoach } from '../lib/requestData';
 import { wallNowMs } from '../lib/wallClock';
 import { useRemoteLoad } from '../store/remoteLoad';
 import {
-  getDirectoryCoaches, getTrendingCoaches, filterCoaches, hasActiveFilters,
+  filterCoaches, hasActiveFilters,
   getFavouriteCoaches, toggleFavouriteCoach, initialsOf, countryFlagOf,
   NO_FILTERS, type DirectoryCoach, type DirectoryFilters,
 } from '../lib/directory';
@@ -57,31 +57,10 @@ function specialtyColour(coaches: DirectoryCoach[], value: string): string {
   return coaches.find((c) => c.specialty === value)?.color ?? ACCENT_HEX;
 }
 
-// Member stories. Illustrative sample content, exactly as the prototype
-// carries it — the app has no cross-coach review store, and inventing one
-// silently would put fabricated numbers on screen. Kept beside the copy
-// it belongs to so it is obvious what is real and what is a sample.
-const STORY_KEYS = [
-  { id: 's1', coachId: 'mariam', reviewer: 'Nour Hassan', reviewerAr: 'نور حسن', color: '#7A7166', daysAgo: 2, helpful: 24 },
-  { id: 's2', coachId: 'dina', reviewer: 'Omar Fathy', reviewerAr: 'عمر فتحي', color: '#3E6FB0', daysAgo: 5, helpful: 18 },
-];
-const STORY_QUOTES: Record<string, { en: string; ar: string }> = {
-  s1: {
-    en: 'The meditation sessions completely changed how I handle stress. Highly recommend.',
-    ar: 'جلسات التأمل غيّرت طريقة تعاملي مع التوتر تمامًا. أنصح بها بشدة.',
-  },
-  s2: {
-    en: 'Dina helped me get a clear career direction in just 3 sessions.',
-    ar: 'ساعدتني دينا في تحديد مسار مهني واضح خلال 3 جلسات فقط.',
-  },
-};
-
 export default function Discover() {
   const t = useT();
   const { money } = useFormat();
-  const lang = useAppStore((s) => s.lang);
   const nav = useAppStore((s) => s.nav);
-  const isAr = lang === 'ar';
 
   const [filters, setFilters] = useState<DirectoryFilters>(NO_FILTERS);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -94,7 +73,9 @@ export default function Discover() {
 
   if (remote && load.status === 'loading') return <LoadState status="loading" />;
   if (remote && load.status === 'error') return <LoadState status="error" onRetry={load.retry} />;
-  const coaches: DirectoryCoach[] = remote && load.status === 'ready' ? load.data : getDirectoryCoaches();
+  // Signed out there is no directory: the demo's fictional coaches are gone
+  // (LAUNCH-CHECKLIST §2), so Discover shows its "still filling up" state.
+  const coaches: DirectoryCoach[] = remote && load.status === 'ready' ? load.data : [];
   // No coaches at all is not a failed search: until real pros sign up the
   // whole directory is empty, and "No pros match your search" over an
   // untouched search box reads like the screen is broken. Search, filters
@@ -127,9 +108,7 @@ export default function Discover() {
   // match above a career coach.
   const goalMatched = !filters.specialty && !filters.search.trim() && !!goalLabelKey
     && results.some((c) => c.specialty === goalSpecialty);
-  const trending = remote
-    ? coaches.filter(hasRating).sort((a, b) => b.rating - a.rating).slice(0, 3)
-    : getTrendingCoaches();
+  const trending = coaches.filter(hasRating).sort((a, b) => b.rating - a.rating).slice(0, 3);
   const filtersActive = hasActiveFilters(filters);
 
   const patch = (p: Partial<DirectoryFilters>) => setFilters((f) => ({ ...f, ...p }));
@@ -420,42 +399,6 @@ export default function Discover() {
         </section>
         )}
 
-        {/* Sample stories about the demo's coaches: nothing to show signed
-            in until real reviews reach Discover (step 6). */}
-        {!remote && (
-        <section className="discover-section">
-          <div>
-            <h2 className="discover-section-title">{t('discoverStories')}</h2>
-            <div className="discover-section-sub">{t('discoverStoriesSub')}</div>
-          </div>
-          {STORY_KEYS.map((story) => {
-            const coach = coaches.find((c) => c.id === story.coachId);
-            const reviewer = isAr ? story.reviewerAr : story.reviewer;
-            const withLabel = isAr ? `مع ${coach?.name ?? ''}` : `with ${coach?.name ?? ''}`;
-            const ago = isAr ? `قبل ${story.daysAgo} أيام` : `${story.daysAgo} days ago`;
-            return (
-              <div key={story.id} className="discover-story">
-                <div className="discover-story-head">
-                  <span className="discover-story-avatar" style={{ background: story.color }}>
-                    {initialsOf(reviewer)}
-                  </span>
-                  <div className="discover-story-who">
-                    <div className="discover-story-name">{reviewer}</div>
-                    <div className="discover-story-meta">{withLabel} · {ago}</div>
-                  </div>
-                  <svg width="20" height="16" viewBox="0 0 24 20" fill="var(--accent-soft)" aria-hidden="true">
-                    <path d="M4 10c0-4 2.5-7 6.5-8l1 2.3C8.8 5.2 7.5 7 7.3 9H10v7H2v-6zm11 0c0-4 2.5-7 6.5-8l1 2.3C19.8 5.2 18.5 7 18.3 9H21v7h-8v-6z" />
-                  </svg>
-                </div>
-                <p className="discover-story-quote">{STORY_QUOTES[story.id][isAr ? 'ar' : 'en']}</p>
-                <div className="discover-story-helpful">
-                  {t('discoverStoryHelpful', { n: story.helpful })}
-                </div>
-              </div>
-            );
-          })}
-        </section>
-        )}
         </>
         )}
       </div>

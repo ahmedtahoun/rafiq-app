@@ -142,10 +142,15 @@ test('regression: #11 web flow and #12 screens still work', async ({ browser }) 
     m.useAppStore.getState().nav('discover');
   });
   await page.waitForTimeout(600);
-  expect.soft(String(await page.locator('.discover-card').count()), '#12: Discover still renders 8 coaches').toBe('8');
-  await page.locator('.discover-card-main').first().click();
+  // Signed out there is no directory any more (the demo's fictional coaches
+  // are gone): both screens still render, each with its own empty state.
+  expect.soft(String(await page.locator('.discover-no-coaches').count()), '#12: Discover still renders').toBe('1');
+  await page.evaluate(async () => {
+    const m = await import('/src/store/appStore.ts');
+    m.useAppStore.getState().nav({ screen: 'coachPreview', params: { coachId: 'anyone' } });
+  });
   await page.waitForTimeout(500);
-  expect.soft(String(await page.locator('.coach-preview-name').count()), '#12: CoachPreview still opens').toBe('1');
+  expect.soft(String(await page.locator('.coach-preview-missing').count()), '#12: CoachPreview still opens').toBe('1');
   expect.soft(String(errs.length), 'no uncaught errors').toBe('0');
   if (errs.length) info('errors', JSON.stringify(errs));
   await ctx.close();

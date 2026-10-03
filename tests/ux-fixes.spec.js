@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { IGNORED_CONSOLE } from './helpers.js';
+import { installFakeSupabase, signIn } from './fakeSupabase.js';
+import { DIRECTORY_MEMBER, directoryTables } from './directoryFixture.js';
 
 /**
  * The first batch from the UI/UX review (1 Oct 2026): text that broke in
@@ -99,12 +101,17 @@ test('Arabic: the member goal on the coach side is shown whole, not cut from its
   await ctx.close();
 });
 
-test('coach page (demo): the next free time is a real day of the demo week, in the app language', async ({ browser }) => {
-  // It read "WED 13 — 10:00 am": 13 Oct 2025 was a Monday, and "am" stayed English in Arabic.
-  for (const [lang, next, week] of [['en', 'WED 22 — 10:00 AM', 'Oct 20 – Oct 25'], ['ar', 'أربعاء 22 — 10:00 ص', '20 أكتوبر – 25 أكتوبر']]) {
-    const { page, ctx, errs } = await open(browser, { lang, role: 'client', screen: 'coachPreview', params: { coachId: 'mariam' } });
+test('coach page: the next free time is a real day, in the app language', async ({ browser }) => {
+  // It once read "WED 13 — 10:00 am": 13 Oct 2025 was a Monday, and "am"
+  // stayed English in Arabic. The demo's coaches are gone, so this is a real
+  // coach's page (tests/directoryFixture.js), on Monday 28 Sep 2026 at noon
+  // in Cairo: her next free hour is today's 1 PM.
+  for (const [lang, next] of [['en', /^MON 28 — 1:00 PM$/], ['ar', /^إثنين 28 — 1:00 م$/]]) {
+    const { page, ctx, errs } = await open(browser, { lang, role: 'client', at: '2026-09-28T09:00:00Z' });
+    await installFakeSupabase(page, { userId: DIRECTORY_MEMBER, tables: directoryTables() });
+    await signIn(page, DIRECTORY_MEMBER);
+    await go(page, 'coachPreview', { coachId: 'c-laila' });
     await expect(page.locator('.coach-preview-next-value')).toHaveText(next);
-    await expect(page.locator('.coach-preview-week-label')).toHaveText(week);
     expect(await page.locator('.phone-frame').innerText()).not.toMatch(/\b(am|pm)\b/);
     expect(errs).toEqual([]);
     await ctx.close();
@@ -127,24 +134,9 @@ test('Home greets by the time of day', async ({ browser }) => {
   }
 });
 
-test('Discover says "Recommended for you" only when the list matches the member goal', async ({ browser }) => {
-  const { page, ctx, errs } = await open(browser, { role: 'client', screen: 'discover' });
-  // The first section is the coach list; Trending and Member Stories follow it.
-  const list = page.locator('.discover-section').first();
-  // The demo member's goal is Life coaching, which no demo coach offers.
-  await expect(list.locator('.discover-section-title')).toHaveText('Pros on Rafiq');
-  await expect(list.locator('.discover-section-sub')).toHaveCount(0);
-
-  await page.evaluate(async () => (await import('/src/lib/mockStore.ts')).updateClient('sara', { specialty: 'Meditation coaching' }));
-  await go(page, 'clientHome');
-  await go(page, 'discover');
-  await expect(list.locator('.discover-section-title')).toHaveText('Recommended for you');
-  await expect(list.locator('.discover-section-sub')).toContainText('Matched to your');
-  // A featured coach still sorts first (directory.ts); the match comes right after.
-  await expect(list.locator('.discover-card-specialty', { hasText: 'Meditation coaching' }).first()).toBeVisible();
-  expect(errs).toEqual([]);
-  await ctx.close();
-});
+// "Recommended for you" only when the list matches the member's goal: the
+// demo's coaches are gone, so this is tests/discover-goal.spec.js's, signed
+// in over a real directory and the member's own goal.
 
 test('Profile has no Share button while the share link goes nowhere', async ({ browser }) => {
   const { page, ctx, errs } = await open(browser, { screen: 'profile' });
