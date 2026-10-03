@@ -187,6 +187,21 @@ export async function fetchMemberRelationships(): Promise<MemberResult<Relations
   );
 }
 
+/**
+ * The member's own focus from onboarding (member_profiles, 0006): the
+ * stable slug ClientOnboarding stores, which is the `icon` key of the
+ * matching entry in SPECIALTIES. null before onboarding, or if it was
+ * skipped.
+ */
+export async function fetchOwnFocus(): Promise<MemberResult<string | null>> {
+  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const uid = await currentUserId();
+  if (!uid) return NOT_SIGNED_IN;
+  const { data, error } = await getSupabase().from('member_profiles').select('focus').eq('profile_id', uid).maybeSingle();
+  if (error) return unknown(error);
+  return ok(data?.focus ? data.focus : null);
+}
+
 /** The one change a member may make to a task: done, or not done. */
 export async function setMemberTaskDone(taskId: string, done: boolean): Promise<MemberResult<null>> {
   if (!isSupabaseConfigured()) return NOT_CONFIGURED;

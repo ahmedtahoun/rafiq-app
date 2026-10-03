@@ -1,7 +1,15 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, isolate, type MessageKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
+import { LoadState } from '../components/LoadState';
+import { useRemoteSession } from '../lib/remoteSession';
+import {
+  fetchMemberNotifications, markAllMemberNotificationsRead, markMemberNotificationRead,
+  type MemberNotification, type MemberNotificationKind,
+} from '../lib/notificationData';
+import { useMemberSpace, type MemberSpaceView } from '../store/memberStore';
+import { useRemoteLoad } from '../store/remoteLoad';
 import {
   ChevronIcon, ScheduleIcon, TasksIcon, PaymentIcon, MessageIcon, BellIcon,
 } from '../components/icons';
@@ -12,8 +20,8 @@ import {
 } from '../lib/mockStore';
 import './ClientNotifications.css';
 
-// Still the demo member's, signed in or not, until notifications (step 6) moves to
-// Supabase (SUPABASE-MIGRATION-PLAN.md) — see DEMO_MEMBER_CLIENT_ID.
+// Signed out, the demo member's. Signed in, the member's own
+// `notifications` (SUPABASE-MIGRATION-PLAN.md step 6).
 const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
 
 // Which glyph and colour family a kind belongs to. A Record, so a new kind
@@ -33,6 +41,13 @@ const KIND_FAMILY: Record<ClientNotificationKind, IconFamily> = {
   'package-soon': 'payment',
 };
 
+const LIVE_FAMILY: Record<MemberNotificationKind, IconFamily> = {
+  message: 'message',
+  'payment-received': 'payment',
+  'session-moved': 'session',
+  'session-cancelled': 'session',
+};
+
 function iconFor(family: IconFamily) {
   switch (family) {
     case 'session': return <ScheduleIcon size={17} color="var(--blue)" />;
@@ -43,10 +58,28 @@ function iconFor(family: IconFamily) {
 }
 
 export default function ClientNotifications() {
+  const remote = useRemoteSession();
+  const space = useMemberSpace();
+  if (!remote) return <DemoClientNotifications />;
+  if (space.status === 'loading') return <LoadState status="loading" />;
+  if (space.status === 'error') return <LoadState status="error" onRetry={space.retry} showBack />;
+  if (!space.remote) return <DemoClientNotifications />;
+  return <LiveClientNotifications space={space} />;
+}
+
+/** One row, whichever source it came from. */
+interface Row {
+  id: string;
+  family: IconFamily;
+  title: string;
+  sub: string;
+  unread: boolean;
+}
+
+function DemoClientNotifications() {
   const t = useT();
   const fmt = useFormat();
   const nav = useAppStore((s) => s.nav);
-  const back = useAppStore((s) => s.back);
 
   // mockStore is plain functions over localStorage, not reactive state.
   const [, setTick] = useState(0);
@@ -93,18 +126,109 @@ export default function ClientNotifications() {
     }
   }
 
-  function openRow(n: ClientNotification) {
-    markNotificationRead(n.id);
-    nav({ screen: n.target.screen, params: n.target.params });
+  return (
+    <NotificationsView
+      rows={items.map((n) => ({ id: n.id, family: KIND_FAMILY[n.kind], title: titleOf(n), sub: subOf(n), unread: n.unread }))}
+      onOpen={(id) => {
+        const n = items.find((x) => x.id === id);
+        if (!n) return;
+        markNotificationRead(n.id);
+        nav({ screen: n.target.screen, params: n.target.params });
+      }}
+      onMarkAll={() => {
+        markAllNotificationsRead(items);
+        refresh();
+        return Promise.resolve(true);
+      }}
+    />
+  );
+}
+
+function LiveClientNotifications({ space }: { space: Extract<MemberSpaceView, { status: 'ready' }> }) {
+  const t = useT();
+  const fmt = useFormat();
+  const nav = useAppStore((s) => s.nav);
+  const load = useRemoteLoad<MemberNotification[]>('member-notifications', true, fetchMemberNotifications);
+
+  if (load.status === 'loading') return <LoadState status="loading" />;
+  if (load.status === 'error') return <LoadState status="error" onRetry={load.retry} showBack />;
+  const items = load.data;
+
+  // Who it's about: the coach of that relationship, isolated in the
+  // sentence. A relationship no longer listed reads as "your coach".
+  const coachOf = (n: MemberNotification) =>
+    isolate(space.relationships.find((r) => r.clientId === n.clientId)?.coach.name || t('clientNotifYourCoach'));
+
+  function titleOf(n: MemberNotification): string {
+    switch (n.kind) {
+      case 'message': return t('clientNotifMessage', { coach: coachOf(n) });
+      case 'payment-received': return t('clientNotifPaymentReceived');
+      case 'session-moved': return t('clientNotifSessionMoved', { coach: coachOf(n) });
+      case 'session-cancelled': return t('clientNotifSessionCancelled', { coach: coachOf(n) });
+    }
   }
 
-  function markAll() {
-    markAllNotificationsRead(items);
-    refresh();
+  function subOf(n: MemberNotification): string {
+    switch (n.kind) {
+      case 'message': return n.preview;
+      case 'payment-received':
+        return n.amount !== null ? t('clientNotifPaymentSub', { amount: fmt.amount(n.amount), date: fmt.instantDate(n.createdAt) }) : '';
+      case 'session-moved':
+        return n.sessionWallMs !== null ? t('clientNotifMovedTo', { when: fmt.nextSession(n.sessionWallMs, space.todayMs) }) : '';
+      case 'session-cancelled':
+        return n.sessionWallMs !== null ? fmt.nextSession(n.sessionWallMs, space.todayMs) : '';
+    }
   }
 
-  const hasUnread = items.some((n) => n.unread);
+  const TARGET: Record<MemberNotificationKind, 'coachMessages' | 'clientCoach' | 'clientSchedule'> = {
+    message: 'coachMessages',
+    'payment-received': 'clientCoach',
+    'session-moved': 'clientSchedule',
+    'session-cancelled': 'clientSchedule',
+  };
 
+  return (
+    <NotificationsView
+      rows={items.map((n) => ({ id: n.id, family: LIVE_FAMILY[n.kind], title: titleOf(n), sub: subOf(n), unread: n.unread }))}
+      onOpen={(id) => {
+        const n = items.find((x) => x.id === id);
+        if (!n) return;
+        // Read as soon as it's opened. If marking fails it simply stays
+        // unread for next time; it never blocks opening it.
+        if (n.unread) void markMemberNotificationRead(n.id);
+        // The screen it's about, for the coach it's about.
+        if (n.clientId && space.relationships.some((r) => r.clientId === n.clientId)) space.select(n.clientId);
+        nav(TARGET[n.kind]);
+      }}
+      onMarkAll={async () => {
+        const result = await markAllMemberNotificationsRead();
+        if (result.ok) load.set(items.map((n) => ({ ...n, unread: false })));
+        return result.ok;
+      }}
+    />
+  );
+}
+
+function NotificationsView({ rows, onOpen, onMarkAll }: {
+  rows: Row[];
+  onOpen: (id: string) => void;
+  /** Resolves false if it couldn't. */
+  onMarkAll: () => Promise<boolean>;
+}) {
+  const t = useT();
+  const back = useAppStore((s) => s.back);
+  const [marking, setMarking] = useState(false);
+  const [error, setError] = useState<MessageKey | null>(null);
+
+  async function markAll() {
+    setMarking(true);
+    setError(null);
+    const ok = await onMarkAll();
+    setMarking(false);
+    if (!ok) setError('clientNotificationsMarkFailed');
+  }
+
+  const hasUnread = rows.some((n) => n.unread);
   return (
     <div className="phone-frame client-notifications-screen">
       <div className="client-notifications-top">
@@ -120,30 +244,31 @@ export default function ClientNotifications() {
             unconditionally, including on an empty list. */}
         {hasUnread && (
           <div className="client-notifications-mark-row">
-            <button type="button" className="client-notifications-mark-all" onClick={markAll}>
+            <button type="button" className="client-notifications-mark-all" disabled={marking} onClick={() => void markAll()}>
               {t('clientNotificationsMarkAll')}
             </button>
           </div>
         )}
+        {error && <div className="client-notifications-error" role="alert">{t(error)}</div>}
       </div>
 
       <div className="client-notifications-list">
-        {items.length > 0 ? (
-          items.map((n) => {
-            const sub = subOf(n);
+        {rows.length > 0 ? (
+          rows.map((n) => {
+            const sub = n.sub;
             return (
               <button
                 key={n.id}
                 type="button"
                 className={`client-notifications-row${n.unread ? '' : ' client-notifications-row-read'}`}
-                onClick={() => openRow(n)}
+                onClick={() => onOpen(n.id)}
               >
-                <span className={`client-notifications-icon client-notifications-icon-${KIND_FAMILY[n.kind]}`}>
-                  {iconFor(KIND_FAMILY[n.kind])}
+                <span className={`client-notifications-icon client-notifications-icon-${n.family}`}>
+                  {iconFor(n.family)}
                 </span>
                 <span className="client-notifications-body">
                   <span className={`client-notifications-row-title${n.unread ? ' client-notifications-row-title-unread' : ''}`}>
-                    <bdi>{titleOf(n)}</bdi>
+                    <bdi>{n.title}</bdi>
                   </span>
                   {sub && <span className="client-notifications-sub"><bdi>{sub}</bdi></span>}
                 </span>

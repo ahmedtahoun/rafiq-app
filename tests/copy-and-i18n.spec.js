@@ -1,5 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { IGNORED_CONSOLE } from './helpers.js';
+import { installFakeSupabase, signIn } from './fakeSupabase.js';
+import { DIRECTORY_MEMBER, directoryTables } from './directoryFixture.js';
 
 /**
  * Guards on copy that has to stay true to what the app does, and on the
@@ -127,8 +129,13 @@ test('day names resolve to real copy on every screen that shows them', async ({ 
   }
 
   // CoachPreview needs a pro to preview; without one it renders its empty
-  // state and has no day strip at all.
-  const { page, ctx } = await open(browser, { screen: 'coachPreview', params: { coachId: 'mariam' } });
+  // state and has no day strip at all. The demo has no coaches any more, so
+  // a signed-in member previews one from the test directory.
+  const { page, ctx } = await open(browser);
+  await installFakeSupabase(page, { userId: DIRECTORY_MEMBER, tables: directoryTables() });
+  await signIn(page, DIRECTORY_MEMBER);
+  await page.evaluate(async () => (await import('/src/store/appStore.ts')).useAppStore.getState().nav({ screen: 'coachPreview', params: { coachId: 'c-laila' } }));
+  await page.locator('.coach-preview-day').first().waitFor();
   const text = await frame(page);
   expect.soft(/MON|TUE|WED/.test(text), 'coachPreview: day names render').toBe(true);
   expect.soft(/dowShort|dowFull/.test(text), 'coachPreview: no raw day keys').toBe(false);

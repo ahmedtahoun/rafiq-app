@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, isolate } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { useFormat } from '../lib/format';
 import {
@@ -17,18 +17,20 @@ import { DEMO_MEMBER_CLIENT_ID, MIN_REVIEWS_FOR_RATING, getClient } from '../lib
 import { LoadState } from '../components/LoadState';
 import { useRemoteSession } from '../lib/remoteSession';
 import { fetchDirectory, type RealDirectoryCoach } from '../lib/requestData';
+import { fetchOwnFocus } from '../lib/memberData';
 import { wallNowMs } from '../lib/wallClock';
 import { useRemoteLoad } from '../store/remoteLoad';
+import { fetchRecentReviews, type CoachReview } from '../lib/reviewData';
 import {
-  getDirectoryCoaches, getTrendingCoaches, filterCoaches, hasActiveFilters,
+  filterCoaches, hasActiveFilters,
   getFavouriteCoaches, toggleFavouriteCoach, initialsOf, countryFlagOf,
   NO_FILTERS, type DirectoryCoach, type DirectoryFilters,
 } from '../lib/directory';
 import './Discover.css';
 
-// Signed in, the coaches are the real directory (step 4); the member's own
-// goal, which floats matching coaches up, is still only the demo member's
-// (step 6, SUPABASE-MIGRATION-PLAN.md) — so signed in it isn't used.
+// Signed in, the coaches are the real directory (step 4) and the goal that
+// floats matching coaches up is the member's own focus from onboarding
+// (member_profiles, step 6). Signed out, both are the demo's.
 const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
 
 const isReal = (coach: DirectoryCoach): coach is RealDirectoryCoach => 'ratingCount' in coach;
@@ -57,31 +59,15 @@ function specialtyColour(coaches: DirectoryCoach[], value: string): string {
   return coaches.find((c) => c.specialty === value)?.color ?? ACCENT_HEX;
 }
 
-// Member stories. Illustrative sample content, exactly as the prototype
-// carries it — the app has no cross-coach review store, and inventing one
-// silently would put fabricated numbers on screen. Kept beside the copy
-// it belongs to so it is obvious what is real and what is a sample.
-const STORY_KEYS = [
-  { id: 's1', coachId: 'mariam', reviewer: 'Nour Hassan', reviewerAr: 'نور حسن', color: '#7A7166', daysAgo: 2, helpful: 24 },
-  { id: 's2', coachId: 'dina', reviewer: 'Omar Fathy', reviewerAr: 'عمر فتحي', color: '#3E6FB0', daysAgo: 5, helpful: 18 },
-];
-const STORY_QUOTES: Record<string, { en: string; ar: string }> = {
-  s1: {
-    en: 'The meditation sessions completely changed how I handle stress. Highly recommend.',
-    ar: 'جلسات التأمل غيّرت طريقة تعاملي مع التوتر تمامًا. أنصح بها بشدة.',
-  },
-  s2: {
-    en: 'Dina helped me get a clear career direction in just 3 sessions.',
-    ar: 'ساعدتني دينا في تحديد مسار مهني واضح خلال 3 جلسات فقط.',
-  },
-};
+/** Signed in: how many of the newest reviews to look through, and how
+    many to show (some may be of coaches no longer listed). */
+const REVIEW_POOL = 20;
+const STORIES_SHOWN = 3;
 
 export default function Discover() {
   const t = useT();
-  const { money } = useFormat();
-  const lang = useAppStore((s) => s.lang);
+  const { money, instantDate } = useFormat();
   const nav = useAppStore((s) => s.nav);
-  const isAr = lang === 'ar';
 
   const [filters, setFilters] = useState<DirectoryFilters>(NO_FILTERS);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -90,11 +76,31 @@ export default function Discover() {
   // them into render state so a tapped heart repaints immediately.
   const [favourites, setFavourites] = useState(getFavouriteCoaches);
   const remote = useRemoteSession();
-  const load = useRemoteLoad('directory', remote, () => fetchDirectory(wallNowMs()));
+  const load = useRemoteLoad<{ coaches: RealDirectoryCoach[]; focus: string | null }>('directory', remote, async () => {
+    const [directory, focus] = await Promise.all([fetchDirectory(wallNowMs()), fetchOwnFocus()]);
+    return directory.ok && focus.ok
+      ? { ok: true as const, data: { coaches: directory.data, focus: focus.data } }
+      : { ok: false as const };
+  });
+  // Members' own reviews (coach_reviews, step 6), newest first.
+  const reviewsLoad = useRemoteLoad<CoachReview[]>('discover-reviews', remote, () => fetchRecentReviews(REVIEW_POOL));
 
   if (remote && load.status === 'loading') return <LoadState status="loading" />;
   if (remote && load.status === 'error') return <LoadState status="error" onRetry={load.retry} />;
-  const coaches: DirectoryCoach[] = remote && load.status === 'ready' ? load.data : getDirectoryCoaches();
+  if (remote && reviewsLoad.status === 'loading') return <LoadState status="loading" />;
+  if (remote && reviewsLoad.status === 'error') return <LoadState status="error" onRetry={reviewsLoad.retry} />;
+  // Signed out there is no directory: the demo's fictional coaches are gone
+  // (LAUNCH-CHECKLIST §2), so Discover shows its "still filling up" state.
+  const coaches: DirectoryCoach[] = remote && load.status === 'ready' ? load.data.coaches : [];
+  // Only reviews of coaches the member can see on the list.
+  const stories = remote && reviewsLoad.status === 'ready'
+    ? reviewsLoad.data
+        .flatMap((review) => {
+          const coach = coaches.find((c) => c.id === review.coachId);
+          return coach ? [{ review, coach }] : [];
+        })
+        .slice(0, STORIES_SHOWN)
+    : [];
   // No coaches at all is not a failed search: until real pros sign up the
   // whole directory is empty, and "No pros match your search" over an
   // untouched search box reads like the screen is broken. Search, filters
@@ -106,8 +112,11 @@ export default function Discover() {
   // top and to caption the section. Absent for a member who has not
   // finished onboarding — in which case the section is simply unlabelled
   // rather than claiming a match that was never made.
-  const member = remote ? undefined : getClient(CLIENT_ID);
-  const goalSpecialty = member?.specialty ?? null;
+  // Signed in, the focus slug onboarding stored names the specialty by its
+  // icon key; signed out, the demo member's roster row carries the value.
+  const goalSpecialty = remote
+    ? (load.status === 'ready' ? SPECIALTIES.find((s) => s.icon === load.data.focus)?.value ?? null : null)
+    : getClient(CLIENT_ID)?.specialty ?? null;
   const goalLabelKey = SPECIALTIES.find((s) => s.value === goalSpecialty)?.labelKey ?? null;
 
   // A coach's specialty label, translated. Used for display and, in
@@ -127,9 +136,7 @@ export default function Discover() {
   // match above a career coach.
   const goalMatched = !filters.specialty && !filters.search.trim() && !!goalLabelKey
     && results.some((c) => c.specialty === goalSpecialty);
-  const trending = remote
-    ? coaches.filter(hasRating).sort((a, b) => b.rating - a.rating).slice(0, 3)
-    : getTrendingCoaches();
+  const trending = coaches.filter(hasRating).sort((a, b) => b.rating - a.rating).slice(0, 3);
   const filtersActive = hasActiveFilters(filters);
 
   const patch = (p: Partial<DirectoryFilters>) => setFilters((f) => ({ ...f, ...p }));
@@ -420,40 +427,36 @@ export default function Discover() {
         </section>
         )}
 
-        {/* Sample stories about the demo's coaches: nothing to show signed
-            in until real reviews reach Discover (step 6). */}
-        {!remote && (
+        {/* Signed in, members' own reviews of coaches on the list, signed
+            with a first name and last initial (coach_reviews). */}
+        {stories.length > 0 && (
         <section className="discover-section">
           <div>
             <h2 className="discover-section-title">{t('discoverStories')}</h2>
             <div className="discover-section-sub">{t('discoverStoriesSub')}</div>
           </div>
-          {STORY_KEYS.map((story) => {
-            const coach = coaches.find((c) => c.id === story.coachId);
-            const reviewer = isAr ? story.reviewerAr : story.reviewer;
-            const withLabel = isAr ? `مع ${coach?.name ?? ''}` : `with ${coach?.name ?? ''}`;
-            const ago = isAr ? `قبل ${story.daysAgo} أيام` : `${story.daysAgo} days ago`;
-            return (
-              <div key={story.id} className="discover-story">
-                <div className="discover-story-head">
-                  <span className="discover-story-avatar" style={{ background: story.color }}>
-                    {initialsOf(reviewer)}
-                  </span>
-                  <div className="discover-story-who">
-                    <div className="discover-story-name">{reviewer}</div>
-                    <div className="discover-story-meta">{withLabel} · {ago}</div>
+          {stories.map(({ review, coach }) => (
+            <div key={review.id} className="discover-story">
+              <div className="discover-story-head">
+                <span className="discover-story-avatar" style={{ background: review.avatarBg }}>
+                  {initialsOf(review.reviewerName)}
+                </span>
+                <div className="discover-story-who">
+                  <div className="discover-story-name"><bdi>{review.reviewerName}</bdi></div>
+                  <div className="discover-story-meta">
+                    {t('discoverStoryWith', { coach: isolate(coach.name) })} · {instantDate(review.createdAt)}
                   </div>
-                  <svg width="20" height="16" viewBox="0 0 24 20" fill="var(--accent-soft)" aria-hidden="true">
-                    <path d="M4 10c0-4 2.5-7 6.5-8l1 2.3C8.8 5.2 7.5 7 7.3 9H10v7H2v-6zm11 0c0-4 2.5-7 6.5-8l1 2.3C19.8 5.2 18.5 7 18.3 9H21v7h-8v-6z" />
-                  </svg>
                 </div>
-                <p className="discover-story-quote">{STORY_QUOTES[story.id][isAr ? 'ar' : 'en']}</p>
-                <div className="discover-story-helpful">
-                  {t('discoverStoryHelpful', { n: story.helpful })}
-                </div>
+                <svg width="20" height="16" viewBox="0 0 24 20" fill="var(--accent-soft)" aria-hidden="true">
+                  <path d="M4 10c0-4 2.5-7 6.5-8l1 2.3C8.8 5.2 7.5 7 7.3 9H10v7H2v-6zm11 0c0-4 2.5-7 6.5-8l1 2.3C19.8 5.2 18.5 7 18.3 9H21v7h-8v-6z" />
+                </svg>
               </div>
-            );
-          })}
+              <p className="discover-story-quote" dir="auto">{review.comment}</p>
+              <div className="discover-story-helpful" role="img" aria-label={t('rateCoachStarLabel', { n: review.rating })}>
+                {'★'.repeat(review.rating)}
+              </div>
+            </div>
+          ))}
         </section>
         )}
         </>

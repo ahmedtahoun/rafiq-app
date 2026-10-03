@@ -2,7 +2,6 @@ import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
-import { SPECIALTIES } from '../lib/specialties';
 import {
   ChevronIcon, PersonIcon, ScheduleIcon, TasksIcon, MessageIcon, PlusIcon, StarIcon,
 } from '../components/icons';
@@ -10,7 +9,7 @@ import { LoadState } from '../components/LoadState';
 import { NoCoachYet } from '../components/NoCoachYet';
 import { useMemberSpace, type MemberRelationshipView, type MemberSpaceView } from '../store/memberStore';
 import type { Screen } from '../store/appStore';
-import { getSessionRequests, getDirectoryCoach, initialsOf } from '../lib/directory';
+import { initialsOf } from '../lib/directory';
 import { fetchOwnRequests } from '../lib/requestData';
 import { useRemoteLoad } from '../store/remoteLoad';
 import './MyCoaches.css';
@@ -41,32 +40,20 @@ function MyCoachesView({ space }: { space: Extract<MemberSpaceView, { status: 'r
     nav(screen);
   };
 
-  // Requests the member sent from CoachPreview that no coach has answered
-  // yet: session_requests signed in, directory.ts's local copy in the demo.
-  // Tapping one opens that coach again, to pick a different time.
-  const pending = space.remote
-    ? ownRequests.status === 'ready'
-      ? ownRequests.data.map((r) => ({
-          id: r.id,
-          coachId: r.coachId,
-          name: r.coachName,
-          specialty: t('myCoachesRequestedFor', { when: fmt.slot(r.startWallMs) }),
-          initials: initialsOf(r.coachName || '?'),
-          color: ACCENT_HEX,
-        }))
-      : []
-    : getSessionRequests().map((r) => {
-        const coach = getDirectoryCoach(r.coachId);
-        const specialtyDef = coach ? SPECIALTIES.find((sp) => sp.value === coach.specialty) : undefined;
-        return {
-          id: r.coachId,
-          coachId: r.coachId,
-          name: r.coachName,
-          specialty: specialtyDef ? t(specialtyDef.labelKey) : coach?.specialty ?? r.offeringName,
-          initials: initialsOf(r.coachName),
-          color: coach?.color ?? ACCENT_HEX,
-        };
-      });
+  // Requests the member sent from a coach's page that no coach has answered
+  // yet (session_requests). Signed out there are none: the demo has no
+  // directory to request from. Tapping one opens that coach again, to pick
+  // a different time.
+  const pending = space.remote && ownRequests.status === 'ready'
+    ? ownRequests.data.map((r) => ({
+        id: r.id,
+        coachId: r.coachId,
+        name: r.coachName,
+        specialty: t('myCoachesRequestedFor', { when: fmt.slot(r.startWallMs) }),
+        initials: initialsOf(r.coachName || '?'),
+        color: ACCENT_HEX,
+      }))
+    : [];
 
   return (
     <div className="phone-frame my-coaches-screen">

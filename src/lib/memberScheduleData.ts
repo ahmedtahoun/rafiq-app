@@ -2,7 +2,8 @@
  * The member's own Schedule (SUPABASE-MIGRATION-PLAN.md step 4, the
  * calendar, part 4): for one relationship, the next booked session, the
  * open request to that coach, and the sessions that have happened — and
- * cancelling a booked session (0016's member_cancel_session).
+ * cancelling a booked session (0016's member_cancel_session). Each past
+ * session carries the member's rating of it (step 6), for the Rate button.
  *
  * A member reads their own sessions and blocks (sessions_select,
  * time_blocks_select) and their own requests (session_requests_select).
@@ -44,6 +45,8 @@ export interface MemberPastSession {
   atWallMs: number;
   recap: string;
   attendance: Attendance | null;
+  /** The member's rating of it (step 6), if they've given one. */
+  rating: number | null;
 }
 
 export interface MemberSchedule {
@@ -67,14 +70,17 @@ export async function fetchMemberSchedule(clientId: string, coachId: string): Pr
   const uid = await currentUserId();
   if (!uid) return NOT_SIGNED_IN;
   const supabase = getSupabase();
-  const [sessions, requests, hours] = await Promise.all([
+  const [sessions, requests, hours, ratings] = await Promise.all([
     supabase.from('sessions').select('id, scheduled_at, time_block_id, attendance, recap').eq('client_id', clientId).order('scheduled_at', { ascending: false }),
     supabase.from('session_requests').select('id, requested_start, offering_id, price, reschedule_of').eq('member_id', uid).eq('coach_id', coachId).eq('status', 'pending'),
     supabase.from('weekly_availability').select('day_of_week, enabled, start_hour, end_hour').eq('coach_id', coachId),
+    supabase.from('ratings').select('session_id, rating').eq('client_id', clientId),
   ]);
   if (sessions.error) return unknown(sessions.error);
   if (requests.error) return unknown(requests.error);
   if (hours.error) return unknown(hours.error);
+  if (ratings.error) return unknown(ratings.error);
+  const ratingOf = new Map(ratings.data.filter((r) => r.session_id).map((r) => [r.session_id!, r.rating]));
 
   const now = Date.now();
   const next = sessions.data
@@ -116,7 +122,7 @@ export async function fetchMemberSchedule(clientId: string, coachId: string): Pr
         : null,
       history: sessions.data
         .filter((s) => Date.parse(s.scheduled_at) <= now && s.attendance !== 'cancelled')
-        .map((s) => ({ id: s.id, atWallMs: toWallMs(s.scheduled_at), recap: s.recap ?? '', attendance: s.attendance })),
+        .map((s) => ({ id: s.id, atWallMs: toWallMs(s.scheduled_at), recap: s.recap ?? '', attendance: s.attendance, rating: ratingOf.get(s.id) ?? null })),
     },
   };
 }

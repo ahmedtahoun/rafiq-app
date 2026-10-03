@@ -8,6 +8,8 @@ import { MemberTabBar } from '../components/TabBars';
 import { LoadState } from '../components/LoadState';
 import { NoCoachYet } from '../components/NoCoachYet';
 import { bookSessionTarget, useMemberSpace, type MemberSpaceView } from '../store/memberStore';
+import { useRemoteLoad } from '../store/remoteLoad';
+import { fetchHasUnreadNotifications } from '../lib/notificationData';
 import {
   DEMO_MEMBER_CLIENT_ID,
   isSessionToday,
@@ -45,6 +47,10 @@ function ClientHomeView({ space }: { space: Extract<MemberSpaceView, { status: '
   const [busyTask, setBusyTask] = useState<string | null>(null);
 
   const { remote, todayMs } = space;
+  // Signed in, the member's own unread notifications (step 6). Re-read each
+  // time Home mounts, so coming back from Notifications clears the dot. A
+  // failed read shows no dot: it is a hint, not the screen's content.
+  const unread = useRemoteLoad<boolean>('member-unread-notifications', remote, fetchHasUnreadNotifications);
   const rel = space.current;
   const client = rel?.client;
   // Signed out this is the design's demo member; signed in, what the
@@ -87,9 +93,12 @@ function ClientHomeView({ space }: { space: Extract<MemberSpaceView, { status: '
   const recentFeedbackText = recentFeedback?.text ?? '';
   const recentFeedbackDate = recentFeedback ? fmt.date(recentFeedback.atMs) : '';
 
-  // Notifications and program milestones are still the demo's (step 6), so a
-  // signed-in member sees neither rather than the demo member's.
-  const hasUnreadNotifications = !remote && getClientNotifications(DEMO_MEMBER_CLIENT_ID).some((n) => n.unread);
+  const hasUnreadNotifications = remote
+    ? unread.status === 'ready' && unread.data
+    : getClientNotifications(DEMO_MEMBER_CLIENT_ID).some((n) => n.unread);
+
+  // Program milestones are still the demo's (step 6), so a signed-in member
+  // sees none rather than the demo member's.
 
   const unreviewedMilestones = remote ? [] : getUnreviewedMilestones(DEMO_MEMBER_CLIENT_ID);
   const milestone = unreviewedMilestones[0] || null;
@@ -183,7 +192,11 @@ function ClientHomeView({ space }: { space: Extract<MemberSpaceView, { status: '
               </div>
               <div className="client-home-progress-text">
                 <div className="client-home-progress-label">{t('clientHomeProgressLabel')}</div>
-                <div className="client-home-progress-goal"><bdi>{client?.goal || t('clientHomeGoalFallback')}</bdi></div>
+                {/* Signed in, the goal the coach set, or none: never the
+                    demo's sample goal. */}
+                {(client?.goal || !remote) && (
+                  <div className="client-home-progress-goal"><bdi>{client?.goal || t('clientHomeGoalFallback')}</bdi></div>
+                )}
                 <div className="client-home-progress-note">{t('clientHomeProgressAssessedBy', { name: isolate(coachName) })}</div>
               </div>
             </div>

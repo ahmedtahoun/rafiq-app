@@ -76,18 +76,36 @@ as done below, when signed in; every other screen still reads and writes
       coach page and profile (SUPABASE-MIGRATION-PLAN.md, step 3), and the
       member's Sessions screen (step 4: their real sessions, cancelling one,
       asking to move one, withdrawing a request, and booking from their
-      coach's page, which Home and the coach page now open too). Left: My
-      programs, Program detail, Rate coach, the member's Notifications,
-      Discover's goal matching, and the demo booking screen reached from
-      the programs screens. `grep -rl DEMO_MEMBER_CLIENT_ID src/screens`
-      lists 12 files, most of them only for the signed-out demo path.
+      coach's page, which Home and the coach page now open too), and in
+      step 6: Discover's goal matching (the member's own focus from
+      onboarding), My programs and Program detail (the member's real
+      enrollments; their "book a session" opens the coach's page, not the
+      demo booking screen), Rate coach (rating a session they had, from
+      their Sessions screen, writes `ratings`), the reviews on a coach's
+      page and Discover (members' own, from `coach_reviews`, signed with a
+      first name and last initial), the member's Notifications and Home's
+      bell dot (their own `notifications`, marked read when opened), and
+      the demo booking screen (signed in it is never shown — a member who
+      lands on it gets their coach's own page, on the real clock; signed
+      out it takes the demo week from `TODAY_MS`).
+      `grep -rl DEMO_MEMBER_CLIENT_ID src/screens` still lists files, but
+      every use is signed-out only now, and Home, Tasks and Profile no
+      longer show the demo's sample goal signed in:
+      tests/member-demo-identity.spec.js walks the member screens signed in
+      and fails on any demo store read. Left before ticking: add Discover,
+      Notifications, Programs, RateCoach and Booking to that walk, so it
+      guards the whole member side.
 - [ ] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,
       the 8 fictional `DIRECTORY_COACHES`, and any other `DEFAULT_*` seed.
       Apple rejects placeholder content, and fake coaches in a marketplace
-      mislead users. Signed out, Discover still shows the 8 fictional
-      coaches (found by #73) — decide whether the signed-out demo stays at
-      all; App Review signs in, but a reviewer may look first.
+      mislead users. Decided (3 Oct 2026): the signed-out demo stays, and
+      only the fictional coaches go. Done for the coaches: the 8
+      `DIRECTORY_COACHES`, their sample "Member Stories", and the demo coach
+      page with its invented review quote, bio and member count are removed;
+      signed out, Discover shows its "No pros yet" state and a coach link is
+      "not available". Left: the other `DEFAULT_*` seeds, which the
+      signed-out demo still runs on (the decision keeps them).
 - [ ] 🔴 **Use the real clock.** Calendar maths runs on a fixed fictional week
       (`TODAY_MS = Date.UTC(2025, 9, 22)`; screens hardcode `TODAY_INDEX = 2`).
       Real users would see October 2025. Replace with the current time, and
