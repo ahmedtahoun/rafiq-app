@@ -334,10 +334,19 @@ Waits on the name decision (§1).
       Done: one inline-SVG `<Logo>` on RoleSelect and Auth (Welcome never had
       one), the same glyph as the icon, so it no longer changes font in
       Arabic.
-- [ ] 🔴 **Screenshots, in English and Arabic:** iPhone 6.9" (1320×2868),
+- [x] 🔴 **Screenshots, in English and Arabic:** iPhone 6.9" (1320×2868),
       3–10 per language; Google Play: at least 2 phone screenshots, a 1024×500
       feature graphic and a 512×512 icon. Take them from the connected app, not
       the demo data.
+      Done: `npm run screenshots` renders all of it from the signed-in app
+      against `tests/fakeSupabase.js`, twelve screens per language, and
+      commits the PNGs to `store/screenshots/out/`. Play needed its own
+      capture — 2868÷1320 is 2.17:1 and Play caps a screenshot at 2:1 — so
+      it gets 1242×2208. Clock pinned and data seeded, so a re-run produces
+      the same bytes. Every Arabic image checked by eye. See
+      `store/screenshots/README.md` for the sizes, the upload order (01–08
+      to Play, 01–10 to Apple) and which screens were chosen. Not in `npm
+      test` or CI: deliverables, not assertions.
 - [x] 🔴 Store text in English and Arabic: name (iOS: 30 characters),
       subtitle, description, keywords, category, "what's new".
       **Drafted in `store/listing.md`**, both languages, both stores, every

@@ -33,6 +33,10 @@ android/keystore/
 *.sln
 *.sw?
 
+# The store-screenshot dev server's own Vite dep cache, so it cannot
+# share one with `npm test`'s server. Its PNGs in out/ ARE committed.
+store/screenshots/.vite/
+
 # Playwright
 test-results/
 playwright-report/
