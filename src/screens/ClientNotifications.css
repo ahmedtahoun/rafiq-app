@@ -88,6 +88,18 @@
   cursor: pointer;
 }
 
+.client-notifications-mark-all:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.client-notifications-error {
+  margin-block-start: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--red);
+}
+
 /* ---------- list ---------- */
 
 .client-notifications-list {

@@ -258,7 +258,7 @@ relationships through `src/store/memberStore.ts`'s `useMemberSpace()`:
   sessions, a booked one). Signed in, it used to read the demo member's,
   which always has sessions left.
 - **Still the demo member's, signed in:** Schedule and Booking (step 4),
-  Messages (step 5), Notifications, Programs and RateCoach (step 6), and
+  Messages (step 5), Programs and RateCoach (step 6), and
   Discover's goal matching — Discover's coaches are real since step 4. Each reads `DEMO_MEMBER_CLIENT_ID` from mockStore with a note
   naming its step, so what's left is one grep. The pieces of converted
   screens that belong to those steps (milestones, the live-session badge,
@@ -438,6 +438,23 @@ In small PRs, so each can be reviewed on its own:
    session" open the coach's page signed in, like Sessions does; the
    demo booking screen is still reached from the programs screens, which
    are step 6's.
+
+## Step 6, the member side: notifications
+
+No schema change. Signed in, the member's Notifications screen is their
+own `notifications` rows (src/lib/notificationData.ts;
+notifications_select_own), newest 50, of the four kinds the database
+sends a member today: a message from their coach (0002), a payment
+recorded (0002), and a session their coach moved or cancelled (0011).
+Other kinds are left out rather than shown blank, and payloads are read
+defensively. Session times are wall-clock. Opening one marks it read
+(notifications_update_own: `read_at` only, where it is still null),
+switches to the relationship it is about, and opens its screen; "Mark all
+read" marks only theirs, and says so if it fails. Home's bell dot is
+whether any of them is unread, re-read each time Home mounts; a failed
+read shows no dot. Nothing yet tells a member when a coach accepts or
+declines their request: that would need a trigger (a later migration).
+Tests: tests/member-notifications.spec.js.
 
 ## Testing this kind of code
 
