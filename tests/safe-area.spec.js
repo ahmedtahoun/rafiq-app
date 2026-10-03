@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { IGNORED_CONSOLE, SAFE_TOP, SAFE_BOTTOM, simulateNotch } from './helpers.js';
+import { IGNORED_CONSOLE, SAFE_TOP, SAFE_BOTTOM, installScreenSettle, simulateNotch } from './helpers.js';
 
 /**
  * Nothing a user has to tap sits under the status bar or the home indicator.
@@ -26,6 +26,7 @@ const BOTTOM_NAV_SCREENS = ['main', 'clients', 'schedule', 'profile', 'clientHom
 async function openPhone(browser, lang = 'en') {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await ctx.newPage();
+  await installScreenSettle(page);
   const errs = [];
   page.on('pageerror', (e) => errs.push(e.message));
   page.on('console', (m) => {
@@ -51,7 +52,7 @@ test('no top button is under the status bar', async ({ browser }) => {
     const found = {};
     for (const screen of screens) {
       useAppStore.getState().nav({ screen, params: { clientId: 'sara', coachId: 'c1' } });
-      await new Promise((r) => setTimeout(r, 250));
+      await window.__screenSettled();
       let highest = null;
       for (const el of document.querySelectorAll('.phone-frame button, .phone-frame a')) {
         const box = el.getBoundingClientRect();
@@ -77,7 +78,7 @@ test('the tab bar clears the home indicator', async ({ browser }) => {
     const found = {};
     for (const screen of screens) {
       useAppStore.getState().nav({ screen, params: { clientId: 'sara' } });
-      await new Promise((r) => setTimeout(r, 250));
+      await window.__screenSettled();
       const nav = document.querySelector('.bottom-nav');
       const frame = document.querySelector('.phone-frame');
       if (!nav || !frame) continue;
@@ -100,7 +101,7 @@ test('the composer and the sheet clear the home indicator in Arabic too', async 
     const out = {};
     for (const [screen, sel] of [['messages', '.messages-composer'], ['addTask', '.add-task-submit'], ['clientBooking', '.client-booking-bar button']]) {
       useAppStore.getState().nav({ screen, params: { clientId: 'sara' } });
-      await new Promise((r) => setTimeout(r, 250));
+      await window.__screenSettled();
       const el = document.querySelector(sel);
       const frame = document.querySelector('.phone-frame');
       if (!el || !frame) { out[screen] = 'missing'; continue; }

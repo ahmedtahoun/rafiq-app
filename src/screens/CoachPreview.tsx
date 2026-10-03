@@ -6,7 +6,7 @@ import { useFormat } from '../lib/format';
 import { ChevronIcon, CheckIcon, StarIcon, MessageIcon, ScheduleIcon } from '../components/icons';
 import { LoadState } from '../components/LoadState';
 import { SPECIALTIES } from '../lib/specialties';
-import { MIN_REVIEWS_FOR_RATING, getMonthAnchorMs } from '../lib/mockStore';
+import { MIN_REVIEWS_FOR_RATING, TODAY_MS, getMonthAnchorMs } from '../lib/mockStore';
 import { useRemoteSession } from '../lib/remoteSession';
 import { wallNowMs, wallTodayMs } from '../lib/wallClock';
 import { useRemoteLoad } from '../store/remoteLoad';
@@ -18,6 +18,7 @@ import {
   fetchCoachPreview, sendSessionRequest, weekdayOf,
   type CoachOffering, type CoachPreviewData,
 } from '../lib/requestData';
+import { fetchCoachReviews, type CoachReview } from '../lib/reviewData';
 import './CoachPreview.css';
 
 // ---------------------------------------------------------------------------
@@ -48,9 +49,11 @@ const WEEKS = [
   [[0, 2, 3], [1, 2], [0, 1, 2, 3], [], [0, 3], [1, 2]],
   [[1, 2], [0, 1, 3], [2, 3], [0, 1, 2], [], [0, 2, 3]],
 ];
-// Which day of the visible week counts as "today" — the first week starts
-// here rather than at its Monday, so the picker never offers a past slot.
-const TODAY_INDEX = 2;
+// Which day of the demo's visible week counts as "today" (its fixed week,
+// CLAUDE.md) — the first week starts here rather than at its Monday, so the
+// picker never offers a past slot. Signed in, RemoteCoachPreview is on the
+// real clock (wallTodayMs / weekdayOf).
+const DEMO_WEEKDAY = weekdayOf(TODAY_MS);
 
 /** One slot per day is shown already taken, so a booked slot is visible. */
 function bookedPos(open: number[]): number {
@@ -129,6 +132,8 @@ interface PreviewCoach {
   /** Messaging a coach you don't work with yet is step 5; the demo pretends. */
   canMessage: boolean;
   review: { rating: string; count: number; quote: string | null } | null;
+  /** Members' own reviews (coach_reviews), newest first. None in the demo. */
+  reviews: CoachReview[];
 }
 
 interface PreviewSource {
@@ -219,7 +224,7 @@ function DemoCoachPreview({ coach }: { coach: DirectoryCoach }) {
     });
     return { label: `${fmt.monthDay(days[0].wallMs)} – ${fmt.monthDay(days[days.length - 1].wallMs)}`, days };
   });
-  const nextAvailable = firstOpen(weeks, 0, TODAY_INDEX);
+  const nextAvailable = firstOpen(weeks, 0, DEMO_WEEKDAY);
 
   const source: PreviewSource = {
     coach: {
@@ -246,6 +251,7 @@ function DemoCoachPreview({ coach }: { coach: DirectoryCoach }) {
         count: reviewCount,
         quote: t('coachPreviewReviewQuote', { name: coach.name.split(' ')[0], specialty: specialtyLabel }),
       },
+      reviews: [],
     },
     // Two offerings per coach: their own priced session, and a free intro
     // call. Generated from the coach's own card rather than hand-authored,
@@ -273,7 +279,7 @@ function DemoCoachPreview({ coach }: { coach: DirectoryCoach }) {
       },
     ],
     weeks,
-    initialDay: nextAvailable?.day ?? TODAY_INDEX,
+    initialDay: nextAvailable?.day ?? DEMO_WEEKDAY,
     nextAvailable,
     noHours: false,
     existingRequest: null,
@@ -295,15 +301,21 @@ function DemoCoachPreview({ coach }: { coach: DirectoryCoach }) {
 /** How far ahead a member can pick a first session. */
 const REMOTE_WEEKS = 3;
 
-function RemoteCoachPreview({ coachId }: { coachId: string }) {
-  const load = useRemoteLoad(`coachPreview:${coachId}`, true, () => fetchCoachPreview(coachId, wallNowMs()));
+/** Exported for ClientBooking: signed in, booking is this page. */
+export function RemoteCoachPreview({ coachId }: { coachId: string }) {
+  const load = useRemoteLoad<{ preview: CoachPreviewData | null; reviews: CoachReview[] }>(`coachPreview:${coachId}`, true, async () => {
+    const [preview, reviews] = await Promise.all([fetchCoachPreview(coachId, wallNowMs()), fetchCoachReviews(coachId)]);
+    return preview.ok && reviews.ok
+      ? { ok: true as const, data: { preview: preview.data, reviews: reviews.data } }
+      : { ok: false as const };
+  });
   if (load.status === 'loading') return <LoadState status="loading" />;
   if (load.status === 'error') return <LoadState status="error" onRetry={load.retry} showBack />;
-  if (!load.data) return <CoachMissing />;
-  return <RemoteCoachPreviewReady data={load.data} />;
+  if (!load.data.preview) return <CoachMissing />;
+  return <RemoteCoachPreviewReady data={load.data.preview} reviews={load.data.reviews} />;
 }
 
-function RemoteCoachPreviewReady({ data }: { data: CoachPreviewData }) {
+function RemoteCoachPreviewReady({ data, reviews }: { data: CoachPreviewData; reviews: CoachReview[] }) {
   const t = useT();
   const fmt = useFormat();
   const { coach } = data;
@@ -385,6 +397,7 @@ function RemoteCoachPreviewReady({ data }: { data: CoachPreviewData }) {
       bio: coach.bio.trim() || null,
       canMessage: false,
       review: rated ? { rating: coach.rating.toFixed(1), count: coach.ratingCount, quote: null } : null,
+      reviews,
     },
     offerings,
     weeks,
@@ -411,7 +424,7 @@ function CoachPreviewBody({ source }: { source: PreviewSource }) {
   const t = useT();
   const nav = useAppStore((s) => s.nav);
   const back = useAppStore((s) => s.back);
-  const { money } = useFormat();
+  const { money, instantDate } = useFormat();
   const { coach, offerings, weeks, nextAvailable } = source;
 
   const [week, setWeek] = useState(nextAvailable?.week ?? 0);
@@ -744,21 +757,40 @@ function CoachPreviewBody({ source }: { source: PreviewSource }) {
             )}
           </section>
 
-          {coach.review && (
+          {(coach.review || coach.reviews.length > 0) && (
             <section className="coach-preview-section">
               <h2 className="coach-preview-h2">{t('coachPreviewReviewsTitle')}</h2>
-              <div className="coach-preview-review">
-                <div className="coach-preview-review-head">
-                  <span className="coach-preview-review-stars">
-                    <StarIcon size={11} color="var(--amber)" />
-                    {coach.review.rating}
-                  </span>
-                  <span className="coach-preview-review-count">
-                    {t('coachPreviewReviewCount', { n: coach.review.count })}
-                  </span>
+              {coach.review && (
+                <div className="coach-preview-review">
+                  <div className="coach-preview-review-head">
+                    <span className="coach-preview-review-stars">
+                      <StarIcon size={11} color="var(--amber)" />
+                      {coach.review.rating}
+                    </span>
+                    <span className="coach-preview-review-count">
+                      {t('coachPreviewReviewCount', { n: coach.review.count })}
+                    </span>
+                  </div>
+                  {coach.review.quote && <p className="coach-preview-review-quote">{coach.review.quote}</p>}
                 </div>
-                {coach.review.quote && <p className="coach-preview-review-quote">{coach.review.quote}</p>}
-              </div>
+              )}
+              {coach.reviews.map((r) => (
+                <div key={r.id} className="coach-preview-review coach-preview-member-review">
+                  <div className="coach-preview-review-head">
+                    <span className="coach-preview-reviewer-avatar" style={{ background: r.avatarBg }} aria-hidden="true">
+                      {initialsOf(r.reviewerName)}
+                    </span>
+                    <span className="coach-preview-reviewer">
+                      <span className="coach-preview-reviewer-name"><bdi>{r.reviewerName}</bdi></span>
+                      <span className="coach-preview-review-count">{instantDate(r.createdAt)}</span>
+                    </span>
+                    <span className="coach-preview-review-stars" role="img" aria-label={t('rateCoachStarLabel', { n: r.rating })}>
+                      {'★'.repeat(r.rating)}
+                    </span>
+                  </div>
+                  <p className="coach-preview-review-quote" dir="auto">{r.comment}</p>
+                </div>
+              ))}
             </section>
           )}
         </div>
