@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { mkdir, copyFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { IGNORED_CONSOLE } from '../../tests/helpers.js';
+import { IGNORED_CONSOLE, installScreenSettle } from '../../tests/helpers.js';
 import { installFakeSupabase, signIn } from '../../tests/fakeSupabase.js';
 import { NOW, COACH, MEMBER, coachTables, memberTables } from './seed.mjs';
 import { featureGraphic } from './feature-graphic.mjs';
@@ -102,6 +102,8 @@ async function openSide(browser, { lang, device, side }) {
   });
   const page = await ctx.newPage();
   await page.clock.setFixedTime(NOW);
+  // Before the first goto, as installScreenSettle's own note requires.
+  await installScreenSettle(page);
 
   const errs = [];
   page.on('pageerror', (e) => errs.push(e.message));
@@ -130,22 +132,32 @@ async function openSide(browser, { lang, device, side }) {
   return { ctx, page, errs };
 }
 
-/** Navigate, then wait for the screen rather than for a stopwatch. */
+/**
+ * Navigate, then wait for the screen rather than for a stopwatch.
+ *
+ * `__screenSettled` comes from tests/helpers.js, added by #82 when
+ * App.tsx started loading each screen as its own chunk. This harness
+ * needs it more than any spec does: it used to wait for `.phone-frame`
+ * to be visible and `.load-state` to be gone, and both are true of the
+ * screen being navigated *away from* while the next one's chunk is in
+ * flight. Against lazy screens that first broke loudly — two
+ * `.phone-frame` elements at once, because React lays the new tree out
+ * before it removes the old — and a looser wait would have been worse:
+ * it would have quietly photographed the Suspense fallback. A store
+ * screenshot of a loading spinner is the one defect here nobody would
+ * catch until Apple did.
+ */
 async function show(page, screen, params) {
-  await page.evaluate(async ([s, p]) => {
+  const settled = await page.evaluate(async ([s, p]) => {
     const { useAppStore } = await import('/src/store/appStore.ts');
     useAppStore.getState().nav(p ? { screen: s, params: p } : s);
+    return await window.__screenSettled();
   }, [screen, params ?? null]);
+  expect(settled, `${screen} never settled: its chunk or a read did not finish`).toBe(true);
 
-  await expect(page.locator('.phone-frame')).toBeVisible();
-  await expect(page.locator('.load-state')).toHaveCount(0);
-  await page.evaluate(async () => {
-    await document.fonts.ready;
-    // Two frames so React has flushed and painted what nav() scheduled.
-    await new Promise((r) => requestAnimationFrame(() => r()));
-    await new Promise((r) => requestAnimationFrame(() => r()));
-  });
-  // Long enough for the one-off entrance transitions in the screen CSS.
+  await page.evaluate(() => document.fonts.ready);
+  // __screenSettled covers the chunk and the paint; this is the one-off
+  // entrance transitions in the screen CSS, which it does not watch.
   await page.waitForTimeout(400);
 }
 
