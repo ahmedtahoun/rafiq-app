@@ -11,8 +11,12 @@ import { defineConfig } from '@playwright/test';
  * failure means "an image did not render", not "the app is broken". CI
  * should not be gated on, or slowed by, producing marketing assets.
  *
- * Its own port (5174), so it never fights a dev server someone already
- * has on 5173.
+ * Its own port (5174) AND its own Vite dep cache, so it never fights a
+ * dev server someone already has on 5173. Both matter: two Vite servers
+ * on one `node_modules/.vite` corrupt each other, and the symptom is
+ * unrelated screens rendering blank rather than an error naming the
+ * cause. Running this concurrently with `npm test` cost a 13-minute run
+ * and eight false failures before the cache was split.
  */
 export default defineConfig({
   // Empties out/ first, so a shot that is no longer produced cannot
@@ -40,6 +44,9 @@ export default defineConfig({
   webServer: {
     command: 'npm run dev -- --port 5174 --host 127.0.0.1',
     url: 'http://127.0.0.1:5174',
+    // Read by vite.config.ts. Keeps this server's prebundled deps out of
+    // node_modules/.vite, which `npm test`'s server on 5173 owns.
+    env: { RAFIQ_VITE_CACHE_DIR: 'store/screenshots/.vite' },
     reuseExistingServer: true,
     timeout: 60_000,
   },
