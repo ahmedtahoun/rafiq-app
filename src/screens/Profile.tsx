@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
 import { darken } from '../lib/color';
-import { ArrowForwardIcon, PencilIcon, ShareIcon, EyeIcon, ShieldIcon, StarIcon, CloseIcon, WarningIcon, MessageIcon, PaymentIcon, ScheduleIcon, PersonIcon, HomeIcon, ClientsIcon } from '../components/icons';
-import { BottomNav, type BottomNavItem } from '../components/BottomNav';
-import { QuickActions } from '../components/QuickActions';
+import { ArrowForwardIcon, PencilIcon, EyeIcon, ShieldIcon, StarIcon, CloseIcon, WarningIcon, MessageIcon, PaymentIcon, ScheduleIcon, PersonIcon } from '../components/icons';
+import { CoachTabBar } from '../components/TabBars';
 import { signOut } from '../lib/auth';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { fileVerificationRequest, fileAccountDeletionRequest } from '../lib/adminQueues';
@@ -210,14 +209,6 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
     { key: 'payments', label: t('profileNotifPayments') },
   ];
 
-  const navItems: BottomNavItem[] = [
-    { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'main' },
-    { key: 'clients', label: t('mainClientsNav'), icon: ClientsIcon, screen: 'clients' },
-    { key: 'messages', label: t('mainMessagesNav'), icon: MessageIcon, screen: 'messagesInbox' },
-    { key: 'quickActions', label: t('quickActionsTitle'), render: () => <QuickActions context="profile" /> },
-    { key: 'schedule', label: t('mainSchedule'), icon: ScheduleIcon, screen: 'schedule' },
-    { key: 'profile', label: t('mainProfileNav'), icon: PersonIcon, screen: 'profile' },
-  ];
 
   return (
     <div className="phone-frame profile-screen">
@@ -292,11 +283,11 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
           <EyeIcon size={15} color="var(--accent)" />
           <span>{t('profilePreview')}</span>
         </button>
-        <div className="profile-quick-divider" />
-        <button type="button" className="profile-quick-btn" onClick={() => nav('shareProfile')}>
-          <ShareIcon size={14} />
-          <span>{t('profileShare')}</span>
-        </button>
+        {/* No Share button until the public coach page exists. ShareProfile's
+            link (rafiq.app/pro/…) is a domain Rafiq doesn't own, its QR code
+            encodes the same dead link, and its share buttons only show a
+            toast: a coach who posted it would send people nowhere. The
+            screen stays for when the page ships (LAUNCH-CHECKLIST). */}
         <div className="profile-quick-divider" />
         <button type="button" className="profile-quick-btn" onClick={() => nav('editProfile')}>
           <PencilIcon size={13} />
@@ -537,7 +528,7 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
         </div>
       </div>
 
-      <BottomNav items={navItems} />
+      <CoachTabBar />
 
       {showDeleteConfirm && (
         <div className="profile-modal-backdrop">

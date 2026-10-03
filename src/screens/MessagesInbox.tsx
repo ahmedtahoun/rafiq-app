@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
 import { ChevronIcon, MessageIcon } from '../components/icons';
@@ -13,6 +14,7 @@ import { fetchInbox } from '../lib/messageData';
 import { useRemoteSession } from '../lib/remoteSession';
 import { useRemoteLoad } from '../store/remoteLoad';
 import { useRoster } from '../store/rosterStore';
+import { CoachTabBar } from '../components/TabBars';
 import './MessagesInbox.css';
 
 // 1:1 port of MessagesInbox.dc.html.
@@ -27,7 +29,6 @@ import './MessagesInbox.css';
 export default function MessagesInbox() {
   const t = useT();
   const nav = useAppStore((s) => s.nav);
-  const back = useAppStore((s) => s.back);
   // Signed in, the roster is Supabase's and each row's latest message and
   // unread count come from messageData.fetchInbox (message_reads per side).
   const remote = useRemoteSession();
@@ -80,9 +81,6 @@ export default function MessagesInbox() {
   return (
     <div className="phone-frame messages-inbox">
       <div className="messages-inbox-header">
-        <button className="messages-inbox-back" aria-label={t('back')} onClick={back}>
-          <ChevronIcon size={16} />
-        </button>
         <div className="messages-inbox-title">{t('messagesInboxTitle')}</div>
       </div>
 
@@ -90,9 +88,14 @@ export default function MessagesInbox() {
 
       <div className="messages-inbox-list">
         {threads.length > 0 ? (
-          threads.map((thread) => (
+          threads.map((thread, i) => (
+            <Fragment key={thread.client.id}>
+            {/* Members with nothing yet sit under their own heading, so the
+                list doesn't read as a column of empty conversations. */}
+            {thread.isPlaceholder && (i === 0 || !threads[i - 1].isPlaceholder) && (
+              <div className="messages-inbox-section">{t('messagesInboxStartHeading')}</div>
+            )}
             <button
-              key={thread.client.id}
               type="button"
               className="messages-inbox-row"
               onClick={() => nav(thread.href)}
@@ -118,6 +121,7 @@ export default function MessagesInbox() {
               </div>
               <span className="messages-inbox-chevron"><ChevronIcon size={15} color="var(--ink-soft)" /></span>
             </button>
+            </Fragment>
           ))
         ) : (
           <div className="messages-inbox-empty">
@@ -127,6 +131,7 @@ export default function MessagesInbox() {
           </div>
         )}
       </div>
+      <CoachTabBar />
     </div>
   );
 }

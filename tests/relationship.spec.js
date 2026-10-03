@@ -38,7 +38,7 @@ test('ClientCoach renders', async ({ browser }) => {
   expect.soft(String(await state(page)), 'screen').toBe('clientCoach');
   expect.soft(String(await page.locator('.client-coach-name').innerText()), 'coach name shown').toBe('Yasmin El-Sayed');
   expect.soft(String(await page.locator('.client-coach-stat').count()), 'three stats').toBe('3');
-  expect.soft(String(await page.locator('.client-coach-quick-card').count()), 'quick cards').toBe('2');
+  expect.soft(String(await page.locator('.client-coach-quick-card').count()), 'quick cards').toBe('3'); // sessions, tasks, and (demo) programs
   expect.soft(String(await page.locator('.client-coach-payment').count()), 'payment strip').toBe('1');
   expect.soft(String(await page.locator('.client-coach-upgrade').count()), 'upgrade CTA shown for a Basic member').toBe('1');
   expect.soft(String(await page.locator('.client-coach-standing').count()), 'no standing slot yet').toBe('0');
@@ -264,7 +264,7 @@ test('ClientBooking: a day with no availability', async ({ browser }) => {
 
 test('nav wiring', async ({ browser }) => {
   const { page, ctx, errs } = await open(browser, { screen: 'clientHome' });
-  await page.locator('.bottom-nav-item').last().click();
+  await page.locator('.bottom-nav-item', { hasText: 'Your Pro' }).click();
   await page.waitForTimeout(450);
   expect.soft(String(await state(page)), 'ClientHome nav reaches Your Pro').toBe('clientCoach');
   await page.locator('.client-coach-secondary').click();

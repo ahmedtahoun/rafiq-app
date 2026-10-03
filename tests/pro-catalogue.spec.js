@@ -85,22 +85,31 @@ test('Offerings: a free offering shows as free, not as zero money', async ({ bro
   await ctx.close();
 });
 
-test('Offerings: creating one adds a real row that opens for editing', async ({ browser }) => {
+test('Offerings: New opens an empty form, and only Save adds the row', async ({ browser }) => {
+  // It used to add a blank "New Offering" the moment the form opened, so
+  // Cancel left it in the catalogue (and on the coach page members see).
   const { page, ctx } = await open(browser);
 
   const before = await store(page, `(m) => m.getOfferings().length`);
   await page.locator('.offerings-new').click();
   await page.waitForTimeout(500);
-
-  const after = await store(page, `(m) => m.getOfferings()`);
-  expect.soft(after.length, 'the catalogue grew by one').toBe(before + 1);
-
-  // Creating goes straight into the detail screen for the new row, the same
-  // shape as AddClient — a blank record the Pro fills in immediately.
   const screen = await page.evaluate(async () => (await import('/src/store/appStore.ts')).useAppStore.getState().screen);
   expect.soft(screen, 'lands on the detail screen').toBe('offeringDetail');
-  const selected = await store(page, `(m) => m.getSelectedOfferingId()`);
-  expect.soft(selected, 'and the selected offering is the new one').toBe(after[after.length - 1].id);
+  expect.soft(await store(page, `(m) => m.getOfferings().length`), 'nothing created yet').toBe(before);
+
+  await page.locator('.offering-detail-cancel').click();
+  await page.waitForTimeout(300);
+  expect.soft(await store(page, `(m) => m.getOfferings().length`), 'Cancel leaves nothing behind').toBe(before);
+
+  await page.locator('.offerings-new').click();
+  await page.waitForTimeout(300);
+  await page.locator('#oname').fill('Breathwork basics');
+  await page.locator('#oprice').fill('250');
+  await page.locator('.offering-detail-save').click();
+  await page.waitForTimeout(300);
+  const after = await store(page, `(m) => m.getOfferings()`);
+  expect.soft(after.length, 'Save adds one').toBe(before + 1);
+  expect.soft(after[after.length - 1], 'with what was typed').toMatchObject({ name: 'Breathwork basics', price: 250 });
 
   await ctx.close();
 });

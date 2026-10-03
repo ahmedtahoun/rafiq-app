@@ -2,7 +2,11 @@ import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { ChevronIcon, ArrowForwardIcon, PlusIcon } from '../components/icons';
-import { createOffering, getOfferings, setSelectedOfferingId, type OfferingType } from '../lib/mockStore';
+import { getOfferings, setSelectedOfferingId, type OfferingType } from '../lib/mockStore';
+import { LoadState } from '../components/LoadState';
+import { fetchOwnOfferings } from '../lib/offeringData';
+import { useRemoteSession } from '../lib/remoteSession';
+import { useRemoteLoad } from '../store/remoteLoad';
 import './Offerings.css';
 
 const TYPE_ICON: Record<OfferingType, string> = { session: '1:1', consultation: 'CN', group: 'GR', workshop: 'WS', program: 'PR', event: 'EV' };
@@ -17,6 +21,9 @@ export default function Offerings() {
   const back = useAppStore((s) => s.back);
   const nav = useAppStore((s) => s.nav);
   const { money } = useFormat();
+  // Signed in, the coach's own rows (offeringData.ts); signed out, the demo's.
+  const remote = useRemoteSession();
+  const load = useRemoteLoad('own_offerings', remote, fetchOwnOfferings);
 
   const TYPE_LABEL: Record<OfferingType, string> = {
     session: t('offeringTypeSession'), consultation: t('offeringTypeConsultation'), group: t('offeringTypeGroup'),
@@ -24,7 +31,11 @@ export default function Offerings() {
   };
   const FORMAT_LABEL = { online: t('offeringFormatOnline'), in_person: t('offeringFormatInPerson'), both: t('offeringFormatBoth') };
 
-  const offerings = getOfferings().map((o) => ({
+  if (remote && load.status === 'loading') return <LoadState status="loading" />;
+  if (remote && load.status === 'error') return <LoadState status="error" onRetry={load.retry} showBack />;
+  const list = remote && load.status === 'ready' ? load.data : getOfferings();
+
+  const offerings = list.map((o) => ({
     ...o,
     icon: TYPE_ICON[o.type],
     iconBg: TYPE_COLOR[o.type],
@@ -34,14 +45,14 @@ export default function Offerings() {
   }));
 
   function openDetail(id: string) {
-    setSelectedOfferingId(id);
-    nav('offeringDetail');
+    // The demo's other screens still read the selected-offering handoff.
+    if (!remote) setSelectedOfferingId(id);
+    nav({ screen: 'offeringDetail', params: { offeringId: id } });
   }
 
+  // Nothing is created until the coach saves the form.
   function newOffering() {
-    const id = createOffering();
-    setSelectedOfferingId(id);
-    nav('offeringDetail');
+    nav({ screen: 'offeringDetail', params: { offeringId: 'new' } });
   }
 
   return (

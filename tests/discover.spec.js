@@ -255,9 +255,15 @@ test('NAV WIRING', async ({ browser }) => {
     m.useAppStore.getState().nav('clientHome');
   });
   await page.waitForTimeout(400);
-  await page.locator('.bottom-nav-item').first().click();
+  // Discover left the tab bar (five tabs a side, 1 Oct 2026): a member with
+  // a coach reaches it from Your Pro → My pros → Find a pro.
+  await page.locator('.bottom-nav-item', { hasText: 'Your Pro' }).click();
   await page.waitForTimeout(400);
-  expect.soft(String(await screenOf(page)), 'ClientHome nav reaches Discover').toBe('discover');
+  await page.locator('.client-coach-hero-btn').first().click();
+  await page.waitForTimeout(400);
+  await page.locator('.my-coaches-find').click();
+  await page.waitForTimeout(400);
+  expect.soft(String(await screenOf(page)), 'Your Pro → My pros reaches Discover').toBe('discover');
 
   await page.locator('.discover-card-main').first().click();
   await page.waitForTimeout(350);

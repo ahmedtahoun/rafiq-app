@@ -196,10 +196,10 @@ test('ClientSchedule: Arabic RTL + dark', async ({ browser }) => {
 
 test('ClientSchedule: navigation', async ({ browser }) => {
   const { page } = await open(browser, {});
-  await page.locator('.bottom-nav-item').nth(3).click();   // Tasks
+  await page.locator('.bottom-nav-item', { hasText: 'Tasks' }).click();
   await page.waitForTimeout(400);
   expect.soft(String(await screenOf(page)), 'nav → clientTasks').toBe('clientTasks');
-  await page.locator('.bottom-nav-item').nth(1).click();   // Home
+  await page.locator('.bottom-nav-item', { hasText: 'Home' }).click();
   await page.waitForTimeout(400);
   expect.soft(String(await screenOf(page)), 'nav → clientHome').toBe('clientHome');
   await page.evaluate(async () => (await import('/src/store/appStore.ts')).useAppStore.getState().nav('clientSchedule'));
@@ -318,24 +318,24 @@ test('ClientTasks: Arabic RTL + dark', async ({ browser }) => {
 
 test('Retired stubs', async ({ browser }) => {
   const { page } = await open(browser, { screen: 'clientHome' });
-  await page.locator('.bottom-nav-item').nth(3).click();
+  await page.locator('.bottom-nav-item', { hasText: 'Tasks' }).click();
   await page.waitForTimeout(400);
   expect.soft(String(await screenOf(page)), 'ClientHome tasks tab → clientTasks').toBe('clientTasks');
   await page.evaluate(async () => (await import('/src/store/appStore.ts')).useAppStore.getState().nav('clientHome'));
   await page.waitForTimeout(300);
-  await page.locator('.bottom-nav-item').nth(4).click();
+  await page.locator('.bottom-nav-item', { hasText: 'Sessions' }).click();
   await page.waitForTimeout(400);
   expect.soft(String(await screenOf(page)), 'ClientHome schedule tab → clientSchedule').toBe('clientSchedule');
 
   await page.evaluate(async () => (await import('/src/store/appStore.ts')).useAppStore.getState().nav('clientCoach'));
   await page.waitForTimeout(400);
-  await page.locator('.bottom-nav-item').nth(4).click();
+  await page.locator('.bottom-nav-item', { hasText: 'Sessions' }).click();
   await page.waitForTimeout(400);
   expect.soft(String(await screenOf(page)), 'ClientCoach schedule tab → clientSchedule').toBe('clientSchedule');
 
   await page.evaluate(async () => (await import('/src/store/appStore.ts')).useAppStore.getState().nav('discover'));
   await page.waitForTimeout(400);
-  await page.locator('.bottom-nav-item').nth(3).click();
+  await page.locator('.bottom-nav-item', { hasText: 'Tasks' }).click();
   await page.waitForTimeout(400);
   expect.soft(String(await screenOf(page)), 'Discover tasks tab → clientTasks').toBe('clientTasks');
   await page.close();

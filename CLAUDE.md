@@ -195,6 +195,12 @@ Adding a screen means four things: the union member, an `App.tsx` switch
 arm, a `PARENT` entry so `back()` has somewhere to go, and `ROOTS` if it is
 a tab root. Miss the `PARENT` entry and the back button dead-ends.
 
+**The tab bars are defined once**, in `components/TabBars.tsx`: five named
+tabs a side (`CoachTabBar`, `MemberTabBar`). A tab root renders one of
+those; don't build a `BottomNavItem[]` list in a screen — the copies had
+drifted to six slots with five unnamed. Language and dark mode are set in
+Profile › Preferences, not in each screen's header.
+
 Deep-linking a screen that reads `params` (e.g. `coachPreview` needs
 `coachId`) renders its empty state without them — that is correct
 behaviour, not a bug, and tests have to pass the params.

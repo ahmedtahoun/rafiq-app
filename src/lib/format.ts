@@ -96,6 +96,13 @@ export function formatTime(lang: Lang, ms: number): string {
   return new Date(ms).toLocaleTimeString(LOCALE[lang], { timeZone: CALENDAR_ZONE, hour: 'numeric', minute: '2-digit' });
 }
 
+/** An hour on its own, for a timeline's axis: "8 AM" / "8 ص". Schedule
+    built these by hand as `${h} AM`, which stayed English in Arabic and,
+    in a right-to-left column, read "AM 8". */
+export function formatHour(lang: Lang, ms: number): string {
+  return new Date(ms).toLocaleTimeString(LOCALE[lang], { timeZone: CALENDAR_ZONE, hour: 'numeric' });
+}
+
 /**
  * The same time, split into its digits and its AM/PM (or ص/م) marker —
  * for callers that style them differently (Main's "Today's Schedule" badge:
@@ -194,6 +201,7 @@ export function useFormat() {
     monthYear: (ms: number) => formatMonthYear(lang, ms),
     slot: (ms: number) => formatSlot(lang, ms),
     time: (ms: number) => formatTime(lang, ms),
+    hour: (ms: number) => formatHour(lang, ms),
     timeParts: (ms: number) => formatTimeParts(lang, ms),
     // `todayMs` defaults to the fixed week's; a screen showing real rows
     // passes wallTodayMs() (src/lib/wallClock.ts).

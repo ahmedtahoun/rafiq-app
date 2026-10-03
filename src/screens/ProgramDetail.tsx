@@ -3,7 +3,7 @@ import { useT } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import {
-  MoonIcon, SunIcon, ChevronIcon, ArrowForwardIcon, CheckIcon, ScheduleIcon, PlusIcon, ProgramsIcon,
+  ChevronIcon, ArrowForwardIcon, CheckIcon, ScheduleIcon, PlusIcon, ProgramsIcon,
 } from '../components/icons';
 import {
   DEMO_MEMBER_CLIENT_ID,
@@ -22,13 +22,8 @@ const RING_CIRC = 2 * Math.PI * RING_R;
 export default function ProgramDetail() {
   const t = useT();
   const fmt = useFormat();
-  const lang = useAppStore((s) => s.lang);
-  const setLang = useAppStore((s) => s.setLang);
-  const dark = useAppStore((s) => s.dark);
-  const setDark = useAppStore((s) => s.setDark);
   const nav = useAppStore((s) => s.nav);
   const back = useAppStore((s) => s.back);
-  const isAr = lang === 'ar';
 
   // Which program — the same selected-offering handoff MyPrograms,
   // Offerings/OfferingDetail and ClientBooking already use.
@@ -36,29 +31,6 @@ export default function ProgramDetail() {
   const progress = offeringId ? getClientProgramProgress(CLIENT_ID, offeringId) : null;
 
   const heroGrad = `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 40)} 100%)`;
-
-  function themeControls() {
-    return (
-      <div className="program-detail-actions">
-        <button
-          type="button"
-          className="program-detail-circle"
-          aria-label={t('switchLanguage')}
-          onClick={() => setLang(isAr ? 'en' : 'ar')}
-        >
-          {isAr ? 'EN' : 'ع'}
-        </button>
-        <button
-          type="button"
-          className="program-detail-theme"
-          aria-label={t('toggleDarkMode')}
-          onClick={() => setDark(!dark)}
-        >
-          {dark ? <SunIcon size={16} color="currentColor" /> : <MoonIcon size={16} color="currentColor" />}
-        </button>
-      </div>
-    );
-  }
 
   // No selection, or an enrollment whose offering the Pro has since
   // deleted. Either way there is nothing to show, and saying so beats a
@@ -73,7 +45,6 @@ export default function ProgramDetail() {
             </button>
             <div className="program-detail-header-title">{t('programDetailTitle')}</div>
           </div>
-          {themeControls()}
         </div>
         <div className="program-detail-missing">
           <ProgramsIcon size={26} color="var(--ink-soft)" />
@@ -131,7 +102,6 @@ export default function ProgramDetail() {
               start and it reads as "…nsformation Program". */}
           <div className="program-detail-header-title">{t('programDetailTitle')}</div>
         </div>
-        {themeControls()}
       </div>
 
       <div className="program-detail-scroll">
