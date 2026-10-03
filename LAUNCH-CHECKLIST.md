@@ -76,11 +76,25 @@ as done below, when signed in; every other screen still reads and writes
       coach page and profile (SUPABASE-MIGRATION-PLAN.md, step 3), and the
       member's Sessions screen (step 4: their real sessions, cancelling one,
       asking to move one, withdrawing a request, and booking from their
-      coach's page, which Home and the coach page now open too). Left: My
-      programs, Program detail, Rate coach, the member's Notifications,
-      Discover's goal matching, and the demo booking screen reached from
-      the programs screens. `grep -rl DEMO_MEMBER_CLIENT_ID src/screens`
-      lists 12 files, most of them only for the signed-out demo path.
+      coach's page, which Home and the coach page now open too), and in
+      step 6: Discover's goal matching (the member's own focus from
+      onboarding), My programs and Program detail (the member's real
+      enrollments; their "book a session" opens the coach's page, not the
+      demo booking screen), Rate coach (rating a session they had, from
+      their Sessions screen, writes `ratings`), the reviews on a coach's
+      page and Discover (members' own, from `coach_reviews`, signed with a
+      first name and last initial), the member's Notifications and Home's
+      bell dot (their own `notifications`, marked read when opened), and
+      the demo booking screen (signed in it is never shown — a member who
+      lands on it gets their coach's own page, on the real clock; signed
+      out it takes the demo week from `TODAY_MS`).
+      `grep -rl DEMO_MEMBER_CLIENT_ID src/screens` still lists files, but
+      every use is signed-out only now, and Home, Tasks and Profile no
+      longer show the demo's sample goal signed in:
+      tests/member-demo-identity.spec.js walks the member screens signed in
+      and fails on any demo store read. Left before ticking: add Discover,
+      Notifications, Programs, RateCoach and Booking to that walk, so it
+      guards the whole member side.
 - [ ] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,
       the 8 fictional `DIRECTORY_COACHES`, and any other `DEFAULT_*` seed.
@@ -438,7 +452,16 @@ only Rafiq can resolve (as `service_role`). Nothing works them yet.
       Until the DSN is set nothing is collected, so this is what switches it
       on. What it would then collect is listed in the PR that added it and
       in `store/privacy-inventory.md` §10.
-- [ ] ⚪ Split the ~960 KB JavaScript bundle by screen for a faster start.
+- [x] ⚪ Split the JavaScript bundle by screen for a faster start. Done in
+      `App.tsx`: the 54 static screen imports are `lazy(() => import(…))`,
+      behind one `<Suspense>` showing the app's own loading state. The
+      startup path drops from 1,097 kB to 401 kB of JavaScript (285 kB →
+      121 kB gzipped) and from 237 kB to 23 kB of render-blocking CSS; the
+      rest arrives per screen, and inside the native shell every chunk is
+      already on the device. What is left in the entry chunk is mostly
+      `i18n.ts`, which is 175 kB of source because it holds every string
+      twice, and the Supabase client, which `session.ts` pulls in at
+      startup — both splittable later, neither part of this change.
 - [ ] ⚪ Analytics, if wanted — disclosed in the privacy forms.
 
 ## 11. Before each submission (Dev)

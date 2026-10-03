@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
-import { IGNORED_CONSOLE } from './helpers.js';
+import { IGNORED_CONSOLE, installScreenSettle } from './helpers.js';
 
 /**
  * The app's mark: the shared <Logo> in the app, and the native icons and
@@ -97,6 +97,10 @@ test('the source artwork is committed, at the sizes the generator expects', () =
 async function open(browser, lang, dark) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await ctx.newPage();
+  // Screens arrive as their own chunk now, so "has the mark rendered?" has
+  // to wait for the screen rather than for a stopwatch. addInitScript runs
+  // before the page's own scripts, so this has to come before the goto.
+  await installScreenSettle(page);
   const errs = [];
   page.on('pageerror', (e) => errs.push(e.message));
   page.on('console', (m) => {
@@ -119,7 +123,10 @@ for (const [lang, dark] of [['en', false], ['ar', true], ['en', true], ['ar', fa
       const found = await page.evaluate(async ([s, sel]) => {
         const { useAppStore } = await import('/src/store/appStore.ts');
         useAppStore.getState().nav(s);
-        await new Promise((r) => setTimeout(r, 300));
+        // Not a fixed delay: with App.tsx lazy, 300 ms was sometimes spent
+        // waiting for the chunk, and the assertion then read the Suspense
+        // fallback and reported a missing logo on every screen.
+        await window.__screenSettled();
         const box = document.querySelector(sel);
         const svg = box?.querySelector('svg[data-logo]');
         const r = svg?.getBoundingClientRect();
