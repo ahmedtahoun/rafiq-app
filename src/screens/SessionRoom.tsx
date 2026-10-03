@@ -36,8 +36,6 @@ export default function SessionRoom() {
   const nav = useAppStore((s) => s.nav);
   const back = useAppStore((s) => s.back);
   const role = useAppStore((s) => s.role);
-  const lang = useAppStore((s) => s.lang);
-  const setLang = useAppStore((s) => s.setLang);
   const clientId = useAppStore((s) => s.params).clientId ?? '';
 
   const isPro = role === 'coach';
@@ -113,13 +111,6 @@ export default function SessionRoom() {
           <div className="session-room-type">{sessionTypeLabel}</div>
           <div className="session-room-other">{otherName}</div>
         </div>
-        <button
-          className="session-room-circle"
-          aria-label={t('switchLanguage')}
-          onClick={() => setLang(lang === 'ar' ? 'en' : 'ar')}
-        >
-          {lang === 'ar' ? 'EN' : 'ع'}
-        </button>
       </div>
 
       <div className="session-room-banner">

@@ -252,17 +252,18 @@ test('Arabic RTL + dark', async ({ browser }) => {
 
 test('Retired stubs + navigation', async ({ browser }) => {
   const { page } = await open(browser, { screen: 'clientHome' });
-  await page.locator('.bottom-nav-item').nth(2).click();
-  await page.waitForTimeout(400);
-  expect.soft(String(await screenOf(page)), 'ClientHome programs tab → myPrograms').toBe('myPrograms');
-
-  for (const from of ['clientCoach', 'clientTasks', 'clientSchedule', 'discover']) {
+  // Programs left the tab bar (five tabs a side, 1 Oct 2026); it opens from Your Pro.
+  for (const from of ['clientHome', 'clientCoach', 'clientTasks', 'clientSchedule', 'discover']) {
     await page.evaluate(async (s) => (await import('/src/store/appStore.ts')).useAppStore.getState().nav(s), from);
     await page.waitForTimeout(350);
-    await page.locator('.bottom-nav-item').nth(2).click();
-    await page.waitForTimeout(400);
-    expect.soft(String(await screenOf(page)), `${from} programs tab → myPrograms`).toBe('myPrograms');
+    expect.soft(await page.locator('.bottom-nav-item').count(), `${from}: five tabs`).toBe(5);
+    expect.soft(await page.locator('.bottom-nav-item', { hasText: 'Programs' }).count(), `${from}: no Programs tab`).toBe(0);
   }
+  await page.locator('.bottom-nav-item', { hasText: 'Your Pro' }).click();
+  await page.waitForTimeout(400);
+  await page.locator('.client-coach-quick-wide').click();
+  await page.waitForTimeout(400);
+  expect.soft(String(await screenOf(page)), 'Your Pro → Programs → myPrograms').toBe('myPrograms');
 
   await page.locator('.my-programs-row').first().click();
   await page.waitForTimeout(400);

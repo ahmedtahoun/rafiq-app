@@ -4,7 +4,7 @@ import { useT, type MessageKey } from '../lib/i18n';
 import { useRemoteSession } from '../lib/remoteSession';
 import { fetchOwnPayouts, type PayoutRecord, type PayoutStatus } from '../lib/payoutHistory';
 import { useFormat } from '../lib/format';
-import { ChevronIcon, SunIcon, MoonIcon, ArrowForwardIcon } from '../components/icons';
+import { ChevronIcon, ArrowForwardIcon } from '../components/icons';
 import { darken } from '../lib/color';
 import { getClient, getEarningsSummary, type PaymentStatus } from '../lib/mockStore';
 import './Earnings.css';
@@ -16,8 +16,6 @@ export default function Earnings() {
   const fmt = useFormat();
   const remote = useRemoteSession();
   const back = useAppStore((s) => s.back);
-  const dark = useAppStore((s) => s.dark);
-  const setDark = useAppStore((s) => s.setDark);
   const nav = useAppStore((s) => s.nav);
 
   const summary = getEarningsSummary();
@@ -64,9 +62,6 @@ export default function Earnings() {
           </button>
           <div className="earnings-title">{t('earningsTitle')}</div>
         </div>
-        <button type="button" className="earnings-dark-toggle" aria-label={t('toggleDarkMode')} onClick={() => setDark(!dark)}>
-          {dark ? <SunIcon size={16} /> : <MoonIcon size={16} />}
-        </button>
       </div>
 
       <div className="earnings-body">

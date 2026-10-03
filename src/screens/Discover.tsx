@@ -4,11 +4,11 @@ import { useT } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { useFormat } from '../lib/format';
 import {
-  SearchIcon, FilterIcon, BellIcon, SunIcon, MoonIcon, CloseIcon,
-  StarIcon, CheckIcon, HomeIcon, ProgramsIcon, TasksIcon, ScheduleIcon, PersonIcon,
+  SearchIcon, FilterIcon, BellIcon, CloseIcon,
+  StarIcon, CheckIcon, 
 } from '../components/icons';
 import { SpecialtyIcon } from '../components/specialtyIcons';
-import { BottomNav, type BottomNavItem } from '../components/BottomNav';
+import { MemberTabBar } from '../components/TabBars';
 import { BottomSheet } from '../components/BottomSheet';
 import { CountryPicker } from '../components/CountryPicker';
 import { SPECIALTIES } from '../lib/specialties';
@@ -80,9 +80,6 @@ export default function Discover() {
   const t = useT();
   const { money } = useFormat();
   const lang = useAppStore((s) => s.lang);
-  const setLang = useAppStore((s) => s.setLang);
-  const dark = useAppStore((s) => s.dark);
-  const setDark = useAppStore((s) => s.setDark);
   const nav = useAppStore((s) => s.nav);
   const isAr = lang === 'ar';
 
@@ -149,14 +146,6 @@ export default function Discover() {
     setFavourites(toggleFavouriteCoach(coachId));
   }
 
-  const navItems: BottomNavItem[] = [
-    { key: 'discover', label: t('discoverNav'), icon: SearchIcon, screen: 'discover' },
-    { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'clientHome' },
-    { key: 'programs', label: t('myProgramsNav'), icon: ProgramsIcon, screen: 'myPrograms' },
-    { key: 'tasks', label: t('clientTasksNav'), icon: TasksIcon, screen: 'clientTasks' },
-    { key: 'schedule', label: t('clientScheduleNav'), icon: ScheduleIcon, screen: 'clientSchedule' },
-    { key: 'coach', label: t('clientCoachNav'), icon: PersonIcon, screen: 'clientCoach' },
-  ];
 
   const heroGrad = `linear-gradient(135deg, ${ACCENT_HEX} 0%, ${darken(ACCENT_HEX, 45)} 100%)`;
 
@@ -260,22 +249,6 @@ export default function Discover() {
             <h1 className="discover-title">{t('discoverTitle')}</h1>
           </div>
           <div className="discover-hero-actions">
-            <button
-              type="button"
-              className="discover-hero-btn"
-              aria-label={t('switchLanguage')}
-              onClick={() => setLang(isAr ? 'en' : 'ar')}
-            >
-              {isAr ? 'EN' : 'ع'}
-            </button>
-            <button
-              type="button"
-              className="discover-hero-btn"
-              aria-label={t('toggleDarkMode')}
-              onClick={() => setDark(!dark)}
-            >
-              {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}
-            </button>
             <button
               type="button"
               className="discover-hero-btn"
@@ -487,7 +460,7 @@ export default function Discover() {
         )}
       </div>
 
-      <BottomNav items={navItems} />
+      <MemberTabBar />
 
       <BottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)} title={t('discoverFilterTitle')}>
         <div className="discover-filters">

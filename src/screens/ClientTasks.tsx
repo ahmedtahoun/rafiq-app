@@ -4,10 +4,10 @@ import { isolate, useT, type MessageKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import {
-  MoonIcon, SunIcon, CheckIcon,
-  SearchIcon, HomeIcon, ProgramsIcon, TasksIcon, ScheduleIcon, PersonIcon,
+  CheckIcon,
+  
 } from '../components/icons';
-import { BottomNav, type BottomNavItem } from '../components/BottomNav';
+import { MemberTabBar } from '../components/TabBars';
 import { LoadState } from '../components/LoadState';
 import { NoCoachYet } from '../components/NoCoachYet';
 import { useMemberSpace, type MemberSpaceView } from '../store/memberStore';
@@ -49,12 +49,7 @@ export default function ClientTasks() {
 function ClientTasksView({ space }: { space: Extract<MemberSpaceView, { status: 'ready' }> }) {
   const t = useT();
   const fmt = useFormat();
-  const lang = useAppStore((s) => s.lang);
-  const setLang = useAppStore((s) => s.setLang);
-  const dark = useAppStore((s) => s.dark);
-  const setDark = useAppStore((s) => s.setDark);
   const nav = useAppStore((s) => s.nav);
-  const isAr = lang === 'ar';
 
   const [filter, setFilter] = useState<TaskFilter>('all');
   // A write in flight (a tick or a mood), and whether the last one failed.
@@ -114,14 +109,6 @@ function ClientTasksView({ space }: { space: Extract<MemberSpaceView, { status: 
     void run(() => space.actions.toggleTask(taskId));
   }
 
-  const navItems: BottomNavItem[] = [
-    { key: 'discover', label: t('discoverNav'), icon: SearchIcon, screen: 'discover' },
-    { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'clientHome' },
-    { key: 'programs', label: t('myProgramsNav'), icon: ProgramsIcon, screen: 'myPrograms' },
-    { key: 'tasks', label: t('clientTasksNav'), icon: TasksIcon, screen: 'clientTasks' },
-    { key: 'schedule', label: t('clientScheduleNav'), icon: ScheduleIcon, screen: 'clientSchedule' },
-    { key: 'coach', label: t('clientCoachNav'), icon: PersonIcon, screen: 'clientCoach' },
-  ];
 
   return (
     <div className="phone-frame client-tasks-screen">
@@ -130,24 +117,6 @@ function ClientTasksView({ space }: { space: Extract<MemberSpaceView, { status: 
           <div>
             <h1 className="client-tasks-title">{t('clientTasksTitle')}</h1>
             {rel && <div className="client-tasks-subtitle">{t('clientTasksFromCoach', { coach: isolate(coachName) })}</div>}
-          </div>
-          <div className="client-tasks-hero-actions">
-            <button
-              type="button"
-              className="client-tasks-hero-btn"
-              aria-label={t('switchLanguage')}
-              onClick={() => setLang(isAr ? 'en' : 'ar')}
-            >
-              {isAr ? 'EN' : 'ع'}
-            </button>
-            <button
-              type="button"
-              className="client-tasks-hero-btn"
-              aria-label={t('toggleDarkMode')}
-              onClick={() => setDark(!dark)}
-            >
-              {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}
-            </button>
           </div>
         </div>
       </div>
@@ -287,7 +256,7 @@ function ClientTasksView({ space }: { space: Extract<MemberSpaceView, { status: 
       </>
       )}
 
-      <BottomNav items={navItems} />
+      <MemberTabBar />
     </div>
   );
 }

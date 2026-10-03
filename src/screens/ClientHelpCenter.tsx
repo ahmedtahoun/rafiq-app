@@ -10,11 +10,8 @@ const FAQ_IDS = [1, 2, 3, 4, 5, 6] as const;
 
 export default function ClientHelpCenter() {
   const t = useT();
-  const lang = useAppStore((s) => s.lang);
-  const setLang = useAppStore((s) => s.setLang);
   const nav = useAppStore((s) => s.nav);
   const back = useAppStore((s) => s.back);
-  const isAr = lang === 'ar';
 
   // The design opens the first question by default, so the screen never
   // reads as a wall of unanswered headings.
@@ -29,14 +26,6 @@ export default function ClientHelpCenter() {
           <ChevronIcon size={16} color="currentColor" />
         </button>
         <h1 className="client-help-title">{t('clientHelpTitle')}</h1>
-        <button
-          type="button"
-          className="client-help-lang"
-          aria-label={t('switchLanguage')}
-          onClick={() => setLang(isAr ? 'en' : 'ar')}
-        >
-          {isAr ? 'EN' : 'ع'}
-        </button>
       </div>
 
       <p className="client-help-subtitle">{t('clientHelpSubtitle')}</p>

@@ -26,11 +26,8 @@ export default function MyCoaches() {
 
 function MyCoachesView({ space }: { space: Extract<MemberSpaceView, { status: 'ready' }> }) {
   const t = useT();
-  const lang = useAppStore((s) => s.lang);
-  const setLang = useAppStore((s) => s.setLang);
   const nav = useAppStore((s) => s.nav);
   const back = useAppStore((s) => s.back);
-  const isAr = lang === 'ar';
   const fmt = useFormat();
   const ownRequests = useRemoteLoad('own_requests', space.remote, fetchOwnRequests);
 
@@ -78,14 +75,6 @@ function MyCoachesView({ space }: { space: Extract<MemberSpaceView, { status: 'r
           <ChevronIcon size={16} color="currentColor" />
         </button>
         <h1 className="my-coaches-title">{t('myCoachesTitle')}</h1>
-        <button
-          type="button"
-          className="my-coaches-lang"
-          aria-label={t('switchLanguage')}
-          onClick={() => setLang(isAr ? 'en' : 'ar')}
-        >
-          {isAr ? 'EN' : 'ع'}
-        </button>
       </div>
 
       <div className="my-coaches-scroll">

@@ -3,20 +3,19 @@ import { useAppStore } from '../store/appStore';
 import { useT, dayKey, type MessageKey } from '../lib/i18n';
 import {
   ArrowForwardIcon,
-  ClientsIcon,
+  
   CloseIcon,
-  HomeIcon,
+  
   LockIcon,
-  MessageIcon,
-  MoonIcon,
-  PersonIcon,
-  ScheduleIcon,
-  SunIcon,
+  
+  
+  
+  
+  
   WarningIcon,
 } from '../components/icons';
-import { BottomNav, type BottomNavItem } from '../components/BottomNav';
+import { CoachTabBar } from '../components/TabBars';
 import { BottomSheet } from '../components/BottomSheet';
-import { QuickActions } from '../components/QuickActions';
 import { LoadState } from '../components/LoadState';
 import { useFormat } from '../lib/format';
 import { useRemoteSession } from '../lib/remoteSession';
@@ -189,9 +188,6 @@ function dominantKind(dayBlocks: UIBlock[]): UIKind | null {
 export default function Schedule() {
   const t = useT();
   const lang = useAppStore((s) => s.lang);
-  const setLang = useAppStore((s) => s.setLang);
-  const dark = useAppStore((s) => s.dark);
-  const setDark = useAppStore((s) => s.setDark);
   const nav = useAppStore((s) => s.nav);
   const isAr = lang === 'ar';
 
@@ -724,14 +720,6 @@ export default function Schedule() {
   const scheduleSummary = `${t(dayKey('dowFull', selectedDay))} · ${bookedToday} ${bookedToday === 1 ? t('scheduleSessionBookedOne').split(' ')[0] : t('scheduleSessionBookedMany').split(' ')[0]}${pendingToday ? ` · ${t('schedulePendingSuffix', { n: pendingToday })}` : ''}`;
   const cancelConfirmBody = t('scheduleCancelConfirmBody', { name: activeBlock?.name || t('scheduleThisMember') });
 
-  const navItems: BottomNavItem[] = [
-    { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'main' },
-    { key: 'clients', label: t('mainClientsNav'), icon: ClientsIcon, screen: 'clients' },
-    { key: 'messages', label: t('mainMessagesNav'), icon: MessageIcon, screen: 'messagesInbox' },
-    { key: 'quickActions', label: t('quickActionsTitle'), render: () => <QuickActions context="schedule" /> },
-    { key: 'schedule', label: t('mainSchedule'), icon: ScheduleIcon, screen: 'schedule' },
-    { key: 'profile', label: t('mainProfileNav'), icon: PersonIcon, screen: 'profile' },
-  ];
 
   return (
     <div className="phone-frame schedule-screen">
@@ -747,12 +735,6 @@ export default function Schedule() {
                 <circle cx="12" cy="12" r="9" />
                 <path d="M12 7v5l3.5 2" />
               </svg>
-            </button>
-            <button type="button" className="schedule-hero-icon-btn" aria-label={t('switchLanguage')} onClick={() => setLang(isAr ? 'en' : 'ar')}>
-              <span className="schedule-lang-label">{isAr ? 'EN' : 'ع'}</span>
-            </button>
-            <button type="button" className="schedule-hero-icon-btn" aria-label={t('toggleDarkMode')} onClick={() => setDark(!dark)}>
-              {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}
             </button>
           </div>
         </div>
@@ -935,7 +917,7 @@ export default function Schedule() {
         )}
       </div>
 
-      <BottomNav items={navItems} />
+      <CoachTabBar />
 
       <BottomSheet open={showBlockSheet} onClose={closeBlockSheet}>
         {activeBlock && (

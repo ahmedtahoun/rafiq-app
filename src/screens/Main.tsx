@@ -7,18 +7,18 @@ import {
   ArrowForwardIcon,
   BellIcon,
   CheckIcon,
-  ClientsIcon,
-  HomeIcon,
+  
+  
   MessageIcon,
-  MoonIcon,
+  
   PaymentIcon,
-  PersonIcon,
+  
   ScheduleIcon,
-  SunIcon,
+  
 } from '../components/icons';
 import { Card } from '../components/Card';
 import { BottomSheet } from '../components/BottomSheet';
-import { BottomNav, type BottomNavItem } from '../components/BottomNav';
+import { CoachTabBar } from '../components/TabBars';
 import { LoadState } from '../components/LoadState';
 import { QuickActions } from '../components/QuickActions';
 import {
@@ -175,12 +175,7 @@ function MainView({
 }) {
   const t = useT();
   const fmt = useFormat();
-  const lang = useAppStore((s) => s.lang);
-  const setLang = useAppStore((s) => s.setLang);
-  const dark = useAppStore((s) => s.dark);
-  const setDark = useAppStore((s) => s.setDark);
   const nav = useAppStore((s) => s.nav);
-  const isAr = lang === 'ar';
   const { remote, todayMs } = roster;
 
   const [showNudgeSheet, setShowNudgeSheet] = useState(false);
@@ -335,14 +330,6 @@ function MainView({
     nav(item.messagesHref);
   }
 
-  const navItems: BottomNavItem[] = [
-    { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'main' },
-    { key: 'clients', label: t('mainClientsNav'), icon: ClientsIcon, screen: 'clients' },
-    { key: 'messages', label: t('mainMessagesNav'), icon: MessageIcon, screen: 'messagesInbox' },
-    { key: 'quickActions', label: t('quickActionsTitle'), render: () => <QuickActions context="home" /> },
-    { key: 'schedule', label: t('mainSchedule'), icon: ScheduleIcon, screen: 'schedule' },
-    { key: 'profile', label: t('mainProfileNav'), icon: PersonIcon, screen: 'profile' },
-  ];
 
   const stats: { key: string; value: number; label: string; href: NavTarget }[] = [
     { key: 'members', value: activeCount, label: t('mainStatMembers'), href: { screen: 'clients', params: {} } },
@@ -359,12 +346,11 @@ function MainView({
             {coachName.trim() && <div className="main-name"><bdi>{coachName}</bdi></div>}
           </div>
           <div className="main-hero-actions">
-            <button type="button" className="main-hero-icon-btn" aria-label={t('switchLanguage')} onClick={() => setLang(isAr ? 'en' : 'ar')}>
-              <span className="main-lang-label">{isAr ? 'EN' : 'ع'}</span>
-            </button>
-            <button type="button" className="main-hero-icon-btn" aria-label={t('toggleDarkMode')} onClick={() => setDark(!dark)}>
-              {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}
-            </button>
+            {/* Add a member, book a session, assign a task: what the "+" in
+                the middle of the tab bar used to open. */}
+            <span className="main-hero-qa">
+              <QuickActions context="home" variant="compact" />
+            </span>
             <button
               type="button"
               className="main-hero-icon-btn main-hero-bell"
@@ -566,7 +552,7 @@ function MainView({
         </div>
       </div>
 
-      <BottomNav items={navItems} />
+      <CoachTabBar />
 
       <BottomSheet open={showNudgeSheet} onClose={() => setShowNudgeSheet(false)} title={t('mainNudgeSheetTitle')}>
         <div className="main-nudge-sub">{t('mainNudgeSheetSub')}</div>
