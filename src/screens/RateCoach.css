@@ -162,6 +162,15 @@
   padding: 16px 24px max(24px, var(--safe-bottom));
 }
 
+.rate-coach-error {
+  margin-block-end: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--red);
+  text-align: center;
+}
+
 .rate-coach-submit {
   width: 100%;
   border: none;

@@ -258,7 +258,7 @@ relationships through `src/store/memberStore.ts`'s `useMemberSpace()`:
   sessions, a booked one). Signed in, it used to read the demo member's,
   which always has sessions left.
 - **Still the demo member's, signed in:** Schedule and Booking (step 4),
-  Messages (step 5), Notifications, Programs and RateCoach (step 6), and
+  Messages (step 5), Notifications and Programs (step 6), and
   Discover's goal matching — Discover's coaches are real since step 4. Each reads `DEMO_MEMBER_CLIENT_ID` from mockStore with a note
   naming its step, so what's left is one grep. The pieces of converted
   screens that belong to those steps (milestones, the live-session badge,
@@ -438,6 +438,20 @@ In small PRs, so each can be reviewed on its own:
    session" open the coach's page signed in, like Sessions does; the
    demo booking screen is still reached from the programs screens, which
    are step 6's.
+
+## Step 6, the member side: rating a session
+
+No schema change. A past session the member had (attended, or not yet
+marked; never one they missed or that was cancelled) has a Rate button on
+their Sessions screen, or its stars once rated: fetchMemberSchedule reads
+the relationship's `ratings`. RateCoach, signed in, rates the session named
+by `params.sessionId` (src/lib/ratingData.ts): one `ratings` row with the
+relationship, its coach and the session (ratings_write_member; one per
+session, so a second is "already rated", 23505). An empty comment is
+stored as null, so it is no public review. A failed save keeps what they
+wrote and says so. Rating a finished program (the milestone card) stays
+the demo's until Home's milestones move (step 6, demo identities).
+Tests: tests/member-rate.spec.js.
 
 ## Testing this kind of code
 
