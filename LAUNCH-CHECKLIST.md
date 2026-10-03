@@ -83,9 +83,12 @@ as done below, when signed in; every other screen still reads and writes
       demo booking screen), Rate coach (rating a session they had, from
       their Sessions screen, writes `ratings`), the reviews on a coach's
       page and Discover (members' own, from `coach_reviews`, signed with a
-      first name and last initial), and the member's Notifications and
-      Home's bell dot (their own `notifications`, marked read when
-      opened). `grep -rl DEMO_MEMBER_CLIENT_ID src/screens`
+      first name and last initial), the member's Notifications and Home's
+      bell dot (their own `notifications`, marked read when opened), and
+      the demo booking screen (signed in it is never shown — a member who
+      lands on it gets their coach's own page, on the real clock; signed
+      out it takes the demo week from `TODAY_MS`).
+      `grep -rl DEMO_MEMBER_CLIENT_ID src/screens`
       lists 12 files, most of them only for the signed-out demo path.
 - [ ] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,

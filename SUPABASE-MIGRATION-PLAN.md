@@ -459,7 +459,7 @@ in place.
   from the `coach_reviews` view, signed with its `reviewer_name` (first
   name and last initial) — never a reviewer's full name.
 - ✅ **The member's Notifications** → `notifications`, and Home's dot.
-- **The real clock** in ClientBooking, ClientSchedule and CoachPreview.
+- ✅ **The real clock** in ClientBooking, ClientSchedule and CoachPreview.
 - **The demo member is demo-only**: nothing signed in reads
   `DEMO_MEMBER_CLIENT_ID`.
 
@@ -520,6 +520,20 @@ whether any of them is unread, re-read each time Home mounts; a failed
 read shows no dot. Nothing yet tells a member when a coach accepts or
 declines their request: that would need a trigger (a later migration).
 Tests: tests/member-notifications.spec.js.
+
+## Step 6, the member side: the real clock
+
+No schema change. Signed in, the member's calendars were already on the
+real clock (their Sessions screen and the coach's page take today from
+`wallTodayMs()` and the week from `weekdayOf`); the demo booking screen
+(ClientBooking) was the gap. Signed in it is never shown now: a member who
+lands on it (an old back stack) gets their coach's own page in its place
+(`RemoteCoachPreview`), or "No coach yet". Signed out, ClientBooking,
+ClientSchedule and CoachPreview no longer hardcode `TODAY_INDEX`, the
+week's dates or the .ics year and month: they derive them from the demo's
+`TODAY_MS` and `getMonthAnchorMs()` (CLAUDE.md), so the demo stays on its
+fixed week whatever the real date. `TODAY_INDEX` is left only in the
+coach's Schedule. Tests: tests/member-real-clock.spec.js.
 
 ## Testing this kind of code
 
