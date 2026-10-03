@@ -100,15 +100,6 @@ test('signed out, the demo booking stays on its fixed week whatever the real dat
   await ctx.close();
 });
 
-test('signed out, the demo coach page keeps the fixed week too', async ({ browser }) => {
-  const { page, ctx, errs } = await open(browser, { signedIn: false, screen: 'discover' });
-  await page.locator('.discover-card').first().click();
-  await expect(page.locator('.coach-preview-screen')).toBeVisible();
-  // The demo's first week is October 2025's, from today (Wednesday) on.
-  await expect(page.locator('.coach-preview-week-label')).toContainText(/Oct/);
-  // The demo's week runs Mon 20 – Sun 26; Wednesday the 22nd is today, picked.
-  await expect(page.locator('.coach-preview-day').first()).toContainText('20');
-  await expect(page.locator('.coach-preview-day-on')).toContainText('22');
-  expect(errs).toEqual([]);
-  await ctx.close();
-});
+// The signed-out demo coach page was removed with the fictional coaches
+// (#101), so its fixed-week check went with it; signed out, every coach link
+// now shows "not available" (tests/discover.spec.js).

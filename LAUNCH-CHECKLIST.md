@@ -99,9 +99,13 @@ as done below, when signed in; every other screen still reads and writes
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,
       the 8 fictional `DIRECTORY_COACHES`, and any other `DEFAULT_*` seed.
       Apple rejects placeholder content, and fake coaches in a marketplace
-      mislead users. Signed out, Discover still shows the 8 fictional
-      coaches (found by #73) — decide whether the signed-out demo stays at
-      all; App Review signs in, but a reviewer may look first.
+      mislead users. Decided (3 Oct 2026): the signed-out demo stays, and
+      only the fictional coaches go. Done for the coaches: the 8
+      `DIRECTORY_COACHES`, their sample "Member Stories", and the demo coach
+      page with its invented review quote, bio and member count are removed;
+      signed out, Discover shows its "No pros yet" state and a coach link is
+      "not available". Left: the other `DEFAULT_*` seeds, which the
+      signed-out demo still runs on (the decision keeps them).
 - [ ] 🔴 **Use the real clock.** Calendar maths runs on a fixed fictional week
       (`TODAY_MS = Date.UTC(2025, 9, 22)`; screens hardcode `TODAY_INDEX = 2`).
       Real users would see October 2025. Replace with the current time, and
