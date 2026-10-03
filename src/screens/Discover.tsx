@@ -22,7 +22,7 @@ import { useRemoteLoad } from '../store/remoteLoad';
 import {
   getDirectoryCoaches, getTrendingCoaches, filterCoaches, hasActiveFilters,
   getFavouriteCoaches, toggleFavouriteCoach, initialsOf, countryFlagOf,
-  NO_FILTERS, type DirectoryCoach, type DirectoryFilters,
+  DEMO_DIRECTORY, NO_FILTERS, type DirectoryCoach, type DirectoryFilters,
 } from '../lib/directory';
 import './Discover.css';
 
@@ -61,11 +61,27 @@ function specialtyColour(coaches: DirectoryCoach[], value: string): string {
 // carries it — the app has no cross-coach review store, and inventing one
 // silently would put fabricated numbers on screen. Kept beside the copy
 // it belongs to so it is obvious what is real and what is a sample.
-const STORY_KEYS = [
+//
+// The two reviewers are no more real than the coaches they are
+// reviewing, so they are gated on the same DEMO_DIRECTORY flag and a
+// production build carries neither their names nor their words. The
+// section already sits inside the `!directoryEmpty` branch, so an empty
+// directory hides it either way; emptying the data as well is what keeps
+// the invented testimonials out of the shipped file.
+interface Story {
+  id: string;
+  coachId: string;
+  reviewer: string;
+  reviewerAr: string;
+  color: string;
+  daysAgo: number;
+  helpful: number;
+}
+const STORY_KEYS: Story[] = !DEMO_DIRECTORY ? [] : [
   { id: 's1', coachId: 'mariam', reviewer: 'Nour Hassan', reviewerAr: 'نور حسن', color: '#7A7166', daysAgo: 2, helpful: 24 },
   { id: 's2', coachId: 'dina', reviewer: 'Omar Fathy', reviewerAr: 'عمر فتحي', color: '#3E6FB0', daysAgo: 5, helpful: 18 },
 ];
-const STORY_QUOTES: Record<string, { en: string; ar: string }> = {
+const STORY_QUOTES: Record<string, { en: string; ar: string }> = !DEMO_DIRECTORY ? {} : {
   s1: {
     en: 'The meditation sessions completely changed how I handle stress. Highly recommend.',
     ar: 'جلسات التأمل غيّرت طريقة تعاملي مع التوتر تمامًا. أنصح بها بشدة.',

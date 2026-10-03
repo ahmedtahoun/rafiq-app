@@ -35,7 +35,9 @@ calendar time no matter how fast the code moves:
       store payouts and signs the App Store Paid Apps agreement.
 - [ ] 🟡 **Launch coaches.** Discover must not open empty or with fake coaches
       (see §2). Recruit a first set of real coaches who finish signup before
-      public launch.
+      public launch. The fake half is now closed: a production build has no
+      demo coaches at all, so until real pros sign up Discover opens on
+      "No pros yet" — honest, and empty. This is the item that fills it.
 
 ## 2. Connect the app to the database (Dev)
 
@@ -85,9 +87,19 @@ as done below, when signed in; every other screen still reads and writes
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,
       the 8 fictional `DIRECTORY_COACHES`, and any other `DEFAULT_*` seed.
       Apple rejects placeholder content, and fake coaches in a marketplace
-      mislead users. Signed out, Discover still shows the 8 fictional
-      coaches (found by #73) — decide whether the signed-out demo stays at
-      all; App Review signs in, but a reviewer may look first.
+      mislead users.
+      Discover's share of this is done, by gating rather than deleting:
+      `DEMO_DIRECTORY` is false in a `vite build`, so the 8 coaches and the
+      2 invented member stories are absent from the shipped bundle and
+      Discover opens on "No pros yet", while the demo stays whole in dev
+      and in the suite. `tests/demo-content.spec.js` builds the app and
+      fails if an invented name reaches `dist/`.
+      Left: the Pro side. `DEFAULT_CLIENTS` and the rest of mockStore's
+      seed still ship, and two of those demo members (the Pro's roster,
+      plus a hardcoded label in `Schedule.tsx`) are the same people who
+      reviewed coaches on Discover. Whoever finishes the mockStore
+      migration should take the same decision there — delete or gate —
+      and add those names to the spec's list.
 - [ ] 🔴 **Use the real clock.** Calendar maths runs on a fixed fictional week
       (`TODAY_MS = Date.UTC(2025, 9, 22)`; screens hardcode `TODAY_INDEX = 2`).
       Real users would see October 2025. Replace with the current time, and
