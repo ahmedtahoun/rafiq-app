@@ -143,8 +143,20 @@ Two runs on one commit produce the same images:
   renders in a fallback face;
 - the shots run one at a time (`workers: 1`).
 
-The server runs on port **5174**, so a run never fights a dev server
-already on 5173.
+## Safe to run next to `npm test`
+
+The server runs on port **5174** and prebundles its dependencies into
+`store/screenshots/.vite`, not the `node_modules/.vite` that `npm test`'s
+server on 5173 owns. Both halves are needed, and the second was learned
+the hard way: running the two concurrently on a shared dep cache made
+eight unrelated tests fail — a blank Discover list, a status-bar test,
+a month-grid helper — none of which had anything to do with either
+change. CLAUDE.md's "a blank screen is almost never your code" is the
+same failure, and the wasted 13-minute run is why the cache is split
+rather than merely documented.
+
+`vite.config.ts` reads `RAFIQ_VITE_CACHE_DIR`; unset, it is Vite's own
+default, so `npm run dev`, `npm test` and CI are untouched.
 
 ## Capturing the frame
 
