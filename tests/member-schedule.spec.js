@@ -107,10 +107,13 @@ test('signed in: the real next session, and what has happened — never the demo
   await expect(history).toHaveCount(2);
   await expect(history.nth(0)).toContainText('Missed session');
   await expect(history.nth(1)).toContainText('Great first week');
-  // Moving is a request to the coach (member-move.spec.js); joining and
-  // rating aren't real yet signed in.
+  // Moving is a request to the coach (member-move.spec.js); joining isn't
+  // real yet signed in. Rating is (member-rate.spec.js), for a session
+  // they attended, not the one they missed.
   await expect(card(page).getByRole('button', { name: 'Reschedule', exact: true })).toBeVisible();
-  for (const name of ['Join Session', 'Rate']) await expect(frame(page).getByRole('button', { name, exact: true })).toHaveCount(0);
+  await expect(frame(page).getByRole('button', { name: 'Join Session', exact: true })).toHaveCount(0);
+  await expect(history.nth(0).getByRole('button', { name: 'Rate', exact: true })).toHaveCount(0);
+  await expect(history.nth(1).getByRole('button', { name: 'Rate', exact: true })).toBeVisible();
   await expect(frame(page)).not.toContainText(DEMO);
   expect(errs).toEqual([]);
   await ctx.close();

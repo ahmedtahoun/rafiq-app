@@ -708,6 +708,20 @@ function LiveClientSchedule({ rel }: { rel: MemberRelationshipView | null }) {
                       <bdi>{s.recap.trim() || t(noteKey ?? 'clientScheduleDefaultNote')}</bdi>
                     </div>
                   </div>
+                  {/* A missed session isn't one to rate (step 6). */}
+                  {s.rating !== null ? (
+                    <span className="client-schedule-rated" aria-label={t('rateCoachStarLabel', { n: s.rating })}>
+                      {'★'.repeat(s.rating)}
+                    </span>
+                  ) : s.attendance !== 'no_show' && (
+                    <button
+                      type="button"
+                      className="client-schedule-rate"
+                      onClick={() => nav({ screen: 'rateCoach', params: { sessionId: s.id } })}
+                    >
+                      {t('clientScheduleRate')}
+                    </button>
+                  )}
                 </div>
               );
             })

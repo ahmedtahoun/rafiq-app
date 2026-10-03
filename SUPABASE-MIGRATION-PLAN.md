@@ -258,8 +258,8 @@ relationships through `src/store/memberStore.ts`'s `useMemberSpace()`:
   sessions, a booked one). Signed in, it used to read the demo member's,
   which always has sessions left.
 - **Still the demo member's, signed in:** Schedule and Booking (step 4),
-  Messages (step 5), Notifications, Programs and RateCoach (step 6), and
-  Discover's goal matching — Discover's coaches are real since step 4. Each reads `DEMO_MEMBER_CLIENT_ID` from mockStore with a note
+  Messages (step 5).
+  Each reads `DEMO_MEMBER_CLIENT_ID` from mockStore with a note
   naming its step, so what's left is one grep. The pieces of converted
   screens that belong to those steps (milestones, the live-session badge,
   the agreement, the Full Access upgrade and standing slot) are hidden
@@ -438,6 +438,88 @@ In small PRs, so each can be reviewed on its own:
    session" open the coach's page signed in, like Sessions does; the
    demo booking screen is still reached from the programs screens, which
    are step 6's.
+
+## Step 6, the member side
+
+What is left of the member app on `mockStore` when signed in, in small PRs
+(LAUNCH-CHECKLIST §2, "Remove the demo identities"). None needs a schema
+change: the tables, their policies and the `coach_reviews` view are all
+in place.
+
+- ✅ **Discover's goal matching.** Signed in, the goal is the member's own
+  focus from onboarding (`member_profiles.focus`, `memberData.ts`'s
+  `fetchOwnFocus`). Onboarding stores a stable slug, the `icon` key of a
+  `SPECIALTIES` entry, so it matches coaches by that entry's value. It is
+  read with the directory: a failed read shows retry, never the demo
+  member's goal. "Recommended for you" and "Matches your goal" show only
+  when a coach on the list matches it; no focus, or a search, reads "Pros
+  on Rafiq".
+- ✅ **My Programs and Program Detail** → the member's `enrollments`.
+- ✅ **Rate Coach** → `ratings`; reviews on the coach's page and Discover
+  from the `coach_reviews` view, signed with its `reviewer_name` (first
+  name and last initial) — never a reviewer's full name.
+- ✅ **The member's Notifications** → `notifications`, and Home's dot.
+- ✅ **The real clock** in ClientBooking, ClientSchedule and CoachPreview.
+- **The demo member is demo-only**: nothing signed in reads
+  `DEMO_MEMBER_CLIENT_ID`.
+
+## Step 6, the member side: programs
+
+No schema change. My Programs and Program Detail read the member's own
+`enrollments` for the relationship being viewed (src/lib/programData.ts;
+enrollments_select via can_see_client), each joined to its offering
+(offerings_select_all, archived ones included, so a program the coach has
+stopped selling keeps its name). Progress is worked out by mockStore's
+`programProgressOf`, the same as the demo's. The enrolled date is a real
+instant (`fmt.instantDate`); "Reviewed" is `milestone_reviewed_at`. The
+goal is the coach's for the relationship, else the member's own from
+onboarding (member_profiles.goal), else no goal card: never the demo's
+fallback. Program Detail is opened with `params.offeringId`. "Book a
+session" opens the coach's page (`bookSessionTarget`), never ClientBooking.
+A failed read shows LoadState with retry. Tests: tests/member-programs.spec.js.
+
+## Step 6, the member side: rating a session
+
+No schema change. A past session the member had (attended, or not yet
+marked; never one they missed or that was cancelled) has a Rate button on
+their Sessions screen, or its stars once rated: fetchMemberSchedule reads
+the relationship's `ratings`. RateCoach, signed in, rates the session named
+by `params.sessionId` (src/lib/ratingData.ts): one `ratings` row with the
+relationship, its coach and the session (ratings_write_member; one per
+session, so a second is "already rated", 23505). An empty comment is
+stored as null, so it is no public review. A failed save keeps what they
+wrote and says so. Rating a finished program (the milestone card) stays
+the demo's until Home's milestones move (step 6, demo identities).
+Tests: tests/member-rate.spec.js.
+
+## Step 6, the member side: reviews
+
+No schema change. Signed in, a coach's page and Discover's "Member
+Stories" show members' own reviews from the `coach_reviews` view
+(src/lib/reviewData.ts): only ratings with a comment, signed with
+`reviewer_name` (first name and last initial). Nothing joins back to
+`profiles.full_name` or `clients.full_name`: a reviewer's full name must
+not be public. The coach's page shows their 5 newest, beside the average
+once there are enough ratings for one; Discover shows the 3 newest of
+coaches on the list. Signed out, Discover keeps its sample stories. A
+failed read shows LoadState with retry. Tests: tests/coach-reviews.spec.js.
+
+## Step 6, the member side: notifications
+
+No schema change. Signed in, the member's Notifications screen is their
+own `notifications` rows (src/lib/notificationData.ts;
+notifications_select_own), newest 50, of the four kinds the database
+sends a member today: a message from their coach (0002), a payment
+recorded (0002), and a session their coach moved or cancelled (0011).
+Other kinds are left out rather than shown blank, and payloads are read
+defensively. Session times are wall-clock. Opening one marks it read
+(notifications_update_own: `read_at` only, where it is still null),
+switches to the relationship it is about, and opens its screen; "Mark all
+read" marks only theirs, and says so if it fails. Home's bell dot is
+whether any of them is unread, re-read each time Home mounts; a failed
+read shows no dot. Nothing yet tells a member when a coach accepts or
+declines their request: that would need a trigger (a later migration).
+Tests: tests/member-notifications.spec.js.
 
 ## Step 6, the member side: the real clock
 

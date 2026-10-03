@@ -46,7 +46,7 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
     const NETWORK = { message: 'network down', code: '08006' };
 
     function run(q) {
-      log({ table: q.table, op: q.op, values: q.values ?? null, filters: q.filters, ...(q.columns ? { columns: q.columns } : {}), ...(q.order ? { order: q.order } : {}) });
+      log({ table: q.table, op: q.op, values: q.values ?? null, filters: q.filters, ...(q.columns ? { columns: q.columns } : {}), ...(q.order ? { order: q.order } : {}), ...(q.limit != null ? { limit: q.limit } : {}) });
       if (failing(q.table) || failing(`${q.table}.${q.op}`)) return { data: null, error: NETWORK };
       const refused = window.__fake.refuse[`${q.table}.${q.op}`];
       if (refused) return { data: null, error: { message: `refused (${refused})`, code: refused } };
@@ -65,7 +65,8 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
           const [col, asc] = q.order;
           matches.sort((a, b) => (a[col] < b[col] ? -1 : a[col] > b[col] ? 1 : 0) * (asc ? 1 : -1));
         }
-        return { data: q.single ? matches[0] ?? null : matches, error: null };
+        const limited = q.limit != null ? matches.slice(0, q.limit) : matches;
+        return { data: q.single ? limited[0] ?? null : limited, error: null };
       }
       if (q.op === 'update') {
         for (const r of matches) Object.assign(r, q.values);
@@ -107,6 +108,7 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
         lt(col, val) { q.filters.push([col, val, 'lt']); return b; },
         is(col, val) { q.filters.push([col, val, 'is']); return b; },
         order(col, { ascending = true } = {}) { q.order = [col, ascending]; return b; },
+        limit(n) { q.limit = n; return b; },
         maybeSingle() { q.single = true; return b; },
         single() { q.single = true; return b; },
         then(resolve, reject) { return Promise.resolve().then(() => run(q)).then(resolve, reject); },
