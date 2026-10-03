@@ -6,21 +6,20 @@ import { darken } from '../lib/color';
 import {
   ArrowForwardIcon,
   CheckCircleIcon,
-  ClientsIcon,
+  
   FilterIcon,
-  HomeIcon,
-  MessageIcon,
-  MoonIcon,
+  
+  
+  
   PaymentIcon,
-  PersonIcon,
+  
   PlusIcon,
-  ScheduleIcon,
+  
   SearchIcon,
   StarIcon,
-  SunIcon,
+  
 } from '../components/icons';
-import { BottomNav, type BottomNavItem } from '../components/BottomNav';
-import { QuickActions } from '../components/QuickActions';
+import { CoachTabBar } from '../components/TabBars';
 import { BottomSheet } from '../components/BottomSheet';
 import { LoadState } from '../components/LoadState';
 import { useRoster, type RosterView } from '../store/rosterStore';
@@ -43,12 +42,7 @@ export default function Clients() {
 function ClientsView({ roster }: { roster: Extract<RosterView, { status: 'ready' }> }) {
   const t = useT();
   const fmt = useFormat();
-  const lang = useAppStore((s) => s.lang);
-  const setLang = useAppStore((s) => s.setLang);
-  const dark = useAppStore((s) => s.dark);
-  const setDark = useAppStore((s) => s.setDark);
   const nav = useAppStore((s) => s.nav);
-  const isAr = lang === 'ar';
 
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<StatusFilter>('all');
@@ -82,10 +76,8 @@ function ClientsView({ roster }: { roster: Extract<RosterView, { status: 'ready'
     return true;
   });
 
-  const circ = 2 * Math.PI * 16;
   const clients = visible.map((c) => {
     const isFav = !!favorites[c.id];
-    const progressColor = c.progress >= 70 ? 'var(--green)' : c.progress >= 40 ? 'var(--amber)' : 'var(--red)';
 
     let statusKind: 'inactive' | 'paymentOverdue' | 'taskOverdue' | 'paymentDue' | null = null;
     if (!c.active) statusKind = 'inactive';
@@ -104,9 +96,6 @@ function ClientsView({ roster }: { roster: Extract<RosterView, { status: 'ready'
     return {
       client: c,
       detailHref: getClientDetailHref(c.id),
-      progressLabel: `${c.progress}%`,
-      progressColor,
-      dash: `${((circ * c.progress) / 100).toFixed(1)} ${circ.toFixed(1)}`,
       avatarGrad: `linear-gradient(135deg, ${c.avatarBg} 0%, ${darken(c.avatarBg, 35)} 100%)`,
       avatarGlow: `${c.avatarBg}66`,
       nextColor: c.nextSessionAtMs != null ? 'var(--accent)' : 'var(--ink-soft)',
@@ -137,14 +126,6 @@ function ClientsView({ roster }: { roster: Extract<RosterView, { status: 'ready'
   const hasActiveFilters = filter !== 'all' || specialtyFilter !== 'all';
   const showCapBanner = !isPro && statActive >= FREE_MEMBER_CAP;
 
-  const navItems: BottomNavItem[] = [
-    { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'main' },
-    { key: 'clients', label: t('mainClientsNav'), icon: ClientsIcon, screen: 'clients' },
-    { key: 'messages', label: t('mainMessagesNav'), icon: MessageIcon, screen: 'messagesInbox' },
-    { key: 'quickActions', label: t('quickActionsTitle'), render: () => <QuickActions context="members" /> },
-    { key: 'schedule', label: t('mainSchedule'), icon: ScheduleIcon, screen: 'schedule' },
-    { key: 'profile', label: t('mainProfileNav'), icon: PersonIcon, screen: 'profile' },
-  ];
 
   return (
     <div className="phone-frame clients-screen">
@@ -155,12 +136,6 @@ function ClientsView({ roster }: { roster: Extract<RosterView, { status: 'ready'
             <div className="clients-title">{t('clientsTitle')}</div>
           </div>
           <div className="clients-hero-actions">
-            <button type="button" className="clients-hero-icon-btn" aria-label={t('switchLanguage')} onClick={() => setLang(isAr ? 'en' : 'ar')}>
-              <span className="clients-lang-label">{isAr ? 'EN' : 'ع'}</span>
-            </button>
-            <button type="button" className="clients-hero-icon-btn" aria-label={t('toggleDarkMode')} onClick={() => setDark(!dark)}>
-              {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}
-            </button>
             <button type="button" className="clients-add-btn" aria-label={t('clientsAddMember')} onClick={() => nav('addClient')}>
               <PlusIcon size={18} color="var(--accent)" />
             </button>
@@ -227,14 +202,17 @@ function ClientsView({ roster }: { roster: Extract<RosterView, { status: 'ready'
       <div className="clients-list">
         {clients.length > 0 ? (
           clients.map((row) => (
+            // Name, programme, next session, one status, and the favourite
+            // star. The progress ring and the per-card "+" are on the
+            // member's own page; seven things a card was too many to scan.
             <div key={row.client.id} className="clients-card">
               <button type="button" className="clients-card-main" onClick={() => nav(row.detailHref)}>
                 <div className="clients-avatar" style={{ background: row.avatarGrad, boxShadow: `0 10px 18px -8px ${row.avatarGlow}` }}>
                   {row.client.initials}
                 </div>
                 <div className="clients-card-text">
-                  <div className="clients-card-name">{row.client.name}</div>
-                  <div className="clients-card-program" style={{ color: row.client.avatarBg }}>{row.client.program}</div>
+                  <div className="clients-card-name"><bdi>{row.client.name}</bdi></div>
+                  <div className="clients-card-program"><bdi>{row.client.program}</bdi></div>
                   <div className="clients-card-next" style={{ color: row.nextColor }}>{row.nextText}</div>
                   {row.status && (
                     <div className="clients-status-badge" style={{ background: row.status.bg }}>
@@ -259,15 +237,7 @@ function ClientsView({ roster }: { roster: Extract<RosterView, { status: 'ready'
                 >
                   <StarIcon size={12} color={row.isFav ? 'var(--accent)' : 'var(--ink-soft)'} filled={row.isFav} />
                 </button>
-                <button type="button" className="clients-progress-ring" aria-label={t('clientsViewProgress', { name: row.client.name })} onClick={() => nav(row.detailHref)}>
-                  <svg width="40" height="40" viewBox="0 0 40 40" style={{ transform: 'rotate(-90deg)' }}>
-                    <circle cx="20" cy="20" r="16" fill="none" stroke="var(--line)" strokeWidth="4" />
-                    <circle cx="20" cy="20" r="16" fill="none" stroke={row.progressColor} strokeWidth="4" strokeLinecap="round" strokeDasharray={row.dash} />
-                  </svg>
-                  <span className="clients-progress-num" style={{ color: row.progressColor }}>{row.progressLabel}</span>
-                </button>
               </div>
-              <QuickActions context="member" memberId={row.client.id} variant="compact" />
             </div>
           ))
         ) : (
@@ -287,7 +257,7 @@ function ClientsView({ roster }: { roster: Extract<RosterView, { status: 'ready'
         )}
       </div>
 
-      <BottomNav items={navItems} />
+      <CoachTabBar />
 
       <BottomSheet open={showFilterSheet} onClose={() => setShowFilterSheet(false)} title={t('clientsFilterTitle')}>
         <div className="clients-filter-group">

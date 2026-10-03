@@ -61,10 +61,16 @@ as done below, when signed in; every other screen still reads and writes
       (their real week, busy time, moving and cancelling a booking, and
       recording attendance, which uses a package credit), messaging (both
       threads, the inbox, live updates and blocking, `0014`), and client
-      invites (a coach invites a walk-in member by code, `0013`). Still on
-      `mockStore` when signed in: the coach's Home (apart from the bell),
-      Profile stats, Earnings' totals, and the member screens listed under
-      the demo identities below — Reem's current tasks.
+      invites (a coach invites a walk-in member by code, `0013`). The coach's Home is real
+      too (2026-10-01): their name, counts, today's booked sessions, who
+      needs them, and a "Get set up" list for a new coach. Offerings, OfferingDetail
+      and Preview Profile's offerings are real too (2026-10-03): a coach
+      creates, edits and archives their own `offerings` rows, which is what
+      members book from, and "Add what you offer" is a Home setup step.
+      Still on `mockStore` when signed in: Home's package and follow-up
+      alerts, Profile stats, Earnings' totals, and the
+      member screens listed under the demo identities below — Reem's
+      current tasks.
 - [ ] 🔴 **Remove the demo identities.** 14 member screens hardcoded
       `const CLIENT_ID = 'sara'`, and the Pro side is the seeded
       `DEFAULT_PRO_ID = 'pro-yasmin'`. Both must come from the signed-in user.
@@ -279,6 +285,14 @@ builds".
 - [x] targetSdk 36 (`android/variables.gradle`).
 
 ### Both
+- [ ] 🟡 **A public coach page, then Share again.** Profile's Share button
+      is hidden (2026-10-01). ShareProfile's link is `rafiq.app/pro/<slug>`, a
+      domain Rafiq doesn't own, to a page that doesn't exist; its QR code
+      encodes the same link, its channel buttons only show a toast, and its
+      member count reads the demo roster even signed in. Build the coach's
+      public page with a booking button first (competitor teardown, build
+      #1), then rebuild Share around its real address and bring the button
+      back (`tests/ux-fixes.spec.js` checks it's gone until then).
 - [x] 🔴 **Push notifications, or honest toggles.** Profile screens offer
       "Session reminders", "Task reminders" and "Payment reminders", but the
       app has no push notifications (no `@capacitor/push-notifications`, no

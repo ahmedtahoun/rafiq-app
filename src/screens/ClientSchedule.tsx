@@ -4,10 +4,10 @@ import { useT, dayKey, type MessageKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import {
-  MoonIcon, SunIcon, ArrowForwardIcon, CheckIcon, ScheduleIcon, WarningIcon,
-  SearchIcon, HomeIcon, ProgramsIcon, TasksIcon, PersonIcon,
+  ArrowForwardIcon, CheckIcon, ScheduleIcon, WarningIcon,
+  
 } from '../components/icons';
-import { BottomNav, type BottomNavItem } from '../components/BottomNav';
+import { MemberTabBar } from '../components/TabBars';
 import { LoadState } from '../components/LoadState';
 import { NoCoachYet } from '../components/NoCoachYet';
 import { useRemoteSession } from '../lib/remoteSession';
@@ -54,49 +54,14 @@ function hourLabel(h: number, am: string, pm: string): string {
   return `${hh}:${String(mins).padStart(2, '0')} ${period}`;
 }
 
-function useNavItems(): BottomNavItem[] {
-  const t = useT();
-  return [
-    { key: 'discover', label: t('discoverNav'), icon: SearchIcon, screen: 'discover' },
-    { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'clientHome' },
-    { key: 'programs', label: t('myProgramsNav'), icon: ProgramsIcon, screen: 'myPrograms' },
-    { key: 'tasks', label: t('clientTasksNav'), icon: TasksIcon, screen: 'clientTasks' },
-    { key: 'schedule', label: t('clientScheduleNav'), icon: ScheduleIcon, screen: 'clientSchedule' },
-    { key: 'coach', label: t('clientCoachNav'), icon: PersonIcon, screen: 'clientCoach' },
-  ];
-}
-
 /** The title, whose sessions these are, and the language and theme toggles. */
 function HeroTop({ coachName }: { coachName: string | null }) {
   const t = useT();
-  const lang = useAppStore((s) => s.lang);
-  const setLang = useAppStore((s) => s.setLang);
-  const dark = useAppStore((s) => s.dark);
-  const setDark = useAppStore((s) => s.setDark);
-  const isAr = lang === 'ar';
   return (
     <div className="client-schedule-hero-top">
       <div>
         <h1 className="client-schedule-title">{t('clientScheduleTitle')}</h1>
         {coachName && <div className="client-schedule-subtitle">{t('clientScheduleWithCoach', { coach: coachName })}</div>}
-      </div>
-      <div className="client-schedule-hero-actions">
-        <button
-          type="button"
-          className="client-schedule-hero-btn"
-          aria-label={t('switchLanguage')}
-          onClick={() => setLang(isAr ? 'en' : 'ar')}
-        >
-          {isAr ? 'EN' : 'ع'}
-        </button>
-        <button
-          type="button"
-          className="client-schedule-hero-btn"
-          aria-label={t('toggleDarkMode')}
-          onClick={() => setDark(!dark)}
-        >
-          {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}
-        </button>
       </div>
     </div>
   );
@@ -281,7 +246,6 @@ function DemoClientSchedule() {
     refresh();
   }
 
-  const navItems = useNavItems();
 
   return (
     <div className="phone-frame client-schedule-screen">
@@ -494,7 +458,7 @@ function DemoClientSchedule() {
         </div>
       )}
 
-      <BottomNav items={navItems} />
+      <MemberTabBar />
     </div>
   );
 }
@@ -515,7 +479,6 @@ function LiveClientSchedule({ rel }: { rel: MemberRelationshipView | null }) {
   const t = useT();
   const fmt = useFormat();
   const nav = useAppStore((s) => s.nav);
-  const navItems = useNavItems();
   const heroGrad = `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 40)} 100%)`;
   const coachId = rel?.coach.id ?? null;
 
@@ -543,7 +506,7 @@ function LiveClientSchedule({ rel }: { rel: MemberRelationshipView | null }) {
         <div className="client-schedule-scroll">
           <NoCoachYet />
         </div>
-        <BottomNav items={navItems} />
+        <MemberTabBar />
       </div>
     );
   }
@@ -867,7 +830,7 @@ function LiveClientSchedule({ rel }: { rel: MemberRelationshipView | null }) {
         </div>
       )}
 
-      <BottomNav items={navItems} />
+      <MemberTabBar />
     </div>
   );
 }

@@ -6,7 +6,7 @@ import { useFormat } from '../lib/format';
 import { ChevronIcon, CheckIcon, StarIcon, MessageIcon, ScheduleIcon } from '../components/icons';
 import { LoadState } from '../components/LoadState';
 import { SPECIALTIES } from '../lib/specialties';
-import { MIN_REVIEWS_FOR_RATING } from '../lib/mockStore';
+import { MIN_REVIEWS_FOR_RATING, getMonthAnchorMs } from '../lib/mockStore';
 import { useRemoteSession } from '../lib/remoteSession';
 import { wallNowMs, wallTodayMs } from '../lib/wallClock';
 import { useRemoteLoad } from '../store/remoteLoad';
@@ -26,8 +26,9 @@ import './CoachPreview.css';
 
 // Four daily slots, matching the design's own booking grid and the hours
 // Schedule.tsx already uses for the real Pro.
-const TIMES = ['09:00 am', '10:00 am', '11:00 am', '02:00 pm'];
 const TIME_HOURS = [9, 10, 11, 14];
+const DAY_MS = 86400000;
+const HOUR_MS = 3600000;
 
 /**
  * Three illustrative weeks of openings.
@@ -36,20 +37,20 @@ const TIME_HOURS = [9, 10, 11, 14];
  * uniformly free slots (which would imply availability nobody has stated),
  * each week carries a plausible, uneven pattern including one fully booked
  * day, so the empty-day state is reachable and the picker behaves like a
- * real one. `openByDay[d]` indexes into TIMES.
+ * real one. `openByDay[d]` indexes into TIME_HOURS, Monday to Saturday.
+ *
+ * The weeks start at the demo week's Monday (Mon 20 Oct 2025, the same
+ * week every other signed-out screen shows). They used to be fixed dates
+ * from the 11th, whose weekdays were wrong: "WED 13" was a Monday.
  */
 const WEEKS = [
-  { dates: [11, 12, 13, 14, 15, 16], openByDay: [[0, 1, 2, 3], [0, 1, 3], [1, 2, 3], [0, 2], [], [0, 1, 2]] },
-  { dates: [18, 19, 20, 21, 22, 23], openByDay: [[0, 2, 3], [1, 2], [0, 1, 2, 3], [], [0, 3], [1, 2]] },
-  { dates: [25, 26, 27, 28, 29, 30], openByDay: [[1, 2], [0, 1, 3], [2, 3], [0, 1, 2], [], [0, 2, 3]] },
+  [[0, 1, 2, 3], [0, 1, 3], [1, 2, 3], [0, 2], [], [0, 1, 2]],
+  [[0, 2, 3], [1, 2], [0, 1, 2, 3], [], [0, 3], [1, 2]],
+  [[1, 2], [0, 1, 3], [2, 3], [0, 1, 2], [], [0, 2, 3]],
 ];
 // Which day of the visible week counts as "today" — the first week starts
 // here rather than at its Monday, so the picker never offers a past slot.
 const TODAY_INDEX = 2;
-const MONTH = { en: 'Oct', ar: 'أكتوبر' };
-// The calendar month WEEKS sits in, for each slot's real date (the .ics).
-const DEMO_YEAR = 2025;
-const DEMO_MONTH = 9; // zero-based: October
 
 /** One slot per day is shown already taken, so a booked slot is visible. */
 function bookedPos(open: number[]): number {
@@ -192,6 +193,7 @@ function CoachMissing() {
 
 function DemoCoachPreview({ coach }: { coach: DirectoryCoach }) {
   const t = useT();
+  const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
   const isAr = lang === 'ar';
 
@@ -201,20 +203,22 @@ function DemoCoachPreview({ coach }: { coach: DirectoryCoach }) {
   const reviewCount = 20 + (hash % 40);
   const memberCount = reviewCount + 8 + (hash % 15);
 
-  const monthLabel = isAr ? MONTH.ar : MONTH.en;
-  const weeks: PickerWeek[] = WEEKS.map(({ dates, openByDay }) => ({
-    label: `${monthLabel} ${dates[0]}–${dates[dates.length - 1]}`,
-    days: dates.map((date, d) => ({
-      wallMs: Date.UTC(DEMO_YEAR, DEMO_MONTH, date),
-      dow: d,
-      date,
-      slots: openByDay[d].map((timeIdx, pos) => ({
-        wallMs: Date.UTC(DEMO_YEAR, DEMO_MONTH, date, TIME_HOURS[timeIdx]),
-        label: TIMES[timeIdx],
-        taken: pos === bookedPos(openByDay[d]),
-      })),
-    })),
-  }));
+  const weekStartMs = getMonthAnchorMs();
+  const weeks: PickerWeek[] = WEEKS.map((openByDay, w) => {
+    const days: PickerDay[] = openByDay.map((open, d) => {
+      const dayMs = weekStartMs + (w * 7 + d) * DAY_MS;
+      return {
+        wallMs: dayMs,
+        dow: d,
+        date: new Date(dayMs).getUTCDate(),
+        slots: open.map((timeIdx, pos) => {
+          const wallMs = dayMs + TIME_HOURS[timeIdx] * HOUR_MS;
+          return { wallMs, label: fmt.time(wallMs), taken: pos === bookedPos(open) };
+        }),
+      };
+    });
+    return { label: `${fmt.monthDay(days[0].wallMs)} – ${fmt.monthDay(days[days.length - 1].wallMs)}`, days };
+  });
   const nextAvailable = firstOpen(weeks, 0, TODAY_INDEX);
 
   const source: PreviewSource = {

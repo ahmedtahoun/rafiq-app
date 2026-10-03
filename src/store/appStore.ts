@@ -75,7 +75,7 @@ interface HistEntry {
 // decide when "nothing to go back to" means "leave the app" — duplicating
 // it there would drift the day a screen is added to one list and not the
 // other.
-export const ROOTS: Screen[] = ['comingSoon', 'main', 'profile', 'clients', 'clientHome', 'messagesInbox', 'schedule', 'discover', 'clientCoach', 'clientSchedule', 'clientTasks', 'myPrograms'];
+export const ROOTS: Screen[] = ['comingSoon', 'main', 'profile', 'clients', 'clientHome', 'messagesInbox', 'schedule', 'discover', 'clientCoach', 'clientSchedule', 'clientTasks', 'myPrograms', 'clientProfile'];
 // Screens that shouldn't be pushed onto the NEXT screen's back-stack when
 // LEFT (e.g. splash/entry screens nobody should land back on). Empty for
 // now — extend as screens like that are added.

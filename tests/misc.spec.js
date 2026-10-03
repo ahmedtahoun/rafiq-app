@@ -241,7 +241,7 @@ test('Arabic RTL + dark', async ({ browser }) => {
 test('Retired stubs + navigation', async ({ browser }) => {
 {
   const { page } = await open(browser, { screen: 'clientHome' });
-  await page.locator('.client-home-icon-btn').nth(2).click();   // bell
+  await page.locator('.client-home-icon-btn[aria-label="Notifications"]').click();
   await page.waitForTimeout(400);
   expect.soft(String(await screenOf(page)), 'ClientHome bell → clientNotifications').toBe('clientNotifications');
 

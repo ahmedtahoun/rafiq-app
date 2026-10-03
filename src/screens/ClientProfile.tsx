@@ -3,7 +3,7 @@ import { useAppStore } from '../store/appStore';
 import { isolate, useT } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
-import { ChevronIcon, PencilIcon, ArrowForwardIcon, ScheduleIcon, TasksIcon, PaymentIcon, WarningIcon } from '../components/icons';
+import { PencilIcon, ArrowForwardIcon, ScheduleIcon, TasksIcon, PaymentIcon, WarningIcon } from '../components/icons';
 import { signOut } from '../lib/auth';
 import { isSupabaseConfigured } from '../lib/supabase';
 import { fileAccountDeletionRequest } from '../lib/adminQueues';
@@ -23,6 +23,7 @@ import {
   requestAccountDeletion,
   type ActiveObligations,
 } from '../lib/mockStore';
+import { MemberTabBar } from '../components/TabBars';
 import './ClientProfile.css';
 
 // The coaching agreement and demo account deletion are still the demo
@@ -57,7 +58,6 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
   const dark = useAppStore((s) => s.dark);
   const setDark = useAppStore((s) => s.setDark);
   const nav = useAppStore((s) => s.nav);
-  const back = useAppStore((s) => s.back);
 
   const [showAgreementExpand, setShowAgreementExpand] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -198,9 +198,6 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
   return (
     <div className="phone-frame client-profile-screen">
       <div className="client-profile-header">
-        <button type="button" className="client-profile-back" aria-label={t('backToHome')} onClick={back}>
-          <ChevronIcon size={16} />
-        </button>
         <div className="client-profile-title">{t('clientProfileTitle')}</div>
       </div>
 
@@ -237,7 +234,7 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
           </div>
           <div className="client-profile-card-text">
             <div className="client-profile-card-eyebrow">{t('clientProfileGoalProgress')}</div>
-            <div className="client-profile-card-title">{goalDisplay}</div>
+            <div className="client-profile-card-title"><bdi>{goalDisplay}</bdi></div>
           </div>
           <ArrowForwardIcon size={14} color="var(--ink-soft)" />
         </button>
@@ -479,6 +476,7 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
           </div>
         </div>
       )}
+      <MemberTabBar />
     </div>
   );
 }

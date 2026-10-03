@@ -361,9 +361,11 @@
   font-weight: 700;
   color: var(--ink-soft);
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* Wraps rather than ellipsising: in Arabic the cut lands on the line's
+     left end, which is the *start* of an English goal ("…istent morning
+     routine"), so the member's goal lost its first words. */
+  overflow-wrap: anywhere;
+  line-height: 1.4;
 }
 .client-detail-goal-pct {
   font-size: 11px;

@@ -469,3 +469,6 @@
 .client-coach-empty {
   padding-top: 40px;
 }
+
+.client-coach-quick { flex-wrap: wrap; }
+.client-coach-quick-wide { flex-basis: 100%; }
