@@ -258,8 +258,8 @@ relationships through `src/store/memberStore.ts`'s `useMemberSpace()`:
   sessions, a booked one). Signed in, it used to read the demo member's,
   which always has sessions left.
 - **Still the demo member's, signed in:** Schedule and Booking (step 4),
-  Messages (step 5), Notifications, Programs and RateCoach (step 6), and
-  Discover's goal matching — Discover's coaches are real since step 4. Each reads `DEMO_MEMBER_CLIENT_ID` from mockStore with a note
+  Messages (step 5), Notifications, Programs and RateCoach (step 6).
+  Each reads `DEMO_MEMBER_CLIENT_ID` from mockStore with a note
   naming its step, so what's left is one grep. The pieces of converted
   screens that belong to those steps (milestones, the live-session badge,
   the agreement, the Full Access upgrade and standing slot) are hidden
@@ -438,6 +438,30 @@ In small PRs, so each can be reviewed on its own:
    session" open the coach's page signed in, like Sessions does; the
    demo booking screen is still reached from the programs screens, which
    are step 6's.
+
+## Step 6, the member side
+
+What is left of the member app on `mockStore` when signed in, in small PRs
+(LAUNCH-CHECKLIST §2, "Remove the demo identities"). None needs a schema
+change: the tables, their policies and the `coach_reviews` view are all
+in place.
+
+- ✅ **Discover's goal matching.** Signed in, the goal is the member's own
+  focus from onboarding (`member_profiles.focus`, `memberData.ts`'s
+  `fetchOwnFocus`). Onboarding stores a stable slug, the `icon` key of a
+  `SPECIALTIES` entry, so it matches coaches by that entry's value. It is
+  read with the directory: a failed read shows retry, never the demo
+  member's goal. "Recommended for you" and "Matches your goal" show only
+  when a coach on the list matches it; no focus, or a search, reads "Pros
+  on Rafiq".
+- **My Programs and Program Detail** → the member's `enrollments`.
+- **Rate Coach** → `ratings`; reviews on the coach's page and Discover
+  from the `coach_reviews` view, signed with its `reviewer_name` (first
+  name and last initial) — never a reviewer's full name.
+- **The member's Notifications** → `notifications`, and Home's dot.
+- **The real clock** in ClientBooking, ClientSchedule and CoachPreview.
+- **The demo member is demo-only**: nothing signed in reads
+  `DEMO_MEMBER_CLIENT_ID`.
 
 ## Testing this kind of code
 
