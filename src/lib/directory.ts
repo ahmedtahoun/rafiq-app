@@ -10,9 +10,9 @@
  * placeholder content), so signed out there is no directory at all and
  * Discover shows its "still filling up" state.
  *
- * Favourites and the demo's session requests persist to localStorage under
- * the same `rafiq_` prefix as the rest of the app, following the file-wide
- * rule that a store starts empty and only a real feature writes to it.
+ * Favourites persist to localStorage under the same `rafiq_` prefix as the
+ * rest of the app. A member's session requests are real ones
+ * (session_requests, requestData.ts), signed in only.
  */
 import { COUNTRIES } from './countries';
 import type { SpecialtyIconKey } from '../components/specialtyIcons';
@@ -204,52 +204,5 @@ export function toggleFavouriteCoach(coachId: string): Record<string, boolean> {
   const next = { ...favourites, [coachId]: !favourites[coachId] };
   if (!next[coachId]) delete next[coachId];
   writeLocal('fav_coaches', next);
-  return next;
-}
-
-// ---------------------------------------------------------------------------
-// Session requests
-// ---------------------------------------------------------------------------
-
-/**
- * A member asking a directory coach for a session.
- *
- * Booking a coach you have no relationship with cannot go through
- * mockStore's schedule: that models the signed-in Pro's own calendar, and
- * these coaches are not that Pro. So a request is recorded here, pending,
- * and nothing reads it yet — MyCoaches.dc.html (Track B #8) is the screen
- * that shows a member their pending requests. Writing the seam now means
- * CoachPreview's confirm button does something durable instead of
- * pretending, which is the same rule the rest of this codebase follows.
- */
-export interface SessionRequest {
-  coachId: string;
-  coachName: string;
-  /** Which of the coach's offerings was picked. */
-  offeringId: string;
-  offeringName: string;
-  /** Day and time exactly as the member saw them on the picker. */
-  when: string;
-  price: number;
-  /** Set by requestSession, not by the caller. */
-  requestedAtMs: number;
-}
-
-export function getSessionRequests(): SessionRequest[] {
-  return readLocal<SessionRequest[]>('coach_requests', []);
-}
-
-/**
- * Record a request, replacing any earlier one for the same coach.
- *
- * De-duping by coach matches how the design's own pending list reads —
- * one card per coach you are waiting on, not one per tap — so a member
- * who changes their mind about the time does not end up with two
- * requests to the same person.
- */
-export function requestSession(request: Omit<SessionRequest, 'requestedAtMs'>): SessionRequest[] {
-  const next = getSessionRequests().filter((r) => r.coachId !== request.coachId);
-  next.push({ ...request, requestedAtMs: Date.now() });
-  writeLocal('coach_requests', next);
   return next;
 }
