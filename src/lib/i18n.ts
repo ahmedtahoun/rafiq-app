@@ -821,6 +821,7 @@ const en = {
     discoverTrending: 'Trending this week',
     discoverStories: 'Member Stories', discoverStoriesSub: 'Real feedback from people like you',
     discoverStoryHelpful: '{n} found this helpful',
+    discoverStoryWith: 'with {coach}',
     discoverFavouriteAdd: 'Save {name}', discoverFavouriteRemove: 'Remove {name} from saved',
     discoverFilter: 'Filter', discoverFilterTitle: 'Filter Pros',
     discoverClearAll: 'Clear all', discoverShowResults: 'Show results',
@@ -1009,6 +1010,8 @@ const en = {
     rateCoachThanksTitle: 'Thanks for your feedback!',
     rateCoachThanksBody: 'Your review helps {coach} improve and helps other members find the right pro.',
     rateCoachDone: 'Done',
+    rateCoachFailed: "Your review wasn't sent. Please try again.",
+    rateCoachAlready: "You've already rated this session.",
 
     coachMessagesSubtitle: 'In-app messages',
     coachMessagesEmptyTitle: 'No messages yet',
@@ -1898,6 +1901,7 @@ const ar: Record<MessageKey, string> = {
     discoverTrending: 'الأكثر رواجًا هذا الأسبوع',
     discoverStories: 'قصص الأعضاء', discoverStoriesSub: 'آراء حقيقية من أشخاص مثلك',
     discoverStoryHelpful: '{n} وجدوا هذا مفيدًا',
+    discoverStoryWith: 'مع {coach}',
     discoverFavouriteAdd: 'حفظ {name}', discoverFavouriteRemove: 'إزالة {name} من المحفوظات',
     discoverFilter: 'تصفية', discoverFilterTitle: 'تصفية المحترفين',
     discoverClearAll: 'مسح الكل', discoverShowResults: 'عرض النتائج',
@@ -2081,6 +2085,8 @@ const ar: Record<MessageKey, string> = {
     rateCoachThanksTitle: 'شكرًا لملاحظاتك!',
     rateCoachThanksBody: 'تقييمك يساعد {coach} على التحسن ويساعد أعضاء آخرين على إيجاد المحترف المناسب.',
     rateCoachDone: 'تم',
+    rateCoachFailed: 'لم يُرسل تقييمك. يرجى المحاولة مرة أخرى.',
+    rateCoachAlready: 'لقد قيّمتِ هذه الجلسة من قبل.',
 
     coachMessagesSubtitle: 'رسائل داخل التطبيق',
     coachMessagesEmptyTitle: 'لا توجد رسائل بعد',

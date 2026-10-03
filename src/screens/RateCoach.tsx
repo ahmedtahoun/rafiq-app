@@ -1,9 +1,14 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT, isolate } from '../lib/i18n';
+import { useT, isolate, type MessageKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import { CheckIcon, StarIcon } from '../components/icons';
+import { LoadState } from '../components/LoadState';
+import { useRemoteSession } from '../lib/remoteSession';
+import { fetchSessionToRate, rateSession, type SessionToRate } from '../lib/ratingData';
+import { useMemberSpace, type MemberRelationshipView } from '../store/memberStore';
+import { useRemoteLoad } from '../store/remoteLoad';
 import {
   DEMO_MEMBER_CLIENT_ID,
   getCoachProfile, getSelectedOfferingId, getUnreviewedMilestones, getOfferingTypeInfo,
@@ -12,27 +17,31 @@ import {
 } from '../lib/mockStore';
 import './RateCoach.css';
 
-// Still the demo member's, signed in or not, until ratings (step 6) moves to
-// Supabase (SUPABASE-MIGRATION-PLAN.md) — see DEMO_MEMBER_CLIENT_ID.
+// Signed out, the demo member's. Signed in, a session of the member's own
+// with the coach they're viewing, named by params.sessionId (their Sessions
+// screen's Rate button), written to `ratings` (SUPABASE-MIGRATION-PLAN.md
+// step 6).
 const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
 const ACCENT_HEX = '#B75C3D';
 const STARS = [1, 2, 3, 4, 5];
 
 export default function RateCoach() {
+  const remote = useRemoteSession();
+  const space = useMemberSpace();
+  if (!remote) return <DemoRateCoach />;
+  if (space.status === 'loading') return <LoadState status="loading" />;
+  if (space.status === 'error') return <LoadState status="error" onRetry={space.retry} showBack />;
+  if (!space.remote) return <DemoRateCoach />;
+  return <LiveRateCoach key={space.current?.clientId ?? 'none'} rel={space.current} />;
+}
+
+function DemoRateCoach() {
   const t = useT();
   const fmt = useFormat();
-  const nav = useAppStore((s) => s.nav);
-  const back = useAppStore((s) => s.back);
   // Set when ClientSchedule's per-row Rate button sent us here.
   const requestedSessionId = useAppStore((s) => s.params).sessionId ?? '';
 
-  const [rating, setRatingValue] = useState(0);
-  const [comment, setComment] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-
   const coachName = getCoachProfile().name || 'Yasmin El-Sayed';
-  const coachInitials = coachName.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2);
-  const avatarGrad = `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 35)} 100%)`;
 
   // Two ways in. ClientHome's milestone card hands over an offeringId via
   // the same selected-offering channel every offering-scoped screen uses —
@@ -72,57 +81,140 @@ export default function RateCoach() {
     ? t('rateCoachMilestoneHeading', { program: isolate(milestone.offering.name) })
     : t('rateCoachHeading', { coach: coachName });
 
-  const canSubmit = rating > 0 && targetId !== null;
+  // Everything already rated and no milestone waiting. The design assumed
+  // there was always something to rate; submitting with no target would
+  // write a rating keyed to nothing.
+  if (!targetId) return <RateNothing title={title} />;
 
-  function submit() {
-    if (!canSubmit || !targetId) return;
-    setRating(CLIENT_ID, targetId, rating, comment);
-    // A real rating counts as reviewing the milestone, so ClientHome's card
-    // doesn't keep resurfacing something the member just answered.
-    if (isMilestone && milestone) markMilestoneReviewed(CLIENT_ID, milestone.offeringId);
-    setSubmitted(true);
-  }
+  return (
+    <RateForm
+      title={title}
+      heading={heading}
+      subheading={subheading}
+      coachName={coachName}
+      submit={(rating, comment) => {
+        setRating(CLIENT_ID, targetId, rating, comment);
+        // A real rating counts as reviewing the milestone, so ClientHome's card
+        // doesn't keep resurfacing something the member just answered.
+        if (isMilestone && milestone) markMilestoneReviewed(CLIENT_ID, milestone.offeringId);
+        return Promise.resolve(null);
+      }}
+    />
+  );
+}
 
-  function header() {
-    return (
-      <div className="rate-coach-top">
-        <button type="button" className="rate-coach-cancel" onClick={back}>{t('rateCoachCancel')}</button>
-        <div className="rate-coach-title">{title}</div>
+function LiveRateCoach({ rel }: { rel: MemberRelationshipView | null }) {
+  const t = useT();
+  const fmt = useFormat();
+  const sessionId = useAppStore((s) => s.params).sessionId ?? '';
+  const coachId = rel?.coach.id ?? null;
+  const enabled = !!rel && !!coachId && !!sessionId;
+  const load = useRemoteLoad<SessionToRate | null>(`rate-session:${rel?.clientId ?? ''}:${sessionId}`, enabled, () => fetchSessionToRate(rel!.clientId, sessionId));
+
+  const title = t('rateCoachTitle');
+  // No session named, no coach to rate, or one that isn't theirs, hasn't
+  // happened, or they missed.
+  if (!enabled) return <RateNothing title={title} />;
+  if (load.status === 'loading') return <LoadState status="loading" />;
+  if (load.status === 'error') return <LoadState status="error" onRetry={load.retry} showBack />;
+  const target = load.data;
+  if (!target) return <RateNothing title={title} />;
+  if (target.rated !== null) return <RateNothing title={title} bodyKey="rateCoachAlready" />;
+
+  const coachName = rel!.coach.name;
+  const date = fmt.date(target.atWallMs);
+  return (
+    <RateForm
+      title={title}
+      heading={t('rateCoachHeading', { coach: isolate(coachName) })}
+      // The coach's recap is their own words, in either language: isolated,
+      // so the line takes its direction from the date around it.
+      subheading={target.recap.trim() ? `${isolate(target.recap.trim())} · ${date}` : date}
+      coachName={coachName}
+      submit={async (rating, comment) => {
+        const result = await rateSession({ clientId: rel!.clientId, coachId: coachId!, sessionId: target.sessionId, rating, comment });
+        if (result.ok) return null;
+        return result.code === 'already' ? 'rateCoachAlready' : 'rateCoachFailed';
+      }}
+    />
+  );
+}
+
+function RateHeader({ title }: { title: string }) {
+  const t = useT();
+  const back = useAppStore((s) => s.back);
+  return (
+    <div className="rate-coach-top">
+      <button type="button" className="rate-coach-cancel" onClick={back}>{t('rateCoachCancel')}</button>
+      <div className="rate-coach-title">{title}</div>
+    </div>
+  );
+}
+
+function RateNothing({ title, bodyKey }: { title: string; bodyKey?: MessageKey }) {
+  const t = useT();
+  const nav = useAppStore((s) => s.nav);
+  return (
+    <div className="phone-frame rate-coach-screen">
+      <RateHeader title={title} />
+      <div className="rate-coach-done">
+        <span className="rate-coach-tick">
+          <StarIcon size={26} color="var(--amber)" />
+        </span>
+        <h1 className="rate-coach-done-title">{t('rateCoachNothingTitle')}</h1>
+        <p className="rate-coach-done-body">{t(bodyKey ?? 'rateCoachNothingBody')}</p>
+        <button type="button" className="rate-coach-submit" onClick={() => nav('clientSchedule')}>
+          {t('rateCoachDone')}
+        </button>
       </div>
-    );
+    </div>
+  );
+}
+
+interface FormProps {
+  title: string;
+  heading: string;
+  subheading: string;
+  coachName: string;
+  /** Resolves to null once saved, or the message to show if it wasn't. */
+  submit: (rating: number, comment: string) => Promise<MessageKey | null>;
+}
+
+function RateForm({ title, heading, subheading, coachName, submit: save }: FormProps) {
+  const t = useT();
+  const nav = useAppStore((s) => s.nav);
+
+  const [rating, setRatingValue] = useState(0);
+  const [comment, setComment] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<MessageKey | null>(null);
+
+  const coachInitials = coachName.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2);
+  const avatarGrad = `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 35)} 100%)`;
+
+  const canSubmit = rating > 0 && !saving;
+
+  async function submit() {
+    if (!canSubmit) return;
+    setSaving(true);
+    setError(null);
+    const failed = await save(rating, comment);
+    setSaving(false);
+    if (failed) setError(failed);
+    else setSubmitted(true);
   }
 
   if (submitted) {
     return (
       <div className="phone-frame rate-coach-screen">
-        {header()}
+        <RateHeader title={title} />
         <div className="rate-coach-done">
           <span className="rate-coach-tick">
             <CheckIcon size={28} color="var(--green)" />
           </span>
           <h1 className="rate-coach-done-title">{t('rateCoachThanksTitle')}</h1>
-          <p className="rate-coach-done-body">{t('rateCoachThanksBody', { coach: coachName })}</p>
-          <button type="button" className="rate-coach-submit" onClick={() => nav('clientSchedule')}>
-            {t('rateCoachDone')}
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // Everything already rated and no milestone waiting. The design assumed
-  // there was always something to rate; submitting with no target would
-  // write a rating keyed to nothing.
-  if (!targetId) {
-    return (
-      <div className="phone-frame rate-coach-screen">
-        {header()}
-        <div className="rate-coach-done">
-          <span className="rate-coach-tick">
-            <StarIcon size={26} color="var(--amber)" />
-          </span>
-          <h1 className="rate-coach-done-title">{t('rateCoachNothingTitle')}</h1>
-          <p className="rate-coach-done-body">{t('rateCoachNothingBody')}</p>
+          <p className="rate-coach-done-body">{t('rateCoachThanksBody', { coach: isolate(coachName) })}</p>
           <button type="button" className="rate-coach-submit" onClick={() => nav('clientSchedule')}>
             {t('rateCoachDone')}
           </button>
@@ -133,7 +225,7 @@ export default function RateCoach() {
 
   return (
     <div className="phone-frame rate-coach-screen">
-      {header()}
+      <RateHeader title={title} />
 
       <div className="rate-coach-scroll">
         <div className="rate-coach-identity">
@@ -173,7 +265,8 @@ export default function RateCoach() {
       </div>
 
       <div className="rate-coach-bar">
-        <button type="button" className="rate-coach-submit" disabled={!canSubmit} onClick={submit}>
+        {error && <div className="rate-coach-error" role="alert">{t(error)}</div>}
+        <button type="button" className="rate-coach-submit" disabled={!canSubmit} onClick={() => void submit()}>
           {t('rateCoachSubmit')}
         </button>
       </div>

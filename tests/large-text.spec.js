@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { IGNORED_CONSOLE, setTextScale } from './helpers.js';
+import { IGNORED_CONSOLE, installScreenSettle, setTextScale } from './helpers.js';
 
 /**
  * Nothing runs off the side of the screen at the largest system text size.
@@ -39,7 +39,9 @@ async function clippedText(page, screens, factor) {
     const found = {};
     for (const screen of list) {
       useAppStore.getState().nav({ screen, params: { clientId: 'sara', coachId: 'c1' } });
-      await new Promise((r) => setTimeout(r, 200));
+      // The screen's chunk has to arrive before there is anything to
+      // measure; a fixed delay measured the Suspense fallback instead.
+      await window.__screenSettled();
       // Read every element's size before scaling any of them: scaling a
       // parent first made a child that inherits its size (a <bdi>, a <b>)
       // read the already-doubled size and double again, 4x instead of 2x.
@@ -84,6 +86,7 @@ async function clippedText(page, screens, factor) {
 async function phone(browser, lang) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await ctx.newPage();
+  await installScreenSettle(page);
   const errs = [];
   page.on('pageerror', (e) => errs.push(e.message));
   page.on('console', (m) => {

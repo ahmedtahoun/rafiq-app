@@ -2404,22 +2404,29 @@ export interface ProgramProgress {
   enrolledAtMs: number;
 }
 
+/** One enrollment's progress through its offering. Shared with
+    src/lib/programData.ts, so a real enrollment's percentage is worked out
+    exactly as the demo's is. */
+export function programProgressOf(offering: Offering, sessionsCompleted: number, enrolledAtMs: number): ProgramProgress {
+  const sessionsTotal = offering.sessionsTotal;
+  const hasFixedLength = sessionsTotal != null;
+  return {
+    offeringId: offering.id,
+    offering,
+    sessionsCompleted,
+    sessionsTotal,
+    pct: hasFixedLength ? Math.min(100, Math.round((sessionsCompleted / sessionsTotal) * 100)) : null,
+    isComplete: hasFixedLength && sessionsCompleted >= sessionsTotal,
+    enrolledAtMs,
+  };
+}
+
 function progressOf(enrollment: Enrollment): ProgramProgress | null {
   const offering = getOffering(enrollment.offeringId);
   // An enrollment whose offering the Pro deleted: skipped rather than
   // rendered as a nameless row.
   if (!offering) return null;
-  const sessionsTotal = offering.sessionsTotal;
-  const hasFixedLength = sessionsTotal != null;
-  return {
-    offeringId: enrollment.offeringId,
-    offering,
-    sessionsCompleted: enrollment.sessionsCompleted,
-    sessionsTotal,
-    pct: hasFixedLength ? Math.min(100, Math.round((enrollment.sessionsCompleted / sessionsTotal) * 100)) : null,
-    isComplete: hasFixedLength && enrollment.sessionsCompleted >= sessionsTotal,
-    enrolledAtMs: enrollment.enrolledAtMs,
-  };
+  return programProgressOf(offering, enrollment.sessionsCompleted, enrollment.enrolledAtMs);
 }
 
 export function getClientProgramProgress(clientId: string, offeringId: string): ProgramProgress | null {
