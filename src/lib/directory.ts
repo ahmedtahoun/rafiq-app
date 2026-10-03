@@ -1,25 +1,18 @@
 /**
- * The browsable coach directory behind Discover and CoachPreview.
+ * The browsable coach directory behind Discover and CoachPreview: the
+ * shape of a directory coach, filtering and ordering, and the member's
+ * favourites.
  *
- * This is the one place the app models *more than one* Pro. Everywhere
- * else — `getCoachProfile()` in mockStore.ts — there is exactly one coach
- * record, because every coach-side screen is the signed-in Pro looking at
- * their own data. Discover's whole premise is the opposite: a member
- * browsing pros they have no relationship with yet.
+ * The coaches themselves are real ones, from Supabase (requestData.ts's
+ * fetchDirectory, the public `coach_directory` view). The eight fictional
+ * coaches the design prototype carried are gone (LAUNCH-CHECKLIST §2: a
+ * marketplace of invented coaches misleads members, and Apple rejects
+ * placeholder content), so signed out there is no directory at all and
+ * Discover shows its "still filling up" state.
  *
- * So this file carries a **seeded mock dataset**, ported from the design
- * prototype's own Discover.dc.html coach list, and is deliberately NOT
- * wired to Supabase. Real multi-tenant discovery needs a public,
- * RLS-readable projection of `profiles` plus ratings aggregated across
- * members — none of which exists yet, and guessing at its shape now would
- * bake a wrong one into two screens. Everything below is shaped as the
- * seam that projection will fill: swap DIRECTORY_COACHES for a query and
- * the screens do not change.
- *
- * What IS real: favourites and session requests persist to localStorage
- * under the same `rafiq_` prefix as the rest of the app, following the
- * file-wide rule that a store starts empty and only a real feature writes
- * to it.
+ * Favourites persist to localStorage under the same `rafiq_` prefix as the
+ * rest of the app. A member's session requests are real ones
+ * (session_requests, requestData.ts), signed in only.
  */
 import { COUNTRIES } from './countries';
 import type { SpecialtyIconKey } from '../components/specialtyIcons';
@@ -86,34 +79,6 @@ export interface DirectoryCoach {
   availability: Availability | null;
   verified?: boolean;
   featured?: boolean;
-}
-
-/**
- * The seed. Ported 1:1 from Discover.dc.html's own `baseCoaches`, with
- * its ad-hoc specialty keys mapped onto the app's real SPECIALTIES
- * values so one vocabulary covers both.
- *
- * These are illustrative demo records, not real people. They are a
- * constant rather than a seeded-then-mutable store because nothing in the
- * app writes a coach — only a real directory backend ever will.
- */
-export const DIRECTORY_COACHES: DirectoryCoach[] = [
-  { id: 'mariam', name: 'Mariam Adel', specialty: 'Meditation coaching', icon: 'meditation', color: '#7A6BAE', rating: 4.8, price: 750, years: 6, country: 'Egypt', languages: ['Arabic', 'English'], availability: 'this-week' },
-  { id: 'ahmed', name: 'Ahmed Nabil', specialty: 'Yoga coaching', icon: 'yoga', color: '#5C8A6B', rating: 4.7, price: 600, years: 4, country: 'Jordan', languages: ['Arabic'], availability: 'today' },
-  { id: 'dina', name: 'Dina Kamal', specialty: 'Career coaching', icon: 'career', color: '#3E6F6F', rating: 4.9, price: 900, years: 8, country: 'Saudi Arabia', languages: ['Arabic', 'English'], availability: 'today', verified: true, featured: true },
-  { id: 'hana', name: 'Hana Farouk', specialty: 'Sleep coaching', icon: 'sleep', color: '#4A5A78', rating: 4.6, price: 700, years: 5, country: 'United Arab Emirates', languages: ['English', 'Arabic'], availability: 'next-week' },
-  { id: 'karim', name: 'Karim Adly', specialty: 'Relationship coaching', icon: 'relationship', color: '#A65D6E', rating: 4.8, price: 800, years: 7, country: 'Egypt', languages: ['Arabic', 'English'], availability: 'this-week' },
-  { id: 'rania', name: 'Rania Saeed', specialty: 'Nutrition coaching', icon: 'nutrition', color: '#3E6FB0', rating: 4.9, price: 850, years: 6, country: 'Morocco', languages: ['Arabic', 'French', 'English'], availability: 'this-week', verified: true },
-  { id: 'youssef', name: 'Youssef Adel', specialty: 'Free diving coaching', icon: 'freeDiving', color: '#1F7A8C', rating: 4.8, price: 950, years: 9, country: 'Egypt', languages: ['Arabic', 'English'], availability: 'today' },
-  { id: 'tarek', name: 'Tarek Hamdy', specialty: 'Scuba diving coaching', icon: 'scuba', color: '#26547C', rating: 4.7, price: 1100, years: 10, country: 'Egypt', languages: ['Arabic', 'English'], availability: 'next-week' },
-];
-
-export function getDirectoryCoaches(): DirectoryCoach[] {
-  return DIRECTORY_COACHES;
-}
-
-export function getDirectoryCoach(id: string): DirectoryCoach | undefined {
-  return DIRECTORY_COACHES.find((c) => c.id === id);
 }
 
 /** Two-letter initials, the same treatment every avatar in the app uses. */
@@ -225,11 +190,6 @@ export function filterCoaches(
     });
 }
 
-/** The three highest-rated coaches, for Discover's "trending" rail. */
-export function getTrendingCoaches(): DirectoryCoach[] {
-  return [...DIRECTORY_COACHES].sort((a, b) => b.rating - a.rating).slice(0, 3);
-}
-
 // ---------------------------------------------------------------------------
 // Favourites
 // ---------------------------------------------------------------------------
@@ -244,52 +204,5 @@ export function toggleFavouriteCoach(coachId: string): Record<string, boolean> {
   const next = { ...favourites, [coachId]: !favourites[coachId] };
   if (!next[coachId]) delete next[coachId];
   writeLocal('fav_coaches', next);
-  return next;
-}
-
-// ---------------------------------------------------------------------------
-// Session requests
-// ---------------------------------------------------------------------------
-
-/**
- * A member asking a directory coach for a session.
- *
- * Booking a coach you have no relationship with cannot go through
- * mockStore's schedule: that models the signed-in Pro's own calendar, and
- * these coaches are not that Pro. So a request is recorded here, pending,
- * and nothing reads it yet — MyCoaches.dc.html (Track B #8) is the screen
- * that shows a member their pending requests. Writing the seam now means
- * CoachPreview's confirm button does something durable instead of
- * pretending, which is the same rule the rest of this codebase follows.
- */
-export interface SessionRequest {
-  coachId: string;
-  coachName: string;
-  /** Which of the coach's offerings was picked. */
-  offeringId: string;
-  offeringName: string;
-  /** Day and time exactly as the member saw them on the picker. */
-  when: string;
-  price: number;
-  /** Set by requestSession, not by the caller. */
-  requestedAtMs: number;
-}
-
-export function getSessionRequests(): SessionRequest[] {
-  return readLocal<SessionRequest[]>('coach_requests', []);
-}
-
-/**
- * Record a request, replacing any earlier one for the same coach.
- *
- * De-duping by coach matches how the design's own pending list reads —
- * one card per coach you are waiting on, not one per tap — so a member
- * who changes their mind about the time does not end up with two
- * requests to the same person.
- */
-export function requestSession(request: Omit<SessionRequest, 'requestedAtMs'>): SessionRequest[] {
-  const next = getSessionRequests().filter((r) => r.coachId !== request.coachId);
-  next.push({ ...request, requestedAtMs: Date.now() });
-  writeLocal('coach_requests', next);
   return next;
 }

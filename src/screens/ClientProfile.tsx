@@ -26,9 +26,9 @@ import {
 import { MemberTabBar } from '../components/TabBars';
 import './ClientProfile.css';
 
-// The coaching agreement and demo account deletion are still the demo
-// member's (agreements move in step 6); signed in, the agreement card is
-// hidden and deletion files a real request.
+// The coaching agreement and demo account deletion are the demo member's,
+// signed out only: signed in, the agreement card is hidden (and its state
+// never read) and deletion files a real request.
 const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
 const RING_R = 22;
 const RING_CIRC = 2 * Math.PI * RING_R;
@@ -86,7 +86,8 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
 
   const progress = client?.progress ?? 0;
   const ringOffset = RING_CIRC * (1 - progress / 100);
-  const goalDisplay = client?.goal || t('clientHomeGoalFallback');
+  // Signed in, the goal the coach set, or none: never the demo's sample.
+  const goalDisplay = client?.goal || (remote ? '' : t('clientHomeGoalFallback'));
 
   const nextSessionAtMs = client?.nextSessionAtMs ?? null;
   const nextSessionQuick = nextSessionAtMs != null ? fmt.nextSession(nextSessionAtMs, todayMs) : t('clientProfileNoSessionLabel');
@@ -102,8 +103,7 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
   const paymentState = paymentStates[client?.paymentStatus ?? 'due'];
 
   const agreementInfo = getAgreementInfo(client?.specialty ?? '');
-  const agreement = getAgreement(CLIENT_ID);
-  const isAgreementSigned = agreement.status === 'signed';
+  const isAgreementSigned = !remote && getAgreement(CLIENT_ID).status === 'signed';
   const agreementStatusLabel = isAgreementSigned ? t('clientProfileAgreementSigned') : t('clientProfileAgreementAwaiting');
   const agreementColor = isAgreementSigned ? 'var(--green)' : 'var(--ink-soft)';
   const agreementBg = isAgreementSigned ? 'var(--green-bg)' : 'var(--accent-soft)';
@@ -234,7 +234,7 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
           </div>
           <div className="client-profile-card-text">
             <div className="client-profile-card-eyebrow">{t('clientProfileGoalProgress')}</div>
-            <div className="client-profile-card-title"><bdi>{goalDisplay}</bdi></div>
+            {goalDisplay && <div className="client-profile-card-title"><bdi>{goalDisplay}</bdi></div>}
           </div>
           <ArrowForwardIcon size={14} color="var(--ink-soft)" />
         </button>

@@ -56,7 +56,7 @@ function ClientTasksView({ space }: { space: Extract<MemberSpaceView, { status: 
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
 
-  const { todayMs } = space;
+  const { todayMs, remote } = space;
   const rel = space.current;
   const client = rel?.client;
   const coachName = rel?.coach.name ?? '';
@@ -70,7 +70,8 @@ function ClientTasksView({ space }: { space: Extract<MemberSpaceView, { status: 
   // reads identically wherever the member app shows it.
   const progress = client?.progress ?? 0;
   const ringOffset = RING_CIRC * (1 - progress / 100);
-  const goalDisplay = client?.goal || t('clientTasksGoalFallback');
+  // Signed in, the goal the coach set, or none: never the demo's sample.
+  const goalDisplay = client?.goal || (remote ? '' : t('clientTasksGoalFallback'));
   const pkg = rel?.pkg ?? null;
   const sessionsCompletedText = pkg ? t('clientHomeSessionsCompleted', { used: pkg.used, total: pkg.total }) : t('clientHomeNoPackage');
 
@@ -179,7 +180,7 @@ function ClientTasksView({ space }: { space: Extract<MemberSpaceView, { status: 
           </span>
           <span className="client-tasks-progress-body">
             <span className="client-tasks-progress-label">{t('clientTasksProgressLabel')}</span>
-            <span className="client-tasks-progress-goal"><bdi>{goalDisplay}</bdi></span>
+            {goalDisplay && <span className="client-tasks-progress-goal"><bdi>{goalDisplay}</bdi></span>}
             <span className="client-tasks-progress-sessions">{sessionsCompletedText}</span>
           </span>
         </button>
