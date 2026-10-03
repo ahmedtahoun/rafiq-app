@@ -118,7 +118,7 @@ export default function Onboarding() {
               <path d="M4 20c1.2-4.4 4.2-6.6 8-6.6s6.8 2.2 8 6.6" />
             </svg>
           </div>
-          <h1 className="onboarding-title">{t('welcomePrefix')}{name.trim().split(' ')[0] || ''}</h1>
+          <h1 className="onboarding-title">{name.trim() ? <>{t('welcomePrefix')}<bdi>{name.trim().split(' ')[0]}</bdi></> : t('welcomeNoName')}</h1>
           <p className="onboarding-subtitle">{t('onboardingSubtitle')}</p>
         </div>
 

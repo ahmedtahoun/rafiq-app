@@ -77,7 +77,9 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       }
       // insert
       const key = KEYS[q.table] ?? 'id';
-      const row = { ...q.values };
+      // Column defaults the app relies on, as Postgres would fill them (0001).
+      const DEFAULTS = { offerings: { active: true, currency: 'EGP', created_at: new Date().toISOString() } };
+      const row = { ...DEFAULTS[q.table], ...q.values };
       if (!(key in row)) row[key] = `${q.table}-${rows.length + 1}`;
       if (rows.some((r) => r[key] === row[key])) {
         return { data: null, error: { message: 'duplicate key value violates unique constraint', code: '23505' } };

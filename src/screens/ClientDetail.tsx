@@ -7,11 +7,11 @@ import {
   CheckIcon,
   ChevronIcon,
   MessageIcon,
-  MoonIcon,
+  
   PaymentIcon,
   PencilIcon,
   ScheduleIcon,
-  SunIcon,
+  
   WarningIcon,
 } from '../components/icons';
 import { BottomSheet } from '../components/BottomSheet';
@@ -73,12 +73,7 @@ function ClientDetailRecord({ roster, client }: { roster: Ready<RosterView>; cli
 function ClientDetailView({ roster, client, record }: { roster: Ready<RosterView>; client: Client; record: Ready<ClientRecordView> }) {
   const t = useT();
   const fmt = useFormat();
-  const lang = useAppStore((s) => s.lang);
-  const setLang = useAppStore((s) => s.setLang);
-  const dark = useAppStore((s) => s.dark);
-  const setDark = useAppStore((s) => s.setDark);
   const nav = useAppStore((s) => s.nav);
-  const isAr = lang === 'ar';
   const clientId = client.id;
   const todayMs = roster.todayMs;
 
@@ -282,12 +277,6 @@ function ClientDetailView({ roster, client, record }: { roster: Ready<RosterView
           <button type="button" className="client-detail-icon-btn" aria-label={t('clientDetailEditMember')} onClick={() => nav(editHref)}>
             <PencilIcon size={16} />
           </button>
-          <button type="button" className="client-detail-lang-btn" aria-label={t('switchLanguage')} onClick={() => setLang(isAr ? 'en' : 'ar')}>
-            {isAr ? 'EN' : 'ع'}
-          </button>
-          <button type="button" className="client-detail-icon-btn" aria-label={t('toggleDarkMode')} onClick={() => setDark(!dark)}>
-            {dark ? <SunIcon size={16} /> : <MoonIcon size={16} />}
-          </button>
         </div>
       </div>
 
@@ -362,7 +351,7 @@ function ClientDetailView({ roster, client, record }: { roster: Ready<RosterView
                   {task.done && <CheckIcon size={13} color="#FFFFFF" />}
                 </button>
                 <button type="button" className="client-detail-task-main" onClick={() => openEditTask(task)}>
-                  <div className={`client-detail-task-title${task.done ? ' is-done' : ''}${!task.done && task.overdue ? ' is-overdue' : ''}`}>{task.title}</div>
+                  <div className={`client-detail-task-title${task.done ? ' is-done' : ''}${!task.done && task.overdue ? ' is-overdue' : ''}`}><bdi>{task.title}</bdi></div>
                   <div className="client-detail-task-due-row">
                     <span className={`client-detail-task-due${task.overdue ? ' is-overdue' : ''}`}><bdi>{fmt.taskDue(task.dueAtMs, task.dueHasTime, todayMs)}</bdi></span>
                     {task.recurring && (
@@ -441,7 +430,7 @@ function ClientDetailView({ roster, client, record }: { roster: Ready<RosterView
 
         <div className="client-detail-card client-detail-goal-card">
           <div className="client-detail-goal-row">
-            <div className="client-detail-goal-text">{t('clientDetailGoalPrefix')}{client.goal || t('clientDetailNoGoalSet')}</div>
+            <div className="client-detail-goal-text">{t('clientDetailGoalPrefix')}{client.goal ? <bdi>{client.goal}</bdi> : t('clientDetailNoGoalSet')}</div>
             <div className="client-detail-goal-pct">{taskCompletionPct}% {t('clientDetailPctTasksDone')}</div>
           </div>
           <div className="client-detail-progress-track">

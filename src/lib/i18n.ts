@@ -59,7 +59,7 @@ const en = {
     clientsSearchMembers: 'Search members',
     clientsFilterMembers: 'Filter members',
     clientsToggleFavourite: 'Toggle favourite: {name}',
-    clientsViewProgress: 'View progress: {name}',
+
     profileEditProfile: 'Edit profile',
     profileVerifiedPro: 'Verified pro',
     clientHomeYourProfile: 'Your profile',
@@ -141,7 +141,7 @@ const en = {
     validationPrefix: 'Please add ',
     validationSuffix: ' to continue.',
     listSeparator: ', ',
-    welcomePrefix: 'Welcome to Rafiq Pro, ',
+    welcomePrefix: 'Welcome to Rafiq Pro, ', welcomeNoName: 'Welcome to Rafiq Pro',
     // QuickActions.dc.html
     quickActionsTitle: 'Quick actions', quickActionsClose: 'Close',
     qaAddMember: 'Add member', qaAddMemberSub: 'Bring a new member onboard',
@@ -153,9 +153,21 @@ const en = {
     qaSendMessage: 'Message', qaSendMessageSub: 'Send them a message in the app',
 
     // Main.dc.html
-    mainGreeting: 'Good Morning', mainCoachName: 'Yasmin El-Sayed', mainStreak: '12-day streak',
-    mainSessions: 'Sessions', mainActiveClients: 'active members', mainCompletionRate: 'completion rate',
-    mainThisWeek: 'This Week', mainSessionsWord: 'sessions',
+    greetingMorning: 'Good morning', greetingAfternoon: 'Good afternoon', greetingEvening: 'Good evening',
+    mainStatMembers: 'Active members', mainStatToday: 'Sessions today', mainStatRequests: 'Requests',
+    mainSetupTitle: 'Get set up', mainSetupCount: '{n} of {total} done',
+    mainSetupProfile: 'Add your photo and bio', mainSetupOffering: 'Add what you offer, with a price', mainSetupHours: 'Set the hours members can book',
+    mainSetupMember: 'Add or invite your first member',
+    mainTodayFailed: "Today's sessions didn't load.",
+    mainPaidUp: '{n} of {total} members paid up',
+    mainDraftPaymentOverdue: 'Hi {name}, just a friendly reminder that your payment is overdue. Let me know if you have any questions!',
+    mainDraftPaymentDue: 'Hi {name}, just a friendly reminder that your payment is due. Let me know if you have any questions!',
+    mainDraftTaskOverdue: 'Hi {name}, just checking in on "{task}". Let me know if you need any help with it!',
+    mainDraftPackageBlocked: 'Hi {name}, just a heads up: your session package needs renewing. Want me to send you renewal options?',
+    mainDraftPackageSoon: 'Hi {name}, just a heads up: your session package expires in {n} days. Want to renew early?',
+    mainDraftNoSession: 'Hi {name}, want to put your next session on the calendar? Let me know what works for you!',
+    mainDraftNoFollowUp: "Hi {name}, hope you're doing well after our last session! Let me know if anything comes up before we meet again.",
+    mainDraftCheckin: "Hi {name}, haven't heard from you in a bit. How are you doing?",
     mainTodaysSchedule: "Today's Schedule", mainSeeAll: 'See all', mainNoSessions: 'No sessions scheduled today',
     mainNeedsAttention: 'Needs Your Attention', mainAllCaughtUp: "You're all caught up!",
     mainUpNext: 'Up next', mainJoinChip: 'Join',
@@ -167,7 +179,7 @@ const en = {
     mainNudgeAll: 'Nudge all', mainNudgeSheetTitle: 'Nudge members', mainNudgeSheetSub: 'Send a quick in-app check-in to everyone below.',
     mainNudged: 'Nudged', mainDone: 'Done',
     mainEarningsReceived: 'received', mainEarningsDueOne: '1 member due', mainEarningsDueMany: '{n} members due', mainEarningsAllPaid: 'Everyone is paid up',
-    mainHome: 'Home', mainClientsNav: 'Clients', mainMessagesNav: 'Messages', mainProfileNav: 'Profile',
+    mainHome: 'Home', tabProfile: 'Profile', mainClientsNav: 'Members', mainMessagesNav: 'Messages',
 
     // Profile.dc.html
     profilePreview: 'Preview', profileShare: 'Share', profileEdit: 'Edit',
@@ -445,6 +457,8 @@ const en = {
     offeringDetailDeleteOffering: 'Delete Offering', offeringDetailDeleteConfirmTitle: 'Delete this offering?',
     offeringDetailDeleteConfirmBodyTemplate: "{name} will no longer show on your profile. This doesn't affect sessions already booked.",
     offeringDetailDelete: 'Delete',
+    offeringDetailSaveFailed: "Your offering wasn't saved. Please try again.", offeringDetailDeleteFailed: "The offering wasn't deleted. Please try again.",
+    offeringDetailNotFound: 'This offering no longer exists.',
 
     // Subscription.dc.html
     subscriptionTitle: 'Rafiq Pro Plus', subscriptionCurrentPlan: 'Current plan',
@@ -601,7 +615,7 @@ const en = {
     messagesInboxSubtitle: 'Your conversations with members, in one place.',
     messagesInboxNoMembers: 'No members yet',
     messagesInboxNoMembersSub: 'Add a member to start messaging them.',
-    messagesInboxNoMessagesYet: 'No messages yet',
+    messagesInboxNoMessagesYet: 'Tap to send the first message', messagesInboxStartHeading: 'Start a conversation',
     messagesInboxDraftPrefix: 'Draft: ',
     messagesInboxYouPrefix: 'You: ',
     messagesInboxUnreadLabel: '{count} unread',
@@ -609,7 +623,7 @@ const en = {
     notificationsTitle: 'Notifications',
     notificationsMarkAllRead: 'Mark all read',
     notificationsAllCaughtUp: "You're all caught up!",
-    notificationsNothingNew: 'Nothing new to show right now.',
+    notificationsNothingNew: 'Booking requests from members appear here.',
     notificationsAccept: 'Accept', notificationsDecline: 'Decline',
     notificationsAccepted: 'Booked — {name} is on your Clients list now.',
     notificationsRequestGone: 'This request was withdrawn or already answered.',
@@ -793,6 +807,7 @@ const en = {
     discoverSearchPlaceholder: 'Search pros or specialties',
     discoverSpecialtyAll: 'All',
     discoverRecommended: 'Recommended for you',
+    discoverAllPros: 'Pros on Rafiq',
     discoverRecommendedSub: 'Matched to your {specialty} goal',
     discoverMatchesGoal: 'Matches your goal',
     discoverNoResults: 'No pros match your search',
@@ -1018,7 +1033,7 @@ const en = {
 
     clientNotificationsTitle: 'Notifications', clientNotificationsMarkAll: 'Mark all read',
     clientNotificationsEmptyTitle: "You're all caught up!",
-    clientNotificationsEmptyBody: 'Nothing new to show right now.',
+    clientNotificationsEmptyBody: 'Updates about your sessions appear here.',
     clientNotifSessionPending: 'Your session request is pending confirmation',
     clientNotifSessionConfirmed: 'Your session with {coach} is coming up',
     clientNotifTaskOverdueOne: 'You have an overdue task',
@@ -1139,7 +1154,7 @@ const ar: Record<MessageKey, string> = {
     clientsSearchMembers: 'بحث في الأعضاء',
     clientsFilterMembers: 'تصفية الأعضاء',
     clientsToggleFavourite: 'تبديل المفضلة: {name}',
-    clientsViewProgress: 'عرض التقدم: {name}',
+
     profileEditProfile: 'تعديل الملف الشخصي',
     profileVerifiedPro: 'محترف موثّق',
     clientHomeYourProfile: 'ملفك الشخصي',
@@ -1221,7 +1236,7 @@ const ar: Record<MessageKey, string> = {
     validationPrefix: 'الرجاء إضافة ',
     validationSuffix: ' للمتابعة.',
     listSeparator: '، ',
-    welcomePrefix: 'مرحبًا بك في رفيق، ',
+    welcomePrefix: 'مرحبًا بك في رفيق، ', welcomeNoName: 'مرحبًا بك في رفيق',
     // QuickActions.dc.html
     quickActionsTitle: 'إجراءات سريعة', quickActionsClose: 'إغلاق',
     qaAddMember: 'إضافة عضو', qaAddMemberSub: 'أضف عضوًا جديدًا',
@@ -1233,9 +1248,21 @@ const ar: Record<MessageKey, string> = {
     qaSendMessage: 'مراسلة', qaSendMessageSub: 'أرسل له رسالة داخل التطبيق',
 
     // Main.dc.html
-    mainGreeting: 'صباح الخير', mainCoachName: 'ياسمين السيد', mainStreak: 'مواظبة 12 يومًا',
-    mainSessions: 'الجلسات', mainActiveClients: 'عضو نشط', mainCompletionRate: 'نسبة الإنجاز',
-    mainThisWeek: 'هذا الأسبوع', mainSessionsWord: 'جلسة',
+    greetingMorning: 'صباح الخير', greetingAfternoon: 'نهارك سعيد', greetingEvening: 'مساء الخير',
+    mainStatMembers: 'أعضاء نشطون', mainStatToday: 'جلسات اليوم', mainStatRequests: 'طلبات',
+    mainSetupTitle: 'جهّز حسابك', mainSetupCount: 'تم {n} من {total}',
+    mainSetupProfile: 'أضف صورتك ونبذة عنك', mainSetupOffering: 'أضف ما تقدمه وسعره', mainSetupHours: 'حدد الساعات المتاحة للحجز',
+    mainSetupMember: 'أضف أول عضو أو ادعه',
+    mainTodayFailed: 'لم يتم تحميل جلسات اليوم.',
+    mainPaidUp: '{n} من {total} أعضاء دفعوا',
+    mainDraftPaymentOverdue: 'مرحبًا {name}، تذكير لطيف بأن موعد دفعتك قد فات. أخبرني إن كان لديك أي سؤال!',
+    mainDraftPaymentDue: 'مرحبًا {name}، تذكير لطيف بأن دفعتك مستحقة. أخبرني إن كان لديك أي سؤال!',
+    mainDraftTaskOverdue: 'مرحبًا {name}، أطمئن على مهمة "{task}". أخبرني إن احتجت أي مساعدة!',
+    mainDraftPackageBlocked: 'مرحبًا {name}، للعلم: باقة جلساتك تحتاج إلى تجديد. هل أرسل لك خيارات التجديد؟',
+    mainDraftPackageSoon: 'مرحبًا {name}، للعلم: باقة جلساتك تنتهي خلال {n} يوم. هل تريد التجديد مبكرًا؟',
+    mainDraftNoSession: 'مرحبًا {name}، هل نحدد موعد جلستنا القادمة؟ أخبرني بالوقت المناسب لك!',
+    mainDraftNoFollowUp: 'مرحبًا {name}، أتمنى أن تكون بخير بعد جلستنا الأخيرة! أخبرني إن استجد شيء قبل لقائنا القادم.',
+    mainDraftCheckin: 'مرحبًا {name}، لم أسمع منك منذ فترة. كيف حالك؟',
     mainTodaysSchedule: 'جدول اليوم', mainSeeAll: 'عرض الكل', mainNoSessions: 'لا توجد جلسات اليوم',
     mainNeedsAttention: 'يحتاج انتباهك', mainAllCaughtUp: 'كل شيء على ما يرام!',
     mainUpNext: 'القادمة', mainJoinChip: 'انضمام',
@@ -1247,7 +1274,7 @@ const ar: Record<MessageKey, string> = {
     mainNudgeAll: 'تذكير الكل', mainNudgeSheetTitle: 'تذكير الأعضاء', mainNudgeSheetSub: 'أرسل رسالة تواصل سريعة داخل التطبيق لكل من في القائمة.',
     mainNudged: 'تم التذكير', mainDone: 'تم',
     mainEarningsReceived: 'مستلم', mainEarningsDueOne: 'عضو واحد بحاجة للدفع', mainEarningsDueMany: '{n} أعضاء بحاجة للدفع', mainEarningsAllPaid: 'الجميع دفعوا',
-    mainHome: 'الرئيسية', mainClientsNav: 'الأعضاء', mainMessagesNav: 'الرسائل', mainProfileNav: 'الملف الشخصي',
+    mainHome: 'الرئيسية', tabProfile: 'حسابي', mainClientsNav: 'الأعضاء', mainMessagesNav: 'الرسائل',
 
     // Profile.dc.html
     profilePreview: 'معاينة', profileShare: 'مشاركة', profileEdit: 'تعديل',
@@ -1513,11 +1540,13 @@ const ar: Record<MessageKey, string> = {
     offeringDetailDuration: 'المدة', offeringDetailDurationPlaceholder: 'مثال: 50 دقيقة، 3 ساعات، 8 أسابيع',
     offeringDetailPriceLabel: 'السعر (جنيه)', offeringDetailPricePlaceholder: '0 = مجانية',
     offeringDetailSessionsTotal: 'إجمالي عدد الجلسات (لتتبع التقدم)', offeringDetailSessionsTotalPlaceholder: 'مثال: 8',
-    offeringDetailSessionsTotalHint: 'اتركي الحقل فارغًا إذا لم يكن لهذا العرض مدة ثابتة — جلسات فردية/جماعية مستمرة، أو ورشة/فعالية لمرة واحدة.',
+    offeringDetailSessionsTotalHint: 'اترك الحقل فارغًا إذا لم يكن لهذا العرض مدة ثابتة — جلسات فردية/جماعية مستمرة، أو ورشة/فعالية لمرة واحدة.',
     offeringDetailFormat: 'الصيغة', offeringDetailFormatOnline: 'عبر الإنترنت', offeringDetailFormatInPerson: 'حضوريًا', offeringDetailFormatBoth: 'كلاهما',
     offeringDetailDeleteOffering: 'حذف العرض', offeringDetailDeleteConfirmTitle: 'حذف هذا العرض؟',
     offeringDetailDeleteConfirmBodyTemplate: 'لن يظهر {name} بعد الآن في ملفك الشخصي. هذا لا يؤثر على الجلسات المحجوزة بالفعل.',
     offeringDetailDelete: 'حذف',
+    offeringDetailSaveFailed: 'لم يتم حفظ العرض. حاول مرة أخرى.', offeringDetailDeleteFailed: 'لم يتم حذف العرض. حاول مرة أخرى.',
+    offeringDetailNotFound: 'هذا العرض لم يعد موجودًا.',
 
     // Subscription.dc.html
     subscriptionTitle: 'رفيق برو بلس', subscriptionCurrentPlan: 'الباقة الحالية',
@@ -1671,7 +1700,7 @@ const ar: Record<MessageKey, string> = {
     messagesInboxSubtitle: 'محادثاتك مع أعضائك، في مكان واحد.',
     messagesInboxNoMembers: 'لا يوجد أعضاء بعد',
     messagesInboxNoMembersSub: 'أضف عضوًا لبدء مراسلته.',
-    messagesInboxNoMessagesYet: 'لا توجد رسائل بعد',
+    messagesInboxNoMessagesYet: 'اضغط لإرسال أول رسالة', messagesInboxStartHeading: 'ابدأ محادثة',
     messagesInboxDraftPrefix: 'مسودة: ',
     messagesInboxYouPrefix: 'أنت: ',
     messagesInboxUnreadLabel: '{count} غير مقروءة',
@@ -1679,7 +1708,7 @@ const ar: Record<MessageKey, string> = {
     notificationsTitle: 'الإشعارات',
     notificationsMarkAllRead: 'تعليم الكل كمقروء',
     notificationsAllCaughtUp: 'كل شيء على ما يرام!',
-    notificationsNothingNew: 'لا يوجد جديد لعرضه الآن.',
+    notificationsNothingNew: 'طلبات الحجز من الأعضاء تظهر هنا.',
     notificationsAccept: 'قبول', notificationsDecline: 'رفض',
     notificationsAccepted: 'تم الحجز — أصبح {name} ضمن قائمة عملائك.',
     notificationsRequestGone: 'تم سحب هذا الطلب أو الرد عليه بالفعل.',
@@ -1849,6 +1878,7 @@ const ar: Record<MessageKey, string> = {
     discoverSearchPlaceholder: 'ابحث عن محترف أو تخصص',
     discoverSpecialtyAll: 'الكل',
     discoverRecommended: 'موصى به لك',
+    discoverAllPros: 'المحترفون على رفيق',
     discoverRecommendedSub: 'يناسب هدفك في {specialty}',
     discoverMatchesGoal: 'يناسب هدفك',
     discoverNoResults: 'لا يوجد محترفون مطابقون لبحثك',
@@ -2069,7 +2099,7 @@ const ar: Record<MessageKey, string> = {
 
     clientNotificationsTitle: 'الإشعارات', clientNotificationsMarkAll: 'تعليم الكل كمقروء',
     clientNotificationsEmptyTitle: 'كل شيء على ما يرام!',
-    clientNotificationsEmptyBody: 'لا يوجد جديد لعرضه الآن.',
+    clientNotificationsEmptyBody: 'تحديثات جلساتك تظهر هنا.',
     clientNotifSessionPending: 'طلب جلستك قيد انتظار التأكيد',
     clientNotifSessionConfirmed: 'جلستك مع {coach} قادمة قريبًا',
     clientNotifTaskOverdueOne: 'لديك مهمة متأخرة',
@@ -2180,6 +2210,15 @@ type DayIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 export function dayKey(kind: 'dowShort' | 'dowFull', index: number): MessageKey {
   const i = (((Math.trunc(index) % 7) + 7) % 7) as DayIndex;
   return `${kind}${i}`;
+}
+
+/** The greeting for an hour of the day (0–23): morning from 5, afternoon
+    from noon, evening from 5 PM and through the night. Both Homes said
+    "Good Morning" at every hour. */
+export function greetingKey(hour: number): MessageKey {
+  if (hour >= 5 && hour < 12) return 'greetingMorning';
+  if (hour >= 12 && hour < 17) return 'greetingAfternoon';
+  return 'greetingEvening';
 }
 
 export function isRtl(lang: Lang): boolean {

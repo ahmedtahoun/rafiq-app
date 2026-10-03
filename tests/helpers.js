@@ -40,10 +40,61 @@ export async function simulateNotch(page, top = SAFE_TOP, bottom = SAFE_BOTTOM) 
  */
 export async function setTextScale(page, factor) {
   await page.evaluate((f) => {
-    for (const el of document.querySelectorAll('.phone-frame, .phone-frame *')) {
-      const base = el.dataset.baseFontSize ?? getComputedStyle(el).fontSize;
-      el.dataset.baseFontSize = base;
-      el.style.fontSize = `${parseFloat(base) * f}px`;
-    }
+    // Read every size first, then scale: scaling a parent before reading its
+    // child made an inheriting child (a <bdi>, a <b>) scale twice.
+    const els = [...document.querySelectorAll('.phone-frame, .phone-frame *')];
+    for (const el of els) el.dataset.baseFontSize ??= getComputedStyle(el).fontSize;
+    for (const el of els) el.style.fontSize = `${parseFloat(el.dataset.baseFontSize) * f}px`;
   }, factor);
+}
+
+/**
+ * Wait for the screen that was navigated to, instead of guessing at a delay.
+ *
+ * App.tsx loads each screen as its own chunk, so the first visit to one
+ * renders a Suspense fallback while its module arrives — and React keeps
+ * the previous screen mounted-but-hidden underneath until it does. A spec
+ * that walks every screen on a fixed timer measured the fallback on about
+ * half of them and reported nothing wrong, which is the worst kind of
+ * passing test.
+ *
+ * Call this once on a fresh page, before `goto`, and then `await
+ * window.__screenSettled()` inside any `page.evaluate` that navigates.
+ * Signed out there is no remote read, so `.load-state` on screen means the
+ * chunk, not a slow query.
+ */
+export async function installScreenSettle(page) {
+  await page.addInitScript(() => {
+    const frame = () => new Promise((r) => requestAnimationFrame(() => r()));
+
+    window.__screenSettled = async (timeoutMs = 10_000) => {
+      // Two frames first, and this is the part that is easy to get wrong:
+      // `nav()` only schedules a render, so a check made immediately after
+      // it is answered by the screen being navigated *away from* — which
+      // is painted, single and not loading, so it looks settled. Letting
+      // React flush and paint first means the poll below is looking at the
+      // navigation that was just asked for.
+      await frame();
+      await frame();
+
+      const deadline = Date.now() + timeoutMs;
+      while (Date.now() < deadline) {
+        const loading = document.querySelector('.load-state');
+        const frames = document.querySelectorAll('.phone-frame');
+        // Exactly one, because the app renders exactly one screen. While a
+        // chunk is in flight there is briefly a second: React lays the new
+        // tree out before it removes the old, and in that moment a spec's
+        // `querySelector('.phone-frame')` picks the outgoing one, whose
+        // rect is all zeros. That is what made three safe-area checks read
+        // every position as 0.
+        const painted = frames.length === 1 && frames[0].getBoundingClientRect().height > 0;
+        if (!loading && painted) {
+          await frame();
+          return true;
+        }
+        await new Promise((r) => setTimeout(r, 25));
+      }
+      return false;
+    };
+  });
 }

@@ -257,6 +257,7 @@
 }
 
 .clients-card-program {
+  color: var(--ink-soft);
   font-size: 11px;
   font-weight: 700;
   margin-top: 1px;

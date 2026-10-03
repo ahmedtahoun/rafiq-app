@@ -4,11 +4,11 @@ import { useT, dayKey, isolate, type MessageKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import {
-  MessageIcon, ScheduleIcon, TasksIcon, CheckIcon, StarIcon, WarningIcon,
-  SunIcon, MoonIcon, ChevronIcon,
-  SearchIcon, HomeIcon, ProgramsIcon, PersonIcon,
+  MessageIcon, ScheduleIcon, CheckIcon, StarIcon, WarningIcon,
+  ChevronIcon,
+  
 } from '../components/icons';
-import { BottomNav, type BottomNavItem } from '../components/BottomNav';
+import { MemberTabBar } from '../components/TabBars';
 import { BottomSheet } from '../components/BottomSheet';
 import { LoadState } from '../components/LoadState';
 import { NoCoachYet } from '../components/NoCoachYet';
@@ -55,36 +55,20 @@ export default function ClientCoach() {
 
 /** A signed-in member no coach has accepted yet. */
 function ClientCoachEmpty() {
-  const t = useT();
-  const navItems = memberNavItems(t);
   return (
     <div className="phone-frame client-coach-screen">
       <div className="client-coach-scroll client-coach-empty">
         <NoCoachYet />
       </div>
-      <BottomNav items={navItems} />
+      <MemberTabBar />
     </div>
   );
-}
-
-function memberNavItems(t: ReturnType<typeof useT>): BottomNavItem[] {
-  return [
-    { key: 'discover', label: t('discoverNav'), icon: SearchIcon, screen: 'discover' },
-    { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'clientHome' },
-    { key: 'programs', label: t('myProgramsNav'), icon: ProgramsIcon, screen: 'myPrograms' },
-    { key: 'tasks', label: t('clientTasksNav'), icon: TasksIcon, screen: 'clientTasks' },
-    { key: 'schedule', label: t('clientScheduleNav'), icon: ScheduleIcon, screen: 'clientSchedule' },
-    { key: 'coach', label: t('clientCoachNav'), icon: PersonIcon, screen: 'clientCoach' },
-  ];
 }
 
 function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { status: 'ready' }>; rel: MemberRelationshipView }) {
   const t = useT();
   const fmt = useFormat();
   const lang = useAppStore((s) => s.lang);
-  const setLang = useAppStore((s) => s.setLang);
-  const dark = useAppStore((s) => s.dark);
-  const setDark = useAppStore((s) => s.setDark);
   const nav = useAppStore((s) => s.nav);
   const isAr = lang === 'ar';
 
@@ -163,7 +147,6 @@ function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { sta
     });
   }
 
-  const navItems = memberNavItems(t);
 
   const heroBackground = profile.coverPhotoUrl
     ? `linear-gradient(180deg, rgba(0,0,0,.45) 0%, rgba(0,0,0,.55) 55%, rgba(0,0,0,.68) 100%), url('${profile.coverPhotoUrl}') center/cover no-repeat`
@@ -181,24 +164,6 @@ function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { sta
           >
             <ChevronIcon size={16} color="#FFFFFF" />
           </button>
-          <div className="client-coach-hero-actions">
-            <button
-              type="button"
-              className="client-coach-hero-btn"
-              aria-label={t('switchLanguage')}
-              onClick={() => setLang(isAr ? 'en' : 'ar')}
-            >
-              {isAr ? 'EN' : 'ع'}
-            </button>
-            <button
-              type="button"
-              className="client-coach-hero-btn"
-              aria-label={t('toggleDarkMode')}
-              onClick={() => setDark(!dark)}
-            >
-              {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}
-            </button>
-          </div>
         </div>
 
         <div className="client-coach-identity">
@@ -277,6 +242,19 @@ function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { sta
             <div className="client-coach-quick-label">{t('clientCoachTasksQuick')}</div>
             <div className="client-coach-quick-value">{tasksText}</div>
           </button>
+          {/* Programs left the tab bar (five tabs a side). They are still the
+              demo member's (CLIENT_ID), so signed in there is nothing real to
+              link to yet. */}
+          {!remote && (
+            <button
+              type="button"
+              className="client-coach-quick-card client-coach-quick-wide"
+              onClick={() => nav('myPrograms')}
+            >
+              <div className="client-coach-quick-label">{t('myProgramsNav')}</div>
+              <div className="client-coach-quick-value">{t('myProgramsSubtitle')}</div>
+            </button>
+          )}
         </div>
 
         <div className={`client-coach-payment client-coach-payment-${paymentStatus}`}>
@@ -337,7 +315,7 @@ function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { sta
         </button>
       </div>
 
-      <BottomNav items={navItems} />
+      <MemberTabBar />
 
       <BottomSheet
         open={trustOpen}

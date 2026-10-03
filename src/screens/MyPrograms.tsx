@@ -3,10 +3,10 @@ import { useT } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import {
-  MoonIcon, SunIcon, ArrowForwardIcon, ProgramsIcon,
-  SearchIcon, HomeIcon, TasksIcon, ScheduleIcon, PersonIcon,
+  ArrowForwardIcon, ProgramsIcon,
+  
 } from '../components/icons';
-import { BottomNav, type BottomNavItem } from '../components/BottomNav';
+import { MemberTabBar } from '../components/TabBars';
 import {
   DEMO_MEMBER_CLIENT_ID,
   getClient, getClientProgramProgressList, getOfferingTypeInfo, setSelectedOfferingId,
@@ -21,12 +21,7 @@ const ACCENT_HEX = '#B75C3D';
 export default function MyPrograms() {
   const t = useT();
   const fmt = useFormat();
-  const lang = useAppStore((s) => s.lang);
-  const setLang = useAppStore((s) => s.setLang);
-  const dark = useAppStore((s) => s.dark);
-  const setDark = useAppStore((s) => s.setDark);
   const nav = useAppStore((s) => s.nav);
-  const isAr = lang === 'ar';
 
   const heroGrad = `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 40)} 100%)`;
 
@@ -50,14 +45,6 @@ export default function MyPrograms() {
     nav('programDetail');
   }
 
-  const navItems: BottomNavItem[] = [
-    { key: 'discover', label: t('discoverNav'), icon: SearchIcon, screen: 'discover' },
-    { key: 'home', label: t('mainHome'), icon: HomeIcon, screen: 'clientHome' },
-    { key: 'programs', label: t('myProgramsNav'), icon: ProgramsIcon, screen: 'myPrograms' },
-    { key: 'tasks', label: t('clientTasksNav'), icon: TasksIcon, screen: 'clientTasks' },
-    { key: 'schedule', label: t('clientScheduleNav'), icon: ScheduleIcon, screen: 'clientSchedule' },
-    { key: 'coach', label: t('clientCoachNav'), icon: PersonIcon, screen: 'clientCoach' },
-  ];
 
   return (
     <div className="phone-frame my-programs-screen">
@@ -66,24 +53,6 @@ export default function MyPrograms() {
           <div>
             <h1 className="my-programs-title">{t('myProgramsTitle')}</h1>
             <div className="my-programs-subtitle">{t('myProgramsSubtitle')}</div>
-          </div>
-          <div className="my-programs-hero-actions">
-            <button
-              type="button"
-              className="my-programs-hero-btn"
-              aria-label={t('switchLanguage')}
-              onClick={() => setLang(isAr ? 'en' : 'ar')}
-            >
-              {isAr ? 'EN' : 'ع'}
-            </button>
-            <button
-              type="button"
-              className="my-programs-hero-btn"
-              aria-label={t('toggleDarkMode')}
-              onClick={() => setDark(!dark)}
-            >
-              {dark ? <SunIcon size={16} color="#FFFFFF" /> : <MoonIcon size={16} color="#FFFFFF" />}
-            </button>
           </div>
         </div>
       </div>
@@ -139,7 +108,7 @@ export default function MyPrograms() {
         )}
       </div>
 
-      <BottomNav items={navItems} />
+      <MemberTabBar />
     </div>
   );
 }
