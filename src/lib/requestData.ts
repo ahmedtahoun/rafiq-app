@@ -472,7 +472,7 @@ export async function acceptSessionRequest(requestId: string): Promise<RequestRe
       : error.code === '22023' ? 'passed'
         : error.code === '23P01' ? 'slot_taken'
           : error.code === '42501' ? 'blocked'
-            // 0021: the free plan already has its 3 active members.
+            // 0020: the free plan already has its 3 active members.
             : error.code === '53400' ? 'member_cap'
               : 'unknown';
   return { ok: false, code, message: error.message };

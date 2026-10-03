@@ -1,4 +1,4 @@
--- 0021: the free plan's 3 active members, as the app meets it — adding,
+-- 0020: the free plan's 3 active members, as the app meets it — adding,
 -- reactivating and accepting — and Pro (by hand, lapsed, renewing) lifting it.
 -- Coach F is new here and starts with no subscriptions row (free).
 \set QUIET on

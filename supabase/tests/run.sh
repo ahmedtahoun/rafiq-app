@@ -137,10 +137,10 @@ OUT="$(mktemp)"
   psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/22_security_hygiene.sql"
   echo
   echo "=== BOOKING ORIGIN ==="
-  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/24_booking_origin.sql"
+  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/23_booking_origin.sql"
   echo
   echo "=== FREE TIER ==="
-  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/25_free_tier.sql"
+  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/24_free_tier.sql"
 } | grep -v '^$' | tee "$OUT"
 
 PASSED="$(grep -c '^PASS' "$OUT" || true)"

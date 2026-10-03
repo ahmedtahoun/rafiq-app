@@ -98,7 +98,7 @@ first; the request stays pending. Then email them from
 
 ## Coach plans (Rafiq Pro)
 
-The free plan holds 3 active members (`0021`). Until In-App Purchase and
+The free plan holds 3 active members (`0020`). Until In-App Purchase and
 Play Billing are built, a coach who pays by Paymob link (the founding-coach
 offer) is put on Pro here. The app cannot change its own plan: only this
 dashboard, and later the billing webhook, writes `subscriptions`.

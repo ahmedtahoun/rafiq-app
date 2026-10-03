@@ -2,7 +2,7 @@
  * The coach's plan: free (3 active members) or Rafiq Pro (no limit).
  *
  *   Signed in  → the coach's `subscriptions` row (0001), read with the rule
- *                0021 enforces: no row, or a Pro whose renews_at has passed,
+ *                0020 enforces: no row, or a Pro whose renews_at has passed,
  *                is free.
  *   Signed out → mockStore's demo subscription, as before.
  *
@@ -17,7 +17,7 @@ import { useRemoteSession } from './remoteSession';
 import { getSupabase, isSupabaseConfigured } from './supabase';
 import { useRemoteLoad } from '../store/remoteLoad';
 
-/** Active members on the free plan. 0021's trigger holds the same number. */
+/** Active members on the free plan. 0020's trigger holds the same number. */
 export const FREE_MEMBER_CAP = 3;
 
 export interface Plan {
@@ -27,7 +27,7 @@ export interface Plan {
   renewsAt: string | null;
 }
 
-/** 0021's coach_on_pro(), in the app: a lapsed Pro is free. */
+/** 0020's coach_on_pro(), in the app: a lapsed Pro is free. */
 export function planFromRow(row: { tier: 'free' | 'pro'; renews_at: string | null } | null, nowMs: number): Plan {
   if (!row || row.tier !== 'pro') return { tier: 'free', renewsAt: null };
   if (row.renews_at && Date.parse(row.renews_at) <= nowMs) return { tier: 'free', renewsAt: null };

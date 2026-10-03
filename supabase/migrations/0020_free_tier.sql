@@ -1,4 +1,4 @@
--- 0021: the free plan holds 3 active members; Rafiq Pro has no limit.
+-- 0020: the free plan holds 3 active members; Rafiq Pro has no limit.
 --
 -- 0001's subscriptions table already held a coach's tier, written only by
 -- service_role (the app has no write grant on it, by design: tier changes

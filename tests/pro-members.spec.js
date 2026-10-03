@@ -88,7 +88,7 @@ test('Clients: the free-tier cap banner follows the subscription tier', async ({
   expect.soft(await n(page, '.clients-cap-banner'), 'no cap banner on Pro').toBe(0);
 
   // Downgrade and the cap bites: five active members against a cap of three
-  // (a lapsed Pro keeps them all; 0021 only refuses the next one).
+  // (a lapsed Pro keeps them all; 0020 only refuses the next one).
   await store(page, `(m) => m.setSubscriptionTier('free')`);
   await go(page, 'main');
   await go(page, 'clients');

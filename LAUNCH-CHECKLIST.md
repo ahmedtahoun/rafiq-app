@@ -145,11 +145,11 @@ The sources, read on 2026-10-01, and what they mean for the build are in
       first subscription is sold. The 15% rate is not automatic.
 - [x] 🔴 *Dev:* record where each booking came from (marketplace or the
       coach's own client), so that commission can be switched on fairly
-      later. `0020`; live once Ahmed pushes it, after Reem's `0019`.
+      later. `0019`; live once Ahmed pushes it.
       Commission stays off.
 - [x] 🟡 *Dev:* prices show the offering's own currency, not always EGP.
 - [x] 🔴 *Dev:* a real free plan: **3 active members**, enforced by the
-      database (`0021`), read from the coach's `subscriptions` row. Pro has
+      database (`0020`), read from the coach's `subscriptions` row. Pro has
       no limit and is granted by hand until billing exists
       (`supabase/admin/README.md`, "Coach plans"). Photos are free for
       everyone, and the Pro plan no longer promises a verified badge,

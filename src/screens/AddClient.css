@@ -211,7 +211,7 @@
   flex-shrink: 0;
 }
 
-/* The free plan is full (0021): what to do instead of a form that can't save. */
+/* The free plan is full (0020): what to do instead of a form that can't save. */
 .add-client-cap {
   margin: 24px 20px;
   padding: 22px 20px;

@@ -38,7 +38,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
 update public.profiles set phone = '1001234567', country_code = '+20' where id = :memberP;
 insert into public.offerings (id, coach_id, name, price) values (:offering, :coachC, 'Career session', 600);
 -- Coach C on Pro, as the fixtures' coaches are: this file and the race
--- after it accept more members than the free plan holds (0021).
+-- after it accept more members than the free plan holds (0020).
 insert into public.subscriptions (coach_id, tier) values (:coachC, 'pro');
 
 -- Times a whole day apart, far enough ahead that "has it passed" never flips

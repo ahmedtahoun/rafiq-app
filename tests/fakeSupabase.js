@@ -334,8 +334,8 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       if (blocks.some((b) => b.coach_id === userId && ['booked', 'busy'].includes(b.kind) && Date.parse(b.starts_at) < end && Date.parse(b.ends_at) > start)) {
         return refuse('23P01');
       }
-      // 0021: on the free plan, a 4th active member is refused, and the
-      // whole accept with it. 25_free_tier.sql proves the real trigger.
+      // 0020: on the free plan, a 4th active member is refused, and the
+      // whole accept with it. 24_free_tier.sql proves the real trigger.
       const sub = (db.subscriptions ?? []).find((x) => x.coach_id === userId);
       const onPro = sub && sub.tier === 'pro' && (!sub.renews_at || Date.parse(sub.renews_at) > Date.now());
       const existing = (db.clients ??= []).find((c) => c.coach_id === userId && c.member_id === r.member_id);

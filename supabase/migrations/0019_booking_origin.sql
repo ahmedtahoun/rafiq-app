@@ -1,4 +1,4 @@
--- 0020: where each coach–member relationship, and each session request,
+-- 0019: where each coach–member relationship, and each session request,
 -- came from — Rafiq's marketplace, or the coach's own client list.
 --
 -- Why now, with no commission switched on: commission is only fair on

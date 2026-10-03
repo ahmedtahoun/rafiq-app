@@ -3,9 +3,9 @@ import { IGNORED_CONSOLE } from './helpers.js';
 import { installFakeSupabase, signIn, dbRows } from './fakeSupabase.js';
 
 /**
- * The free plan (0021): 3 active members, then Rafiq Pro. Signed in, the
+ * The free plan (0020): 3 active members, then Rafiq Pro. Signed in, the
  * plan is the coach's `subscriptions` row: no row is free, a Pro whose
- * renews_at has passed is free again. supabase/tests/25_free_tier.sql proves
+ * renews_at has passed is free again. supabase/tests/24_free_tier.sql proves
  * the database refuses the 4th member; these check the screens say so first,
  * and say it right in both languages.
  */

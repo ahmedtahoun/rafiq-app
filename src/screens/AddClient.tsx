@@ -23,7 +23,7 @@ export default function AddClient() {
   if (roster.status === 'loading' || plan.status === 'loading') return <LoadState status="loading" />;
   if (roster.status === 'error') return <LoadState status="error" onRetry={roster.retry} showBack />;
   if (plan.status === 'error') return <LoadState status="error" onRetry={plan.retry} showBack />;
-  // The database refuses a 4th active member on the free plan (0021), so
+  // The database refuses a 4th active member on the free plan (0020), so
   // say so before the coach fills in a form that can't be saved.
   if (atMemberCap(plan.plan, roster.clients.filter((c) => c.active).length)) return <AddClientCap />;
   return <AddClientView roster={roster} />;
