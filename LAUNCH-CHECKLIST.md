@@ -76,10 +76,12 @@ as done below, when signed in; every other screen still reads and writes
       coach page and profile (SUPABASE-MIGRATION-PLAN.md, step 3), and the
       member's Sessions screen (step 4: their real sessions, cancelling one,
       asking to move one, withdrawing a request, and booking from their
-      coach's page, which Home and the coach page now open too). Left: My
-      programs, Program detail, Rate coach, the member's Notifications,
-      Discover's goal matching, and the demo booking screen reached from
-      the programs screens. `grep -rl DEMO_MEMBER_CLIENT_ID src/screens`
+      coach's page, which Home and the coach page now open too), and the
+      demo booking screen (step 6: signed in it is never shown — a member
+      who lands on it gets their coach's own page, on the real clock; signed
+      out it takes the demo week from `TODAY_MS`). Left: My programs,
+      Program detail, Rate coach, the member's Notifications and Discover's
+      goal matching. `grep -rl DEMO_MEMBER_CLIENT_ID src/screens`
       lists 12 files, most of them only for the signed-out demo path.
 - [ ] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,

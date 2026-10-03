@@ -3,8 +3,14 @@ import { useAppStore } from '../store/appStore';
 import { useT, dayKey, isolate, type MessageKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { CheckIcon, CloseIcon, ScheduleIcon, WarningIcon } from '../components/icons';
+import { LoadState } from '../components/LoadState';
+import { NoCoachYet } from '../components/NoCoachYet';
+import { useRemoteSession } from '../lib/remoteSession';
+import { weekdayOf } from '../lib/requestData';
+import { useMemberSpace } from '../store/memberStore';
+import { RemoteCoachPreview } from './CoachPreview';
 import {
-  DEMO_MEMBER_CLIENT_ID,
+  DEMO_MEMBER_CLIENT_ID, TODAY_MS, getMonthAnchorMs,
   getClient, getCoachProfile, getAvailabilityForDayIndex, getCustomBlocks,
   getPackageStatus, getSessionTypeInfo, getSelectedOfferingId, getOffering,
   addCustomBlock, chargeCredit, canInteract,
@@ -12,19 +18,18 @@ import {
 } from '../lib/mockStore';
 import './ClientBooking.css';
 
-// Still the demo member's, signed in or not, until scheduling and offerings (steps 4 and 6) moves to
-// Supabase (SUPABASE-MIGRATION-PLAN.md) — see DEMO_MEMBER_CLIENT_ID.
+// The demo's booking screen, signed out only. Signed in, booking is a real
+// request from the coach's own page (step 4), on the real clock: a member
+// who lands here anyway (an old back stack) gets that page instead.
 const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
 
-// The one fictional week the whole app's calendar lives on: Wednesday is
-// "today" and the hour is late afternoon, matching Schedule's own
-// TODAY_INDEX so both sides agree on what has already passed.
-const TODAY_INDEX = 2;
+// The demo's fixed week (CLAUDE.md): "today" is TODAY_MS, its week starts
+// at getMonthAnchorMs(), and the hour is late afternoon, as on Schedule, so
+// both sides agree on what has already passed. Every date on this screen
+// comes from these, so nothing drifts with the real date.
+const DEMO_TODAY_MS = TODAY_MS;
 const CURRENT_HOUR = 17;
-// Dates shown on the day strip. Same October week Schedule renders.
-const DATE_NUMS = [20, 21, 22, 23, 24, 25, 26];
-const ICS_YEAR = 2025;
-const ICS_MONTH = 9; // zero-based: October
+const DAY_MS = 86400000;
 
 // Bookable slots are 45 minutes apart; how long the session actually runs
 // comes from the type the member picks.
@@ -50,13 +55,28 @@ function hourLabel(h: number, am: string, pm: string): string {
 }
 
 export default function ClientBooking() {
+  const remote = useRemoteSession();
+  const space = useMemberSpace();
+  if (!remote) return <DemoClientBooking />;
+  if (space.status === 'loading') return <LoadState status="loading" />;
+  if (space.status === 'error') return <LoadState status="error" onRetry={space.retry} showBack />;
+  if (!space.remote) return <DemoClientBooking />;
+  const coachId = space.current?.coach.id;
+  if (!coachId) return <div className="phone-frame client-booking-screen"><NoCoachYet /></div>;
+  return <RemoteCoachPreview key={coachId} coachId={coachId} />;
+}
+
+function DemoClientBooking() {
   const t = useT();
   const lang = useAppStore((s) => s.lang);
   const nav = useAppStore((s) => s.nav);
   const back = useAppStore((s) => s.back);
   const isAr = lang === 'ar';
 
-  const [day, setDay] = useState(TODAY_INDEX);
+  const todayIndex = weekdayOf(DEMO_TODAY_MS);
+  const weekStartMs = getMonthAnchorMs();
+  const dayStartMs = (i: number) => weekStartMs + i * DAY_MS;
+  const [day, setDay] = useState(todayIndex);
   const [slot, setSlot] = useState<number | null>(null);
   const [sessionType, setSessionType] = useState<SessionType>('standard');
   const [confirmed, setConfirmed] = useState(false);
@@ -68,8 +88,7 @@ export default function ClientBooking() {
   const AM = isAr ? 'صباحًا' : 'AM';
   const PM = isAr ? 'مساءً' : 'PM';
   const dayNames = [0, 1, 2, 3, 4, 5, 6].map((i) => t(dayKey('dowShort', i)));
-  const monthLabel = isAr ? 'أكتوبر' : 'Oct';
-  const { money } = useFormat();
+  const { money, monthDay } = useFormat();
 
   // Checked before the picker renders, not only at confirm: a blocked
   // relationship or a suspended account on either side must never get as
@@ -117,7 +136,7 @@ export default function ClientBooking() {
   // yet, so a member with no credit left still sends the request and
   // settles up with the Pro directly.
   const canConfirm = slot !== null;
-  const selectedDayLabel = `${dayNames[day]}, ${monthLabel} ${DATE_NUMS[day]}`;
+  const selectedDayLabel = `${dayNames[day]}, ${monthDay(dayStartMs(day))}`;
 
   // The whole month, so a member can see where they are rather than
   // scrolling a seven-day strip. Only the seven days the app actually has
@@ -131,7 +150,9 @@ export default function ClientBooking() {
 
   function icsHref(): string {
     if (slot === null || slotEnd === null) return '';
-    const start = new Date(ICS_YEAR, ICS_MONTH, DATE_NUMS[day], Math.floor(slot), Math.round((slot % 1) * 60));
+    // The day's calendar date (its UTC fields), at the slot's local time.
+    const date = new Date(dayStartMs(day));
+    const start = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), Math.floor(slot), Math.round((slot % 1) * 60));
     const end = new Date(start.getTime() + sessionMins * 60000);
     const pad = (n: number) => String(n).padStart(2, '0');
     const fmt = (d: Date) =>
@@ -278,7 +299,7 @@ export default function ClientBooking() {
           <div className="client-booking-grid">
             {monthCells.map((cell, i) => {
               const live = cell.dayIndex !== null;
-              const past = live && cell.dayIndex! < TODAY_INDEX;
+              const past = live && cell.dayIndex! < todayIndex;
               const bookable = live && !past;
               const selected = live && cell.dayIndex === day;
               return (
@@ -328,7 +349,7 @@ export default function ClientBooking() {
             <div className="client-booking-slots">
               {rawSlots.map((h) => {
                 const taken = takenHours.has(`${day}@${h}`);
-                const passed = day === TODAY_INDEX && h < CURRENT_HOUR;
+                const passed = day === todayIndex && h < CURRENT_HOUR;
                 const disabled = taken || passed;
                 return (
                   <button

@@ -439,6 +439,20 @@ In small PRs, so each can be reviewed on its own:
    demo booking screen is still reached from the programs screens, which
    are step 6's.
 
+## Step 6, the member side: the real clock
+
+No schema change. Signed in, the member's calendars were already on the
+real clock (their Sessions screen and the coach's page take today from
+`wallTodayMs()` and the week from `weekdayOf`); the demo booking screen
+(ClientBooking) was the gap. Signed in it is never shown now: a member who
+lands on it (an old back stack) gets their coach's own page in its place
+(`RemoteCoachPreview`), or "No coach yet". Signed out, ClientBooking,
+ClientSchedule and CoachPreview no longer hardcode `TODAY_INDEX`, the
+week's dates or the .ics year and month: they derive them from the demo's
+`TODAY_MS` and `getMonthAnchorMs()` (CLAUDE.md), so the demo stays on its
+fixed week whatever the real date. `TODAY_INDEX` is left only in the
+coach's Schedule. Tests: tests/member-real-clock.spec.js.
+
 ## Testing this kind of code
 
 `tests/README.md`'s existing pattern (`native-oauth.spec.js`) already

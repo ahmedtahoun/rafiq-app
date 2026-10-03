@@ -6,7 +6,7 @@ import { useFormat } from '../lib/format';
 import { ChevronIcon, CheckIcon, StarIcon, MessageIcon, ScheduleIcon } from '../components/icons';
 import { LoadState } from '../components/LoadState';
 import { SPECIALTIES } from '../lib/specialties';
-import { MIN_REVIEWS_FOR_RATING, getMonthAnchorMs } from '../lib/mockStore';
+import { MIN_REVIEWS_FOR_RATING, TODAY_MS, getMonthAnchorMs } from '../lib/mockStore';
 import { useRemoteSession } from '../lib/remoteSession';
 import { wallNowMs, wallTodayMs } from '../lib/wallClock';
 import { useRemoteLoad } from '../store/remoteLoad';
@@ -48,9 +48,11 @@ const WEEKS = [
   [[0, 2, 3], [1, 2], [0, 1, 2, 3], [], [0, 3], [1, 2]],
   [[1, 2], [0, 1, 3], [2, 3], [0, 1, 2], [], [0, 2, 3]],
 ];
-// Which day of the visible week counts as "today" — the first week starts
-// here rather than at its Monday, so the picker never offers a past slot.
-const TODAY_INDEX = 2;
+// Which day of the demo's visible week counts as "today" (its fixed week,
+// CLAUDE.md) — the first week starts here rather than at its Monday, so the
+// picker never offers a past slot. Signed in, RemoteCoachPreview is on the
+// real clock (wallTodayMs / weekdayOf).
+const DEMO_WEEKDAY = weekdayOf(TODAY_MS);
 
 /** One slot per day is shown already taken, so a booked slot is visible. */
 function bookedPos(open: number[]): number {
@@ -219,7 +221,7 @@ function DemoCoachPreview({ coach }: { coach: DirectoryCoach }) {
     });
     return { label: `${fmt.monthDay(days[0].wallMs)} – ${fmt.monthDay(days[days.length - 1].wallMs)}`, days };
   });
-  const nextAvailable = firstOpen(weeks, 0, TODAY_INDEX);
+  const nextAvailable = firstOpen(weeks, 0, DEMO_WEEKDAY);
 
   const source: PreviewSource = {
     coach: {
@@ -273,7 +275,7 @@ function DemoCoachPreview({ coach }: { coach: DirectoryCoach }) {
       },
     ],
     weeks,
-    initialDay: nextAvailable?.day ?? TODAY_INDEX,
+    initialDay: nextAvailable?.day ?? DEMO_WEEKDAY,
     nextAvailable,
     noHours: false,
     existingRequest: null,
@@ -295,7 +297,8 @@ function DemoCoachPreview({ coach }: { coach: DirectoryCoach }) {
 /** How far ahead a member can pick a first session. */
 const REMOTE_WEEKS = 3;
 
-function RemoteCoachPreview({ coachId }: { coachId: string }) {
+/** Exported for ClientBooking: signed in, booking is this page. */
+export function RemoteCoachPreview({ coachId }: { coachId: string }) {
   const load = useRemoteLoad(`coachPreview:${coachId}`, true, () => fetchCoachPreview(coachId, wallNowMs()));
   if (load.status === 'loading') return <LoadState status="loading" />;
   if (load.status === 'error') return <LoadState status="error" onRetry={load.retry} showBack />;

@@ -123,8 +123,9 @@ is the same for the marketplace side.
 **Signed out, calendar maths runs on a fixed fictional week.**
 `TODAY_MS = Date.UTC(2025, 9, 22)` — Wednesday 22 October 2025.
 `WEEK_START_MS` is two days earlier, so the visible week is Mon 20 – Sun 26
-and today sits at index 2. Screens still on the demo clock hardcode
-`const TODAY_INDEX = 2` locally. Anything date-dependent on that path must
+and today sits at index 2. A signed-out path derives both from these —
+the weekday from `weekdayOf(TODAY_MS)`, dates from `getMonthAnchorMs()` —
+rather than hardcoding them. Anything date-dependent on that path must
 anchor to these, or it drifts with the real date and the seeded demo data
 stops making sense.
 
@@ -132,9 +133,9 @@ stops making sense.
 roster and Schedule, AddTimeBlock, the member's space, and the accept
 flow. They take "today" from `wallTodayMs()` or their store's `todayMs`,
 and the week from `weekdayOf(todayMs)`, never `TODAY_INDEX`. Which screens
-are still on the demo clock is one grep: `TODAY_INDEX` (ClientSchedule,
-ClientBooking and CoachPreview move with the member's own calendar,
-SUPABASE-MIGRATION-PLAN.md step 4).
+are still on the demo clock is one grep: `TODAY_INDEX` (only the coach's
+Schedule now; the member's ClientSchedule, ClientBooking and CoachPreview
+take the demo week from `TODAY_MS` signed out, step 6).
 
 **One month grid, `getMonthGrid()`.** Both arguments default to the demo
 week, so a screen on the fixed clock calls it bare and a real one passes

@@ -17,7 +17,7 @@ import { wallNowMs, wallTodayMs } from '../lib/wallClock';
 import { useMemberSpace, useMemberStore, type MemberRelationshipView } from '../store/memberStore';
 import { useRemoteLoad } from '../store/remoteLoad';
 import {
-  DEMO_MEMBER_CLIENT_ID,
+  DEMO_MEMBER_CLIENT_ID, TODAY_MS, getMonthAnchorMs,
   getClient, getCoachProfile, getCustomBlocks, getAvailabilityForDayIndex,
   getRescheduleEligibility, getCancellationPolicy, rescheduleBooking, cancelBooking,
   getMemberSessions, getRecapForMember, getRatings, getSessionTypeInfo,
@@ -30,10 +30,11 @@ import './ClientSchedule.css';
 // Signed out, the demo member's. Signed in, the screen is
 // LiveClientSchedule below (SUPABASE-MIGRATION-PLAN.md step 4, part 4).
 const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
-// Same fixed fictional week every other screen's calendar math anchors to:
-// Wednesday is "today", so Mon/Tue have already passed.
-const TODAY_INDEX = 2;
-const DATE_NUMS = [20, 21, 22, 23, 24, 25, 26];
+// The demo's fixed week (CLAUDE.md), for the signed-out screen: "today" is
+// TODAY_MS and its week starts at getMonthAnchorMs(), so the days before it
+// have passed. Signed in, LiveClientSchedule is on the real clock.
+const DEMO_WEEKDAY = weekdayOf(TODAY_MS);
+const demoDayOfMonth = (i: number) => new Date(getMonthAnchorMs() + i * 86400000).getUTCDate();
 // Bookable slots are 45 minutes apart — the same step ClientBooking offers,
 // reused here rather than re-approximated so the reschedule picker can
 // never offer a time the booking screen wouldn't.
@@ -177,7 +178,7 @@ function DemoClientSchedule() {
 
   // ---- reschedule picker ---------------------------------------------------
 
-  const pickerDay = rescheduleDay ?? (activeBlock ? blockDayIndex(activeBlock) : TODAY_INDEX);
+  const pickerDay = rescheduleDay ?? (activeBlock ? blockDayIndex(activeBlock) : DEMO_WEEKDAY);
   const pickerSlots: number[] = [];
   getAvailabilityForDayIndex(pickerDay).forEach((slot) => {
     for (let h = slot.startH; h + SLOT_STEP <= slot.endH + 0.001; h += SLOT_STEP) {
@@ -397,7 +398,7 @@ function DemoClientSchedule() {
 
             <div className="client-schedule-days">
               {[0, 1, 2, 3, 4, 5, 6].map((i) => {
-                const past = i < TODAY_INDEX;
+                const past = i < DEMO_WEEKDAY;
                 const selected = i === pickerDay;
                 return (
                   <button
@@ -409,7 +410,7 @@ function DemoClientSchedule() {
                     onClick={() => { setRescheduleDay(i); setRescheduleSlot(null); }}
                   >
                     <span className="client-schedule-day-dow">{t(dayKey('dowShort', i))}</span>
-                    <span className="client-schedule-day-num">{DATE_NUMS[i]}</span>
+                    <span className="client-schedule-day-num">{demoDayOfMonth(i)}</span>
                   </button>
                 );
               })}
