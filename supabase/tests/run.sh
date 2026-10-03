@@ -14,7 +14,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PGBIN="${PGBIN:-/usr/lib/postgresql/16/bin}"
 PGROOT="${PGROOT:-/var/tmp/rafiq-pgtest}"
-MIN_ASSERTIONS=498
+MIN_ASSERTIONS=528
 
 OUT=""
 OWN_CLUSTER=""
@@ -135,6 +135,12 @@ OUT="$(mktemp)"
   echo
   echo "=== SECURITY HYGIENE ==="
   psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/22_security_hygiene.sql"
+  echo
+  echo "=== BOOKING ORIGIN ==="
+  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/23_booking_origin.sql"
+  echo
+  echo "=== FREE TIER ==="
+  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/24_free_tier.sql"
 } | grep -v '^$' | tee "$OUT"
 
 PASSED="$(grep -c '^PASS' "$OUT" || true)"

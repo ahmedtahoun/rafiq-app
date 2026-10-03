@@ -32,7 +32,7 @@ import type { Enums } from './database.types';
  */
 /** `blocked`: either side has blocked the other, or an account isn't active
     (0017) — or, for a move, the session is no longer this member's to move. */
-export type RequestErrorCode = 'not_configured' | 'not_signed_in' | 'gone' | 'passed' | 'slot_taken' | 'blocked' | 'unknown';
+export type RequestErrorCode = 'not_configured' | 'not_signed_in' | 'gone' | 'passed' | 'slot_taken' | 'blocked' | 'member_cap' | 'unknown';
 export type RequestResult<T> = { ok: true; data: T } | { ok: false; code: RequestErrorCode; message: string };
 
 const NOT_CONFIGURED = { ok: false, code: 'not_configured', message: 'Supabase credentials are missing — see .env.local.example.' } as const;
@@ -411,6 +411,7 @@ export interface IncomingRequest {
   offeringName: string | null;
   startWallMs: number;
   price: number;
+  currency: string;
   /** When it was sent, for the list's order. */
   sentAt: string;
   /** A request to move a booked session (0017): the booking's time now. */
@@ -424,7 +425,7 @@ export async function fetchIncomingRequests(): Promise<RequestResult<IncomingReq
   const supabase = getSupabase();
   const requests = await supabase
     .from('session_requests')
-    .select('id, member_id, offering_id, requested_start, price, created_at, reschedule_of')
+    .select('id, member_id, offering_id, requested_start, price, currency, created_at, reschedule_of')
     .eq('coach_id', uid)
     .eq('status', 'pending')
     .order('created_at', { ascending: false });
@@ -450,6 +451,7 @@ export async function fetchIncomingRequests(): Promise<RequestResult<IncomingReq
       offeringName: (offerings.data as { id: string; name: string }[]).find((o) => o.id === r.offering_id)?.name ?? null,
       startWallMs: toWallMs(r.requested_start),
       price: Number(r.price),
+      currency: r.currency,
       sentAt: r.created_at,
       movesFromWallMs: (() => {
         const from = (blocks.data as { id: string; starts_at: string }[]).find((b) => b.id === r.reschedule_of);
@@ -470,7 +472,9 @@ export async function acceptSessionRequest(requestId: string): Promise<RequestRe
       : error.code === '22023' ? 'passed'
         : error.code === '23P01' ? 'slot_taken'
           : error.code === '42501' ? 'blocked'
-            : 'unknown';
+            // 0020: the free plan already has its 3 active members.
+            : error.code === '53400' ? 'member_cap'
+              : 'unknown';
   return { ok: false, code, message: error.message };
 }
 

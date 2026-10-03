@@ -151,10 +151,35 @@ Apple's App Review Guidelines decide what may be paid outside the App Store:
 - **1:1 live coaching sessions** are person-to-person services → may use
   Paymob or another payment method (guideline 3.1.3(d)).
 - **Group sessions, workshops and events** (one-to-few, one-to-many live) →
-  guideline 3.1.3(d) says these **must use In-App Purchase** on iOS.
+  **online**, guideline 3.1.3(d) says these **must use In-App Purchase** on
+  iOS; **in person**, 3.1.3(e) says they **must not**. They go through Paymob.
+- **Google Play** agrees on all of it, with one condition: a 1:1 online
+  session is exempt from Play Billing only if it is **not recorded or
+  replayable**. Video calling must not add recording.
 
-- [ ] 🔴 *Ahmed:* confirm the model above against the current guidelines, and
-      Google Play's Payments policy for the Android side.
+The sources, read on 2026-10-01, and what they mean for the build are in
+`research/payments-rules.md`. The ten-coach pricing test is in
+`research/interview-guides.md`.
+
+- [ ] 🔴 *Ahmed:* confirm the model above. ~~against the current guidelines and
+      Google Play's Payments policy~~ (read 2026-10-01; see
+      `research/payments-rules.md`). Still open are the advisor questions there:
+      the Central Bank of Egypt, VAT, and getting Apple's answer in writing.
+- [ ] 🔴 *Ahmed:* enrol in the App Store Small Business Program before the
+      first subscription is sold. The 15% rate is not automatic.
+- [x] 🔴 *Dev:* record where each booking came from (marketplace or the
+      coach's own client), so that commission can be switched on fairly
+      later. `0019`; live once Ahmed pushes it.
+      Commission stays off.
+- [x] 🟡 *Dev:* prices show the offering's own currency, not always EGP.
+- [x] 🔴 *Dev:* a real free plan: **3 active members**, enforced by the
+      database (`0020`), read from the coach's `subscriptions` row. Pro has
+      no limit and is granted by hand until billing exists
+      (`supabase/admin/README.md`, "Coach plans"). Photos are free for
+      everyone, and the Pro plan no longer promises a verified badge,
+      featured placement or priority support. *Ahmed:* the Pro price on the
+      plans screen still says 450 EGP; change it once the pricing test
+      settles 300 or 500.
 - [ ] 🔴 *Dev:* Rafiq Pro through In-App Purchase + Play Billing (RevenueCat
       handles both stores and receipt validation). Tier changes arrive from its
       webhook as `service_role` — the app has no write access to
@@ -311,6 +336,33 @@ builds".
       and the "Member check-in alerts" row is gone because no such
       notification exists. Push itself is still unbuilt; if it is built
       later, reopen this.
+- [ ] 🟡 **Phone notifications (wanted, Ahmed 2026-10-01).** The kind
+      ProCoach advertises: a banner on the lock screen, with the app's icon,
+      the moment something happens. The ones Rafiq has events for:
+      | Banner | Who gets it | Event today |
+      |---|---|---|
+      | New booking: "Hana asked for Tue 10:00 AM" | coach | `session_requests` insert. **No notification row yet**: 0002's trigger is on the old `time_blocks` request. Needs a trigger. |
+      | Booking confirmed / moved / cancelled | member | 0011's trigger on `sessions` (`session-moved`), plus accept and cancel |
+      | Task done: "Omar finished Evening walk" | coach | 0002 `task-completed` |
+      | New message | both | 0002 `message` |
+      | Payment received: "Sara paid 750 EGP" | coach | 0002 `payment-received`. Only means real money once Paymob collects session fees (§3); until then it fires when the coach records a payment, so don't send that one as push. |
+      | Session reminder, an hour before | both | Nothing yet: needs a scheduled job. |
+      How: every event above already writes a `notifications` row, so push is
+      delivery, not new logic. Add `@capacitor/push-notifications`; a
+      `device_tokens` table (one row per device; the user writes only their
+      own); an APNs key (Apple) and a Firebase project for FCM (Android);
+      then a Database Webhook on `notifications` insert → an Edge Function
+      that sends to that user's devices. Respect the existing notification
+      switches in Profile, and add one per kind. In both languages: the
+      banner text is built server-side, so it needs the recipient's
+      language stored.
+      Before it ships: the Profile cards and the privacy policy currently
+      say **no push is sent**. Change that copy in the same PR. Add Firebase
+      and device tokens to `store/privacy-inventory.md` and both store forms.
+      On iOS, ask for permission at a moment that explains why (after the
+      first booking request, for example), not at first launch.
+      Reference: ProCoach's ads (payment, booking and "workout crushed"
+      banners) and an Arabic coach dashboard Ahmed shared, same date.
 - [x] 🔴 **Account deletion must actually happen.** The app files a request
       into `account_deletion_requests`; someone has to process it (§9), within
       a stated time. **Stated: within 30 days**, on the public deletion page.

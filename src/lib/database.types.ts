@@ -263,6 +263,7 @@ export type Database = {
           needs_checkin: boolean
           next_session_at: string | null
           next_session_type: Database["public"]["Enums"]["session_type"] | null
+          origin: Database["public"]["Enums"]["relationship_origin"]
           payment_status: Database["public"]["Enums"]["payment_status"]
           phone: string | null
           plan: string
@@ -296,6 +297,7 @@ export type Database = {
           needs_checkin?: boolean
           next_session_at?: string | null
           next_session_type?: Database["public"]["Enums"]["session_type"] | null
+          origin?: Database["public"]["Enums"]["relationship_origin"]
           payment_status?: Database["public"]["Enums"]["payment_status"]
           phone?: string | null
           plan?: string
@@ -329,6 +331,7 @@ export type Database = {
           needs_checkin?: boolean
           next_session_at?: string | null
           next_session_type?: Database["public"]["Enums"]["session_type"] | null
+          origin?: Database["public"]["Enums"]["relationship_origin"]
           payment_status?: Database["public"]["Enums"]["payment_status"]
           phone?: string | null
           plan?: string
@@ -1190,6 +1193,7 @@ export type Database = {
           id: string
           member_id: string
           offering_id: string | null
+          origin: Database["public"]["Enums"]["relationship_origin"]
           price: number
           requested_start: string
           reschedule_of: string | null
@@ -1203,6 +1207,7 @@ export type Database = {
           id?: string
           member_id: string
           offering_id?: string | null
+          origin?: Database["public"]["Enums"]["relationship_origin"]
           price: number
           requested_start: string
           reschedule_of?: string | null
@@ -1216,6 +1221,7 @@ export type Database = {
           id?: string
           member_id?: string
           offering_id?: string | null
+          origin?: Database["public"]["Enums"]["relationship_origin"]
           price?: number
           requested_start?: string
           reschedule_of?: string | null
@@ -1756,6 +1762,7 @@ export type Database = {
         Args: { p_actor: string; p_client: string }
         Returns: string
       }
+      coach_on_pro: { Args: { p_coach: string }; Returns: boolean }
       create_client_invite: { Args: { p_client: string }; Returns: Json }
       is_coach_of: { Args: { p_client: string }; Returns: boolean }
       is_member_of: { Args: { p_client: string }; Returns: boolean }
@@ -1847,6 +1854,7 @@ export type Database = {
         | "success"
         | "failed"
         | "unknown"
+      relationship_origin: "marketplace" | "coach_invited"
       report_reason: "no_show" | "inappropriate" | "payment" | "other"
       report_status: "open" | "actioned" | "dismissed"
       request_status: "pending" | "accepted" | "declined" | "withdrawn"
@@ -2043,6 +2051,7 @@ export const Constants = {
         "failed",
         "unknown",
       ],
+      relationship_origin: ["marketplace", "coach_invited"],
       report_reason: ["no_show", "inappropriate", "payment", "other"],
       report_status: ["open", "actioned", "dismissed"],
       request_status: ["pending", "accepted", "declined", "withdrawn"],
