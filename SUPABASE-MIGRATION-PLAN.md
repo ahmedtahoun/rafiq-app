@@ -258,7 +258,7 @@ relationships through `src/store/memberStore.ts`'s `useMemberSpace()`:
   sessions, a booked one). Signed in, it used to read the demo member's,
   which always has sessions left.
 - **Still the demo member's, signed in:** Schedule and Booking (step 4),
-  Messages (step 5), Notifications, Programs and RateCoach (step 6).
+  Messages (step 5), Notifications and RateCoach (step 6).
   Each reads `DEMO_MEMBER_CLIENT_ID` from mockStore with a note
   naming its step, so what's left is one grep. The pieces of converted
   screens that belong to those steps (milestones, the live-session badge,
@@ -454,7 +454,7 @@ in place.
   member's goal. "Recommended for you" and "Matches your goal" show only
   when a coach on the list matches it; no focus, or a search, reads "Pros
   on Rafiq".
-- **My Programs and Program Detail** → the member's `enrollments`.
+- ✅ **My Programs and Program Detail** → the member's `enrollments`.
 - **Rate Coach** → `ratings`; reviews on the coach's page and Discover
   from the `coach_reviews` view, signed with its `reviewer_name` (first
   name and last initial) — never a reviewer's full name.
@@ -462,6 +462,21 @@ in place.
 - **The real clock** in ClientBooking, ClientSchedule and CoachPreview.
 - **The demo member is demo-only**: nothing signed in reads
   `DEMO_MEMBER_CLIENT_ID`.
+
+## Step 6, the member side: programs
+
+No schema change. My Programs and Program Detail read the member's own
+`enrollments` for the relationship being viewed (src/lib/programData.ts;
+enrollments_select via can_see_client), each joined to its offering
+(offerings_select_all, archived ones included, so a program the coach has
+stopped selling keeps its name). Progress is worked out by mockStore's
+`programProgressOf`, the same as the demo's. The enrolled date is a real
+instant (`fmt.instantDate`); "Reviewed" is `milestone_reviewed_at`. The
+goal is the coach's for the relationship, else the member's own from
+onboarding (member_profiles.goal), else no goal card: never the demo's
+fallback. Program Detail is opened with `params.offeringId`. "Book a
+session" opens the coach's page (`bookSessionTarget`), never ClientBooking.
+A failed read shows LoadState with retry. Tests: tests/member-programs.spec.js.
 
 ## Testing this kind of code
 
