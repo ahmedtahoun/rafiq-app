@@ -80,9 +80,10 @@ as done below, when signed in; every other screen still reads and writes
       step 6: Discover's goal matching (the member's own focus from
       onboarding), My programs and Program detail (the member's real
       enrollments; their "book a session" opens the coach's page, not the
-      demo booking screen), and Rate coach (rating a session they had,
-      from their Sessions screen, writes `ratings`). Left: the reviews on
-      the coach's page and Discover (`coach_reviews`) and the member's
+      demo booking screen), Rate coach (rating a session they had, from
+      their Sessions screen, writes `ratings`), and the reviews on a
+      coach's page and Discover (members' own, from `coach_reviews`, signed
+      with a first name and last initial). Left: the member's
       Notifications. `grep -rl DEMO_MEMBER_CLIENT_ID src/screens`
       lists 12 files, most of them only for the signed-out demo path.
 - [ ] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,

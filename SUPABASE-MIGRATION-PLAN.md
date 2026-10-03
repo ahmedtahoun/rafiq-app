@@ -455,7 +455,7 @@ in place.
   when a coach on the list matches it; no focus, or a search, reads "Pros
   on Rafiq".
 - ✅ **My Programs and Program Detail** → the member's `enrollments`.
-- ✅ **Rate Coach** → `ratings` (the reviews half is below); reviews on the coach's page and Discover
+- ✅ **Rate Coach** → `ratings`; reviews on the coach's page and Discover
   from the `coach_reviews` view, signed with its `reviewer_name` (first
   name and last initial) — never a reviewer's full name.
 - **The member's Notifications** → `notifications`, and Home's dot.
@@ -491,6 +491,18 @@ stored as null, so it is no public review. A failed save keeps what they
 wrote and says so. Rating a finished program (the milestone card) stays
 the demo's until Home's milestones move (step 6, demo identities).
 Tests: tests/member-rate.spec.js.
+
+## Step 6, the member side: reviews
+
+No schema change. Signed in, a coach's page and Discover's "Member
+Stories" show members' own reviews from the `coach_reviews` view
+(src/lib/reviewData.ts): only ratings with a comment, signed with
+`reviewer_name` (first name and last initial). Nothing joins back to
+`profiles.full_name` or `clients.full_name`: a reviewer's full name must
+not be public. The coach's page shows their 5 newest, beside the average
+once there are enough ratings for one; Discover shows the 3 newest of
+coaches on the list. Signed out, Discover keeps its sample stories. A
+failed read shows LoadState with retry. Tests: tests/coach-reviews.spec.js.
 
 ## Testing this kind of code
 
