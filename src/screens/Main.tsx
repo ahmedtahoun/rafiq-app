@@ -25,6 +25,7 @@ import {
   draftMessage,
   getClientDetailHref,
   getEarningsSummary,
+  getOfferings,
   getMessagesHref,
   getNudged,
   getPackageStatus,
@@ -42,6 +43,7 @@ import {
 import { useRemoteSession } from '../lib/remoteSession';
 import { fetchIncomingRequests, fetchOwnWeeklyAvailability } from '../lib/requestData';
 import { fetchCoachWeek, type CalendarBlock } from '../lib/scheduleData';
+import { fetchOwnOfferings } from '../lib/offeringData';
 import { wallNowMs } from '../lib/wallClock';
 import { useOwnCoachProfile } from '../store/ownProfileStore';
 import { useRemoteLoad, type RemoteLoad } from '../store/remoteLoad';
@@ -61,10 +63,10 @@ import './Main.css';
  *
  * Signed out it is the same screen over mockStore's demo roster.
  *
- * A coach still setting up gets a short checklist first. Each step reads
- * real data, so it ticks itself, and the card goes once all three are
- * done. Offerings aren't a step yet: the Offerings screen still writes to
- * the demo store signed in, so a real coach couldn't complete it.
+ * A coach still setting up gets a short checklist first: photo and bio,
+ * what they offer, weekly hours, first member. Each step reads real data,
+ * so it ticks itself, and the card goes once all four are done. Without an
+ * offering and hours, members have nothing to book on the coach's page.
  */
 
 const DAY_MS = 86400000;
@@ -132,6 +134,7 @@ export default function Main() {
   const todayStartMs = roster.status === 'ready' ? roster.todayMs : 0;
   const week = useRemoteLoad(`home_today_${todayStartMs}`, remote && todayStartMs > 0, () => fetchCoachWeek(todayStartMs));
   const hours = useRemoteLoad('weekly_availability', remote, fetchOwnWeeklyAvailability);
+  const offerings = useRemoteLoad('own_offerings', remote, fetchOwnOfferings);
 
   if (roster.status === 'loading' || own.status === 'loading') return <LoadState status="loading" />;
   if (roster.status === 'error') return <LoadState status="error" onRetry={roster.retry} />;
@@ -142,6 +145,9 @@ export default function Main() {
   const hoursSet = remote
     ? (hours.status === 'ready' ? hours.data.some((d) => d.enabled) : null)
     : getWeeklyAvailability().some((d) => d.enabled);
+  const offeringsSet = remote
+    ? (offerings.status === 'ready' ? offerings.data.length > 0 : null)
+    : getOfferings().length > 0;
   const requestCount = remote
     ? (incomingRequests.status === 'ready' ? incomingRequests.data.length : 0)
     : getProNotifications().filter((n) => n.unread).length;
@@ -153,6 +159,7 @@ export default function Main() {
       hasPhotoAndBio={!!own.profile.avatarPhotoUrl && !!own.profile.bio.trim()}
       week={week}
       hoursSet={hoursSet}
+      offeringsSet={offeringsSet}
       requestCount={requestCount}
     />
   );
@@ -164,6 +171,7 @@ function MainView({
   hasPhotoAndBio,
   week,
   hoursSet,
+  offeringsSet,
   requestCount,
 }: {
   roster: Extract<RosterView, { status: 'ready' }>;
@@ -171,6 +179,8 @@ function MainView({
   hasPhotoAndBio: boolean;
   week: RemoteLoad<CalendarBlock[]>;
   hoursSet: boolean | null;
+  /** Same as hoursSet: null while signed-in offerings are loading. */
+  offeringsSet: boolean | null;
   requestCount: number;
 }) {
   const t = useT();
@@ -226,11 +236,12 @@ function MainView({
   // --- Setup -------------------------------------------------------------------
   const setupSteps: { key: string; label: string; done: boolean; href: NavTarget }[] = [
     { key: 'profile', label: t('mainSetupProfile'), done: hasPhotoAndBio, href: { screen: 'editProfile', params: {} } },
+    { key: 'offering', label: t('mainSetupOffering'), done: !!offeringsSet, href: { screen: 'offeringDetail', params: { offeringId: 'new' } } },
     { key: 'hours', label: t('mainSetupHours'), done: !!hoursSet, href: { screen: 'availability', params: {} } },
     { key: 'member', label: t('mainSetupMember'), done: roster.clients.length > 0, href: { screen: 'addClient', params: {} } },
   ];
   const setupDone = setupSteps.filter((s) => s.done).length;
-  const showSetup = hoursSet !== null && setupDone < setupSteps.length;
+  const showSetup = hoursSet !== null && offeringsSet !== null && setupDone < setupSteps.length;
 
   // --- Needs Your Attention ----------------------------------------------
   // Priority order ported 1:1 from Main.dc.html's if/else chain: payment
