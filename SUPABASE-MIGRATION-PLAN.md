@@ -258,7 +258,7 @@ relationships through `src/store/memberStore.ts`'s `useMemberSpace()`:
   sessions, a booked one). Signed in, it used to read the demo member's,
   which always has sessions left.
 - **Still the demo member's, signed in:** Schedule and Booking (step 4),
-  Messages (step 5), Notifications and RateCoach (step 6).
+  Messages (step 5) and Notifications (step 6).
   Each reads `DEMO_MEMBER_CLIENT_ID` from mockStore with a note
   naming its step, so what's left is one grep. The pieces of converted
   screens that belong to those steps (milestones, the live-session badge,
@@ -455,7 +455,7 @@ in place.
   when a coach on the list matches it; no focus, or a search, reads "Pros
   on Rafiq".
 - ✅ **My Programs and Program Detail** → the member's `enrollments`.
-- **Rate Coach** → `ratings`; reviews on the coach's page and Discover
+- ✅ **Rate Coach** → `ratings` (the reviews half is below); reviews on the coach's page and Discover
   from the `coach_reviews` view, signed with its `reviewer_name` (first
   name and last initial) — never a reviewer's full name.
 - **The member's Notifications** → `notifications`, and Home's dot.
@@ -477,6 +477,20 @@ onboarding (member_profiles.goal), else no goal card: never the demo's
 fallback. Program Detail is opened with `params.offeringId`. "Book a
 session" opens the coach's page (`bookSessionTarget`), never ClientBooking.
 A failed read shows LoadState with retry. Tests: tests/member-programs.spec.js.
+
+## Step 6, the member side: rating a session
+
+No schema change. A past session the member had (attended, or not yet
+marked; never one they missed or that was cancelled) has a Rate button on
+their Sessions screen, or its stars once rated: fetchMemberSchedule reads
+the relationship's `ratings`. RateCoach, signed in, rates the session named
+by `params.sessionId` (src/lib/ratingData.ts): one `ratings` row with the
+relationship, its coach and the session (ratings_write_member; one per
+session, so a second is "already rated", 23505). An empty comment is
+stored as null, so it is no public review. A failed save keeps what they
+wrote and says so. Rating a finished program (the milestone card) stays
+the demo's until Home's milestones move (step 6, demo identities).
+Tests: tests/member-rate.spec.js.
 
 ## Testing this kind of code
 

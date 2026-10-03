@@ -78,9 +78,11 @@ as done below, when signed in; every other screen still reads and writes
       asking to move one, withdrawing a request, and booking from their
       coach's page, which Home and the coach page now open too), and in
       step 6: Discover's goal matching (the member's own focus from
-      onboarding), and My programs and Program detail (the member's real
+      onboarding), My programs and Program detail (the member's real
       enrollments; their "book a session" opens the coach's page, not the
-      demo booking screen). Left: Rate coach and the member's
+      demo booking screen), and Rate coach (rating a session they had,
+      from their Sessions screen, writes `ratings`). Left: the reviews on
+      the coach's page and Discover (`coach_reviews`) and the member's
       Notifications. `grep -rl DEMO_MEMBER_CLIENT_ID src/screens`
       lists 12 files, most of them only for the signed-out demo path.
 - [ ] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
