@@ -88,8 +88,13 @@ as done below, when signed in; every other screen still reads and writes
       the demo booking screen (signed in it is never shown — a member who
       lands on it gets their coach's own page, on the real clock; signed
       out it takes the demo week from `TODAY_MS`).
-      `grep -rl DEMO_MEMBER_CLIENT_ID src/screens`
-      lists 12 files, most of them only for the signed-out demo path.
+      `grep -rl DEMO_MEMBER_CLIENT_ID src/screens` still lists files, but
+      every use is signed-out only now, and Home, Tasks and Profile no
+      longer show the demo's sample goal signed in:
+      tests/member-demo-identity.spec.js walks the member screens signed in
+      and fails on any demo store read. Left before ticking: add Discover,
+      Notifications, Programs, RateCoach and Booking to that walk, so it
+      guards the whole member side.
 - [ ] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,
       the 8 fictional `DIRECTORY_COACHES`, and any other `DEFAULT_*` seed.

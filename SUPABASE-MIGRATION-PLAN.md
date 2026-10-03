@@ -460,7 +460,7 @@ in place.
   name and last initial) — never a reviewer's full name.
 - ✅ **The member's Notifications** → `notifications`, and Home's dot.
 - ✅ **The real clock** in ClientBooking, ClientSchedule and CoachPreview.
-- **The demo member is demo-only**: nothing signed in reads
+- ✅ **The demo member is demo-only**: nothing signed in reads
   `DEMO_MEMBER_CLIENT_ID`.
 
 ## Step 6, the member side: programs
@@ -534,6 +534,20 @@ week's dates or the .ics year and month: they derive them from the demo's
 `TODAY_MS` and `getMonthAnchorMs()` (CLAUDE.md), so the demo stays on its
 fixed week whatever the real date. `TODAY_INDEX` is left only in the
 coach's Schedule. Tests: tests/member-real-clock.spec.js.
+
+## Step 6, the member side: the demo member signed out only
+
+No schema change. Signed in, nothing reads the demo member
+(`DEMO_MEMBER_CLIENT_ID`): Profile's agreement state is read only signed
+out (its card was already hidden), `useThread` no longer seeds its unused
+local copy from the demo message store, and Home, Tasks and Profile show
+the goal the coach set, or none, rather than the demo's sample goal
+("Feel more in control of life"). The rest of Home, the coach page, Edit
+profile and Messages were already guarded. tests/member-demo-identity.spec.js
+walks the member screens signed in, watching every localStorage key read:
+only the member's own and the device's are allowed, so a demo read keyed
+by the demo member *or* hidden in a shared demo store (`clients`,
+`standing_slots`, …) fails it.
 
 ## Testing this kind of code
 
