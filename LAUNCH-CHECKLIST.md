@@ -80,7 +80,12 @@ as done below, when signed in; every other screen still reads and writes
       programs, Program detail, Rate coach, the member's Notifications,
       Discover's goal matching, and the demo booking screen reached from
       the programs screens. `grep -rl DEMO_MEMBER_CLIENT_ID src/screens`
-      lists 12 files, most of them only for the signed-out demo path.
+      still lists files, but in Home, the coach page, Profile, Edit profile
+      and Messages every use is signed-out only now (step 6), and Home,
+      Tasks and Profile no longer show the demo's sample goal signed in:
+      tests/member-demo-identity.spec.js walks the member screens signed in
+      and fails on any demo store read. Tick this once the other step 6 PRs
+      (Discover, programs, rating, reviews, notifications, booking) merge.
 - [ ] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,
       the 8 fictional `DIRECTORY_COACHES`, and any other `DEFAULT_*` seed.

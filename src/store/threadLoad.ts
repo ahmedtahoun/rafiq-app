@@ -41,7 +41,11 @@ const byId = (list: Message[], m: Message) => (list.some((x) => x.id === m.id) ?
  */
 export function useThread(clientId: string, role: MessageRole, remote: boolean): ThreadView {
   const load = useRemoteLoad(`thread:${clientId}`, remote && !!clientId, () => fetchThread(clientId));
-  const [local, setLocal] = useState(() => ({ messages: getMessages(clientId), block: getBlockStatus(clientId) }));
+  // Signed out, mockStore's demo thread. Signed in it is never read: the
+  // thread is Supabase's, and `local` is only used when !remote.
+  const [local, setLocal] = useState(() => (remote
+    ? { messages: [] as Message[], block: { blockedByMember: false, blockedByPro: false, reason: null, blockedAtMs: null } }
+    : { messages: getMessages(clientId), block: getBlockStatus(clientId) }));
   const [sending, setSending] = useState(false);
   const [sendFailed, setSendFailed] = useState<'refused' | 'unknown' | null>(null);
   const [blockBusy, setBlockBusy] = useState(false);

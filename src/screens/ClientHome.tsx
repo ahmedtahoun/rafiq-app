@@ -183,7 +183,11 @@ function ClientHomeView({ space }: { space: Extract<MemberSpaceView, { status: '
               </div>
               <div className="client-home-progress-text">
                 <div className="client-home-progress-label">{t('clientHomeProgressLabel')}</div>
-                <div className="client-home-progress-goal"><bdi>{client?.goal || t('clientHomeGoalFallback')}</bdi></div>
+                {/* Signed in, the goal the coach set, or none: never the
+                    demo's sample goal. */}
+                {(client?.goal || !remote) && (
+                  <div className="client-home-progress-goal"><bdi>{client?.goal || t('clientHomeGoalFallback')}</bdi></div>
+                )}
                 <div className="client-home-progress-note">{t('clientHomeProgressAssessedBy', { name: isolate(coachName) })}</div>
               </div>
             </div>
