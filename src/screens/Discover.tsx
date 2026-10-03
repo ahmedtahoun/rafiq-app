@@ -122,6 +122,14 @@ export default function Discover() {
   };
 
   const results = filterCoaches(coaches, filters, labelOf, goalSpecialty);
+  // "Recommended for you" only when the list really is: no search or
+  // specialty narrowing it, and at least one coach on it matching the
+  // member's goal (filterCoaches floats those first). Otherwise it is every
+  // coach, unranked for this member, and says so. The demo member's goal is
+  // Life coaching, which no demo coach offers, and the heading claimed a
+  // match above a career coach.
+  const goalMatched = !filters.specialty && !filters.search.trim() && !!goalLabelKey
+    && results.some((c) => c.specialty === goalSpecialty);
   const trending = remote
     ? coaches.filter(hasRating).sort((a, b) => b.rating - a.rating).slice(0, 3)
     : getTrendingCoaches();
@@ -380,8 +388,8 @@ export default function Discover() {
         <section className="discover-section">
           <div className="discover-section-head">
             <div>
-              <h2 className="discover-section-title">{t('discoverRecommended')}</h2>
-              {!filters.specialty && !filters.search.trim() && goalLabelKey && (
+              <h2 className="discover-section-title">{t(goalMatched ? 'discoverRecommended' : 'discoverAllPros')}</h2>
+              {goalMatched && goalLabelKey && (
                 <div className="discover-section-sub">
                   {t('discoverRecommendedSub', { specialty: t(goalLabelKey) })}
                 </div>

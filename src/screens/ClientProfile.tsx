@@ -237,7 +237,7 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
           </div>
           <div className="client-profile-card-text">
             <div className="client-profile-card-eyebrow">{t('clientProfileGoalProgress')}</div>
-            <div className="client-profile-card-title">{goalDisplay}</div>
+            <div className="client-profile-card-title"><bdi>{goalDisplay}</bdi></div>
           </div>
           <ArrowForwardIcon size={14} color="var(--ink-soft)" />
         </button>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, greetingKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import {
@@ -291,7 +291,7 @@ export default function Main() {
       <div className="main-hero">
         <div className="main-hero-top">
           <div>
-            <div className="main-eyebrow">{t('mainGreeting')}</div>
+            <div className="main-eyebrow">{t(greetingKey(new Date().getHours()))}</div>
             <div className="main-name-row">
               <div className="main-name">{t('mainCoachName')}</div>
               <div className="main-streak">

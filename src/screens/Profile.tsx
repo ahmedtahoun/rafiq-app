@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
 import { darken } from '../lib/color';
-import { ArrowForwardIcon, PencilIcon, ShareIcon, EyeIcon, ShieldIcon, StarIcon, CloseIcon, WarningIcon, MessageIcon, PaymentIcon, ScheduleIcon, PersonIcon, HomeIcon, ClientsIcon } from '../components/icons';
+import { ArrowForwardIcon, PencilIcon, EyeIcon, ShieldIcon, StarIcon, CloseIcon, WarningIcon, MessageIcon, PaymentIcon, ScheduleIcon, PersonIcon, HomeIcon, ClientsIcon } from '../components/icons';
 import { BottomNav, type BottomNavItem } from '../components/BottomNav';
 import { QuickActions } from '../components/QuickActions';
 import { signOut } from '../lib/auth';
@@ -290,11 +290,11 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
           <EyeIcon size={15} color="var(--accent)" />
           <span>{t('profilePreview')}</span>
         </button>
-        <div className="profile-quick-divider" />
-        <button type="button" className="profile-quick-btn" onClick={() => nav('shareProfile')}>
-          <ShareIcon size={14} />
-          <span>{t('profileShare')}</span>
-        </button>
+        {/* No Share button until the public coach page exists. ShareProfile's
+            link (rafiq.app/pro/…) is a domain Rafiq doesn't own, its QR code
+            encodes the same dead link, and its share buttons only show a
+            toast: a coach who posted it would send people nowhere. The
+            screen stays for when the page ships (LAUNCH-CHECKLIST). */}
         <div className="profile-quick-divider" />
         <button type="button" className="profile-quick-btn" onClick={() => nav('editProfile')}>
           <PencilIcon size={13} />
