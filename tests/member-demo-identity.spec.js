@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { IGNORED_CONSOLE } from './helpers.js';
+import { IGNORED_CONSOLE, installScreenSettle } from './helpers.js';
 import { installFakeSupabase, signIn } from './fakeSupabase.js';
 
 /**
@@ -27,8 +27,18 @@ const tables = ({ goal = '' } = {}) => ({
     coach_id: 'coach-a', full_name: 'Dina Farouk', title: 'Nutrition coaching', verified: true, rating_count: 0, rating_avg: null,
     bio: '', certifications: [], avatar_photo_url: null, cover_photo_url: null,
   }],
-  tasks: [], mood_checkins: [], packages: [], sessions: [], session_requests: [], time_blocks: [], weekly_availability: [],
-  messages: [], ratings: [], notifications: [], member_profiles: [],
+  tasks: [], mood_checkins: [], packages: [], session_requests: [], time_blocks: [], messages: [], ratings: [], coach_reviews: [],
+  // Enough on every screen of the walk that each shows real content, not
+  // only its empty state: a program, a session to rate, a notification.
+  sessions: [{ id: 's-past', client_id: 'rel-a', scheduled_at: '2026-09-21T07:00:00Z', recap: null, attendance: 'attended' }],
+  offerings: [{
+    id: 'off-reset', coach_id: 'coach-a', name: 'Nutrition Reset', description: '', type: 'program', duration: '8 weeks',
+    format: 'online', price: 2400, currency: 'EGP', session_count: 8, active: true, created_at: '2026-08-01T00:00:00Z',
+  }],
+  enrollments: [{ client_id: 'rel-a', offering_id: 'off-reset', sessions_completed: 2, enrolled_at: '2026-09-10T10:00:00Z', milestone_reviewed_at: null }],
+  notifications: [{ id: 'n1', recipient_id: MEMBER, kind: 'message', client_id: 'rel-a', payload: { preview: 'See you Monday' }, read_at: null, created_at: '2026-09-28T08:00:00Z' }],
+  member_profiles: [{ profile_id: MEMBER, goal: '', focus: 'nutrition', signup_completed_at: '2026-09-01T00:00:00Z' }],
+  weekly_availability: [0, 1, 2, 3, 4].map((d) => ({ coach_id: 'coach-a', day_of_week: d, enabled: true, start_hour: 9, end_hour: 17 })),
 });
 
 async function open(browser, { data = tables() } = {}) {
@@ -40,6 +50,9 @@ async function open(browser, { data = tables() } = {}) {
   page.on('console', (m) => {
     if (m.type() === 'error' && !IGNORED_CONSOLE.test(m.text() + m.location().url)) errs.push(m.text());
   });
+  // Each screen is its own chunk (App.tsx): wait for the one navigated to,
+  // not a fixed delay that could check the previous screen or the spinner.
+  await installScreenSettle(page);
   await page.goto('/');
   await page.evaluate(() => {
     localStorage.clear();
@@ -67,27 +80,41 @@ async function open(browser, { data = tables() } = {}) {
   });
   return { page, ctx, errs };
 }
-async function go(page, screen) {
-  await page.evaluate(async (s) => (await import('/src/store/appStore.ts')).useAppStore.getState().nav(s), screen);
-  await page.waitForTimeout(400);
+/** A screen name, or { screen, params } for one that needs a subject. */
+async function go(page, target) {
+  await page.evaluate(async (s) => (await import('/src/store/appStore.ts')).useAppStore.getState().nav(s), target);
+  await page.evaluate(() => window.__screenSettled());
 }
+const nameOf = (target) => (typeof target === 'string' ? target : target.screen);
 const frame = (page) => page.locator('.phone-frame').first();
-// The demo member, their coach, and the demo's sample goal.
-const DEMO = /Sara Ahmed|Yasmin|Feel more in control of life/;
+// The demo member, their coach, the demo's sample goal, and the demo
+// coach's catalogue (what Programs, Booking and the coach page would show).
+const DEMO = /Sara Ahmed|Yasmin|Feel more in control of life|8-Week Transformation Program|Goal-Setting Workshop|Group Reflection Circle/;
 
-const SCREENS = ['clientHome', 'clientCoach', 'clientProfile', 'editClientProfile', 'coachMessages', 'clientTasks', 'myCoaches', 'clientSchedule'];
+// Every member screen that reads the member's data. Each must be on screen,
+// not loading or failed, when it is checked.
+const SCREENS = [
+  'clientHome', 'clientCoach', 'clientProfile', 'editClientProfile', 'coachMessages', 'clientTasks', 'myCoaches', 'clientSchedule',
+  'discover', 'clientNotifications', 'myPrograms', { screen: 'programDetail', params: { offeringId: 'off-reset' } },
+  { screen: 'rateCoach', params: { sessionId: 's-past' } }, 'clientBooking', { screen: 'coachPreview', params: { coachId: 'coach-a' } },
+];
 
 test('signed in, no member screen reads or shows the demo member', async ({ browser }) => {
   const { page, ctx, errs } = await open(browser);
-  for (const screen of SCREENS) {
-    await go(page, screen);
-    await expect(page.locator('.load-state')).toHaveCount(0);
-    await expect(frame(page), screen).not.toContainText(DEMO);
+  for (const target of SCREENS) {
+    await go(page, target);
+    await expect(page.locator('.load-state'), nameOf(target)).toHaveCount(0);
+    await expect(page.locator('.phone-frame'), nameOf(target)).toHaveCount(1);
+    await expect(frame(page), nameOf(target)).not.toContainText(DEMO);
   }
   // Only the member's own and the device's: never a demo store, keyed by
   // the demo member or by anything else.
   const read = [...new Set(await page.evaluate(() => window.__keysRead))];
-  const allowed = /^(rafiq_(role|lang|dark|notif_prefs)|rafiq_member_relationship_member-1|rafiq_message_draft_rel-a|sb-.+)$/;
+  // rafiq_fav_coaches is not demo data (nothing seeds it; only the heart
+  // writes it), but it is the device's, not the member's: favourites
+  // haven't moved to `favourite_coaches` (0005) yet. Allowed here by name
+  // so that move, when it lands, can take it off this list.
+  const allowed = /^(rafiq_(role|lang|dark|notif_prefs|fav_coaches)|rafiq_member_relationship_member-1|rafiq_message_draft_rel-a|sb-.+)$/;
   expect(read.filter((k) => !allowed.test(k))).toEqual([]);
   expect(errs).toEqual([]);
   await ctx.close();
@@ -110,6 +137,7 @@ test('Home shows the goal the coach set, and none rather than the demo’s', asy
 test('signed out, the demo member is still the demo', async ({ browser }) => {
   const ctx = await browser.newContext({ viewport: { width: 420, height: 900 } });
   const page = await ctx.newPage();
+  await installScreenSettle(page);
   await page.goto('/');
   await page.evaluate(() => {
     localStorage.clear();

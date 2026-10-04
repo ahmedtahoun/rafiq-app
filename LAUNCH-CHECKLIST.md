@@ -72,7 +72,7 @@ as done below, when signed in; every other screen still reads and writes
       alerts, Profile stats, Earnings' totals, and the
       member screens listed under the demo identities below — Reem's
       current tasks.
-- [ ] 🔴 **Remove the demo identities.** 14 member screens hardcoded
+- [x] 🔴 **Remove the demo identities.** 14 member screens hardcoded
       `const CLIENT_ID = 'sara'`, and the Pro side is the seeded
       `DEFAULT_PRO_ID = 'pro-yasmin'`. Both must come from the signed-in user.
       Done for the coach's roster and the member's Home, Tasks, My Pros,
@@ -95,9 +95,16 @@ as done below, when signed in; every other screen still reads and writes
       every use is signed-out only now, and Home, Tasks and Profile no
       longer show the demo's sample goal signed in:
       tests/member-demo-identity.spec.js walks the member screens signed in
-      and fails on any demo store read. Left before ticking: add Discover,
-      Notifications, Programs, RateCoach and Booking to that walk, so it
-      guards the whole member side.
+      and fails on any demo store read or demo name. Done (2026-10-04): the
+      walk covers every member screen that reads the member's data — Home,
+      My Pro, Profile, Edit profile, Messages, Tasks, My Pros, Sessions,
+      Discover, Notifications, My programs, Program detail, Rate coach,
+      Booking and the coach page — and waits for each lazily loaded screen
+      rather than a fixed delay. Breaking any one of them back to the demo
+      fails it. The one device key it allows that isn't the member's is
+      `rafiq_fav_coaches`: Discover's favourites start empty (not demo
+      data) but are still kept on the phone, not in `favourite_coaches`
+      (0005).
 - [ ] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,
       the 8 fictional `DIRECTORY_COACHES`, and any other `DEFAULT_*` seed.
@@ -115,7 +122,7 @@ as done below, when signed in; every other screen still reads and writes
       re-check `format.ts`'s UTC wall-clock rule (CLAUDE.md, "Display every
       date and time") once times come from real bookings. Signed in, every
       converted screen is on the real clock; `grep -rl TODAY_INDEX src`
-      still lists ClientSchedule, ClientBooking, CoachPreview and Schedule.
+      lists only Schedule (the coach's demo week) now.
 - [ ] 🔴 Loading, empty and error states on every screen. Today every read is
       synchronous localStorage; network reads can be slow or fail.
       Done on every converted screen (26 use `LoadState`: loading, then an
@@ -124,18 +131,14 @@ as done below, when signed in; every other screen still reads and writes
       Discover now distinguishes an empty directory ("No pros yet") from a
       search that matched nothing — it will be empty until real pros sign
       up, and the search-failed wording read like a broken screen.
-- [ ] 🟡 Discover and coach profiles read the `coach_directory` and
+- [x] 🟡 Discover and coach profiles read the `coach_directory` and
       `coach_reviews` views. The views sign reviews with a **first name and
       last initial**; the app currently shows the reviewer's full name
-      publicly — that must go. Half done: signed in, Discover and a coach's
-      page read `coach_directory` (and show a review count, no review
-      text); `coach_reviews` is still to do.
-      Audited every surface that renders a name: nothing reads
-      `coach_reviews` yet, and the only full names anywhere are Discover's
-      hardcoded sample stories, already hidden when signed in — so no real
-      reviewer's name is exposed today. Whoever wires reviews must select
-      the view's `reviewer_name` and never join back to
-      `profiles.full_name`.
+      publicly — that must go. Done: signed in, Discover and a coach's page
+      read `coach_directory`, and their reviews come from `coach_reviews`
+      (step 6), selecting the view's `reviewer_name` — never a join back to
+      `profiles.full_name`. Discover's hardcoded sample stories went with
+      the fictional coaches.
 - [x] 🟡 Messaging updates live (Supabase Realtime on `messages`). Done in
       step 5 (`0014`, `src/lib/messageData.ts`): both threads and the
       coach's inbox on Supabase, with real blocking from either side.

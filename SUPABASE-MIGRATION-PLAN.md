@@ -548,6 +548,13 @@ walks the member screens signed in, watching every localStorage key read:
 only the member's own and the device's are allowed, so a demo read keyed
 by the demo member *or* hidden in a shared demo store (`clients`,
 `standing_slots`, …) fails it.
+Since 2026-10-04 the walk covers every member screen that reads the
+member's data (Discover, Notifications, My programs, Program detail, Rate
+coach, Booking and the coach page added), waits for each screen's chunk
+(`installScreenSettle`) instead of a fixed delay, and fails if any of them
+is switched back to its demo version. Favourites (`rafiq_fav_coaches`) are
+the one device-local store left on the member side; moving them to
+`favourite_coaches` (0005) would take that key off the walk's allowlist.
 
 ## The rest: session templates
 
