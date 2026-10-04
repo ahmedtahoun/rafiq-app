@@ -203,35 +203,49 @@ are built and committed.
 
 ---
 
-## 7. The privacy manifest disagrees with this form
+## 7. The privacy manifest
 
-`ios/App/App/PrivacyInfo.xcprivacy` currently declares:
+`ios/App/App/PrivacyInfo.xcprivacy` now declares the same fifteen types
+this form does, and is **kept in step by a test** rather than by anyone
+remembering.
 
-```xml
-<key>NSPrivacyCollectedDataTypes</key>
-<array/>
-```
+It used to be an empty `NSPrivacyCollectedDataTypes` array: a manifest
+saying the app collects nothing, beside a product page that would list
+health and financial data. Nothing failed, because nothing looked.
+`tests/privacy-manifest.spec.js` is the thing that looks. It checks:
 
-An empty array means *this app collects nothing* — while the form above
-declares a dozen types. The tracking half of the manifest is right
-(`NSPrivacyTracking` false, no tracking domains) and the required-reason
-API entry for `UserDefaults` (`CA92.1`) is right. It is the collected
-types that are empty.
+- the list is **not empty**, which is the original bug;
+- every data type and purpose string is one of **Apple's own values**,
+  read from
+  `developer.apple.com/documentation/bundleresources/app-privacy-configuration`
+  — the spelling is not guessable, and the same list contains
+  `PhotosorVideos` with a lowercase "or" next to `EmailsOrTextMessages`
+  with a capital one. Xcode will not generate a correct privacy report
+  if a value is misspelled, and it does not tell you;
+- no type is declared twice;
+- **every** entry sets `Tracking` false — counted, not spot-checked, so
+  a new entry that omits the key fails too;
+- no advertising purpose appears anywhere;
+- and `Info.plist` still has no `NSUserTrackingUsageDescription`, since
+  an app whose manifest says it does not track must not show the ATT
+  prompt.
 
-**I have not filled it in here, on purpose.** The manifest should mirror
-the *final* answers, and eleven of them are still open below — filling
-it now would bake my guesses into a shipped file. Once you have settled
-them, say so and I will write the manifest to match in one pass, so the
-two cannot drift.
+Both failure modes were confirmed by causing them: emptying the array,
+and misspelling `PhotosorVideos` as `PhotosOrVideos`.
 
-Worth knowing: this is not a known automatic rejection, and the App
-Store Connect answers are what appear on the product page. But Apple
-builds a privacy report from the manifests, and "the app says it
-collects nothing" next to a product page listing health and financial
-data is the kind of inconsistency that is cheap to fix now and
-embarrassing to explain later.
+**Three entries depend on open questions below**, and are marked in the
+file where they appear:
 
----
+| Entry | Question | If the answer changes |
+|---|---|---|
+| `PhysicalAddress` | 1 — is self-typed city and country an address? | Remove the entry; it becomes Other Data, which is already declared |
+| `Health` (its "coaching focus" part) | 3 | The entry stays regardless — mood check-ins alone require it |
+| `Fitness` | 4 | Remove the entry if tasks are not fitness data |
+
+And one is **deliberately absent**: `CrashData`. Sentry is off until
+`VITE_SENTRY_DSN` is set, and with no DSN the SDK is never imported, so
+declaring it today would be untrue. The day that changes, add it with
+`Linked` **false** — and change the Diagnostics row in §3 with it.
 
 ## 8. The open questions
 
@@ -280,7 +294,7 @@ The places they genuinely diverge:
 
 - [ ] Every row above matches the privacy policy, which must be live (§5)
 - [ ] The eleven open questions are answered, and this file updated
-- [ ] `PrivacyInfo.xcprivacy` rewritten to match the final answers (§7)
+- [ ] `PrivacyInfo.xcprivacy` still matches the final answers (§7) — it matches this draft; re-check the three question-dependent entries once the questions are settled
 - [ ] If `VITE_SENTRY_DSN` is set in the build being submitted, Diagnostics → Crash Data is **Yes**
 - [ ] Nothing in the app calls `requestTrackingAuthorization`, and no `NSUserTrackingUsageDescription` has appeared
 - [ ] The crisis numbers are confirmed — health data is declared here, and §8 ties the two together
