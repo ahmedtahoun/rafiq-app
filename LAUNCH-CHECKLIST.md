@@ -489,7 +489,13 @@ Waits on the name decision (§1).
       info, and it must be in the privacy policy too.
       **The input is ready:** `store/privacy-inventory.md` works every table
       in `0001`–`0017` through to an Apple type and a Google category, with
-      what deletion (0012) keeps and removes. Filling the two forms is still
+      what deletion (0012) keeps and removes. **The Google half is now
+      drafted:** `store/play-console.md` answers every Play Console
+      question in the order Play asks it — App access, Ads, content
+      rating, target audience, Data safety row by row, the Health apps
+      and Financial features declarations, Advertising ID, and
+      countries/pricing — with the open questions listed rather than
+      guessed. Apple's App Privacy form is still to draft. Filling the two forms is still
       Ahmed's, and eleven questions in it need answering first — among them
       where a national ID goes on Apple's form (it has no type for a
       government ID), whether coaching focus counts as health data, and
