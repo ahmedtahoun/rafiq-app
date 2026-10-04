@@ -116,7 +116,24 @@ what the app actually does.
   both seeds, because they are enum-like keys into
   `src/lib/specialties.ts` and the screen renders them through `t()`.
 
-Two deliberate choices worth knowing:
+**Bookings are seeded the way the database writes them.** 0010/0011
+insert a booking as a pair — a `booked` time_block whose `label` is
+`'Session · ' || <member name>`, plus a `sessions` row carrying its
+`time_block_id` — and a `standard` session runs 50 minutes, an `intro`
+20 (0010:69). An earlier seed wrote blank labels and hour-long slots, so
+Schedule fell back to `t('schedulePreferredHours')` for anything not
+`busy` (Schedule.tsx:254) and every booking read "Preferred hours · 50
+min" on a 60-minute block: the coach's availability, not a session with
+a person, and the length disagreeing with itself. A blank label is right
+for exactly one kind, `busy`, which reads as "Unavailable".
+
+**The Arabic shots show the English word "Session".** That is the stored
+value: 0010 writes `'Session · '` whatever language the coach uses, and
+the screen renders `label` raw. It is an app bug, Ahmed is fixing it,
+and the seed deliberately does not work around it by writing an Arabic
+label the database would never contain.
+
+Three deliberate choices worth knowing:
 
 **The coach has an avatar.** `shots.mjs` draws an initials avatar onto a
 canvas and serves it as the coach's uploaded photo. Without one, Home
@@ -125,6 +142,20 @@ instead of the running practice, because the profile step wants a photo
 and a bio. The drawn avatar is nobody's face, and a coach who uploads a
 plain avatar is ordinary — so the screen is both the stronger image and a
 state that can really exist.
+
+**One member is archived, so the roster is 2 active of 3.** 0020 caps
+the free plan at three *active* members, and at the cap the Members
+screen shows "Free plan: 3/3 active members used — upgrade to Rafiq Pro
+Plus for unlimited". Rafiq Pro Plus is a "Coming soon" screen
+(`Subscription.tsx:156`) and `store/listing.md` is explicit that the
+listing may not promise paying in the app until §3 lands — so a
+screenshot carrying that banner would advertise a purchase nobody can
+make. An archived member still appears under the default filter, badged
+Inactive, so the roster is no thinner and a lapsed member is an ordinary
+thing for a coach to have. The cost is that Home now reads "2 of 2
+members paid up" instead of showing a payment due; if §3 ships and the
+upgrade becomes real, make all three active again and the banner is
+fine.
 
 **The fake does not enforce the schema.** It models tables, not enums: a
 first draft of the seed used `kind: 'blocked'` for a time block, which
