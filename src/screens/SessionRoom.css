@@ -284,3 +284,26 @@ html[dir='rtl'] .session-room-ready { font-family: var(--font-display-ar); }
   font-size: 11px;
   color: rgba(242, 236, 225, 0.6);
 }
+
+/* ---- signed in: the real call ---- */
+
+.session-room-private {
+  color: rgba(242, 236, 225, 0.6);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+
+.session-room-video-other,
+.session-room-video-self {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.session-room-video-other { position: absolute; inset: 0; }
+.session-room-self:has(.session-room-video-self) { overflow: hidden; padding: 0; }
+/* Your own picture reads like a mirror, as every call app shows it. */
+.session-room-video-self.is-mirrored { transform: scaleX(-1); }
+
+.session-room-join:disabled { opacity: 0.6; }

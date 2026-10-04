@@ -22,6 +22,7 @@ import { useRemoteSession } from '../lib/remoteSession';
 import { fetchOwnWeeklyAvailability, weekdayOf } from '../lib/requestData';
 import { type Attendance, cancelBooking as cancelRemoteBooking, fetchCoachWeek, markAttendance, removeOwnBusyBlock, type CalendarBlock, rescheduleBooking as rescheduleRemoteBooking, type BookingChangeError } from '../lib/scheduleData';
 import { wallNowMs, wallTodayMs } from '../lib/wallClock';
+import { canOfferJoin } from '../lib/videoData';
 import { useRosterStore } from '../store/rosterStore';
 import { useRemoteLoad } from '../store/remoteLoad';
 import { useRoster } from '../store/rosterStore';
@@ -304,10 +305,17 @@ export default function Schedule() {
     const avatarBg = client?.avatarBg ?? 'var(--accent)';
     const initials = client?.initials ?? '';
     const detailHref = b.clientId ? getClientDetailHref(b.clientId) : null;
-    // Messages (step 5) and the session room aren't real yet: signed in, the
-    // sheet offers neither.
+    // Signed in, the sheet's reminder stays the demo's (it drafts a canned
+    // message); Join opens the booking's real call, in its join window.
     const messagesHref = b.clientId && !live ? getMessagesHref(b.clientId) : null;
-    const sessionRoomHref = b.clientId && !live ? getSessionRoomHref(b.clientId) : null;
+    const dayStartMs = weekStartMs + selectedDay * DAY_MS;
+    const sessionRoomHref: NavTarget | null = !b.clientId
+      ? null
+      : !live
+        ? getSessionRoomHref(b.clientId)
+        : b.kind === 'booked' && b.sessionId && canOfferJoin(dayStartMs + b.startH * 3600000, dayStartMs + b.endH * 3600000, wallNowMs())
+          ? { screen: 'sessionRoom', params: { sessionId: b.sessionId, name: name ?? '' } }
+          : null;
     const canRemind = b.clientId && !live ? canInteract(b.clientId) : false;
     const range = hourRangeLabel(b.startH, b.endH);
     const durationSuffix = b.sessionType ? t('scheduleMinutesSuffix', { n: getSessionTypeInfo(b.sessionType).minutes }) : '';

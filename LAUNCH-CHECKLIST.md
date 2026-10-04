@@ -31,6 +31,12 @@ calendar time no matter how fast the code moves:
       saying `rafiqie` don't matter: they are never shown.
 - [ ] 🔴 **Payments model** — see §3 before deciding. Includes whether Rafiq
       takes a commission on sessions and how coaches get paid out.
+      **Decided (Ahmed, 2026-10-04): a marketplace.** Members pay for
+      sessions inside the app (Paymob checkout), Rafiq pays coaches out,
+      and there is **no stored balance or wallet**: a coach's "to be paid
+      out" is a record of what Rafiq owes, not money parked in Rafiq.
+      Coaches can still be paid to a bank account or a mobile wallet.
+      Still open: the commission, and the advisor questions in §3.
 - [ ] 🟡 **Company / legal entity** that owns the developer accounts, receives
       store payouts and signs the App Store Paid Apps agreement.
 - [ ] 🟡 **Launch coaches.** Discover must not open empty or with fake coaches
@@ -236,6 +242,25 @@ builds".
       The in-app browser opens Google's and Apple's pages, and closing it
       without finishing no longer leaves the buttons stuck (#68). Waiting
       on *Ahmed*: the redirect URL, then one real sign-in per platform.
+- [ ] 🔴 **1:1 video sessions (Daily), inside the app** (decided, Ahmed,
+      2026-10-04). Built: the `session-video` Edge Function gives each of
+      the two people in a session a pass to its own private Daily room,
+      from 10 minutes before it starts until 30 after it ends; it is never
+      recorded (no `enable_recording`, nobody an owner, and a Daily domain
+      that records is refused), which is also what keeps 1:1 online
+      sessions outside Play Billing. SessionRoom is the real call signed in,
+      on the app's own bilingual controls (Daily's ready-made screen has no
+      Arabic); Join shows on the coach's Home and Schedule and the member's
+      Sessions. Camera and microphone permissions are declared on both
+      platforms. Tests: `supabase/functions/_shared/sessionVideo_test.ts`,
+      `tests/session-video.spec.js`. Left:
+      *Ahmed:* in the Daily dashboard, check recording is off for the
+      domain; put the key in `supabase/functions/.env` as `DAILY_API_KEY`
+      and run `npx supabase secrets set --env-file supabase/functions/.env`,
+      then delete the file (never in chat or git); deploy `session-video`.
+      *Dev:* one real call between two phones, both languages — camera and
+      microphone prompts on iOS and Android, joining, hanging up, and the
+      window closing.
 - [x] 🔴 **Android hardware back button.** Nothing listens for it, so it exits
       the app from any screen. Wire `App.addListener('backButton', …)` from
       `@capacitor/app` to `appStore.back()`, exiting only on a tab root.

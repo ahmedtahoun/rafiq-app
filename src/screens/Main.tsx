@@ -45,6 +45,7 @@ import { fetchIncomingRequests, fetchOwnWeeklyAvailability } from '../lib/reques
 import { fetchCoachWeek, type CalendarBlock } from '../lib/scheduleData';
 import { fetchOwnOfferings } from '../lib/offeringData';
 import { wallNowMs } from '../lib/wallClock';
+import { canOfferJoin } from '../lib/videoData';
 import { useOwnCoachProfile } from '../store/ownProfileStore';
 import { useRemoteLoad, type RemoteLoad } from '../store/remoteLoad';
 import { useRoster, type RosterView } from '../store/rosterStore';
@@ -122,6 +123,8 @@ interface TodaySession {
   client: Client;
   atMs: number;
   endMs: number;
+  /** Signed in: the booking's session, which its video call opens with. */
+  sessionId?: string;
 }
 
 export default function Main() {
@@ -207,7 +210,7 @@ function MainView({
         .filter((b) => b.kind === 'booked' && !!b.clientId && b.startWallMs < todayMs + DAY_MS)
         .flatMap((b) => {
           const client = roster.client(b.clientId!);
-          return client ? [{ key: b.id, client, atMs: b.startWallMs, endMs: b.endWallMs }] : [];
+          return client ? [{ key: b.id, client, atMs: b.startWallMs, endMs: b.endWallMs, sessionId: b.sessionId }] : [];
         });
     }
   } else {
@@ -448,8 +451,14 @@ function MainView({
             sessions.map((s) => {
               const { num: timeNum, period: timePeriod } = fmt.timeParts(s.atMs);
               const isNext = s.key === nextKey;
-              // The session room is still the demo's: signed in, a session opens its member.
-              const showJoin = isNext && !remote;
+              // Signed in, Join shows from 10 minutes before the session
+              // until 30 after it, the window the call itself allows.
+              const showJoin = remote
+                ? !!s.sessionId && canOfferJoin(s.atMs, s.endMs, nowMs)
+                : isNext;
+              const joinHref = remote
+                ? { screen: 'sessionRoom' as const, params: { sessionId: s.sessionId ?? '', name: s.client.name } }
+                : getSessionRoomHref(s.client.id);
               return (
                 <Card key={s.key} className="main-session-row">
                   <button type="button" className="main-session-main" onClick={() => nav(getClientDetailHref(s.client.id))}>
@@ -473,7 +482,7 @@ function MainView({
                     </div>
                   </button>
                   {showJoin ? (
-                    <button type="button" className="main-join-chip" onClick={() => nav(getSessionRoomHref(s.client.id))}>
+                    <button type="button" className="main-join-chip" onClick={() => nav(joinHref)}>
                       {t('mainJoinChip')}
                     </button>
                   ) : (

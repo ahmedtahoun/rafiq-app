@@ -52,7 +52,7 @@ jobs:
       # with Deno itself, and run their unit tests (no network: Paymob is a recorder).
       - name: Edge Functions (Deno check + test)
         run: |
-          npx --yes deno check supabase/functions/payouts/index.ts supabase/functions/account-deletion/index.ts supabase/functions/admin/index.ts
+          npx --yes deno check supabase/functions/payouts/index.ts supabase/functions/account-deletion/index.ts supabase/functions/admin/index.ts supabase/functions/session-video/index.ts
           npx --yes deno test --no-prompt supabase/functions
 
       # The admin tool is its own app with its own package.json, so the

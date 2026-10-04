@@ -1,6 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { isolate, useT, type MessageKey } from '../lib/i18n';
+import { useFormat } from '../lib/format';
+import { useRemoteSession } from '../lib/remoteSession';
+import { toWallMs } from '../lib/wallClock';
+import { joinSessionVideo, type VideoErrorCode } from '../lib/videoData';
+import { createVideoCall, type CallEnd, type CallState, type VideoCall } from '../lib/videoCall';
 import { darken } from '../lib/color';
 import { ChevronIcon } from '../components/icons';
 import {
@@ -28,10 +33,15 @@ function initialsOf(name: string): string {
 // or Messages which get separate files. Role only changes who the other party
 // is and where Back goes.
 //
-// Deliberately not a real call. The design carries a banner saying so, and
-// nothing here touches getUserMedia — the mic and camera buttons toggle their
-// own icons and nothing else, exactly as drawn.
+// Signed in it is a real call (LiveSessionRoom, below). Signed out it is
+// the design's preview: the banner says so, and nothing touches
+// getUserMedia — the mic and camera buttons toggle their own icons only.
 export default function SessionRoom() {
+  const remote = useRemoteSession();
+  return remote ? <LiveSessionRoom /> : <DemoSessionRoom />;
+}
+
+function DemoSessionRoom() {
   const t = useT();
   const nav = useAppStore((s) => s.nav);
   const back = useAppStore((s) => s.back);
@@ -184,6 +194,235 @@ export default function SessionRoom() {
       )}
     </div>
   );
+}
+
+// ---------------------------------------------------------------------------
+// Signed in: the real call (Daily), opened with params.sessionId. The
+// `session-video` function decides who may join and when, and that nothing
+// is recorded; this screen shows its answer and the two people.
+// ---------------------------------------------------------------------------
+
+type LivePhase =
+  | { kind: 'ready' }
+  | { kind: 'joining' }
+  | { kind: 'refused'; code: VideoErrorCode; opensAt?: string }
+  | { kind: 'live' }
+  | { kind: 'ended'; why: CallEnd };
+
+const REFUSED: Record<VideoErrorCode, MessageKey> = {
+  not_configured: 'sessionRoomUnavailable',
+  not_found: 'sessionRoomNotFound',
+  too_early: 'sessionRoomTooEarly',
+  ended: 'sessionRoomEnded',
+  cancelled: 'sessionRoomCancelled',
+  blocked: 'sessionRoomBlockedRelationship',
+  relationship_inactive: 'sessionRoomInactive',
+  video_unavailable: 'sessionRoomUnavailable',
+  unknown: 'sessionRoomUnavailable',
+};
+
+const ENDED: Record<CallEnd, MessageKey> = {
+  left: 'sessionRoomEnded',
+  ejected: 'sessionRoomTimeUp',
+  error: 'sessionRoomDropped',
+  devices: 'sessionRoomDevices',
+};
+
+/** A refusal worth trying again from here; the rest won't change by retrying. */
+const RETRYABLE: VideoErrorCode[] = ['too_early', 'video_unavailable', 'unknown', 'not_configured'];
+
+function LiveSessionRoom() {
+  const t = useT();
+  const fmt = useFormat();
+  const back = useAppStore((s) => s.back);
+  const params = useAppStore((s) => s.params);
+  const sessionId = params.sessionId ?? '';
+  const [phase, setPhase] = useState<LivePhase>({ kind: 'ready' });
+  const [otherName, setOtherName] = useState(params.name ?? '');
+  const [call, setCall] = useState<CallState | null>(null);
+  const [micOn, setMicOn] = useState(true);
+  const [cameraOn, setCameraOn] = useState(true);
+  const callRef = useRef<VideoCall | null>(null);
+
+  // Leaving the screen any other way (Back, the hardware button) leaves the call.
+  useEffect(() => () => { void callRef.current?.leave(); }, []);
+
+  async function join() {
+    setPhase({ kind: 'joining' });
+    const pass = await joinSessionVideo(sessionId);
+    if (!pass.ok) {
+      setPhase({ kind: 'refused', code: pass.code, opensAt: pass.opensAt });
+      return;
+    }
+    if (pass.data.otherName) setOtherName(pass.data.otherName);
+    const c = createVideoCall();
+    callRef.current = c;
+    c.onChange(setCall);
+    c.onEnd((why) => {
+      callRef.current = null;
+      setCall(null);
+      setPhase({ kind: 'ended', why });
+    });
+    try {
+      await c.join(pass.data.url, pass.data.token);
+      setMicOn(true);
+      setCameraOn(true);
+      setPhase((p) => (p.kind === 'joining' ? { kind: 'live' } : p));
+    } catch {
+      callRef.current = null;
+      setPhase({ kind: 'ended', why: 'error' });
+    }
+  }
+
+  async function leave() {
+    const c = callRef.current;
+    callRef.current = null;
+    await c?.leave();
+    back();
+  }
+
+  function toggleMic() {
+    const next = !micOn;
+    setMicOn(next);
+    callRef.current?.setMic(next);
+  }
+  function toggleCamera() {
+    const next = !cameraOn;
+    setCameraOn(next);
+    callRef.current?.setCamera(next);
+  }
+
+  const name = otherName.trim();
+  const initials = initialsOf(name) || '•';
+  const grad = (hex: string) => `linear-gradient(135deg, ${hex} 0%, ${darken(hex, 35)} 100%)`;
+
+  let message = '';
+  if (phase.kind === 'refused') {
+    message = phase.code === 'too_early' && phase.opensAt
+      ? t('sessionRoomTooEarly', { time: fmt.time(toWallMs(phase.opensAt)) })
+      : t(REFUSED[phase.code]);
+  } else if (phase.kind === 'ended') {
+    message = t(ENDED[phase.why]);
+  }
+  const canRetry =
+    (phase.kind === 'refused' && RETRYABLE.includes(phase.code)) ||
+    (phase.kind === 'ended' && (phase.why === 'error' || phase.why === 'devices'));
+
+  return (
+    <div className="phone-frame session-room session-room-real">
+      <div className="session-room-topbar">
+        <button className="session-room-circle" aria-label={t('back')} onClick={() => void leave()}>
+          <ChevronIcon size={15} color="#F2ECE1" />
+        </button>
+        <div className="session-room-titles">
+          <div className="session-room-type">{t('sessionRoomTitle')}</div>
+          {name && <div className="session-room-other"><bdi>{name}</bdi></div>}
+        </div>
+        <span className="session-room-circle-placeholder" />
+      </div>
+
+      {phase.kind === 'live' ? (
+        <div className="session-room-live">
+          <div className="session-room-live-label">
+            <span className="session-room-live-dot" />
+            <span>{t('sessionRoomInSession')}</span>
+            <span className="session-room-private">· {t('sessionRoomNoRecording')}</span>
+          </div>
+
+          <div className="session-room-stage">
+            {call?.other.videoTrack ? (
+              <TrackVideo track={call.other.videoTrack} className="session-room-video-other" />
+            ) : (
+              <div className="session-room-stage-main">
+                <div className="session-room-avatar-md" style={{ background: grad(ACCENT) }}>{initials}</div>
+                <div className="session-room-stage-name">
+                  {call?.other.present ? <bdi>{name}</bdi> : name ? t('sessionRoomWaiting', { name: isolate(name) }) : t('sessionRoomWaitingNoName')}
+                </div>
+              </div>
+            )}
+            {call?.other.audioTrack && <TrackAudio track={call.other.audioTrack} />}
+            <div className="session-room-self" style={{ background: grad(ACCENT) }}>
+              {/* The off icon only when they turned it off: a camera still
+                  starting is an empty tile, not a fault. */}
+              {!cameraOn ? (
+                <CameraOffGlyph />
+              ) : call?.self.videoTrack ? (
+                <TrackVideo track={call.self.videoTrack} className="session-room-video-self" muted mirror />
+              ) : null}
+            </div>
+          </div>
+
+          <div className="session-room-controls">
+            <button
+              type="button"
+              className={`session-room-control${micOn ? '' : ' is-off'}`}
+              aria-label={t('sessionRoomToggleMic')}
+              aria-pressed={micOn}
+              onClick={toggleMic}
+            >
+              {micOn ? <MicGlyph /> : <MicOffGlyph />}
+            </button>
+            <button
+              type="button"
+              className={`session-room-control${cameraOn ? '' : ' is-off'}`}
+              aria-label={t('sessionRoomToggleCamera')}
+              aria-pressed={cameraOn}
+              onClick={toggleCamera}
+            >
+              {cameraOn ? <CameraGlyph stroke="#F2ECE1" /> : <CameraOffGlyph />}
+            </button>
+            <button type="button" className="session-room-leave" aria-label={t('sessionRoomLeave')} onClick={() => void leave()}>
+              <HangUpGlyph />
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="session-room-prejoin">
+          <div className="session-room-avatar-lg" style={{ background: grad(ACCENT), boxShadow: `0 16px 32px -12px ${ACCENT}55` }}>
+            {initials}
+          </div>
+          <div>
+            <div className="session-room-ready">{t('sessionRoomReadyTitle')}</div>
+            <div className="session-room-ready-sub">{t('sessionRoomLiveReadySub')}</div>
+          </div>
+          {message && <div className="session-room-blocked" role="alert">{message}</div>}
+          {(phase.kind === 'ready' || phase.kind === 'joining' || canRetry) && (
+            <button
+              type="button"
+              className="session-room-join"
+              onClick={() => void join()}
+              disabled={phase.kind === 'joining' || !sessionId}
+            >
+              <CameraGlyph />
+              {phase.kind === 'joining' ? t('sessionRoomJoining') : phase.kind === 'ready' ? t('sessionRoomJoin') : t('retry')}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TrackVideo({ track, className, muted, mirror }: { track: MediaStreamTrack; className: string; muted?: boolean; mirror?: boolean }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.srcObject = new MediaStream([track]);
+    return () => { el.srcObject = null; };
+  }, [track]);
+  return <video ref={ref} className={`${className}${mirror ? ' is-mirrored' : ''}`} autoPlay playsInline muted={muted} />;
+}
+
+function TrackAudio({ track }: { track: MediaStreamTrack }) {
+  const ref = useRef<HTMLAudioElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.srcObject = new MediaStream([track]);
+    return () => { el.srcObject = null; };
+  }, [track]);
+  return <audio ref={ref} autoPlay />;
 }
 
 // Call-control glyphs, used only on this screen.
