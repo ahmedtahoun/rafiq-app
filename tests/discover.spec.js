@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { IGNORED_CONSOLE } from './helpers.js';
-import { installFakeSupabase, signIn } from './fakeSupabase.js';
+import { installFakeSupabase, signIn, dbRows } from './fakeSupabase.js';
 import { DIRECTORY_MEMBER, directoryTables } from './directoryFixture.js';
 
 /**
@@ -152,8 +152,12 @@ test('DISCOVER: favourites persist', async ({ browser }) => {
   await page.locator('.discover-heart').first().click();
   await page.waitForTimeout(250);
   expect.soft(String(await count(page, '.discover-heart-on')), 'heart turns on').toBe('1');
+  // Saved in favourite_coaches, which the server keeps across a reload
+  // (favourites.spec.js has the rest).
+  const kept = await dbRows(page, 'favourite_coaches');
+  expect.soft(kept.length, 'saved for the member').toBe(1);
   await page.reload();
-  await enter(page);
+  await enter(page, { data: { ...directoryTables(), favourite_coaches: kept } });
   expect.soft(String(await count(page, '.discover-heart-on')), 'survives a reload').toBe('1');
   expect(errs).toEqual([]);
   await ctx.close();

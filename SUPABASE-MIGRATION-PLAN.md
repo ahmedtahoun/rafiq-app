@@ -535,6 +535,19 @@ week's dates or the .ics year and month: they derive them from the demo's
 fixed week whatever the real date. `TODAY_INDEX` is left only in the
 coach's Schedule. Tests: tests/member-real-clock.spec.js.
 
+## Step 6, the member side: saved coaches
+
+No schema change: `favourite_coaches` (0005) is the member's own
+(`favourite_coaches_own`). The hearts on Discover and a coach's page were
+this phone's localStorage (`rafiq_fav_coaches`), shared by whoever signed
+in on it and lost on a new phone; they are the member's rows now
+(src/lib/favouriteData.ts, with src/store/favourites.ts for the tap). The
+saved coaches load with the rest of each screen, so a failed read shows
+retry rather than empty hearts. A tap fills or empties the heart at once
+and saves it; if the save fails the heart goes back and the screen says so.
+Signed out there are no hearts (no directory), so the localStorage
+version is gone, not kept for the demo. Tests: tests/favourites.spec.js.
+
 ## Step 6, the member side: the demo member signed out only
 
 No schema change. Signed in, nothing reads the demo member

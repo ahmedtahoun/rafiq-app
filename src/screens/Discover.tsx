@@ -21,9 +21,11 @@ import { fetchOwnFocus } from '../lib/memberData';
 import { wallNowMs } from '../lib/wallClock';
 import { useRemoteLoad } from '../store/remoteLoad';
 import { fetchRecentReviews, type CoachReview } from '../lib/reviewData';
+import { fetchOwnFavourites } from '../lib/favouriteData';
+import { useFavourites } from '../store/favourites';
 import {
   filterCoaches, hasActiveFilters,
-  getFavouriteCoaches, toggleFavouriteCoach, initialsOf, countryFlagOf,
+  initialsOf, countryFlagOf,
   NO_FILTERS, type DirectoryCoach, type DirectoryFilters,
 } from '../lib/directory';
 import './Discover.css';
@@ -63,6 +65,7 @@ function specialtyColour(coaches: DirectoryCoach[], value: string): string {
     many to show (some may be of coaches no longer listed). */
 const REVIEW_POOL = 20;
 const STORIES_SHOWN = 3;
+const NO_FAVOURITES: string[] = [];
 
 export default function Discover() {
   const t = useT();
@@ -72,16 +75,16 @@ export default function Discover() {
   const [filters, setFilters] = useState<DirectoryFilters>(NO_FILTERS);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [countryOpen, setCountryOpen] = useState(false);
-  // Favourites live in localStorage, which is not reactive — this mirrors
-  // them into render state so a tapped heart repaints immediately.
-  const [favourites, setFavourites] = useState(getFavouriteCoaches);
   const remote = useRemoteSession();
-  const load = useRemoteLoad<{ coaches: RealDirectoryCoach[]; focus: string | null }>('directory', remote, async () => {
-    const [directory, focus] = await Promise.all([fetchDirectory(wallNowMs()), fetchOwnFocus()]);
-    return directory.ok && focus.ok
-      ? { ok: true as const, data: { coaches: directory.data, focus: focus.data } }
+  // The member's saved coaches load with the directory: a heart shown
+  // empty because its read failed would be a wrong answer, not a blank one.
+  const load = useRemoteLoad<{ coaches: RealDirectoryCoach[]; focus: string | null; favourites: string[] }>('directory', remote, async () => {
+    const [directory, focus, favourites] = await Promise.all([fetchDirectory(wallNowMs()), fetchOwnFocus(), fetchOwnFavourites()]);
+    return directory.ok && focus.ok && favourites.ok
+      ? { ok: true as const, data: { coaches: directory.data, focus: focus.data, favourites: favourites.data } }
       : { ok: false as const };
   });
+  const favourites = useFavourites(load.status === 'ready' ? load.data.favourites : NO_FAVOURITES);
   // Members' own reviews (coach_reviews, step 6), newest first.
   const reviewsLoad = useRemoteLoad<CoachReview[]>('discover-reviews', remote, () => fetchRecentReviews(REVIEW_POOL));
 
@@ -150,7 +153,7 @@ export default function Discover() {
   }
 
   function toggleFav(coachId: string) {
-    setFavourites(toggleFavouriteCoach(coachId));
+    void favourites.toggle(coachId);
   }
 
 
@@ -178,7 +181,7 @@ export default function Discover() {
   }
 
   function coachCard(coach: DirectoryCoach) {
-    const isFav = !!favourites[coach.id];
+    const isFav = favourites.isFavourite(coach.id);
     const showGoalMatch = !filters.specialty && !!goalSpecialty && coach.specialty === goalSpecialty;
     return (
       <div key={coach.id} className="discover-card">
@@ -303,6 +306,7 @@ export default function Discover() {
       )}
 
       <div className="discover-scroll">
+        {favourites.failed && <div className="discover-fav-error" role="alert">{t('favouriteSaveFailed')}</div>}
         {directoryEmpty ? (
           <div className="discover-no-coaches">
             <span className="discover-no-coaches-icon">
