@@ -495,7 +495,7 @@ Waits on the name decision (§1).
       rating, target audience, Data safety row by row, the Health apps
       and Financial features declarations, Advertising ID, and
       countries/pricing — with the open questions listed rather than
-      guessed. Apple's App Privacy form is still to draft. Filling the two forms is still
+      guessed. **Apple's half is drafted too:** `store/app-privacy.md`, with the privacy manifest (`PrivacyInfo.xcprivacy`) filled in to match and `tests/privacy-manifest.spec.js` keeping the two in step. All twelve open questions were answered on 4 Oct; five still need an external fact or a lawyer, and both documents say which. Filling the two forms is still
       Ahmed's, and eleven questions in it need answering first — among them
       where a national ID goes on Apple's form (it has no type for a
       government ID), whether coaching focus counts as health data, and

@@ -183,13 +183,16 @@ The long one. Built row by row from `store/privacy-inventory.md`.
 
 For every row: **Collected = Yes, Shared = No, Processed ephemerally =
 No, Required = Yes** unless the row says otherwise. "Shared = No"
-throughout because §11's third parties are processors acting on our
-instructions, which Google's definition excludes from "shared" — Supabase
-is the backend, Paymob is paid to disburse. **The one to watch is
-Paymob**, where a coach's name, national ID and account number leave our
-processor chain to a payment provider; if you read that as sharing
-rather than processing, flip that row's Shared to Yes. That is a
-judgement call and it is question 13 at the end.
+because §11's third parties are processors acting on our instructions,
+which Google's definition excludes from "shared" — Supabase is the
+backend.
+
+**Three rows are the exception, decided at q12: the Financial info rows
+are Shared = Yes.** The processor exemption holds when a third party
+acts only on your instructions, and Paymob does not: a regulated
+financial institution uses a coach's national ID for its own KYC and
+anti-money-laundering obligations, which is its purpose rather than
+ours. Those rows are marked below.
 
 #### Personal info
 
@@ -199,24 +202,24 @@ judgement call and it is question 13 at the end.
 | Email address | Yes | App functionality, Account management | Required | `profiles.email` |
 | User IDs | Yes | App functionality, Account management | Required | `profiles.id` (uuid), the auth user id |
 | Phone number | Yes | App functionality | **Optional** | `profiles.phone`; a coach may add a member's |
-| Address | **See open question 1** | App functionality | Optional | Self-typed city and country only. Google's "Address" overstates it; "Other info" understates it |
-| Other info | Yes | App functionality | Required for coaches taking payouts | **National ID** on `coach_payout_accounts` — see open question 5 for where it belongs |
+| Address | **No** | — | — | Decided (q1): city and country are two optional self-typed fields, no street or postcode, nothing measured. Declared under **Other info** instead |
+| Other info | Yes, **Shared** | App functionality | Required for coaches taking payouts | **National ID** on `coach_payout_accounts`. Google's "Other info" is the right box (Apple has no type at all — q5) |
 
 #### Financial info
 
 | Data type | Collected | Purposes | Required? | Notes |
 |---|---|---|---|---|
-| User payment info | Yes | App functionality | Optional (coaches only) | Wallet number or bank code + account number. These are details a coach is *paid to*, not pays with; it is still the only category that means "a financial account of the user's" |
+| User payment info | Yes, **Shared** | App functionality | Optional (coaches only) | Wallet number or bank code + account number. These are details a coach is *paid to*, not pays with; it is still the only category that means "a financial account of the user's" |
 | Purchase history | Yes | App functionality | Optional | `payments` — what a coach recorded a member as having paid, offline. **No in-app purchase exists** |
-| Other financial info | Yes | App functionality | Optional (coaches only) | `payouts`: amount, issuer, destination snapshot, status |
+| Other financial info | Yes, **Shared** | App functionality | Optional (coaches only) | `payouts`: amount, issuer, destination snapshot, status |
 
 #### Health and fitness
 
 | Data type | Collected | Purposes | Required? | Notes |
 |---|---|---|---|---|
 | Health info | **Yes** | App functionality | Optional | **Mood check-ins** are not ambiguous: self-reported wellbeing, dated, tied to an identified account |
-| Health info (coaching focus) | See open question 3 | App functionality | Optional | "Stress & anxiety" as a chosen focus is an inference about mental health. Recommendation: declare |
-| Fitness info (tasks) | See open question 4 | App functionality | Optional | "10-minute evening walk" is fitness data by any ordinary reading. Recommendation: declare |
+| Health info (coaching focus) | **Yes** | App functionality | Optional | Decided (q3): declared. Mood check-ins already force a Health declaration, so this costs nothing on the product page and buys accuracy |
+| Fitness info (tasks) | **Yes** | App functionality | Optional | Decided (q4): declared. A task carries a `done` flag, so the app records whether the person did the exercise, not just that it was set |
 
 #### Messages
 
@@ -351,32 +354,39 @@ The listing's own text, in both languages, is `store/listing.md`.
 
 ---
 
-## The eleven questions this document cannot answer
+## The questions, answered
 
-These are `store/privacy-inventory.md`'s "Ahmed to confirm" list, which
-is twelve entries with one struck through as done. Several of them land
-directly on a Data safety row above, and I have not guessed at any of
-them.
+Settled 4 October 2026. The full reasoning is in
+`store/app-privacy.md` §8, which is the single record for both forms;
+`store/privacy-inventory.md` carries the same answers. Summarised here
+so this document can be filled in without opening the other two.
 
-| # | Question | Where it bites |
+| # | Question | Answer | Effect here |
+|---|---|---|---|
+| 1 | City and country — Address or Other info? | **Other info.** No street, postcode or anything measured; "Address" overstates in the direction that alarms | Address row is **No** |
+| 3 | Is coaching focus health data? | **Yes.** Mood check-ins already force a Health declaration, so this costs nothing and buys accuracy | Health info **Yes** |
+| 4 | Are tasks fitness data? | **Yes.** A task carries a `done` flag — the app records whether the person did it | Fitness info **Yes** |
+| 5 | Where does a national ID go? | **Other info** here; Apple has no type for it at all | Already declared |
+| 11 | Switch crash reporting on? | **Yes, EU region (`de.sentry.io`), after launch**, in a release that updates both forms together | Crash logs stays **No** until the DSN is set |
+| 12 | Paymob: shared or processed? | **Shared.** A regulated institution uses a national ID for its own KYC and AML duties — its purpose, not ours | Three Financial info rows → **Shared = Yes** |
+
+### Still open, and what closes each
+
+| # | Question | What settles it |
 |---|---|---|
-| 1 | **Self-declared city and country** — Google's "Address" overstates it, "Other info" understates it. Pick one | Data safety → Personal info |
-| 2 | **Whether a member may see their coach's private notes** about them under Law 151/2020's access right. There is no screen for it | Not a form answer; a legal exposure |
-| 3 | **Whether coaching focus counts as health data.** Recommendation: yes | Data safety → Health info |
-| 4 | **Whether tasks count as fitness data.** Recommendation: yes | Data safety → Fitness info |
-| 5 | **Where a national ID goes on Apple's form** — Apple has no type for a government identity number | Apple's form, not Play's; Play's answer is "Other info" |
-| 6 | **Whether Paymob genuinely requires `national_id`.** If not, stop collecting it — it is the hardest row in the inventory | Data safety → Personal info → Other info |
-| 7 | **What Law 151/2020 requires for the transfer to Ireland** (`eu-west-1`). Not a Play question, but it is a privacy-policy one | The policy the form must match |
-| 8 | **A retention period** for data not covered by a deletion request. Neither policy states one | Data safety → data retention wording |
-| 9 | **Supabase's own log retention**, which holds IP addresses and is invisible from this repo | Data safety → whether IPs are collected |
-| 10 | **The age rating and content questionnaires** — this document proposes answers; they are yours to confirm | §3 and §4 above |
-| 11 | **Whether to switch crash reporting on at all**, and in which Sentry region | Data safety → Crash logs flips to Yes |
+| 6 | Does Paymob genuinely require `national_id`? | **The staging payout run (§3).** `paymobPayouts.ts:84` enforces 14 digits, but that encodes a belief, not evidence. If the answer is no, q5 disappears and `0009` gets simpler |
+| 9 | Supabase log retention | Confirm on the plan actually bought (~a week on Pro). Recommendation: say it in the policy, **do not** declare it on this form — host logs are not what it asks about |
+| 2 | May a member see their coach's private notes? | Counsel. Assume yes; the exposure is that **coaches do not know**, which is a product change |
+| 7 | Law 151/2020 and the transfer to Ireland | Egyptian counsel, on whether a Data Protection Centre permit is required and obtainable |
+| 8 | A retention period | Proposed: account lifetime, plus five years for financial records, logs about a week. Confirm the five against Egyptian tax and commercial law |
+| 10 | Age rating | An output, not a decision — answer the questionnaire honestly and keep target audience 18+ |
 
-And one this document adds:
-
-| 12 | **Is Paymob "sharing" or "processing"?** Every Data safety row above says Shared = No on the basis that §11's third parties are processors. Paymob is the one where a reasonable person could say otherwise, because a coach's name, national ID and account number leave our chain to a payment provider | Data safety → Shared, on three Financial info rows |
-
----
+**A gap found while answering these:** nothing — not the policy, not the
+deletion page, not the app — mentions **backups**. Supabase keeps
+point-in-time backups, so a deletion does not purge data instantly, and
+the deletion page's promise and the technical reality disagree for the
+length of that window. Wording to fix it is in `store/app-privacy.md`
+§9, alongside the transfer and retention text.
 
 ## Before you press publish
 
