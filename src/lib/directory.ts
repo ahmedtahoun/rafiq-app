@@ -1,7 +1,6 @@
 /**
  * The browsable coach directory behind Discover and CoachPreview: the
- * shape of a directory coach, filtering and ordering, and the member's
- * favourites.
+ * shape of a directory coach, and filtering and ordering.
  *
  * The coaches themselves are real ones, from Supabase (requestData.ts's
  * fetchDirectory, the public `coach_directory` view). The eight fictional
@@ -10,32 +9,12 @@
  * placeholder content), so signed out there is no directory at all and
  * Discover shows its "still filling up" state.
  *
- * Favourites persist to localStorage under the same `rafiq_` prefix as the
- * rest of the app. A member's session requests are real ones
- * (session_requests, requestData.ts), signed in only.
+ * Nothing here is stored. A member's saved coaches are their own
+ * `favourite_coaches` rows (favouriteData.ts), and their session requests
+ * are real ones (session_requests, requestData.ts), signed in only.
  */
 import { COUNTRIES } from './countries';
 import type { SpecialtyIconKey } from '../components/specialtyIcons';
-
-const PREFIX = 'rafiq_';
-
-function readLocal<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(PREFIX + key);
-    return raw === null ? fallback : (JSON.parse(raw) as T);
-  } catch {
-    return fallback;
-  }
-}
-
-function writeLocal<T>(key: string, value: T): void {
-  try {
-    localStorage.setItem(PREFIX + key, JSON.stringify(value));
-  } catch {
-    // storage unavailable (private mode, quota) — same no-op fallback
-    // mockStore.ts and appStore.ts both use.
-  }
-}
 
 // ---------------------------------------------------------------------------
 // The dataset
@@ -190,19 +169,3 @@ export function filterCoaches(
     });
 }
 
-// ---------------------------------------------------------------------------
-// Favourites
-// ---------------------------------------------------------------------------
-
-/** Saved coaches, keyed by id. Starts empty — only the heart button writes. */
-export function getFavouriteCoaches(): Record<string, boolean> {
-  return readLocal<Record<string, boolean>>('fav_coaches', {});
-}
-
-export function toggleFavouriteCoach(coachId: string): Record<string, boolean> {
-  const favourites = getFavouriteCoaches();
-  const next = { ...favourites, [coachId]: !favourites[coachId] };
-  if (!next[coachId]) delete next[coachId];
-  writeLocal('fav_coaches', next);
-  return next;
-}
