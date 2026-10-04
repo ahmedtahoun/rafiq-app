@@ -207,9 +207,12 @@ test('a failed read shows retry, never the demo templates; retry loads them', as
 });
 
 test('TemplateDetail: a failed read shows retry, never the demo template of the same id', async ({ browser }) => {
-  const { page, ctx } = await open(browser, { fail: ['templates.select'] });
+  // From Profile, not the list: the list would be showing its own error,
+  // and until TemplateDetail's chunk arrives both screens are on the page.
+  const { page, ctx } = await open(browser, { screen: 'profile', fail: ['templates.select'] });
   await page.evaluate(async () => (await import('/src/store/appStore.ts')).useAppStore.getState().nav({ screen: 'templateDetail', params: { templateId: 'tpl-life-basic' } }));
-  await expect(page.locator('.load-state')).toBeVisible();
+  await expect(page.locator('.phone-frame')).toHaveCount(1);
+  await expect(page.locator('.load-state[role="alert"]')).toBeVisible();
   await expect(page.locator('#template-name')).toHaveCount(0);
   await expect(page.locator('.phone-frame')).not.toContainText(DEMO);
   await ctx.close();
