@@ -14,7 +14,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PGBIN="${PGBIN:-/usr/lib/postgresql/16/bin}"
 PGROOT="${PGROOT:-/var/tmp/rafiq-pgtest}"
-MIN_ASSERTIONS=528
+MIN_ASSERTIONS=553
 
 OUT=""
 OWN_CLUSTER=""
@@ -141,6 +141,9 @@ OUT="$(mktemp)"
   echo
   echo "=== FREE TIER ==="
   psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/24_free_tier.sql"
+  echo
+  echo "=== REVIEW ACCOUNTS ==="
+  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/26_review_accounts.sql"
 } | grep -v '^$' | tee "$OUT"
 
 PASSED="$(grep -c '^PASS' "$OUT" || true)"

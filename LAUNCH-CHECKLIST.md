@@ -312,7 +312,8 @@ builds".
       `https://rafiqpro.com/delete-account/` once the site is hosted (§5).
 - [ ] 🟡 `versionCode` / `versionName` (`android/app/build.gradle`) and
       `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` (Xcode) raised on every
-      upload.
+      upload. `npm run app-version -- <version> <build>` sets all four at
+      once and refuses a build number that isn't higher (RELEASE.md §1).
 - [x] targetSdk 36 (`android/variables.gradle`).
 
 ### Both
@@ -526,7 +527,11 @@ only Rafiq can resolve (as `service_role`). Nothing works them yet.
       reports → deletes account.
 - [ ] **App Review notes:** test Google accounts for a coach and a member with
       data in them, and how to reach each role. With sign-in only through
-      Google and Apple, reviewers can't get in otherwise.
+      Google and Apple, reviewers can't get in otherwise. Notes:
+      `store/review-notes.md`. Their data: `supabase/admin/review-accounts.sql`
+      (run before each submission; it also resets what a reviewer changed).
+      Before the first one, decide how the review coach stays out of
+      Discover (`supabase/admin/README.md`, "Review accounts").
 - [ ] TestFlight (internal, then external) and Google Play closed testing
       before production; phased release.
 
