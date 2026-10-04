@@ -86,6 +86,12 @@ Things to confirm on staging, because Paymob's public docs don't pin them down:
 - The base URL above (`{ENV}` in the docs) — also in the dashboard's Swagger page.
 - Client credentials in HTTP Basic auth (their curl example) are accepted.
 - `national_id` really is required, as the docs' table says.
+  `scripts/paymob-national-id-check.ts` answers this one on its own:
+  two 1.00 EGP disbursements, identical except that the first omits the
+  field. It is worth running first — if the field is not required, the
+  most sensitive column in the database goes away, and with it `0009`'s
+  constraint and two of the open privacy questions
+  (`store/app-privacy.md` §8, q5 and q6).
 - `inquire/by-reference` finds a payout by the `client_reference` we send.
 
 ## Not built yet

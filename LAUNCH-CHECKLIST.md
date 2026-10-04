@@ -225,7 +225,9 @@ The sources, read on 2026-10-01, and what they mean for the build are in
       secrets, deploy the function, add yourself to `admin_users`, and run a
       staging payout (README, "Testing on staging"). The staging run also
       settles whether Paymob really needs `national_id` — if it doesn't, stop
-      collecting it.
+      collecting it. `scripts/paymob-national-id-check.ts` is that one
+      question on its own: two 1.00 EGP disbursements, identical except the
+      first omits the field. Staging credentials only; writes nothing.
 - [x] 🟡 *Dev:* the coach's payout-account screen (Profile → Payout account,
       and a link from Earnings). Signed-in only; saved numbers show last 4.
 - [ ] 🟡 *Ahmed:* check `src/lib/paymobBanks.ts` against the bank codes table
