@@ -110,11 +110,9 @@ test('signed in, no member screen reads or shows the demo member', async ({ brow
   // Only the member's own and the device's: never a demo store, keyed by
   // the demo member or by anything else.
   const read = [...new Set(await page.evaluate(() => window.__keysRead))];
-  // rafiq_fav_coaches is not demo data (nothing seeds it; only the heart
-  // writes it), but it is the device's, not the member's: favourites
-  // haven't moved to `favourite_coaches` (0005) yet. Allowed here by name
-  // so that move, when it lands, can take it off this list.
-  const allowed = /^(rafiq_(role|lang|dark|notif_prefs|fav_coaches)|rafiq_member_relationship_member-1|rafiq_message_draft_rel-a|sb-.+)$/;
+  // Since #112 saved coaches are favourite_coaches rows: no device key
+  // that isn't the member's own is allowed.
+  const allowed = /^(rafiq_(role|lang|dark|notif_prefs)|rafiq_member_relationship_member-1|rafiq_message_draft_rel-a|sb-.+)$/;
   expect(read.filter((k) => !allowed.test(k))).toEqual([]);
   expect(errs).toEqual([]);
   await ctx.close();
