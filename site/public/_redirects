@@ -1,0 +1,15 @@
+# www → the bare domain, once and permanently.
+#
+# The store consoles, Google's OAuth consent screen and the privacy
+# policy all point at https://rafiqpro.com/... with no www. One
+# canonical host keeps those URLs matching what the browser shows, and
+# the pages' own <link rel="canonical"> already names the bare domain.
+#
+# BOTH hostnames must be added to the Pages project first
+# (Pages → the project → Custom domains → add rafiqpro.com AND
+# www.rafiqpro.com). A redirect cannot run for a hostname the project
+# does not serve.
+#
+# :splat carries the rest of the path, so /privacy/ and /ar/privacy/
+# survive the hop. 301 because this is permanent and should be cached.
+https://www.rafiqpro.com/* https://rafiqpro.com/:splat 301

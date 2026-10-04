@@ -1,0 +1,34 @@
+# Security headers for rafiqpro.com, served by Cloudflare Pages.
+#
+# This site is ten static HTML pages and one stylesheet. No JavaScript,
+# no images, no forms, no fonts or anything else from another domain —
+# so the policy below can be about as tight as a policy gets, and any
+# future addition will break it loudly rather than quietly widen it.
+# That is the point: if someone adds an analytics snippet, the page
+# stops working rather than starts tracking.
+#
+# Verify after deploying: https://securityheaders.com/?q=rafiqpro.com
+
+/*
+  # Nothing loads unless named. `style-src 'self'` is the one stylesheet;
+  # `img-src 'self'` is not needed today and is here so the browser's
+  # automatic /favicon.ico request is not a console error if one is ever
+  # added. No 'unsafe-inline' anywhere: there is no inline style or
+  # script in the built pages, and there must not be.
+  Content-Security-Policy: default-src 'none'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  # Nobody may frame these pages. frame-ancestors above is the modern
+  # form; this is for browsers that predate it.
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  # The URL of a page someone was reading — a policy, or the account
+  # deletion page — should not travel to anywhere they click through to.
+  Referrer-Policy: no-referrer
+  # One year, subdomains included. Deliberately WITHOUT `preload`:
+  # preloading is submitted to a browser-maintained list and is slow and
+  # awkward to undo, and it would commit every future *.rafiqpro.com to
+  # HTTPS before we know what they are. Add it later if wanted.
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  # A static policy site needs none of these.
+  Permissions-Policy: accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), midi=(), payment=(), usb=(), xr-spatial-tracking=()
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
