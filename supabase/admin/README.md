@@ -96,6 +96,23 @@ unused credits, an open dispute or a payout in flight. Settle it with them
 first; the request stays pending. Then email them from
 `support@rafiqpro.com` that it's done — the page promises that too.
 
+## Unlisted coaches
+
+`coach_profiles.unlisted` (`0022`) takes a coach out of Discover and the
+coach page for everyone except the coach and the members on their roster
+(archived ones included), who still see their name, page and reviews. Their
+reviews leave Discover's recent reviews too. It is for accounts that aren't
+coaching the public, such as the App Review coach. Only this dashboard sets
+it; the app can't.
+
+```sql
+update public.coach_profiles set unlisted = true
+where profile_id = (select id from public.profiles where email = 'coach@example.com');
+```
+
+Undo with `unlisted = false`. To see who is unlisted:
+`select p.email from public.coach_profiles cp join public.profiles p on p.id = cp.profile_id where cp.unlisted;`
+
 ## Coach plans (Rafiq Pro)
 
 The free plan holds 3 active members (`0020`). Until In-App Purchase and
