@@ -117,6 +117,10 @@ reset role;
 insert into public.pro_reports (reporter_id, coach_id, reason) values (:memberR, :coachR, 'other');
 insert into public.account_deletion_requests (profile_id) values (:memberR);
 update public.clients set active = false where coach_id = :coachR;
+-- The review member's own request to, and report of, another coach: not
+-- between the pair, so a reset leaves them.
+insert into public.session_requests (member_id, coach_id, requested_start, price) values (:memberR, :realC, now() + interval '9 days', 0);
+insert into public.pro_reports (reporter_id, coach_id, reason) values (:memberR, :realC, 'other');
 -- A notice with no roster row (0021's "declined" from a stranger): the
 -- roster row's cascade doesn't reach it.
 insert into public.notifications (recipient_id, kind, client_id, payload) values (:memberR, 'message', null, '{}');
@@ -128,8 +132,11 @@ select pg_temp.expect('reset: the same data again',
   pg_temp.shape(), '1 3 3 3 2 5 1');
 select pg_temp.expect('...active, unblocked',
   (select (active and blocked_by_member_at is null and blocked_by_coach_at is null)::text from public.clients where coach_id = :coachR), 'true');
+select pg_temp.expect('...but the member''s request and report about another coach stay',
+  (select count(*)::text from public.session_requests where member_id = :memberR and coach_id = :realC) || '/' ||
+  (select count(*)::text from public.pro_reports where reporter_id = :memberR and coach_id = :realC), '1/1');
 select pg_temp.expect('...no report, no deletion request',
-  (select count(*)::text from public.pro_reports where reporter_id = :memberR) || '/' ||
+  (select count(*)::text from public.pro_reports where reporter_id = :memberR and coach_id = :coachR) || '/' ||
   (select count(*)::text from public.account_deletion_requests where profile_id = :memberR and status = 'pending'), '0/0');
 -- Replaced, not added to: the first run's are gone.
 select pg_temp.expect('...and only this run''s notifications',
@@ -151,6 +158,34 @@ select pg_temp.expect('refused: an email that names nobody',
   pg_temp.attempt('select pg_temp.reset_review_accounts(''rafiq.review.coach@x.com'', ''nobody.review@x.com'')'), 'refused');
 select pg_temp.expect('refused: the coach as the member',
   pg_temp.attempt('select pg_temp.reset_review_accounts(''rafiq.review.coach@x.com'', ''rafiq.review.coach@x.com'')'), 'refused');
+
+-- A real member asked the review coach for a session: the reset must not
+-- erase their request.
+insert into public.session_requests (id, member_id, coach_id, requested_start, price)
+values ('26262626-2222-0000-0000-000000000001', :realM, :coachR, now() + interval '8 days', 0);
+select pg_temp.expect('refused: a real member''s request to the coach',
+  pg_temp.attempt('select pg_temp.reset_review_accounts(''rafiq.review.coach@x.com'', ''rafiq.review.member@x.com'')'), 'refused');
+select pg_temp.expect('...which is still there',
+  (select status::text from public.session_requests where id = '26262626-2222-0000-0000-000000000001'), 'pending');
+delete from public.session_requests where id = '26262626-2222-0000-0000-000000000001';
+
+-- Someone else reported the review coach: a report is moderation evidence.
+-- Also when the reporter's account has gone (reporter_id set null).
+insert into public.pro_reports (id, reporter_id, coach_id, reason) values
+  ('26262626-3333-0000-0000-000000000001', :realM, :coachR, 'inappropriate'),
+  ('26262626-3333-0000-0000-000000000002', null, :coachR, 'other');
+select pg_temp.expect('refused: someone else''s report of the coach',
+  pg_temp.attempt('select pg_temp.reset_review_accounts(''rafiq.review.coach@x.com'', ''rafiq.review.member@x.com'')'), 'refused');
+select pg_temp.expect('...both reports kept',
+  (select count(*)::text from public.pro_reports where id::text like '26262626-3333-%'), '2');
+delete from public.pro_reports where id = '26262626-3333-0000-0000-000000000001';
+select pg_temp.expect('refused: a report whose reporter has gone',
+  pg_temp.attempt('select pg_temp.reset_review_accounts(''rafiq.review.coach@x.com'', ''rafiq.review.member@x.com'')'), 'refused');
+select pg_temp.expect('...that report kept',
+  (select count(*)::text from public.pro_reports where id = '26262626-3333-0000-0000-000000000002'), '1');
+delete from public.pro_reports where id = '26262626-3333-0000-0000-000000000002';
+select pg_temp.expect('...and with them gone, the reset runs again',
+  pg_temp.attempt('select pg_temp.reset_review_accounts(''rafiq.review.coach@x.com'', ''rafiq.review.member@x.com'')'), 'ok');
 
 -- A real member booked the review coach (it is listed): the reset must not
 -- erase their sessions.

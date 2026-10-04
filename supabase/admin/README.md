@@ -151,17 +151,22 @@ did (blocked, reported, archived, asked for deletion) is undone.
    → put the two emails in its last statement → Run. Save it as **Reset review
    accounts**. It answers with the next session's time.
 
-It only ever touches those two accounts. It refuses, changing nothing, if an
-email doesn't contain "review" or names no account, if the coach hasn't
-onboarded, or if anyone but the review member is on the review coach's
-roster. `supabase/tests/26_review_accounts.sql` runs it against the real
-schema and policies.
+It only ever touches rows between those two accounts: never the review
+member's requests to, or reports of, another coach. It refuses, changing
+nothing, if an email doesn't contain "review" or names no account, if the
+coach hasn't onboarded, or if anyone but the review member is on the review
+coach's roster, has asked them for a session, or has reported them. A
+report is moderation evidence, so a reset never erases one, and stays
+refused while it exists. Any of these means real members could reach the
+review coach: see "Discover" below. `supabase/tests/26_review_accounts.sql`
+runs it against the real schema and policies.
 
 **Discover lists the review coach.** `coach_directory` shows every active
 coach who finished onboarding, so on the live project real members would see
-"Review Coach" (with its seeded 5-star review) and could book them. The
-script refuses to reset once a real member is on that roster, so their
-sessions can't be erased, but they shouldn't be able to get there.
+"Review Coach" (with its seeded 5-star review) and could book or report
+them. The script refuses to reset once a real member is on that roster, has
+asked them for a session or has reported them, so nothing of theirs is
+erased, but they shouldn't be able to get there.
 Suspending the coach between reviews (`account_status = 'suspended'`) hides
 them, but it also stops their messages and takes them off the review
 member's own coach page, so it has to be lifted for every review, and they

@@ -18,9 +18,13 @@
 --   - either email lacks "review", or names no account;
 --   - the coach account isn't a coach that finished onboarding, or the
 --     member account isn't a member;
---   - anyone but the review member is linked on the review coach's roster
---     (a real member booked them: deleting would erase that member's
---     sessions — see "Discover" in supabase/admin/README.md).
+--   - anyone but the review member is linked on the review coach's roster,
+--     has asked the review coach for a session, or has reported them (a
+--     real member found them: a reset would erase that member's sessions,
+--     request or report, and a report is moderation evidence — see
+--     "Review accounts" in supabase/admin/README.md).
+-- It deletes only rows between the two: never the review member's requests
+-- to, or reports of, any other coach.
 -- Everything happens in one transaction: a refusal changes nothing.
 --
 -- How: both accounts sign in once in the app first (the coach chooses
@@ -61,6 +65,14 @@ begin
   if exists (select 1 from public.clients where coach_id = v_coach and member_id is not null and member_id <> v_member) then
     raise exception 'a real member is on the review coach''s roster: not resetting (see supabase/admin/README.md, "Review accounts")';
   end if;
+  if exists (select 1 from public.session_requests where coach_id = v_coach and member_id <> v_member) then
+    raise exception 'a real member has asked the review coach for a session: not resetting (see supabase/admin/README.md, "Review accounts")';
+  end if;
+  -- A report whose reporter has since deleted their account has no
+  -- reporter_id, and is still someone else's.
+  if exists (select 1 from public.pro_reports where coach_id = v_coach and reporter_id is distinct from v_member) then
+    raise exception 'someone else has reported the review coach: not resetting, so the report is kept (see supabase/admin/README.md, "Review accounts")';
+  end if;
   v_name := coalesce(nullif(trim(v_name), ''), 'Review Member');
 
   -- Clear --------------------------------------------------------------------------
@@ -75,10 +87,10 @@ begin
   delete from public.offerings where coach_id = v_coach;
   delete from public.weekly_availability where coach_id = v_coach;
   delete from public.templates where coach_id = v_coach;
-  delete from public.session_requests where coach_id = v_coach or member_id = v_member;
+  delete from public.session_requests where coach_id = v_coach and member_id = v_member;
   delete from public.ratings where coach_id = v_coach;
   delete from public.favourite_coaches where member_id = v_member;
-  delete from public.pro_reports where reporter_id = v_member or coach_id = v_coach;
+  delete from public.pro_reports where coach_id = v_coach and reporter_id = v_member;
   delete from public.account_deletion_requests where profile_id in (v_coach, v_member) and status = 'pending';
   delete from public.notifications where recipient_id in (v_coach, v_member);
   update public.profiles set account_status = 'active' where id in (v_coach, v_member);
