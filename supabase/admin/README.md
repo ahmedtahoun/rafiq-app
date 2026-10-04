@@ -164,7 +164,10 @@ did (blocked, reported, archived, asked for deletion) is undone.
 
 1. Both accounts sign in once in the app: the coach picks "I'm a Pro" and
    finishes onboarding, the member picks "I'm a Member".
-2. SQL Editor → New query → paste all of `supabase/admin/review-accounts.sql`
+2. **Unlist the review coach at once**, before anything else (see "Unlisted
+   coaches" above): from the moment they finish onboarding, every real
+   member's Discover lists them until this is set.
+3. SQL Editor → New query → paste all of `supabase/admin/review-accounts.sql`
    → put the two emails in its last statement → Run. Save it as **Reset review
    accounts**. It answers with the next session's time.
 
@@ -175,19 +178,12 @@ coach hasn't onboarded, or if anyone but the review member is on the review
 coach's roster, has asked them for a session, or has reported them. A
 report is moderation evidence, so a reset never erases one, and stays
 refused while it exists. Any of these means real members could reach the
-review coach: see "Discover" below. `supabase/tests/26_review_accounts.sql`
-runs it against the real schema and policies.
+review coach: check they are unlisted (step 2).
+`supabase/tests/26_review_accounts.sql` runs it against the real schema and
+policies.
 
-**Discover lists the review coach.** `coach_directory` shows every active
-coach who finished onboarding, so on the live project real members would see
-"Review Coach" (with its seeded 5-star review) and could book or report
-them. The script refuses to reset once a real member is on that roster, has
-asked them for a session or has reported them, so nothing of theirs is
-erased, but they shouldn't be able to get there.
-Suspending the coach between reviews (`account_status = 'suspended'`) hides
-them, but it also stops their messages and takes them off the review
-member's own coach page, so it has to be lifted for every review, and they
-are listed again while it is. The fix that holds is an `unlisted` flag on
-`coach_profiles`, set only from here, which `coach_directory` respects for
-everyone but the coach's own members and the coach. That is a migration, not
-this script.
+**Why unlisted.** `coach_directory` shows every active coach who finished
+onboarding, so without step 2 real members would see "Review Coach" (with
+its seeded 5-star review) in Discover and could book or report them.
+Unlisted (`0022`), the review coach is visible only to themselves and the
+review member, which is all a reviewer needs.
