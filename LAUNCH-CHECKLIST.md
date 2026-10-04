@@ -65,11 +65,24 @@ as done below, when signed in; every other screen still reads and writes
       and Preview Profile's offerings are real too (2026-10-03): a coach
       creates, edits and archives their own `offerings` rows, which is what
       members book from, and "Add what you offer" is a Home setup step.
-      Still on `mockStore` when signed in: Home's package and follow-up
-      alerts, Profile stats, Earnings' totals, and the
-      member screens listed under the demo identities below — Reem's
-      current tasks.
-- [ ] 🔴 **Remove the demo identities.** 14 member screens hardcoded
+      The member side is done (#91, #92, #94, #96, #97, #99, #100, #101).
+
+      Still on `mockStore` / `directory` when signed in, and all that is
+      left of this item:
+
+      - **Home's package and follow-up alerts** — `src/screens/Main.tsx`
+        still imports `mockStore`.
+      - **Profile stats** — `src/screens/Profile.tsx`, same.
+      - **Earnings' totals** — `src/screens/Earnings.tsx` uses
+        `getEarningsSummary`.
+      - **A member's saved coaches on Discover** —
+        `src/lib/directory.ts:199-206` reads and writes `localStorage`
+        (`rafiq_fav_coaches`), while `public.favourite_coaches` has existed
+        since `0005_app_parity.sql:428` with RLS on and has never been
+        used. So a member's saved coaches do not follow them to another
+        device and are lost on reinstall. Found on 4 Oct by extending the
+        demo-identity walk; it is the one key that walk still allows.
+- [x] 🔴 **Remove the demo identities.** 14 member screens hardcoded
       `const CLIENT_ID = 'sara'`, and the Pro side is the seeded
       `DEFAULT_PRO_ID = 'pro-yasmin'`. Both must come from the signed-in user.
       Done for the coach's roster and the member's Home, Tasks, My Pros,
@@ -92,10 +105,19 @@ as done below, when signed in; every other screen still reads and writes
       every use is signed-out only now, and Home, Tasks and Profile no
       longer show the demo's sample goal signed in:
       tests/member-demo-identity.spec.js walks the member screens signed in
-      and fails on any demo store read. Left before ticking: add Discover,
-      Notifications, Programs, RateCoach and Booking to that walk, so it
-      guards the whole member side.
-- [ ] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
+      and fails on any demo store read. Done (4 Oct): that walk now covers
+      all thirteen — Discover, Notifications, My programs, Rate coach and
+      Booking added, which was the condition stated here.
+
+      Two things came out of extending it. It stopped waiting on a timer
+      after `nav()` and uses `__screenSettled` instead: since #82 each
+      screen is its own chunk, and "no `.load-state`" and "no demo text on
+      screen" are both satisfied by a Suspense fallback, so the guard could
+      pass without the screen ever rendering. And with the five screens
+      added it immediately caught a real read — see the `favourite_coaches`
+      note in the first item above, which is a `directory.ts` conversion,
+      not a demo identity.
+- [x] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,
       the 8 fictional `DIRECTORY_COACHES`, and any other `DEFAULT_*` seed.
       Apple rejects placeholder content, and fake coaches in a marketplace
@@ -104,35 +126,42 @@ as done below, when signed in; every other screen still reads and writes
       `DIRECTORY_COACHES`, their sample "Member Stories", and the demo coach
       page with its invented review quote, bio and member count are removed;
       signed out, Discover shows its "No pros yet" state and a coach link is
-      "not available". Left: the other `DEFAULT_*` seeds, which the
-      signed-out demo still runs on (the decision keeps them).
-- [ ] 🔴 **Use the real clock.** Calendar maths runs on a fixed fictional week
+      "not available" (#101). Everything the decision called for is done.
+      The other `DEFAULT_*` seeds stay by that same decision, because the
+      signed-out demo runs on them — so there is nothing outstanding here.
+      Reopen only if the decision to keep the signed-out demo changes.
+- [x] 🔴 **Use the real clock.** Calendar maths runs on a fixed fictional week
       (`TODAY_MS = Date.UTC(2025, 9, 22)`; screens hardcode `TODAY_INDEX = 2`).
       Real users would see October 2025. Replace with the current time, and
       re-check `format.ts`'s UTC wall-clock rule (CLAUDE.md, "Display every
-      date and time") once times come from real bookings. Signed in, every
-      converted screen is on the real clock; `grep -rl TODAY_INDEX src`
-      still lists ClientSchedule, ClientBooking, CoachPreview and Schedule.
+      date and time") once times come from real bookings. Done: signed in,
+      every screen is on the real clock. `grep -rl TODAY_INDEX src` now
+      returns `Schedule.tsx` alone, and both uses there are the signed-out
+      branch of a conditional (`remote ? weekdayOf(realTodayMs) :
+      TODAY_INDEX`) — the demo week the 3 Oct decision keeps.
+      ClientSchedule, ClientBooking and CoachPreview converted in steps 4
+      and 6 (#99).
 - [ ] 🔴 Loading, empty and error states on every screen. Today every read is
       synchronous localStorage; network reads can be slow or fail.
-      Done on every converted screen (26 use `LoadState`: loading, then an
-      error with a working retry — never the demo data as a fallback); the
-      rest land with §2's remaining screens.
+      Done on every converted screen (35 files use `LoadState` as of 4 Oct,
+      up from 26: loading, then an error with a working retry — never the
+      demo data as a fallback); the rest land with §2's remaining screens,
+      which are now only the four listed in the first item.
       Discover now distinguishes an empty directory ("No pros yet") from a
       search that matched nothing — it will be empty until real pros sign
       up, and the search-failed wording read like a broken screen.
-- [ ] 🟡 Discover and coach profiles read the `coach_directory` and
+- [x] 🟡 Discover and coach profiles read the `coach_directory` and
       `coach_reviews` views. The views sign reviews with a **first name and
       last initial**; the app currently shows the reviewer's full name
       publicly — that must go. Half done: signed in, Discover and a coach's
       page read `coach_directory` (and show a review count, no review
-      text); `coach_reviews` is still to do.
-      Audited every surface that renders a name: nothing reads
-      `coach_reviews` yet, and the only full names anywhere are Discover's
-      hardcoded sample stories, already hidden when signed in — so no real
-      reviewer's name is exposed today. Whoever wires reviews must select
-      the view's `reviewer_name` and never join back to
-      `profiles.full_name`.
+      text). Done (#96): `src/lib/reviewData.ts` reads the `coach_reviews`
+      view, selects `reviewer_name`, and never joins back to
+      `profiles.full_name` — the rule this line set, followed. Discover's
+      hardcoded sample stories, the only place a full name was ever
+      rendered, went with the fictional coaches (#101). No reviewer's full
+      name is exposed anywhere. Anything that renders a reviewer in future
+      takes `reviewer_name` from the view; never `profiles.full_name`.
 - [x] 🟡 Messaging updates live (Supabase Realtime on `messages`). Done in
       step 5 (`0014`, `src/lib/messageData.ts`): both threads and the
       coach's inbox on Supabase, with real blocking from either side.
