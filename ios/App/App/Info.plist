@@ -30,7 +30,9 @@
 	     fallback; en.lproj/ar.lproj InfoPlist.strings hold the localized
 	     text the system actually shows. -->
 	<key>NSCameraUsageDescription</key>
-	<string>Rafiq Pro uses your camera to take a profile or cover photo.</string>
+	<string>Rafiq Pro uses your camera for video sessions and to take a profile or cover photo.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Rafiq Pro uses your microphone so the other person can hear you in a video session.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Rafiq Pro uses your photo library to choose a profile or cover photo.</string>
 	<!-- The app only ever talks to Supabase and the providers' own OAuth

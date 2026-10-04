@@ -127,6 +127,19 @@ own messages stay, because they are that person's record of the
 conversation. Worth stating plainly in the policy: leaving a conversation
 does not remove it from the other person's phone.
 
+### Video sessions (Daily)
+
+The camera and microphone are used only during a 1:1 video session, and
+only after the person taps Join. The call runs through Daily (§11); it
+is **not recorded or stored** by Rafiq or by Daily, so on both forms
+audio and video are *processed, not collected*. Apple: no "Audio Data"
+or "Photos or Videos" row for calls. Google: Data safety asks about data
+collected or shared; ephemeral real-time processing that isn't stored
+is outside it, but the camera and microphone permissions still show on
+the listing — **Ahmed to confirm** with the form's own help text. Not
+recording is also what keeps a 1:1 online session outside Play Billing
+(research/payments-rules.md).
+
 ---
 
 ## 5. Photos
@@ -353,6 +366,7 @@ to send.
 | **Apple** (Sign in with Apple) | Same, and the email may be a private relay address | Sign-in |
 | **Paymob** | A coach's name, national ID, wallet or bank account number, and the amount | Sending a coach their payout. Nothing about members reaches Paymob today |
 | **Sentry** | Nothing today. Once a DSN is set: crash reports, as broken down in §10 | Knowing the app crashed, and where |
+| **Daily** (video sessions) | The live audio and video of a 1:1 session while it happens, each person's display name, and connection diagnostics from Daily's own library (`@daily-co/daily-js` reports its errors to Daily) | Running the call. **Nothing is recorded or stored**: rooms never set `enable_recording`, nobody is an owner, and the `session-video` function refuses a Daily domain that records (`supabase/functions/_shared/sessionVideo.ts`) |
 
 Google Fonts used to be on this list: `index.html` fetched Lora and Cairo
 from `fonts.googleapis.com`, which handed every user's IP and User-Agent

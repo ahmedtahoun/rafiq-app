@@ -397,6 +397,26 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       }),
     };
     Object.defineProperty(real, 'storage', { value: storage, configurable: true });
+
+    // Edge Functions: each answers whatever the test set with
+    // setFunctionReply, the way supabase-js reports it — data on a 2xx, a
+    // FunctionsHttpError carrying the Response otherwise. Unset is a
+    // network failure, so no test reaches a real function by accident.
+    window.__fake.functionReplies = {};
+    const functions = {
+      invoke: async (name, opts) => {
+        log({ op: 'functions.invoke', name, body: opts?.body ?? null });
+        const reply = window.__fake.functionReplies[name];
+        if (!reply || failing(`functions.${name}`)) return { data: null, error: { name: 'FunctionsFetchError', message: 'network down' } };
+        if (reply.status >= 200 && reply.status < 300) return { data: reply.body, error: null };
+        const error = Object.assign(new Error('Edge Function returned a non-2xx status code'), {
+          name: 'FunctionsHttpError',
+          context: new Response(JSON.stringify(reply.body), { status: reply.status }),
+        });
+        return { data: null, error };
+      },
+    };
+    Object.defineProperty(real, 'functions', { value: functions, configurable: true });
   }, { userId, tables, fail, KEYS, TINY_PNG_DATA_URL });
 }
 
@@ -412,3 +432,7 @@ export function signIn(page, userId = 'user-123') {
 export const dbRows = (page, table) => page.evaluate((t) => window.__fake.db[t] ?? [], table);
 export const dbCalls = (page) => page.evaluate(() => window.__fake.calls);
 export const setFailing = (page, fail) => page.evaluate((f) => { window.__fake.fail = f; }, fail);
+
+/** What an Edge Function answers next: `{ status, body }`. */
+export const setFunctionReply = (page, name, status, body) =>
+  page.evaluate(([n, st, b]) => { window.__fake.functionReplies[n] = { status: st, body: b }; }, [name, status, body]);
