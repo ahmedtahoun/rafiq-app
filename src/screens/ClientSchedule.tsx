@@ -14,6 +14,7 @@ import { useRemoteSession } from '../lib/remoteSession';
 import { sendMoveRequest, weekdayOf, withdrawSessionRequest } from '../lib/requestData';
 import { fetchMemberSchedule, memberCancelSession, type MemberSchedule } from '../lib/memberScheduleData';
 import { wallNowMs, wallTodayMs } from '../lib/wallClock';
+import { canOfferJoin } from '../lib/videoData';
 import { useMemberSpace, useMemberStore, type MemberRelationshipView } from '../store/memberStore';
 import { useRemoteLoad } from '../store/remoteLoad';
 import {
@@ -652,6 +653,20 @@ function LiveClientSchedule({ rel }: { rel: MemberRelationshipView | null }) {
                 <ArrowForwardIcon size={16} color="#FFFFFF" />
               </span>
             </button>
+
+            {upcoming && canOfferJoin(upcoming.startWallMs, upcoming.endWallMs, wallNowMs()) && (
+              <button
+                type="button"
+                className="client-schedule-join"
+                onClick={() => nav({ screen: 'sessionRoom', params: { sessionId: upcoming.sessionId, name: coachName } })}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="2" y="6" width="15" height="12" rx="2.5" />
+                  <path d="M22 8.5l-5 3.5 5 3.5v-7z" />
+                </svg>
+                {t('clientScheduleJoinSession')}
+              </button>
+            )}
 
             {move && (
               <div className="client-schedule-move-note" role="status">

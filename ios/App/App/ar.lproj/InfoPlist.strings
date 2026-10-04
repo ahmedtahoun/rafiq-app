@@ -1,6 +1,8 @@
 /* Shown on the system permission dialog when Edit Profile's photo upload
-   asks for the camera or photo library. */
+   asks for the camera or photo library, and when a video session asks
+   for the camera and microphone. */
 /* The app is رفيق in Arabic, Rafiq Pro in English. */
 "CFBundleDisplayName" = "رفيق";
-"NSCameraUsageDescription" = "يستخدم رفيق الكاميرا لالتقاط صورة شخصية أو صورة غلاف.";
+"NSCameraUsageDescription" = "يستخدم رفيق الكاميرا في جلسات الفيديو ولالتقاط صورة شخصية أو صورة غلاف.";
+"NSMicrophoneUsageDescription" = "يستخدم رفيق الميكروفون ليسمعك الطرف الآخر في جلسة الفيديو.";
 "NSPhotoLibraryUsageDescription" = "يستخدم رفيق مكتبة الصور لاختيار صورة شخصية أو صورة غلاف.";

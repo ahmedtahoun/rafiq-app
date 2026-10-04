@@ -31,6 +31,12 @@ calendar time no matter how fast the code moves:
       saying `rafiqie` don't matter: they are never shown.
 - [ ] 🔴 **Payments model** — see §3 before deciding. Includes whether Rafiq
       takes a commission on sessions and how coaches get paid out.
+      **Decided (Ahmed, 2026-10-04): a marketplace.** Members pay for
+      sessions inside the app (Paymob checkout), Rafiq pays coaches out,
+      and there is **no stored balance or wallet**: a coach's "to be paid
+      out" is a record of what Rafiq owes, not money parked in Rafiq.
+      Coaches can still be paid to a bank account or a mobile wallet.
+      Still open: the commission, and the advisor questions in §3.
 - [ ] 🟡 **Company / legal entity** that owns the developer accounts, receives
       store payouts and signs the App Store Paid Apps agreement.
 - [ ] 🟡 **Launch coaches.** Discover must not open empty or with fake coaches
@@ -65,13 +71,20 @@ as done below, when signed in; every other screen still reads and writes
       and Preview Profile's offerings are real too (2026-10-03): a coach
       creates, edits and archives their own `offerings` rows, which is what
       members book from, and "Add what you offer" is a Home setup step.
-      Session templates are real too (2026-10-04): Templates and
-      TemplateDetail read and write the coach's own `templates` rows
-      (`templateData.ts`); signed out, the demo keeps its 14.
-      Still on `mockStore` when signed in: Home's package and follow-up
-      alerts, Profile stats, Earnings' totals, and the
-      member screens listed under the demo identities below — Reem's
-      current tasks.
+      The member side is done (#91, #92, #94, #96, #97, #99, #100, #101),
+      and so are session templates (#105: Templates and TemplateDetail read
+      and write the coach's own `templates` rows; signed out, the demo
+      keeps its 14) and a member's saved coaches (#112: their own
+      `favourite_coaches` rows, 0005, instead of `localStorage`, so they
+      follow the member to another device).
+
+      Still on `mockStore` when signed in, and all that is left of this
+      item (Reem's queue):
+
+      - **Home's package and follow-up alerts** — `src/screens/Main.tsx`.
+      - **Profile stats** — `src/screens/Profile.tsx`.
+      - **Earnings' totals** — `src/screens/Earnings.tsx` uses
+        `getEarningsSummary`.
 - [x] 🔴 **Remove the demo identities.** 14 member screens hardcoded
       `const CLIENT_ID = 'sara'`, and the Pro side is the seeded
       `DEFAULT_PRO_ID = 'pro-yasmin'`. Both must come from the signed-in user.
@@ -95,17 +108,15 @@ as done below, when signed in; every other screen still reads and writes
       every use is signed-out only now, and Home, Tasks and Profile no
       longer show the demo's sample goal signed in:
       tests/member-demo-identity.spec.js walks the member screens signed in
-      and fails on any demo store read or demo name. Done (2026-10-04): the
-      walk covers every member screen that reads the member's data — Home,
-      My Pro, Profile, Edit profile, Messages, Tasks, My Pros, Sessions,
-      Discover, Notifications, My programs, Program detail, Rate coach,
-      Booking and the coach page — and waits for each lazily loaded screen
-      rather than a fixed delay. Breaking any one of them back to the demo
-      fails it. The one device key it allows that isn't the member's is
-      `rafiq_fav_coaches`: Discover's favourites start empty (not demo
-      data) but are still kept on the phone, not in `favourite_coaches`
-      (0005).
-- [ ] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
+      and fails on any demo store read or demo name. Done (2026-10-04, #109):
+      the walk covers every member screen that reads the member's data —
+      Home, My Pro, Profile, Edit profile, Messages, Tasks, My Pros,
+      Sessions, Discover, Notifications, My programs, Program detail, Rate
+      coach, Booking and the coach page — and waits for each lazily loaded
+      screen rather than a fixed delay. Breaking any one of them back to the
+      demo fails it. Since #112 it allows no device key that isn't the
+      member's own: saved coaches are `favourite_coaches` rows now.
+- [x] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,
       the 8 fictional `DIRECTORY_COACHES`, and any other `DEFAULT_*` seed.
       Apple rejects placeholder content, and fake coaches in a marketplace
@@ -114,20 +125,27 @@ as done below, when signed in; every other screen still reads and writes
       `DIRECTORY_COACHES`, their sample "Member Stories", and the demo coach
       page with its invented review quote, bio and member count are removed;
       signed out, Discover shows its "No pros yet" state and a coach link is
-      "not available". Left: the other `DEFAULT_*` seeds, which the
-      signed-out demo still runs on (the decision keeps them).
-- [ ] 🔴 **Use the real clock.** Calendar maths runs on a fixed fictional week
+      "not available" (#101). Everything the decision called for is done.
+      The other `DEFAULT_*` seeds stay by that same decision, because the
+      signed-out demo runs on them — so there is nothing outstanding here.
+      Reopen only if the decision to keep the signed-out demo changes.
+- [x] 🔴 **Use the real clock.** Calendar maths runs on a fixed fictional week
       (`TODAY_MS = Date.UTC(2025, 9, 22)`; screens hardcode `TODAY_INDEX = 2`).
       Real users would see October 2025. Replace with the current time, and
       re-check `format.ts`'s UTC wall-clock rule (CLAUDE.md, "Display every
-      date and time") once times come from real bookings. Signed in, every
-      converted screen is on the real clock; `grep -rl TODAY_INDEX src`
-      lists only Schedule (the coach's demo week) now.
+      date and time") once times come from real bookings. Done: signed in,
+      every screen is on the real clock. `grep -rl TODAY_INDEX src` now
+      returns `Schedule.tsx` alone, and both uses there are the signed-out
+      branch of a conditional (`remote ? weekdayOf(realTodayMs) :
+      TODAY_INDEX`) — the demo week the 3 Oct decision keeps.
+      ClientSchedule, ClientBooking and CoachPreview converted in steps 4
+      and 6 (#99).
 - [ ] 🔴 Loading, empty and error states on every screen. Today every read is
       synchronous localStorage; network reads can be slow or fail.
-      Done on every converted screen (26 use `LoadState`: loading, then an
-      error with a working retry — never the demo data as a fallback); the
-      rest land with §2's remaining screens.
+      Done on every converted screen (35 files use `LoadState` as of 4 Oct,
+      up from 26: loading, then an error with a working retry — never the
+      demo data as a fallback); the rest land with §2's remaining screens,
+      which are now only the four listed in the first item.
       Discover now distinguishes an empty directory ("No pros yet") from a
       search that matched nothing — it will be empty until real pros sign
       up, and the search-failed wording read like a broken screen.
@@ -236,6 +254,25 @@ builds".
       The in-app browser opens Google's and Apple's pages, and closing it
       without finishing no longer leaves the buttons stuck (#68). Waiting
       on *Ahmed*: the redirect URL, then one real sign-in per platform.
+- [ ] 🔴 **1:1 video sessions (Daily), inside the app** (decided, Ahmed,
+      2026-10-04). Built: the `session-video` Edge Function gives each of
+      the two people in a session a pass to its own private Daily room,
+      from 10 minutes before it starts until 30 after it ends; it is never
+      recorded (no `enable_recording`, nobody an owner, and a Daily domain
+      that records is refused), which is also what keeps 1:1 online
+      sessions outside Play Billing. SessionRoom is the real call signed in,
+      on the app's own bilingual controls (Daily's ready-made screen has no
+      Arabic); Join shows on the coach's Home and Schedule and the member's
+      Sessions. Camera and microphone permissions are declared on both
+      platforms. Tests: `supabase/functions/_shared/sessionVideo_test.ts`,
+      `tests/session-video.spec.js`. Left:
+      *Ahmed:* in the Daily dashboard, check recording is off for the
+      domain; put the key in `supabase/functions/.env` as `DAILY_API_KEY`
+      and run `npx supabase secrets set --env-file supabase/functions/.env`,
+      then delete the file (never in chat or git); deploy `session-video`.
+      *Dev:* one real call between two phones, both languages — camera and
+      microphone prompts on iOS and Android, joining, hanging up, and the
+      window closing.
 - [x] 🔴 **Android hardware back button.** Nothing listens for it, so it exits
       the app from any screen. Wire `App.addListener('backButton', …)` from
       `@capacitor/app` to `appStore.back()`, exiting only on a tab root.
@@ -318,7 +355,8 @@ builds".
       `https://rafiqpro.com/delete-account/` once the site is hosted (§5).
 - [ ] 🟡 `versionCode` / `versionName` (`android/app/build.gradle`) and
       `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` (Xcode) raised on every
-      upload.
+      upload. `npm run app-version -- <version> <build>` sets all four at
+      once and refuses a build number that isn't higher (RELEASE.md §1).
 - [x] targetSdk 36 (`android/variables.gradle`).
 
 ### Both
@@ -451,7 +489,13 @@ Waits on the name decision (§1).
       info, and it must be in the privacy policy too.
       **The input is ready:** `store/privacy-inventory.md` works every table
       in `0001`–`0017` through to an Apple type and a Google category, with
-      what deletion (0012) keeps and removes. Filling the two forms is still
+      what deletion (0012) keeps and removes. **The Google half is now
+      drafted:** `store/play-console.md` answers every Play Console
+      question in the order Play asks it — App access, Ads, content
+      rating, target audience, Data safety row by row, the Health apps
+      and Financial features declarations, Advertising ID, and
+      countries/pricing — with the open questions listed rather than
+      guessed. Apple's App Privacy form is still to draft. Filling the two forms is still
       Ahmed's, and eleven questions in it need answering first — among them
       where a national ID goes on Apple's form (it has no type for a
       government ID), whether coaching focus counts as health data, and
@@ -560,7 +604,11 @@ only Rafiq can resolve (as `service_role`). Nothing works them yet.
       reports → deletes account.
 - [ ] **App Review notes:** test Google accounts for a coach and a member with
       data in them, and how to reach each role. With sign-in only through
-      Google and Apple, reviewers can't get in otherwise.
+      Google and Apple, reviewers can't get in otherwise. Notes:
+      `store/review-notes.md`. Their data: `supabase/admin/review-accounts.sql`
+      (run before each submission; it also resets what a reviewer changed).
+      Before the first one, decide how the review coach stays out of
+      Discover (`supabase/admin/README.md`, "Review accounts").
 - [ ] TestFlight (internal, then external) and Google Play closed testing
       before production; phased release.
 

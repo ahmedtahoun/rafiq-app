@@ -1,6 +1,8 @@
 /* Shown on the system permission dialog when Edit Profile's photo upload
-   asks for the camera or photo library. Info.plist's own English text is
+   asks for the camera or photo library, and when a video session asks
+   for the camera and microphone. Info.plist's own English text is
    the development-region fallback; this is the explicit English copy. */
 "CFBundleDisplayName" = "Rafiq Pro";
-"NSCameraUsageDescription" = "Rafiq Pro uses your camera to take a profile or cover photo.";
+"NSCameraUsageDescription" = "Rafiq Pro uses your camera for video sessions and to take a profile or cover photo.";
+"NSMicrophoneUsageDescription" = "Rafiq Pro uses your microphone so the other person can hear you in a video session.";
 "NSPhotoLibraryUsageDescription" = "Rafiq Pro uses your photo library to choose a profile or cover photo.";

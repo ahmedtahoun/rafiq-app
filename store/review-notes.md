@@ -26,6 +26,13 @@ Written against the app on 2026-09-30. Labels are quoted from
       Auth → URL Configuration (checklist §4), or native sign-in fails.
 - [ ] The build under test is the store build (TestFlight or Play internal
       testing), not a local one (`RELEASE.md` §4).
+- [ ] **Their data:** after both accounts have signed in once (coach
+      onboarded), run **Reset review accounts**
+      (`supabase/admin/review-accounts.sql`, see `supabase/admin/README.md`).
+      It gives the pair a relationship with sessions, tasks, messages and a
+      program, which the run-through below then exercises. Run it again
+      after the run-through and after each review, to put back whatever was
+      changed.
 
 ## 2. The run-through
 
@@ -85,8 +92,9 @@ before moving on. Stop and file a bug at the first step that isn't.
     process it (`account-deletion` function) → the login is gone, and the
     coach's record keeps the sessions without the name.
 
-Anything that fails blocks the submission. When it all passes, leave both
-review accounts as they are: that is the data the reviewers will see.
+Anything that fails blocks the submission. When it all passes, run **Reset
+review accounts** once more: the run-through blocked, reported and added
+things, and the reviewers should start from the clean set.
 
 ---
 
