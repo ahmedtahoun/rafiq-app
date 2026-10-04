@@ -3,6 +3,7 @@ import { useAppStore } from '../store/appStore';
 import { useT, dayKey, isolate, type MessageKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
+import { SPECIALTIES } from '../lib/specialties';
 import {
   MessageIcon, ScheduleIcon, CheckIcon, StarIcon, WarningIcon,
   ChevronIcon,
@@ -27,6 +28,25 @@ import './ClientCoach.css';
 const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
 const DAY_MS = 86400000;
 const ACCENT_HEX = '#B75C3D';
+
+/**
+ * A coach's title is the specialties they picked in Edit Profile, stored as
+ * their English values joined with " · " (EditProfile.tsx). Each is shown
+ * in the app's language, as Discover does; a value that isn't a specialty
+ * any more is shown as stored, isolated so it can't reorder the Arabic
+ * around it. Empty reads as Life coaching, as it always has here.
+ */
+function specialtyTitle(title: string, t: ReturnType<typeof useT>): string {
+  const labels = title
+    .split(' · ')
+    .map((value) => value.trim())
+    .filter(Boolean)
+    .map((value) => {
+      const def = SPECIALTIES.find((s) => s.value === value);
+      return def ? t(def.labelKey) : isolate(value);
+    });
+  return labels.length > 0 ? labels.join(' · ') : t('specLife');
+}
 
 /** "5:00 PM" / "5:45 PM" from a fractional hour. */
 function hourLabel(h: number, am: string, pm: string): string {
@@ -181,7 +201,7 @@ function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { sta
               </span>
             )}
           </div>
-          <div className="client-coach-title">{profile.title || t('specLife')}</div>
+          <div className="client-coach-title">{specialtyTitle(profile.title, t)}</div>
           {profile.cert && <div className="client-coach-cert">{profile.cert}</div>}
 
           <div className="client-coach-rating">

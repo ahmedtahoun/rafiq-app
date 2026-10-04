@@ -135,3 +135,42 @@ test('every link between pages goes somewhere real, and nothing loads from elsew
     }
   }
 });
+
+/**
+ * The host config is a build output too.
+ *
+ * `scripts/build-site.mjs` wipes site/public before it writes, so
+ * anything dropped in there by hand survives until the next
+ * `npm run build:site` and then vanishes silently. `_headers` and
+ * `_redirects` are therefore kept in site/ and copied in beside
+ * style.css — and this is the check that they still arrive, because the
+ * failure mode otherwise is a site that deploys with no security
+ * headers and nobody noticing.
+ */
+test('the Cloudflare config is copied into the built site', () => {
+  for (const name of ['_headers', '_redirects']) {
+    expect(existsSync(join(SITE, name)), `${name} is in the built site`).toBe(true);
+  }
+
+  const headers = readFileSync(join(SITE, '_headers'), 'utf8');
+  // The directive line itself, not the whole file: the comments above it
+  // name 'unsafe-inline' to explain why it is not used, and a check over
+  // the file would read that as the thing it is warning about.
+  const csp = headers.split('\n').find((l) => l.trim().startsWith('Content-Security-Policy:')) ?? '';
+  // The policy this site can afford: it has no JavaScript, no images and
+  // nothing from another domain, so anything beyond its own stylesheet
+  // is a mistake. A loosened CSP has to change this line too.
+  expect(csp, 'a Content-Security-Policy line exists').not.toBe('');
+  expect(csp).toContain("default-src 'none'");
+  expect(csp).toContain("style-src 'self'");
+  expect(csp).not.toContain('unsafe-inline');
+  expect(csp, 'nobody may frame these pages').toContain("frame-ancestors 'none'");
+  for (const h of ['X-Content-Type-Options: nosniff', 'Referrer-Policy: no-referrer', 'Strict-Transport-Security', 'X-Frame-Options: DENY']) {
+    expect(headers, `_headers carries ${h}`).toContain(h);
+  }
+
+  // www goes to the bare domain, which is the host every store console,
+  // the OAuth consent screen and the pages' own canonical links name.
+  const redirects = readFileSync(join(SITE, '_redirects'), 'utf8');
+  expect(redirects).toMatch(/^https:\/\/www\.rafiqpro\.com\/\* +https:\/\/rafiqpro\.com\/:splat +301$/m);
+});

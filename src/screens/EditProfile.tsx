@@ -5,11 +5,9 @@ import { darken } from '../lib/color';
 import { COUNTRIES, DEFAULT_COUNTRY } from '../lib/countries';
 import { SPECIALTIES, SPECIALTY_CATEGORIES } from '../lib/specialties';
 import { SpecialtyIcon } from '../components/specialtyIcons';
-import { CameraIcon, CloseIcon, LockIcon, PlusIcon } from '../components/icons';
+import { CameraIcon, CloseIcon, PlusIcon } from '../components/icons';
 import { CountryPicker } from '../components/CountryPicker';
-import { BottomSheet } from '../components/BottomSheet';
-import { Button } from '../components/Button';
-import { isVerified, updateCoachProfile, type SessionMode } from '../lib/mockStore';
+import { updateCoachProfile, type SessionMode } from '../lib/mockStore';
 import { saveOwnCoachProfile, type CoachProfileEdits, type ProfileErrorCode } from '../lib/profileData';
 import { useOwnCoachProfile, useOwnProfileStore, type OwnProfileView } from '../store/ownProfileStore';
 import { LoadState } from '../components/LoadState';
@@ -66,7 +64,6 @@ function EditProfileForm({ own }: { own: Extract<OwnProfileView, { status: 'read
   const profile = own.profile;
   // Still mockStore's tier, signed in or not: the real one arrives with
   // payments (LAUNCH-CHECKLIST.md §3), which hasn't been decided yet.
-  const isPro = isVerified();
 
   const [name, setName] = useState(profile.name);
   const [phone, setPhone] = useState(profile.phone);
@@ -90,7 +87,6 @@ function EditProfileForm({ own }: { own: Extract<OwnProfileView, { status: 'read
 
   const [showDialPicker, setShowDialPicker] = useState(false);
   const [showResidencyPicker, setShowResidencyPicker] = useState(false);
-  const [showPhotoLockedSheet, setShowPhotoLockedSheet] = useState(false);
 
   const dialCountry = COUNTRIES.find((c) => c.code === dialCode) ?? DEFAULT_COUNTRY;
   const residencyCountry = COUNTRIES.find((c) => c.code === residencyCode) ?? DEFAULT_COUNTRY;
@@ -150,10 +146,6 @@ function EditProfileForm({ own }: { own: Extract<OwnProfileView, { status: 'read
     setCoverPhotoUrl('');
   }
 
-  function openPhotoLocked() {
-    setShowPhotoLockedSheet(true);
-  }
-
   function save() {
     if (saving) return;
     const edits: CoachProfileEdits = {
@@ -174,10 +166,6 @@ function EditProfileForm({ own }: { own: Extract<OwnProfileView, { status: 'read
     };
 
     if (!own.remote) {
-      // Only a Pro can actually change the photos (the UI locks the picker/
-      // remove controls behind isPro), but writing them unconditionally is
-      // harmless: a free account's state never diverges from its existing
-      // values, so this is a no-op save for them.
       updateCoachProfile({ ...edits, avatarPhotoUrl, coverPhotoUrl });
       nav('profile');
       return;
@@ -226,32 +214,19 @@ function EditProfileForm({ own }: { own: Extract<OwnProfileView, { status: 'read
                 {avatarInitials}
               </div>
             )}
-            {isPro ? (
-              <label htmlFor="avatarFileInput" aria-label={t('editProfileChangePhoto')} className="edit-profile-avatar-edit-btn">
-                <CameraIcon size={14} color="var(--accent)" />
-              </label>
-            ) : (
-              <button type="button" aria-label={t('editProfileCustomPhotoLocked')} className="edit-profile-avatar-edit-btn" onClick={openPhotoLocked}>
-                <LockIcon size={13} color="var(--ink-soft)" />
-              </button>
-            )}
+            <label htmlFor="avatarFileInput" aria-label={t('editProfileChangePhoto')} className="edit-profile-avatar-edit-btn">
+              <CameraIcon size={14} color="var(--accent)" />
+            </label>
             <input id="avatarFileInput" type="file" accept="image/*" onChange={handleAvatarFile} style={{ display: 'none' }} />
           </div>
-          {isPro ? (
-            hasAvatarPhoto ? (
-              <button type="button" className="edit-profile-link" onClick={removeAvatar}>
-                {t('editProfileRemovePhoto')}
-              </button>
-            ) : (
-              <label htmlFor="avatarFileInput" className="edit-profile-link">
-                {t('editProfileChangePhoto')}
-              </label>
-            )
-          ) : (
-            <button type="button" className="edit-profile-link edit-profile-locked-link" onClick={openPhotoLocked}>
-              <LockIcon size={11} color="var(--ink-soft)" />
-              {t('editProfileCustomPhotoLocked')}
+          {hasAvatarPhoto ? (
+            <button type="button" className="edit-profile-link" onClick={removeAvatar}>
+              {t('editProfileRemovePhoto')}
             </button>
+          ) : (
+            <label htmlFor="avatarFileInput" className="edit-profile-link">
+              {t('editProfileChangePhoto')}
+            </label>
           )}
         </div>
 
@@ -265,17 +240,10 @@ function EditProfileForm({ own }: { own: Extract<OwnProfileView, { status: 'read
             )}
           </div>
           <div className="edit-profile-cover-actions">
-            {isPro ? (
-              <label htmlFor="coverFileInput" className="edit-profile-cover-btn">
-                {hasCoverPhoto ? t('editProfileChangeCover') : t('editProfileAddCoverPhoto')}
-              </label>
-            ) : (
-              <button type="button" className="edit-profile-cover-btn edit-profile-cover-locked" onClick={openPhotoLocked}>
-                <LockIcon size={12} color="var(--ink-soft)" />
-                {t('editProfileCustomCoverLocked')}
-              </button>
-            )}
-            {isPro && hasCoverPhoto && (
+            <label htmlFor="coverFileInput" className="edit-profile-cover-btn">
+              {hasCoverPhoto ? t('editProfileChangeCover') : t('editProfileAddCoverPhoto')}
+            </label>
+            {hasCoverPhoto && (
               <button type="button" className="edit-profile-cover-btn edit-profile-cover-remove" onClick={removeCover}>
                 {t('editProfileRemoveCover')}
               </button>
@@ -462,20 +430,6 @@ function EditProfileForm({ own }: { own: Extract<OwnProfileView, { status: 'read
         }}
       />
 
-      <BottomSheet open={showPhotoLockedSheet} onClose={() => setShowPhotoLockedSheet(false)} title={t('editProfilePhotoLockedTitle')}>
-        <p className="edit-profile-locked-body">{t('editProfilePhotoLockedBody')}</p>
-        <Button
-          onClick={() => {
-            setShowPhotoLockedSheet(false);
-            nav('subscription');
-          }}
-        >
-          {t('editProfileUpgrade')}
-        </Button>
-        <button type="button" className="edit-profile-locked-not-now" onClick={() => setShowPhotoLockedSheet(false)}>
-          {t('editProfileNotNow')}
-        </button>
-      </BottomSheet>
     </div>
   );
 }

@@ -28,6 +28,20 @@
   min-height: 44px;
 }
 
+.template-detail-save:disabled {
+  color: var(--ink-soft);
+  pointer-events: none;
+}
+
+.template-detail-error {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--red-bg);
+  color: var(--red);
+  font-size: 13px;
+  font-weight: 600;
+}
+
 /* Keeps the title centred on the error state, where Save has nothing to do. */
 .template-detail-save-placeholder {
   width: 44px;

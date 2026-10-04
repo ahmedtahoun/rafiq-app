@@ -46,6 +46,8 @@ const LIVE_FAMILY: Record<MemberNotificationKind, IconFamily> = {
   'payment-received': 'payment',
   'session-moved': 'session',
   'session-cancelled': 'session',
+  'request-accepted': 'session',
+  'request-declined': 'session',
 };
 
 function iconFor(family: IconFamily) {
@@ -158,6 +160,10 @@ function LiveClientNotifications({ space }: { space: Extract<MemberSpaceView, { 
   // sentence. A relationship no longer listed reads as "your coach".
   const coachOf = (n: MemberNotification) =>
     isolate(space.relationships.find((r) => r.clientId === n.clientId)?.coach.name || t('clientNotifYourCoach'));
+  // An answer to a request names the coach as they were then (0021): a
+  // declined stranger has no relationship. A deleted coach has no name.
+  const answeredBy = (n: MemberNotification) =>
+    isolate(n.coachName || space.relationships.find((r) => r.clientId === n.clientId)?.coach.name || t('clientNotifTheCoach'));
 
   function titleOf(n: MemberNotification): string {
     switch (n.kind) {
@@ -165,6 +171,9 @@ function LiveClientNotifications({ space }: { space: Extract<MemberSpaceView, { 
       case 'payment-received': return t('clientNotifPaymentReceived');
       case 'session-moved': return t('clientNotifSessionMoved', { coach: coachOf(n) });
       case 'session-cancelled': return t('clientNotifSessionCancelled', { coach: coachOf(n) });
+      case 'request-accepted': return t('clientNotifRequestAccepted', { coach: answeredBy(n) });
+      case 'request-declined':
+        return t(n.move ? 'clientNotifMoveDeclined' : 'clientNotifRequestDeclined', { coach: answeredBy(n) });
     }
   }
 
@@ -176,7 +185,10 @@ function LiveClientNotifications({ space }: { space: Extract<MemberSpaceView, { 
       case 'session-moved':
         return n.sessionWallMs !== null ? t('clientNotifMovedTo', { when: fmt.nextSession(n.sessionWallMs, space.todayMs) }) : '';
       case 'session-cancelled':
+      case 'request-accepted':
         return n.sessionWallMs !== null ? fmt.nextSession(n.sessionWallMs, space.todayMs) : '';
+      case 'request-declined':
+        return n.sessionWallMs !== null ? t('clientNotifRequestedFor', { when: fmt.nextSession(n.sessionWallMs, space.todayMs) }) : '';
     }
   }
 
@@ -185,6 +197,8 @@ function LiveClientNotifications({ space }: { space: Extract<MemberSpaceView, { 
     'payment-received': 'clientCoach',
     'session-moved': 'clientSchedule',
     'session-cancelled': 'clientSchedule',
+    'request-accepted': 'clientSchedule',
+    'request-declined': 'clientSchedule',
   };
 
   return (
@@ -198,7 +212,11 @@ function LiveClientNotifications({ space }: { space: Extract<MemberSpaceView, { 
         if (n.unread) void markMemberNotificationRead(n.id);
         // The screen it's about, for the coach it's about.
         if (n.clientId && space.relationships.some((r) => r.clientId === n.clientId)) space.select(n.clientId);
-        nav(TARGET[n.kind]);
+        // A declined first session: back to that coach's page to pick
+        // another time. A declined move leaves the booking where it was,
+        // so it opens Sessions like the rest.
+        if (n.kind === 'request-declined' && !n.move && n.coachId) nav({ screen: 'coachPreview', params: { coachId: n.coachId } });
+        else nav(TARGET[n.kind]);
       }}
       onMarkAll={async () => {
         const result = await markAllMemberNotificationsRead();

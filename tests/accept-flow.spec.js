@@ -475,3 +475,32 @@ test('Arabic and dark: the request sheet and the real preview read right', async
   expect(member.errs).toEqual([]);
   await member.ctx.close();
 });
+
+// --- Currency --------------------------------------------------------------------
+
+// offerings.currency is char(3) and the data layer always read it, but every
+// price went through a formatter that appended "EGP" regardless: a dive
+// instructor pricing in euros showed "150 EGP".
+for (const lang of ['en', 'ar']) {
+  test(`an offering priced in euros says euros, and the request it makes does too (${lang})`, async ({ browser }) => {
+    const pounds = lang === 'ar' ? 'جنيه' : 'EGP';
+    const tables = memberTables();
+    tables.offerings.push({ id: 'off-dive', coach_id: 'coach-dina', name: 'Freediving lesson', description: '', type: 'session', duration: '90 min', format: 'in_person', price: 150, currency: 'EUR', active: true, created_at: '2026-09-02T00:00:00Z' });
+    const member = await openMember(browser, { lang, tables, screen: 'coachPreview', params: { coachId: 'coach-dina' } });
+    const offerings = member.page.locator('.coach-preview-offering');
+    await expect(offerings.filter({ hasText: 'Career deep-dive' })).toContainText(`600 ${pounds}`);
+    await expect(offerings.filter({ hasText: 'Freediving lesson' })).toContainText('150 EUR');
+    await expect(offerings.filter({ hasText: 'Freediving lesson' })).not.toContainText(pounds);
+    expect(member.errs).toEqual([]);
+    await member.ctx.close();
+
+    const coachSide = coachTables();
+    coachSide.session_requests = [request('req-dive', { offering_id: 'off-1', price: 150, currency: 'EUR' })];
+    const coach = await openCoach(browser, { lang, tables: coachSide });
+    await coach.page.locator('.notifications-row').first().click();
+    await expect(coach.page.locator('.notifications-sheet')).toContainText('150 EUR');
+    await expect(coach.page.locator('.notifications-sheet')).not.toContainText(pounds);
+    expect(coach.errs).toEqual([]);
+    await coach.ctx.close();
+  });
+}

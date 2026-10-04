@@ -65,23 +65,20 @@ as done below, when signed in; every other screen still reads and writes
       and Preview Profile's offerings are real too (2026-10-03): a coach
       creates, edits and archives their own `offerings` rows, which is what
       members book from, and "Add what you offer" is a Home setup step.
-      The member side is done (#91, #92, #94, #96, #97, #99, #100, #101).
+      The member side is done (#91, #92, #94, #96, #97, #99, #100, #101),
+      and so are session templates (#105: Templates and TemplateDetail read
+      and write the coach's own `templates` rows; signed out, the demo
+      keeps its 14) and a member's saved coaches (#112: their own
+      `favourite_coaches` rows, 0005, instead of `localStorage`, so they
+      follow the member to another device).
 
-      Still on `mockStore` / `directory` when signed in, and all that is
-      left of this item:
+      Still on `mockStore` when signed in, and all that is left of this
+      item (Reem's queue):
 
-      - **Home's package and follow-up alerts** — `src/screens/Main.tsx`
-        still imports `mockStore`.
-      - **Profile stats** — `src/screens/Profile.tsx`, same.
+      - **Home's package and follow-up alerts** — `src/screens/Main.tsx`.
+      - **Profile stats** — `src/screens/Profile.tsx`.
       - **Earnings' totals** — `src/screens/Earnings.tsx` uses
         `getEarningsSummary`.
-      - **A member's saved coaches on Discover** —
-        `src/lib/directory.ts:199-206` reads and writes `localStorage`
-        (`rafiq_fav_coaches`), while `public.favourite_coaches` has existed
-        since `0005_app_parity.sql:428` with RLS on and has never been
-        used. So a member's saved coaches do not follow them to another
-        device and are lost on reinstall. Found on 4 Oct by extending the
-        demo-identity walk; it is the one key that walk still allows.
 - [x] 🔴 **Remove the demo identities.** 14 member screens hardcoded
       `const CLIENT_ID = 'sara'`, and the Pro side is the seeded
       `DEFAULT_PRO_ID = 'pro-yasmin'`. Both must come from the signed-in user.
@@ -105,18 +102,14 @@ as done below, when signed in; every other screen still reads and writes
       every use is signed-out only now, and Home, Tasks and Profile no
       longer show the demo's sample goal signed in:
       tests/member-demo-identity.spec.js walks the member screens signed in
-      and fails on any demo store read. Done (4 Oct): that walk now covers
-      all thirteen — Discover, Notifications, My programs, Rate coach and
-      Booking added, which was the condition stated here.
-
-      Two things came out of extending it. It stopped waiting on a timer
-      after `nav()` and uses `__screenSettled` instead: since #82 each
-      screen is its own chunk, and "no `.load-state`" and "no demo text on
-      screen" are both satisfied by a Suspense fallback, so the guard could
-      pass without the screen ever rendering. And with the five screens
-      added it immediately caught a real read — see the `favourite_coaches`
-      note in the first item above, which is a `directory.ts` conversion,
-      not a demo identity.
+      and fails on any demo store read or demo name. Done (2026-10-04, #109):
+      the walk covers every member screen that reads the member's data —
+      Home, My Pro, Profile, Edit profile, Messages, Tasks, My Pros,
+      Sessions, Discover, Notifications, My programs, Program detail, Rate
+      coach, Booking and the coach page — and waits for each lazily loaded
+      screen rather than a fixed delay. Breaking any one of them back to the
+      demo fails it. Since #112 it allows no device key that isn't the
+      member's own: saved coaches are `favourite_coaches` rows now.
 - [x] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,
       the 8 fictional `DIRECTORY_COACHES`, and any other `DEFAULT_*` seed.
@@ -153,15 +146,11 @@ as done below, when signed in; every other screen still reads and writes
 - [x] 🟡 Discover and coach profiles read the `coach_directory` and
       `coach_reviews` views. The views sign reviews with a **first name and
       last initial**; the app currently shows the reviewer's full name
-      publicly — that must go. Half done: signed in, Discover and a coach's
-      page read `coach_directory` (and show a review count, no review
-      text). Done (#96): `src/lib/reviewData.ts` reads the `coach_reviews`
-      view, selects `reviewer_name`, and never joins back to
-      `profiles.full_name` — the rule this line set, followed. Discover's
-      hardcoded sample stories, the only place a full name was ever
-      rendered, went with the fictional coaches (#101). No reviewer's full
-      name is exposed anywhere. Anything that renders a reviewer in future
-      takes `reviewer_name` from the view; never `profiles.full_name`.
+      publicly — that must go. Done: signed in, Discover and a coach's page
+      read `coach_directory`, and their reviews come from `coach_reviews`
+      (step 6), selecting the view's `reviewer_name` — never a join back to
+      `profiles.full_name`. Discover's hardcoded sample stories went with
+      the fictional coaches.
 - [x] 🟡 Messaging updates live (Supabase Realtime on `messages`). Done in
       step 5 (`0014`, `src/lib/messageData.ts`): both threads and the
       coach's inbox on Supabase, with real blocking from either side.
@@ -180,10 +169,35 @@ Apple's App Review Guidelines decide what may be paid outside the App Store:
 - **1:1 live coaching sessions** are person-to-person services → may use
   Paymob or another payment method (guideline 3.1.3(d)).
 - **Group sessions, workshops and events** (one-to-few, one-to-many live) →
-  guideline 3.1.3(d) says these **must use In-App Purchase** on iOS.
+  **online**, guideline 3.1.3(d) says these **must use In-App Purchase** on
+  iOS; **in person**, 3.1.3(e) says they **must not**. They go through Paymob.
+- **Google Play** agrees on all of it, with one condition: a 1:1 online
+  session is exempt from Play Billing only if it is **not recorded or
+  replayable**. Video calling must not add recording.
 
-- [ ] 🔴 *Ahmed:* confirm the model above against the current guidelines, and
-      Google Play's Payments policy for the Android side.
+The sources, read on 2026-10-01, and what they mean for the build are in
+`research/payments-rules.md`. The ten-coach pricing test is in
+`research/interview-guides.md`.
+
+- [ ] 🔴 *Ahmed:* confirm the model above. ~~against the current guidelines and
+      Google Play's Payments policy~~ (read 2026-10-01; see
+      `research/payments-rules.md`). Still open are the advisor questions there:
+      the Central Bank of Egypt, VAT, and getting Apple's answer in writing.
+- [ ] 🔴 *Ahmed:* enrol in the App Store Small Business Program before the
+      first subscription is sold. The 15% rate is not automatic.
+- [x] 🔴 *Dev:* record where each booking came from (marketplace or the
+      coach's own client), so that commission can be switched on fairly
+      later. `0019`; live once Ahmed pushes it.
+      Commission stays off.
+- [x] 🟡 *Dev:* prices show the offering's own currency, not always EGP.
+- [x] 🔴 *Dev:* a real free plan: **3 active members**, enforced by the
+      database (`0020`), read from the coach's `subscriptions` row. Pro has
+      no limit and is granted by hand until billing exists
+      (`supabase/admin/README.md`, "Coach plans"). Photos are free for
+      everyone, and the Pro plan no longer promises a verified badge,
+      featured placement or priority support. *Ahmed:* the Pro price on the
+      plans screen still says 450 EGP; change it once the pricing test
+      settles 300 or 500.
 - [ ] 🔴 *Dev:* Rafiq Pro through In-App Purchase + Play Billing (RevenueCat
       handles both stores and receipt validation). Tier changes arrive from its
       webhook as `service_role` — the app has no write access to
@@ -340,6 +354,33 @@ builds".
       and the "Member check-in alerts" row is gone because no such
       notification exists. Push itself is still unbuilt; if it is built
       later, reopen this.
+- [ ] 🟡 **Phone notifications (wanted, Ahmed 2026-10-01).** The kind
+      ProCoach advertises: a banner on the lock screen, with the app's icon,
+      the moment something happens. The ones Rafiq has events for:
+      | Banner | Who gets it | Event today |
+      |---|---|---|
+      | New booking: "Hana asked for Tue 10:00 AM" | coach | `session_requests` insert. **No notification row yet**: 0002's trigger is on the old `time_blocks` request. Needs a trigger. |
+      | Booking confirmed / moved / cancelled | member | 0011's trigger on `sessions` (`session-moved`), plus accept and cancel |
+      | Task done: "Omar finished Evening walk" | coach | 0002 `task-completed` |
+      | New message | both | 0002 `message` |
+      | Payment received: "Sara paid 750 EGP" | coach | 0002 `payment-received`. Only means real money once Paymob collects session fees (§3); until then it fires when the coach records a payment, so don't send that one as push. |
+      | Session reminder, an hour before | both | Nothing yet: needs a scheduled job. |
+      How: every event above already writes a `notifications` row, so push is
+      delivery, not new logic. Add `@capacitor/push-notifications`; a
+      `device_tokens` table (one row per device; the user writes only their
+      own); an APNs key (Apple) and a Firebase project for FCM (Android);
+      then a Database Webhook on `notifications` insert → an Edge Function
+      that sends to that user's devices. Respect the existing notification
+      switches in Profile, and add one per kind. In both languages: the
+      banner text is built server-side, so it needs the recipient's
+      language stored.
+      Before it ships: the Profile cards and the privacy policy currently
+      say **no push is sent**. Change that copy in the same PR. Add Firebase
+      and device tokens to `store/privacy-inventory.md` and both store forms.
+      On iOS, ask for permission at a moment that explains why (after the
+      first booking request, for example), not at first launch.
+      Reference: ProCoach's ads (payment, booking and "workout crushed"
+      banners) and an Arabic coach dashboard Ahmed shared, same date.
 - [x] 🔴 **Account deletion must actually happen.** The app files a request
       into `account_deletion_requests`; someone has to process it (§9), within
       a stated time. **Stated: within 30 days**, on the public deletion page.
@@ -381,10 +422,19 @@ Waits on the name decision (§1).
       Done: one inline-SVG `<Logo>` on RoleSelect and Auth (Welcome never had
       one), the same glyph as the icon, so it no longer changes font in
       Arabic.
-- [ ] 🔴 **Screenshots, in English and Arabic:** iPhone 6.9" (1320×2868),
+- [x] 🔴 **Screenshots, in English and Arabic:** iPhone 6.9" (1320×2868),
       3–10 per language; Google Play: at least 2 phone screenshots, a 1024×500
       feature graphic and a 512×512 icon. Take them from the connected app, not
       the demo data.
+      Done: `npm run screenshots` renders all of it from the signed-in app
+      against `tests/fakeSupabase.js`, twelve screens per language, and
+      commits the PNGs to `store/screenshots/out/`. Play needed its own
+      capture — 2868÷1320 is 2.17:1 and Play caps a screenshot at 2:1 — so
+      it gets 1242×2208. Clock pinned and data seeded, so a re-run produces
+      the same bytes. Every Arabic image checked by eye. See
+      `store/screenshots/README.md` for the sizes, the upload order (01–08
+      to Play, 01–10 to Apple) and which screens were chosen. Not in `npm
+      test` or CI: deliverables, not assertions.
 - [x] 🔴 Store text in English and Arabic: name (iOS: 30 characters),
       subtitle, description, keywords, category, "what's new".
       **Drafted in `store/listing.md`**, both languages, both stores, every
@@ -455,9 +505,28 @@ only Rafiq can resolve (as `service_role`). Nothing works them yet.
       Done: `supabase/admin/README.md` — open reports (suspend, close),
       pending verifications (approve/reject), pending deletions (through
       the `account-deletion` Edge Function).
-- [ ] 🟡 Before public launch: a small admin web app (verification review,
+- [x] 🟡 Before public launch: a small admin web app (verification review,
       reports with suspend/block, deletion requests, user lookup), behind an
       admin role. The `service_role` key stays server-side, never in a browser.
+      Done: `admin/` (its own Vite + React + TS app, port 5175) talking to
+      `supabase/functions/admin/`, which verifies the caller's JWT, checks
+      `admin_users` and only then acts as service_role — the same check as
+      `payouts` and `account-deletion`, and the only place it can live,
+      since `admin_users` has RLS on and no grants. The app holds the anon
+      key and nothing else. Every action is a named operation with
+      validated input; there is no "run this query" path, and an unknown
+      operation is a 400. Deletions go through the existing
+      `account-deletion` function rather than a second copy of it, and its
+      refusals ("an unsettled payout remains") reach the admin unflattened.
+      Queue moves are conditional on the row's current state, so two people
+      working one queue cannot resolve the same row twice. 31 Deno tests on
+      the function (each asserting which tables a given action writes, so a
+      stray write fails even when the reply looks right) and 10 Playwright
+      tests on the app against a faked function. `admin/README.md` has the
+      deploy steps. Two CI gaps are Ahmed's call, both noted in the PR:
+      `deno check` names its files explicitly and does not name the new
+      function, and `tsconfig.app.json` is `include: ["src"]`, so CI does
+      not typecheck `admin/`.
 - [ ] 🟡 A written response time for reports and deletions — and meet it.
       Deletions: 30 days (public deletion page). Reports: not stated yet.
 

@@ -21,6 +21,7 @@ import {
   markNotificationRead,
   type ProNotification,
 } from '../lib/mockStore';
+import { FREE_MEMBER_CAP } from '../lib/planData';
 import './Notifications.css';
 
 const REQUEST_AVATAR = '#B75C3D';
@@ -99,6 +100,7 @@ export default function Notifications() {
     else if (result.code === 'passed') setSheetError('notificationsRequestPassed');
     else if (result.code === 'slot_taken') setSheetError('notificationsSlotTaken');
     else if (result.code === 'blocked') setSheetError('notificationsRequestBlocked');
+    else if (result.code === 'member_cap') setSheetError('notificationsMemberCap');
     else setSheetError('requestFailedRetry');
   }
 
@@ -119,7 +121,7 @@ export default function Notifications() {
   const titleOf = (r: IncomingRequest) =>
     t(r.movesFromWallMs != null ? 'notificationsMoveRequest' : 'notificationsSessionRequest', { name: isolate(r.memberName) });
   const whatOf = (r: IncomingRequest) => r.offeringName ?? t('coachPreviewIntroCallName');
-  const priceOf = (r: IncomingRequest) => (r.price > 0 ? fmt.money(r.price) : t('offeringsFree'));
+  const priceOf = (r: IncomingRequest) => (r.price > 0 ? fmt.money(r.price, r.currency) : t('offeringsFree'));
   const empty = remote ? requests.length === 0 : items.length === 0;
 
   return (
@@ -228,7 +230,7 @@ export default function Notifications() {
             )}
             {sheetError && (
               <div className="notifications-sheet-error" role="alert">
-                {t(sheetError, { name: isolate(openRequest.memberName) })}
+                {t(sheetError, { name: isolate(openRequest.memberName), cap: FREE_MEMBER_CAP })}
               </div>
             )}
             <div className="notifications-sheet-actions">

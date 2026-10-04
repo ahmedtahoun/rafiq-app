@@ -517,9 +517,27 @@ defensively. Session times are wall-clock. Opening one marks it read
 switches to the relationship it is about, and opens its screen; "Mark all
 read" marks only theirs, and says so if it fails. Home's bell dot is
 whether any of them is unread, re-read each time Home mounts; a failed
-read shows no dot. Nothing yet tells a member when a coach accepts or
-declines their request: that would need a trigger (a later migration).
-Tests: tests/member-notifications.spec.js.
+read shows no dot. Since 0021 a member is also told when a coach answers
+their request (below). Tests: tests/member-notifications.spec.js.
+
+## Step 6, the member side: a request answered (0021)
+
+`0021_request_answer_notifications.sql` tells a member when a coach
+accepts or declines their session request: `request-accepted` (a new
+session booked from it) and `request-declined` (a new session, or a move
+of a booked one, `payload.move`; also when a deleting coach declines what
+is still open, 0012). An accepted move adds nothing: 0011's trigger on
+sessions already says it moved. A withdrawn request tells nobody. It is a
+constraint trigger deferred to commit: accept_session_request() marks the
+request accepted before it creates the roster row, so only at commit is
+there a relationship to point at, and an accept refused after that (the
+free plan's limit, 0020) rolls back with no notice sent. The payload
+carries the coach's id and name and the time asked for. On the member's
+Notifications, an accepted one or a declined move opens Sessions for that
+relationship; a declined first session opens that coach's page to pick
+another time. A coach with no name (account deleted) reads as "the
+coach". Tests: supabase/tests/25_request_answer_notifications.sql (23
+assertions) and tests/member-notifications.spec.js.
 
 ## Step 6, the member side: the real clock
 
@@ -535,6 +553,19 @@ week's dates or the .ics year and month: they derive them from the demo's
 fixed week whatever the real date. `TODAY_INDEX` is left only in the
 coach's Schedule. Tests: tests/member-real-clock.spec.js.
 
+## Step 6, the member side: saved coaches
+
+No schema change: `favourite_coaches` (0005) is the member's own
+(`favourite_coaches_own`). The hearts on Discover and a coach's page were
+this phone's localStorage (`rafiq_fav_coaches`), shared by whoever signed
+in on it and lost on a new phone; they are the member's rows now
+(src/lib/favouriteData.ts, with src/store/favourites.ts for the tap). The
+saved coaches load with the rest of each screen, so a failed read shows
+retry rather than empty hearts. A tap fills or empties the heart at once
+and saves it; if the save fails the heart goes back and the screen says so.
+Signed out there are no hearts (no directory), so the localStorage
+version is gone, not kept for the demo. Tests: tests/favourites.spec.js.
+
 ## Step 6, the member side: the demo member signed out only
 
 No schema change. Signed in, nothing reads the demo member
@@ -548,6 +579,27 @@ walks the member screens signed in, watching every localStorage key read:
 only the member's own and the device's are allowed, so a demo read keyed
 by the demo member *or* hidden in a shared demo store (`clients`,
 `standing_slots`, …) fails it.
+Since 2026-10-04 the walk covers every member screen that reads the
+member's data (Discover, Notifications, My programs, Program detail, Rate
+coach, Booking and the coach page added), waits for each screen's chunk
+(`installScreenSettle`) instead of a fixed delay, and fails if any of them
+is switched back to its demo version. Favourites (`rafiq_fav_coaches`) are
+the one device-local store left on the member side; moving them to
+`favourite_coaches` (0005) would take that key off the walk's allowlist.
+
+## The rest: session templates
+
+No schema change: `templates` (0005) is the coach's own, read and written
+only by them (`templates_own`). `src/lib/templateData.ts` follows
+offeringData.ts. Signed in, Templates lists the coach's rows (an empty
+state for a new coach, retry on a failed read, never the demo's), and
+TemplateDetail commits everything, starter tasks included, on Save: a new
+template is created only then, and Cancel leaves the row as it was. Nothing
+references a template, so Delete is a real delete. The list's two-letter
+`icon` follows the name. Signed out, the demo's 14 and its write-through
+task list are unchanged. Nothing applies a template when a member is added
+(in the demo or for real), so the screen's intro no longer says it does.
+Tests: tests/templates-remote.spec.js.
 
 ## Testing this kind of code
 

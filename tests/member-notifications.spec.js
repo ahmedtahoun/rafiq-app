@@ -4,9 +4,10 @@ import { installFakeSupabase, signIn, dbRows, dbCalls, setFailing } from './fake
 
 /**
  * SUPABASE-MIGRATION-PLAN.md step 6, the member's Notifications: signed in,
- * their own `notifications` rows (src/lib/notificationData.ts) of the four
+ * their own `notifications` rows (src/lib/notificationData.ts) of the six
  * kinds the database sends a member — a message, a payment, a session moved
- * or cancelled — and marking them read. Home's bell dot is their own
+ * or cancelled, a request accepted or declined (0021) — and marking them
+ * read. Home's bell dot is their own
  * unread ones. Never the demo member's.
  *
  * The clock is pinned to noon on Mon 28 Sep 2026 in Cairo.
@@ -111,7 +112,7 @@ test('the member’s own notifications, newest first, with who and when — neve
 
   const read = (await dbCalls(page)).find((c) => c.table === 'notifications' && c.op === 'select');
   expect(read).toMatchObject({
-    filters: [['recipient_id', MEMBER], ['kind', ['message', 'payment-received', 'session-moved', 'session-cancelled'], 'in']],
+    filters: [['recipient_id', MEMBER], ['kind', ['message', 'payment-received', 'session-moved', 'session-cancelled', 'request-accepted', 'request-declined'], 'in']],
     order: ['created_at', false],
     limit: 50,
   });
@@ -191,7 +192,7 @@ test('Home’s bell dot is the member’s own unread, and clears once they’re 
   const { page, ctx, errs } = await open(browser, { screen: 'clientHome' });
   await expect(bellDot(page)).toHaveCount(1);
   const read = (await dbCalls(page)).find((c) => c.table === 'notifications' && c.op === 'select');
-  expect(read.filters).toEqual([['recipient_id', MEMBER], ['kind', ['message', 'payment-received', 'session-moved', 'session-cancelled'], 'in'], ['read_at', null, 'is']]);
+  expect(read.filters).toEqual([['recipient_id', MEMBER], ['kind', ['message', 'payment-received', 'session-moved', 'session-cancelled', 'request-accepted', 'request-declined'], 'in'], ['read_at', null, 'is']]);
   await page.getByRole('button', { name: 'Notifications' }).click();
   await markAll(page).click();
   await expect(dots(page)).toHaveCount(0);
@@ -221,6 +222,87 @@ test('Arabic and dark', async ({ browser }) => {
   await expect(rows(page).nth(1)).toContainText('الموعد الجديد:');
   await expect(page.getByRole('button', { name: 'تعليم الكل كمقروء' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.dir)).toBe('rtl');
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
+// --- A coach answering a request (0021) -----------------------------------------------
+
+const answers = () => tables({ notifications: [
+  // Accepted: a new session with Dina, now on the member's roster.
+  note('n-acc', 'request-accepted', 'rel-a', { request_id: 'r1', coach_id: 'coach-a', coach_name: 'Dina Farouk', requested_start: '2026-09-30T12:00:00Z', move: false }, '2026-09-28T08:00:00Z'),
+  // Declined by a coach the member has never worked with: no roster row.
+  note('n-dec', 'request-declined', null, { request_id: 'r2', coach_id: 'coach-z', coach_name: 'Layla Samir', requested_start: '2026-10-01T07:00:00Z', move: false }, '2026-09-28T07:00:00Z'),
+  // A move of Omar's session, declined: the booking stays where it was.
+  note('n-move', 'request-declined', 'rel-b', { request_id: 'r3', coach_id: 'coach-b', coach_name: 'Omar Nabil', requested_start: '2026-10-02T07:00:00Z', move: true }, '2026-09-27T07:00:00Z'),
+  // A coach whose account has gone: no name to show.
+  note('n-gone', 'request-declined', null, { request_id: 'r4', coach_id: 'coach-x', coach_name: '', requested_start: '2026-10-03T07:00:00Z', move: false }, '2026-09-26T07:00:00Z', { read_at: '2026-09-26T08:00:00Z' }),
+] });
+const params = (page) => page.evaluate(async () => (await import('/src/store/appStore.ts')).useAppStore.getState().params);
+
+test('a request accepted or declined says who and when', async ({ browser }) => {
+  const { page, ctx, errs } = await open(browser, { data: answers() });
+  await expect(rows(page).locator('.client-notifications-row-title')).toHaveText([
+    'Your session request to ⁨Dina Farouk⁩ was accepted',
+    "Your session request to ⁨Layla Samir⁩ wasn't accepted",
+    "Your request to move your session with ⁨Omar Nabil⁩ wasn't accepted",
+    "Your session request to ⁨the coach⁩ wasn't accepted",
+  ]);
+  // Wall-clock Cairo times: 12:00Z is 3 PM, 07:00Z is 10 AM.
+  await expect(rows(page).nth(0)).toContainText('Wed, 3:00 PM');
+  await expect(rows(page).nth(1)).toContainText('You asked for Thu, 10:00 AM');
+  await expect(rows(page).nth(2)).toContainText('You asked for Fri, 10:00 AM');
+  await expect(dots(page)).toHaveCount(3);
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
+test('opening an answer: accepted and a declined move go to Sessions, a declined first session back to that coach\'s page', async ({ browser }) => {
+  const { page, ctx, errs } = await open(browser, { data: answers() });
+  await rows(page).nth(0).click();
+  expect(await appState(page)).toEqual({ screen: 'clientSchedule', selectedId: 'rel-a' });
+
+  await go(page, 'clientNotifications');
+  await rows(page).nth(2).click();
+  expect(await appState(page)).toEqual({ screen: 'clientSchedule', selectedId: 'rel-b' });
+
+  await go(page, 'clientNotifications');
+  await rows(page).nth(1).click();
+  expect((await appState(page)).screen).toBe('coachPreview');
+  expect(await params(page)).toMatchObject({ coachId: 'coach-z' });
+  await expect.poll(async () => (await dbRows(page, 'notifications')).filter((n) => n.read_at === null).map((n) => n.id)).toEqual([]);
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
+test('Arabic: a request accepted or declined', async ({ browser }) => {
+  const { page, ctx, errs } = await open(browser, { lang: 'ar', data: answers() });
+  await expect(rows(page).locator('.client-notifications-row-title')).toHaveText([
+    'تم قبول طلب جلستك مع ⁨Dina Farouk⁩',
+    'لم يتم قبول طلب جلستك مع ⁨Layla Samir⁩',
+    'لم يتم قبول طلب نقل جلستك مع ⁨Omar Nabil⁩',
+    'لم يتم قبول طلب جلستك مع ⁨المدرب⁩',
+  ]);
+  await expect(rows(page).nth(1)).toContainText('الموعد الذي طلبته:');
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
+test('Home’s bell dot counts a request answer', async ({ browser }) => {
+  const { page, ctx, errs } = await open(browser, {
+    screen: 'clientHome',
+    data: tables({ notifications: [note('n-acc', 'request-accepted', 'rel-a', { coach_id: 'coach-a', coach_name: 'Dina Farouk', requested_start: '2026-09-30T12:00:00Z', move: false }, '2026-09-28T08:00:00Z')] }),
+  });
+  await expect(bellDot(page)).toHaveCount(1);
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
+test('an accepted request names the coach it was sent to, even once that relationship has gone', async ({ browser }) => {
+  const { page, ctx, errs } = await open(browser, {
+    data: tables({ notifications: [note('n-acc', 'request-accepted', 'rel-gone', { coach_id: 'coach-k', coach_name: 'Karim Adel', requested_start: '2026-09-30T12:00:00Z', move: false }, '2026-09-28T08:00:00Z')] }),
+  });
+  await expect(rows(page).locator('.client-notifications-row-title')).toHaveText('Your session request to ⁨Karim Adel⁩ was accepted');
   expect(errs).toEqual([]);
   await ctx.close();
 });

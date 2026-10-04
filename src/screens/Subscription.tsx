@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT, type MessageKey } from '../lib/i18n';
+import { isolate, useT, type MessageKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { ChevronIcon, CheckIcon } from '../components/icons';
 import { darken } from '../lib/color';
 import { BottomSheet } from '../components/BottomSheet';
-import { getSubscription, logSubscriptionCancelFeedback, setSubscriptionTier, type CancelReason } from '../lib/mockStore';
+import { LoadState } from '../components/LoadState';
+import { logSubscriptionCancelFeedback, setSubscriptionTier, type CancelReason } from '../lib/mockStore';
+import { usePlan, type Plan } from '../lib/planData';
+import { SUPPORT_EMAIL } from '../lib/support';
 import './Subscription.css';
 
 const CANCEL_REASONS: { key: CancelReason; labelKey: MessageKey }[] = [
@@ -23,10 +26,20 @@ type Stage = 'plans' | 'survey' | 'confirmed';
 // In-App Purchase, on Android through Play Billing (LAUNCH-CHECKLIST.md §3).
 // Neither is built, so the button says so instead of quietly setting the
 // tier to 'pro' for free, which is what it used to do.
+//
+// Signed in, the plan is the coach's subscriptions row (planData.ts), which
+// only service_role writes: there is no self-serve downgrade, so a Pro is
+// pointed at support instead. The downgrade survey is the demo's.
+export default function Subscription() {
+  const plan = usePlan();
+  if (plan.status === 'loading') return <LoadState status="loading" />;
+  if (plan.status === 'error') return <LoadState status="error" onRetry={plan.retry} showBack />;
+  return <SubscriptionView plan={plan.plan} remote={plan.remote} />;
+}
 
 // 1:1 port of Subscription.dc.html — Rafiq Pro plan picker with a mandatory
 // exit survey before a downgrade actually takes effect.
-export default function Subscription() {
+function SubscriptionView({ plan, remote }: { plan: Plan; remote: boolean }) {
   const t = useT();
   const fmt = useFormat();
   const back = useAppStore((s) => s.back);
@@ -35,21 +48,25 @@ export default function Subscription() {
   const [cancelReason, setCancelReason] = useState<CancelReason | null>(null);
   const [cancelNote, setCancelNote] = useState('');
 
-  const sub = getSubscription();
-  const isPro = sub.tier === 'pro';
+  // The demo's downgrade below changes the stored tier; this screen shows it
+  // without waiting for the plan to be read again.
+  const [tier, setTier] = useState(plan.tier);
+  const isPro = tier === 'pro';
 
   const currentPlanName = isPro ? t('subscriptionPlanLabelPro') : t('subscriptionPlanLabelFree');
-  // setSubscriptionTier always pairs tier: 'pro' with a real renewsAtMs, so
-  // this is never null when isPro is true.
-  const currentPlanSub = isPro ? t('subscriptionRenewsOn', { date: fmt.date(sub.renewsAtMs as number) }) : t('subscriptionFreeSub');
+  // A real renewal is an instant Supabase stored; the demo's is a date on
+  // the fixed calendar (CLAUDE.md, "Two kinds of time").
+  const renewsOn = plan.renewsAt === null ? null : remote ? fmt.instantDate(plan.renewsAt) : fmt.date(Date.parse(plan.renewsAt));
+  const currentPlanSub = !isPro ? t('subscriptionFreeSub') : renewsOn ? t('subscriptionRenewsOn', { date: renewsOn }) : t('subscriptionProNoEnd');
 
-  const freeFeatures = [t('subscriptionFreeFeature1'), t('subscriptionFreeFeature2'), t('subscriptionFreeFeature3'), t('subscriptionFreeFeature4')];
-  const proFeatures = [t('subscriptionProFeature1'), t('subscriptionProFeature2'), t('subscriptionProFeature3'), t('subscriptionProFeature4'), t('subscriptionProFeature5')];
+  const freeFeatures = [t('subscriptionFreeFeature1'), t('subscriptionFreeFeature2'), t('subscriptionFreeFeature3'), t('subscriptionFreeFeature4'), t('subscriptionFreeFeature5')];
+  const proFeatures = [t('subscriptionProFeature1'), t('subscriptionProFeature2')];
 
   function submitCancelSurvey() {
     if (!cancelReason) return;
     logSubscriptionCancelFeedback(cancelReason, cancelNote);
     setSubscriptionTier('free');
+    setTier('free');
     setStage('confirmed');
   }
 
@@ -110,7 +127,7 @@ export default function Subscription() {
                 </div>
               ))}
             </div>
-            {isPro && (
+            {isPro && !remote && (
               <button type="button" className="subscription-downgrade-btn" onClick={() => setStage('survey')}>
                 {t('subscriptionDowngrade')}
               </button>
@@ -143,7 +160,9 @@ export default function Subscription() {
           </div>
         </div>
 
-        <div className="subscription-disclaimer">{t('subscriptionDisclaimer')}</div>
+        <div className="subscription-disclaimer">
+          {remote && isPro ? t('subscriptionManageNote', { email: isolate(SUPPORT_EMAIL) }) : t('subscriptionDisclaimer')}
+        </div>
       </div>
 
       <BottomSheet open={stage === 'survey'} onClose={() => setStage('plans')} title={t('subscriptionSurveyTitle')}>

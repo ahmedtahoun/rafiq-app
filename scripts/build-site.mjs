@@ -211,5 +211,12 @@ for (const lang of LANGS) {
     writeFileSync(join(dir, 'index.html'), render(lang, slug));
   }
 }
-cpSync(join(ROOT, 'site', 'style.css'), join(OUT, 'style.css'));
-console.log(`site/public: ${LANGS.length * PAGES.length} pages`);
+// Everything that is not generated is copied in from site/, because the
+// line above wipes OUT. A file dropped straight into site/public/
+// survives exactly until the next `npm run build:site` and then
+// disappears without a word — which is how a host config would be lost.
+// tests/public-site.spec.js checks all three arrive.
+for (const name of ['style.css', '_headers', '_redirects']) {
+  cpSync(join(ROOT, 'site', name), join(OUT, name));
+}
+console.log(`site/public: ${LANGS.length * PAGES.length} pages, plus style.css, _headers and _redirects`);

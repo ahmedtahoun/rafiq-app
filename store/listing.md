@@ -55,15 +55,29 @@ a listing would normally say that this one must not:
    line promising "hundreds of coaches" would be a claim the app cannot
    meet on day one.
 
-   Worth knowing while writing this, because it decides which screens can
-   be screenshotted: **the eight fictional coaches in
-   `src/lib/directory.ts` are still there** on the signed-out demo path
-   (`Discover.tsx:100` picks `getDirectoryCoaches()` when there is no
-   session). Removing them is still open on the checklist, §2. A reviewer
-   who opens the app without signing in sees Mariam Adel, Ahmed Nabil and
-   six others who do not exist, and placeholder content is a rejection
-   reason — so App Review notes (§11) have to hand them a real account,
-   and no screenshot may come from that path.
+   **The eight fictional coaches are gone** (#101, 3 Oct 2026).
+   `DIRECTORY_COACHES` and `getDirectoryCoaches()` no longer exist in
+   `src/lib/directory.ts`, and signed out Discover shows its empty state,
+   "No pros yet" (`discoverNoCoachesTitle`), rather than Mariam Adel,
+   Ahmed Nabil and six others who never did. A coach link on that path
+   reads "not available".
+
+   That removes the rejection risk this paragraph used to carry —
+   placeholder content is no longer reachable — but it does not change
+   what App Review needs. Signed out the app now shows an *empty*
+   marketplace, which demonstrates nothing, so the review notes (§11)
+   still have to hand reviewers a real account with real content. See
+   `store/review-notes.md`.
+
+   One thing to decide before uploading, since the two documents
+   currently disagree: the screenshot set built in §7 includes a Discover
+   shot (`08-member-discover`), taken signed in against seeded sample
+   coaches. The note further down this file says Discover should not be
+   among the launch screenshots because it will be nearly empty. Both
+   positions are defensible — sample data in a screenshot is ordinary,
+   and a directory that looks busier than day one is not — but only one
+   can ship. Ahmed decides; the shot is numbered 08, so leaving it out
+   costs nothing but the upload order.
 
 ---
 
@@ -334,8 +348,10 @@ Not copy, but the listing is not submittable without them:
   not the demo data, which means real accounts with real content. Discover
   should not be one of the screenshots at launch — it will be nearly
   empty.
-- **The app icon** (§7) — both platforms still ship Capacitor's
-  placeholder.
+- ~~**The app icon** (§7) — both platforms still ship Capacitor's
+  placeholder.~~ Done (#83): both platforms ship the real mark, and §7
+  is ticked. `store/screenshots/out/shared/` carries the 512×512 Play
+  icon and the 1024×1024 App Store one.
 - **Public URLs** — privacy policy, terms and support pages exist in
   `site/public/` but are not hosted yet (§5).
 - **A support mailbox that replies** — `support@rafiqpro.com` appears in

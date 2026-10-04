@@ -44,9 +44,18 @@ export function formatAmount(lang: Lang, value: number): string {
     : value.toLocaleString(LOCALE[lang], { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-/** An amount with the currency word: "5,400 EGP" / "5,400 جنيه". */
-export function formatMoney(lang: Lang, value: number): string {
-  return `${formatAmount(lang, value)} ${translate(lang, 'currency')}`;
+/**
+ * An amount with its currency: "5,400 EGP" / "5,400 جنيه".
+ *
+ * Pass the row's own currency wherever there is one (offerings, requests and
+ * payouts all carry a char(3) code). Egyptian pounds get the translated word;
+ * anything else is written as its ISO code in both languages — "150 EUR" —
+ * rather than silently relabelled as pounds, which is what every price
+ * showed before this took a currency.
+ */
+export function formatMoney(lang: Lang, value: number, currency = 'EGP'): string {
+  const code = currency.trim().toUpperCase();
+  return `${formatAmount(lang, value)} ${code === 'EGP' ? translate(lang, 'currency') : code}`;
 }
 
 /** A short date: "Oct 18, 2025" / "18 أكتوبر 2025". */
@@ -184,7 +193,7 @@ export function useFormat() {
   const lang = useAppStore((s) => s.lang);
   return {
     amount: (value: number) => formatAmount(lang, value),
-    money: (value: number) => formatMoney(lang, value),
+    money: (value: number, currency?: string) => formatMoney(lang, value, currency),
     date: (ms: number) => formatDisplayDate(lang, ms),
     instantDate: (at: string | number) => formatInstantDate(lang, at),
     monthDay: (ms: number) => formatMonthDay(lang, ms),
