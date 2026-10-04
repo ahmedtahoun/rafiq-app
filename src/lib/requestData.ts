@@ -411,6 +411,7 @@ export interface IncomingRequest {
   offeringName: string | null;
   startWallMs: number;
   price: number;
+  currency: string;
   /** When it was sent, for the list's order. */
   sentAt: string;
   /** A request to move a booked session (0017): the booking's time now. */
@@ -424,7 +425,7 @@ export async function fetchIncomingRequests(): Promise<RequestResult<IncomingReq
   const supabase = getSupabase();
   const requests = await supabase
     .from('session_requests')
-    .select('id, member_id, offering_id, requested_start, price, created_at, reschedule_of')
+    .select('id, member_id, offering_id, requested_start, price, currency, created_at, reschedule_of')
     .eq('coach_id', uid)
     .eq('status', 'pending')
     .order('created_at', { ascending: false });
@@ -450,6 +451,7 @@ export async function fetchIncomingRequests(): Promise<RequestResult<IncomingReq
       offeringName: (offerings.data as { id: string; name: string }[]).find((o) => o.id === r.offering_id)?.name ?? null,
       startWallMs: toWallMs(r.requested_start),
       price: Number(r.price),
+      currency: r.currency,
       sentAt: r.created_at,
       movesFromWallMs: (() => {
         const from = (blocks.data as { id: string; starts_at: string }[]).find((b) => b.id === r.reschedule_of);

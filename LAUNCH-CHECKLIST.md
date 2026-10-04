@@ -151,10 +151,27 @@ Apple's App Review Guidelines decide what may be paid outside the App Store:
 - **1:1 live coaching sessions** are person-to-person services → may use
   Paymob or another payment method (guideline 3.1.3(d)).
 - **Group sessions, workshops and events** (one-to-few, one-to-many live) →
-  guideline 3.1.3(d) says these **must use In-App Purchase** on iOS.
+  **online**, guideline 3.1.3(d) says these **must use In-App Purchase** on
+  iOS; **in person**, 3.1.3(e) says they **must not**. They go through Paymob.
+- **Google Play** agrees on all of it, with one condition: a 1:1 online
+  session is exempt from Play Billing only if it is **not recorded or
+  replayable**. Video calling must not add recording.
 
-- [ ] 🔴 *Ahmed:* confirm the model above against the current guidelines, and
-      Google Play's Payments policy for the Android side.
+The sources, read on 2026-10-01, and what they mean for the build are in
+`research/payments-rules.md`. The ten-coach pricing test is in
+`research/interview-guides.md`.
+
+- [ ] 🔴 *Ahmed:* confirm the model above. ~~against the current guidelines and
+      Google Play's Payments policy~~ (read 2026-10-01; see
+      `research/payments-rules.md`). Still open are the advisor questions there:
+      the Central Bank of Egypt, VAT, and getting Apple's answer in writing.
+- [ ] 🔴 *Ahmed:* enrol in the App Store Small Business Program before the
+      first subscription is sold. The 15% rate is not automatic.
+- [x] 🔴 *Dev:* record where each booking came from (marketplace or the
+      coach's own client), so that commission can be switched on fairly
+      later. `0019`; live once Ahmed pushes it.
+      Commission stays off.
+- [x] 🟡 *Dev:* prices show the offering's own currency, not always EGP.
 - [ ] 🔴 *Dev:* Rafiq Pro through In-App Purchase + Play Billing (RevenueCat
       handles both stores and receipt validation). Tier changes arrive from its
       webhook as `service_role` — the app has no write access to
