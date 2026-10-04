@@ -114,7 +114,10 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
         limit(n) { q.limit = n; return b; },
         maybeSingle() { q.single = true; return b; },
         single() { q.single = true; return b; },
-        then(resolve, reject) { return Promise.resolve().then(() => run(q)).then(resolve, reject); },
+        // window.__fake.held[table], a promise, keeps that table's reads
+        // waiting until it resolves: what a screen shows while one read is
+        // still on its way.
+        then(resolve, reject) { return Promise.resolve(window.__fake.held?.[table]).then(() => run(q)).then(resolve, reject); },
       };
       return b;
     };
