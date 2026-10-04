@@ -7,7 +7,7 @@
 // write shows up as a failure even when the response looks right — which
 // is how `approveVerification` is held to touching only
 // `verification_requests` and leaving `coach_profiles` to 0005's trigger.
-import { assertEquals } from 'jsr:@std/assert@1';
+import { assert, assertEquals } from 'jsr:@std/assert@1';
 import { handleAdminRequest, type Db, type Deps, type Row } from './adminOps.ts';
 
 const AT = '2026-10-03T12:00:00.000Z';
@@ -34,7 +34,7 @@ function fake(opts: { jwtUser?: string | null; admins?: string[]; tables?: Recor
   const tables: Record<string, Row[]> = opts.tables ?? {};
   const admins = opts.admins ?? [];
   const writes: Write[] = [];
-  const reads: Array<{ table: string; filters: Array<[string, unknown]>; or?: string }> = [];
+  const reads: Array<{ table: string; filters: Array<[string, unknown]>; or?: string; columns?: string }> = [];
   const calls: Call[] = [];
 
   const matches = (row: Row, filters: Array<[string, unknown]>) => filters.every(([c, v]) => row[c] === v);
@@ -42,6 +42,7 @@ function fake(opts: { jwtUser?: string | null; admins?: string[]; tables?: Recor
   function query(table: string, update: Row | null) {
     const filters: Array<[string, unknown]> = [];
     let or: string | undefined;
+    let columns: string | undefined;
     const rows = () => (table === 'admin_users' ? admins.map((id) => ({ profile_id: id })) : (tables[table] ?? []));
 
     const run = () => {
@@ -52,7 +53,7 @@ function fake(opts: { jwtUser?: string | null; admins?: string[]; tables?: Recor
         Object.assign(hit, update);
         return { data: [{ ...hit }], error: null };
       }
-      reads.push({ table, filters: [...filters], or });
+      reads.push({ table, filters: [...filters], or, columns });
       // `or` is not evaluated: see the note above.
       const found = or ? rows() : rows().filter((r) => matches(r, filters));
       return { data: found.map((r) => ({ ...r })), error: null };
@@ -63,7 +64,7 @@ function fake(opts: { jwtUser?: string | null; admins?: string[]; tables?: Recor
       or(f: string) { or = f; return q; },
       order() { return q; },
       limit() { return q; },
-      select() { return q; },
+      select(cols?: string) { if (cols) columns = cols; return q; },
       maybeSingle() {
         const { data, error } = run();
         return Promise.resolve({ data: data && data.length ? data[0] : null, error });
@@ -81,7 +82,8 @@ function fake(opts: { jwtUser?: string | null; admins?: string[]; tables?: Recor
         Promise.resolve({ data: { user: opts.jwtUser === undefined ? { id: ADMIN } : opts.jwtUser ? { id: opts.jwtUser } : null } }),
     },
     from: (table: string) => ({
-      select: () => query(table, null),
+      // Passes the column string through: it is what the embed tests read.
+      select: (cols?: string) => query(table, null).select(cols),
       update: (values: Row) => query(table, values),
     }),
   };
@@ -270,6 +272,37 @@ Deno.test('a request already reviewed cannot be reviewed again', async () => {
   assertEquals((await ask(f.deps, { op: 'approveVerification', request_id: REQUEST })).status, 200);
   assertEquals((await ask(f.deps, { op: 'rejectVerification', request_id: REQUEST })).status, 409);
   assertEquals(f.tables.verification_requests?.[0].status, 'approved');
+});
+
+// ---------------------------------------------------------------------------
+// The embeds. A fake cannot resolve a PostgREST relationship, so these pin
+// the SHAPE the select strings are meant to have — which is the one thing
+// that can be checked here, and the thing a first draft got wrong.
+// ---------------------------------------------------------------------------
+
+Deno.test('listVerifications embeds through coach_profiles, not straight to profiles', async () => {
+  const f = fake({ admins: [ADMIN], tables: { verification_requests: [pendingRequest()] } });
+  await ask(f.deps, { op: 'listVerifications' });
+  const cols = f.reads.at(-1)?.columns ?? '';
+
+  // verification_requests.coach_id references coach_profiles(profile_id)
+  // (0005), and coach_profiles.profile_id references profiles(id) (0001).
+  // There is no verification_requests -> profiles relationship at all, so
+  // asking for one is an error from the database every time.
+  assert(cols.includes('coach:coach_profiles!coach_id('), `embed must go through coach_profiles: ${cols}`);
+  assert(cols.includes('profile:profiles!profile_id('), `and then on to profiles: ${cols}`);
+  assert(!cols.includes('coach:profiles!'), `must not embed profiles directly: ${cols}`);
+});
+
+Deno.test('listReports names the joining column, because pro_reports points at profiles twice', async () => {
+  const f = fake({ admins: [ADMIN], tables: { pro_reports: [openReport()] } });
+  await ask(f.deps, { op: 'listReports' });
+  const cols = f.reads.at(-1)?.columns ?? '';
+
+  // reporter_id and coach_id both reference profiles(id) (0005), so an
+  // unqualified `profiles(...)` is ambiguous and PostgREST refuses it.
+  assert(cols.includes('reporter:profiles!reporter_id('), `reporter embed must name its column: ${cols}`);
+  assert(cols.includes('coach:profiles!coach_id('), `coach embed must name its column: ${cols}`);
 });
 
 Deno.test('listVerifications reads the pending ones and writes nothing', async () => {

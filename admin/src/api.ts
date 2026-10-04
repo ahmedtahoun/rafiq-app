@@ -1,4 +1,4 @@
-import { SUPABASE_URL, supabase } from './supabase';
+import { SUPABASE_URL, getSupabase } from './supabase';
 
 /**
  * Every call this tool can make. The names match the Edge Function's
@@ -28,7 +28,7 @@ export class ApiError extends Error {
 }
 
 export async function call<T = Record<string, unknown>>(body: Op): Promise<T> {
-  const { data } = await supabase.auth.getSession();
+  const { data } = await getSupabase().auth.getSession();
   const token = data.session?.access_token;
   if (!token) throw new ApiError(401, 'not_signed_in');
 
@@ -63,12 +63,20 @@ export type Report = {
   coach: Person | null;
 };
 
+/**
+ * The coach arrives nested. `verification_requests.coach_id` references
+ * `coach_profiles(profile_id)`, not `profiles`, so the function embeds
+ * through `coach_profiles` and the person is one level down. `coachOf`
+ * is the only place that shape is known.
+ */
 export type Verification = {
   id: string;
   note: string;
   submitted_at: string;
-  coach: Person | null;
+  coach: { profile: Person | null } | null;
 };
+
+export const coachOf = (v: Verification): Person | null => v.coach?.profile ?? null;
 
 export type Deletion = {
   id: string;

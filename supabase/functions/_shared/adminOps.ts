@@ -94,14 +94,26 @@ function isReply(v: unknown): v is Reply {
 }
 
 /**
- * Report and verification rows carry two references to `profiles`, so the
- * embed names the joining column (`profiles!coach_id`) — without the hint
- * PostgREST cannot tell which relationship is meant.
+ * The two queues embed the person differently, because the two tables
+ * reference them differently.
  *
- * NOTE: a fake database cannot check this string. It models tables, not
+ * `pro_reports` points at `profiles` TWICE — `reporter_id` and `coach_id`,
+ * both to `profiles(id)` (0005) — so each embed must name the joining
+ * column or PostgREST cannot tell which relationship is meant.
+ *
+ * `verification_requests` does not point at `profiles` at all:
+ * `coach_id` references `coach_profiles(profile_id)` (0005), and
+ * `coach_profiles.profile_id` references `profiles(id)` (0001). There is
+ * no direct relationship to follow, so the embed goes THROUGH
+ * `coach_profiles` and the row arrives nested. Asking for
+ * `profiles!coach_id` here is what a first draft did, and the database
+ * answers it with an error every time.
+ *
+ * NOTE: a fake database cannot check any of this. It models tables, not
  * PostgREST's query grammar, exactly as `tests/fakeSupabase.js` models
- * tables but not enums. These three selects are the part of this module
- * that only the real project can confirm; `admin/README.md` says so.
+ * tables but not enums — which is how that first draft reached review.
+ * The test below pins the shape these strings are meant to have; only the
+ * real project can confirm they resolve.
  */
 const REPORT_COLUMNS =
   'id, reason, details, status, created_at, resolved_at, resolution_note, ' +
@@ -110,7 +122,7 @@ const REPORT_COLUMNS =
 
 const VERIFICATION_COLUMNS =
   'id, note, status, submitted_at, reviewed_at, reviewer_note, ' +
-  'coach:profiles!coach_id(id, full_name, email, account_status)';
+  'coach:coach_profiles!coach_id(profile:profiles!profile_id(id, full_name, email, account_status))';
 
 const PROFILE_COLUMNS = 'id, full_name, email, role, account_status, created_at';
 

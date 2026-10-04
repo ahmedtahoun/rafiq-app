@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
-import { ApiError, call, type Deletion, type Profile, type Report, type Verification } from './api';
+import { ApiError, call, coachOf, type Deletion, type Profile, type Report, type Verification } from './api';
 
 /**
  * Every timestamp here is a real instant the server stamped
@@ -151,7 +151,7 @@ export function Verifications() {
         return (
           <article key={v.id} className="card">
             <header>
-              <strong>{who(v.coach)}</strong>
+              <strong>{who(coachOf(v))}</strong>
               <time>{instant(v.submitted_at)}</time>
             </header>
             <p className="details">{v.note || <span className="muted">No note from the coach.</span>}</p>

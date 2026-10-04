@@ -91,7 +91,10 @@ test('verification: approving sends the note and says the badge follows', async 
           id: '55555555-5555-4555-8555-555555555555',
           note: 'ICF ACC, 2024',
           submitted_at: '2026-09-30T09:00:00.000Z',
-          coach: { id: '33333333-3333-4333-8333-333333333333', full_name: 'Laila Hafez', email: 'laila@example.com' },
+          // Nested exactly as the function returns it: the embed goes
+          // through coach_profiles, because verification_requests.coach_id
+          // references coach_profiles(profile_id), not profiles.
+          coach: { profile: { id: '33333333-3333-4333-8333-333333333333', full_name: 'Laila Hafez', email: 'laila@example.com' } },
         }],
       },
     },
@@ -99,6 +102,10 @@ test('verification: approving sends the note and says the badge follows', async 
   await page.goto('/');
   await page.getByRole('button', { name: 'Verification' }).click();
 
+  // The coach arrives nested (coach.profile), because the embed goes
+  // through coach_profiles. Asserting the name renders is what catches a
+  // flatten that silently yields undefined.
+  await expect(page.getByText('Laila Hafez (laila@example.com)')).toBeVisible();
   await expect(page.getByText('ICF ACC, 2024')).toBeVisible();
   // The trigger owns coach_profiles.verification_status, and the screen
   // says so rather than implying this app sets the badge.

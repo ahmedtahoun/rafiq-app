@@ -153,23 +153,68 @@ second, slightly different copy of.
 Its refusals are passed through unflattened: a 409 saying *an unsettled
 payout remains* is what an admin needs, not a generic failure.
 
-## What the tests cannot tell you
+## The two embeds, which are not alike
 
-Three of the function's selects embed a related row and name the joining
-column, because reports and verification requests both reference
-`profiles` twice:
+An earlier draft of this tool got this wrong and `listVerifications`
+would have errored on the real database every time, so it is worth
+stating plainly: **the two queues reach the person by different routes,
+because the two tables are shaped differently.**
+
+`pro_reports` references `profiles` **twice** — `reporter_id` and
+`coach_id`, both to `profiles(id)` (0005). Two relationships between the
+same pair of tables are ambiguous, so each embed names the joining
+column:
 
 ```
 reporter:profiles!reporter_id(id, full_name, email)
+coach:profiles!coach_id(id, full_name, email, account_status)
 ```
 
+`verification_requests` does **not** reference `profiles` at all.
+`coach_id` references `coach_profiles(profile_id)` (0005), and
+`coach_profiles.profile_id` references `profiles(id)` (0001). There is no
+direct relationship for PostgREST to follow, so the embed goes through
+`coach_profiles` and the person arrives nested:
+
+```
+coach:coach_profiles!coach_id(profile:profiles!profile_id(id, full_name, email, account_status))
+```
+
+The app flattens that in one place, `coachOf()` in `src/api.ts`.
+
+### What the tests still cannot tell you
+
 The Deno tests use a recorder that models tables, not PostgREST's query
-grammar, so **those three strings are the part of this change only the
-real project can confirm.** It is the same class of gap as
-`tests/fakeSupabase.js` not enforcing enums, which cost a crashed screen
-in the screenshot seed. Worth a look at Reports and Verification on the
-real database the first time it is deployed; if an embed is wrong it
-fails loudly, as a `list_failed` with PostgREST's own message.
+grammar. They pin the *shape* of these strings — that verification goes
+through `coach_profiles` and never straight to `profiles`, and that the
+report embeds name their joining column — which is what would have
+caught the earlier mistake. They cannot confirm the relationships
+resolve. That is the same class of gap as `tests/fakeSupabase.js` not
+enforcing enums, which cost a crashed screen in the screenshot seed.
+
+So: look at Reports and Verification on the real database the first time
+this is deployed. A wrong embed fails loudly, as a `list_failed` carrying
+PostgREST's own message.
+
+## Building it: the variables are not optional
+
+`npm run build` with `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
+unset **exits 0 and builds almost nothing.** Vite replaces
+`import.meta.env.*` at build time, so the app's "not configured" branch
+becomes a compile-time constant and the bundler drops everything behind
+it: 231 KB instead of 443 KB, with no queues in it.
+
+The app itself handles this — it renders a screen naming the two
+variables rather than a blank page, which is why `src/supabase.ts` uses a
+flag and a lazily created client instead of a module-level `throw` (a
+throw at module scope was the original bug: the minifier treated the
+whole app as unreachable after it).
+
+What it means for you: **build with the real values set**, from
+`.env.local` or the environment, and sanity-check the output size. CI
+builds with harmless placeholders, which is enough to typecheck and
+bundle the real code but produces an artifact that cannot talk to
+anything.
 
 ## Not here yet
 

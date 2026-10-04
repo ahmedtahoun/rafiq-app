@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { supabase } from './supabase';
+import { configured, getSupabase } from './supabase';
 import { Deletions, Lookup, Reports, Verifications } from './queues';
 
 const TABS = {
@@ -18,13 +18,29 @@ export default function App() {
   const [tab, setTab] = useState<TabKey>('reports');
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
+    if (!configured) return;
+    getSupabase().auth.getSession().then(({ data }) => {
       setSession(data.session);
       setReady(true);
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => setSession(s));
+    const { data: sub } = getSupabase().auth.onAuthStateChange((_event, s) => setSession(s));
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  // A build with no project to talk to says so, rather than failing
+  // inside createClient or rendering nothing. See src/supabase.ts for why
+  // this is a screen and not a throw.
+  if (!configured) {
+    return (
+      <main className="centre">
+        <h1>Rafiq admin</h1>
+        <p className="error" role="alert">
+          This build has no Supabase project. Set <code>VITE_SUPABASE_URL</code> and{' '}
+          <code>VITE_SUPABASE_ANON_KEY</code> and build again — see <code>admin/.env.example</code>.
+        </p>
+      </main>
+    );
+  }
 
   if (!ready) return <main className="centre"><p className="muted">Loading…</p></main>;
 
@@ -37,7 +53,7 @@ export default function App() {
         </p>
         <button
           onClick={() =>
-            supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } })
+            getSupabase().auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } })
           }
         >
           Sign in with Google
@@ -63,7 +79,7 @@ export default function App() {
         </nav>
         <div className="me">
           <span className="muted small">{session.user.email}</span>
-          <button onClick={() => supabase.auth.signOut()}>Sign out</button>
+          <button onClick={() => getSupabase().auth.signOut()}>Sign out</button>
         </div>
       </header>
       <main>
