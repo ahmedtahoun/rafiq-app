@@ -101,10 +101,9 @@ as done below, when signed in; every other screen still reads and writes
       Discover, Notifications, My programs, Program detail, Rate coach,
       Booking and the coach page — and waits for each lazily loaded screen
       rather than a fixed delay. Breaking any one of them back to the demo
-      fails it. The one device key it allows that isn't the member's is
-      `rafiq_fav_coaches`: Discover's favourites start empty (not demo
-      data) but are still kept on the phone, not in `favourite_coaches`
-      (0005).
+      fails it. Discover's favourites are the member's `favourite_coaches`
+      rows too (2026-10-04), so the walk allows no device store beyond the
+      app's settings.
 - [ ] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,
       the 8 fictional `DIRECTORY_COACHES`, and any other `DEFAULT_*` seed.
