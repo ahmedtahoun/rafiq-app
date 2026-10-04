@@ -215,8 +215,8 @@ judgement call and it is question 13 at the end.
 | Data type | Collected | Purposes | Required? | Notes |
 |---|---|---|---|---|
 | Health info | **Yes** | App functionality | Optional | **Mood check-ins** are not ambiguous: self-reported wellbeing, dated, tied to an identified account |
-| Health info (coaching focus) | See open question 3 | App functionality | Optional | "Stress & anxiety" as a chosen focus is an inference about mental health. Recommendation: declare |
-| Fitness info (tasks) | See open question 4 | App functionality | Optional | "10-minute evening walk" is fitness data by any ordinary reading. Recommendation: declare |
+| Health info (coaching focus) | **Yes** (question 3, decided) | App functionality | Optional | "Stress & anxiety" as a chosen focus is an inference about mental health. Recommendation: declare |
+| Fitness info (tasks) | **Yes** (question 4, decided) | App functionality | Optional | "10-minute evening walk" is fitness data by any ordinary reading. Recommendation: declare |
 
 #### Messages
 
@@ -362,8 +362,8 @@ them.
 |---|---|---|
 | 1 | **Self-declared city and country** — Google's "Address" overstates it, "Other info" understates it. Pick one | Data safety → Personal info |
 | 2 | **Whether a member may see their coach's private notes** about them under Law 151/2020's access right. There is no screen for it | Not a form answer; a legal exposure |
-| 3 | **Whether coaching focus counts as health data.** Recommendation: yes | Data safety → Health info |
-| 4 | **Whether tasks count as fitness data.** Recommendation: yes | Data safety → Fitness info |
+| 3 | **Whether coaching focus counts as health data.** **Decided (Ahmed, 2026-10-04): yes.** | Data safety → Health info |
+| 4 | **Whether tasks count as fitness data.** **Decided (Ahmed, 2026-10-04): yes.** | Data safety → Fitness info |
 | 5 | **Where a national ID goes on Apple's form** — Apple has no type for a government identity number | Apple's form, not Play's; Play's answer is "Other info" |
 | 6 | **Whether Paymob genuinely requires `national_id`.** If not, stop collecting it — it is the hardest row in the inventory | Data safety → Personal info → Other info |
 | 7 | **What Law 151/2020 requires for the transfer to Ireland** (`eu-west-1`). Not a Play question, but it is a privacy-policy one | The policy the form must match |

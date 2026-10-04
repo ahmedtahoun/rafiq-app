@@ -85,8 +85,8 @@ is served — there is no screen for it today.
 | What | Where | Apple | Google |
 |---|---|---|---|
 | Mood check-ins, kept as dated history | `mood_checkins` (`great`, `good`, `okay`, `low`, `hard` + timestamp) | **Health & Fitness → Health** | **Health and fitness → Health info** |
-| Coaching focus — life, meditation, breathwork, stress & anxiety, sleep, fitness, nutrition, yoga, diving… | `member_profiles.focus`, `clients.focus` / `.specialty` | Health & Fitness → Health — **Ahmed to confirm** | Health and fitness → Health info — **Ahmed to confirm** |
-| Tasks a coach sets, which are often exercise or sleep | `tasks.title` / `.description` | Health & Fitness → Fitness — **Ahmed to confirm** | Health and fitness → Fitness info — **Ahmed to confirm** |
+| Coaching focus — life, meditation, breathwork, stress & anxiety, sleep, fitness, nutrition, yoga, diving… | `member_profiles.focus`, `clients.focus` / `.specialty` | Health & Fitness → Health — **decided, yes** | Health and fitness → Health info — **decided, yes** |
+| Tasks a coach sets, which are often exercise or sleep | `tasks.title` / `.description` | Health & Fitness → Fitness — **decided, yes** | Health and fitness → Fitness info — **decided, yes** |
 
 Mood is not ambiguous: it is self-reported wellbeing, dated, tied to an
 identified account. It goes in both forms as health data, and §8 already
@@ -445,9 +445,9 @@ schema.
 2. **Whether a member may see the coach's private notes** about them under
    Law 151/2020's access right. There is no screen for it.
 3. **Whether coaching focus counts as health data** on both forms.
-   Recommendation: yes.
-4. **Whether tasks count as fitness data** on both forms. Recommendation:
-   yes.
+   **Decided (Ahmed, 2026-10-04): yes.**
+4. **Whether tasks count as fitness data** on both forms. **Decided
+   (Ahmed, 2026-10-04): yes.**
 5. **Where a national ID goes on Apple's form** — Apple has no type for a
    government identity number.
 6. **Whether Paymob genuinely requires `national_id`** (already §3, the

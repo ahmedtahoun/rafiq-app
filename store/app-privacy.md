@@ -72,8 +72,8 @@ analytics, no advertising and no marketing use of any of it.
 
 | Type | Collected | Linked | Purposes | Where it comes from |
 |---|---|---|---|---|
-| Health | **Yes** | Yes | App Functionality | **Mood check-ins** (`mood_checkins`) — self-reported wellbeing, dated, tied to an identified account. Not ambiguous. Also **coaching focus**, if you answer open question 3 as recommended |
-| Fitness | **See open question 4** | Yes | App Functionality | Tasks a coach sets, which are often exercise or sleep ("10-minute evening walk") |
+| Health | **Yes** | Yes | App Functionality | **Mood check-ins** (`mood_checkins`) — self-reported wellbeing, dated, tied to an identified account. Not ambiguous. Also **coaching focus** (open question 3, decided yes) |
+| Fitness | **Yes** (open question 4, decided yes) | Yes | App Functionality | Tasks a coach sets, which are often exercise or sleep ("10-minute evening walk") |
 
 Declaring health data is what obliges the privacy policy to explain how
 it is protected, which §8 already requires.
@@ -239,8 +239,8 @@ file where they appear:
 | Entry | Question | If the answer changes |
 |---|---|---|
 | `PhysicalAddress` | 1 — is self-typed city and country an address? | Remove the entry; it becomes Other Data, which is already declared |
-| `Health` (its "coaching focus" part) | 3 | The entry stays regardless — mood check-ins alone require it |
-| `Fitness` | 4 | Remove the entry if tasks are not fitness data |
+| `Health` (its "coaching focus" part) | 3 — **decided yes** | The entry stays regardless — mood check-ins alone require it |
+| `Fitness` | 4 — **decided yes** | Stays |
 
 And one is **deliberately absent**: `CrashData`. Sentry is off until
 `VITE_SENTRY_DSN` is set, and with no DSN the SDK is never imported, so
@@ -257,8 +257,8 @@ land *harder* on Apple's form than on Google's, so they are first.
 |---|---|---|
 | **5** | **Where does a national ID go?** Apple has no type for a government identity number. Its Sensitive Info list is race, orientation, pregnancy, disability, religion, union, politics, genetics, biometrics — a national ID is none of them. Financial Info → Payment Info is the nearest honest home given it exists only to send money; Other Data is the alternative | Financial Info → Payment Info, or Other Data |
 | **1** | **Self-declared city and country** — "Physical Address" overstates it, "Other Data" understates it. Apple's Physical Address is the one that reads worst on a product page for what is two optional text fields | Contact Info → Physical Address |
-| 3 | Whether coaching focus counts as health data. Recommendation: yes | Health & Fitness → Health |
-| 4 | Whether tasks count as fitness data. Recommendation: yes | Health & Fitness → Fitness |
+| 3 | Whether coaching focus counts as health data. **Decided (Ahmed, 2026-10-04): yes.** | Health & Fitness → Health |
+| 4 | Whether tasks count as fitness data. **Decided (Ahmed, 2026-10-04): yes.** | Health & Fitness → Fitness |
 | 6 | Whether Paymob genuinely requires `national_id`. If not, stop collecting it — question 5 disappears with it | Financial Info |
 | 2 | Whether a member may see their coach's private notes under Law 151/2020 | Not a form field; a legal exposure |
 | 7 | What Law 151/2020 requires for the transfer to Ireland | The policy this form must match |
