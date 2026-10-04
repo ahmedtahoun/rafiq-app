@@ -71,13 +71,20 @@ as done below, when signed in; every other screen still reads and writes
       and Preview Profile's offerings are real too (2026-10-03): a coach
       creates, edits and archives their own `offerings` rows, which is what
       members book from, and "Add what you offer" is a Home setup step.
-      Session templates are real too (2026-10-04): Templates and
-      TemplateDetail read and write the coach's own `templates` rows
-      (`templateData.ts`); signed out, the demo keeps its 14.
-      Still on `mockStore` when signed in: Home's package and follow-up
-      alerts, Profile stats, Earnings' totals, and the
-      member screens listed under the demo identities below — Reem's
-      current tasks.
+      The member side is done (#91, #92, #94, #96, #97, #99, #100, #101),
+      and so are session templates (#105: Templates and TemplateDetail read
+      and write the coach's own `templates` rows; signed out, the demo
+      keeps its 14) and a member's saved coaches (#112: their own
+      `favourite_coaches` rows, 0005, instead of `localStorage`, so they
+      follow the member to another device).
+
+      Still on `mockStore` when signed in, and all that is left of this
+      item (Reem's queue):
+
+      - **Home's package and follow-up alerts** — `src/screens/Main.tsx`.
+      - **Profile stats** — `src/screens/Profile.tsx`.
+      - **Earnings' totals** — `src/screens/Earnings.tsx` uses
+        `getEarningsSummary`.
 - [x] 🔴 **Remove the demo identities.** 14 member screens hardcoded
       `const CLIENT_ID = 'sara'`, and the Pro side is the seeded
       `DEFAULT_PRO_ID = 'pro-yasmin'`. Both must come from the signed-in user.
@@ -101,17 +108,15 @@ as done below, when signed in; every other screen still reads and writes
       every use is signed-out only now, and Home, Tasks and Profile no
       longer show the demo's sample goal signed in:
       tests/member-demo-identity.spec.js walks the member screens signed in
-      and fails on any demo store read or demo name. Done (2026-10-04): the
-      walk covers every member screen that reads the member's data — Home,
-      My Pro, Profile, Edit profile, Messages, Tasks, My Pros, Sessions,
-      Discover, Notifications, My programs, Program detail, Rate coach,
-      Booking and the coach page — and waits for each lazily loaded screen
-      rather than a fixed delay. Breaking any one of them back to the demo
-      fails it. The one device key it allows that isn't the member's is
-      `rafiq_fav_coaches`: Discover's favourites start empty (not demo
-      data) but are still kept on the phone, not in `favourite_coaches`
-      (0005).
-- [ ] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
+      and fails on any demo store read or demo name. Done (2026-10-04, #109):
+      the walk covers every member screen that reads the member's data —
+      Home, My Pro, Profile, Edit profile, Messages, Tasks, My Pros,
+      Sessions, Discover, Notifications, My programs, Program detail, Rate
+      coach, Booking and the coach page — and waits for each lazily loaded
+      screen rather than a fixed delay. Breaking any one of them back to the
+      demo fails it. Since #112 it allows no device key that isn't the
+      member's own: saved coaches are `favourite_coaches` rows now.
+- [x] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,
       the 8 fictional `DIRECTORY_COACHES`, and any other `DEFAULT_*` seed.
       Apple rejects placeholder content, and fake coaches in a marketplace
@@ -120,20 +125,27 @@ as done below, when signed in; every other screen still reads and writes
       `DIRECTORY_COACHES`, their sample "Member Stories", and the demo coach
       page with its invented review quote, bio and member count are removed;
       signed out, Discover shows its "No pros yet" state and a coach link is
-      "not available". Left: the other `DEFAULT_*` seeds, which the
-      signed-out demo still runs on (the decision keeps them).
-- [ ] 🔴 **Use the real clock.** Calendar maths runs on a fixed fictional week
+      "not available" (#101). Everything the decision called for is done.
+      The other `DEFAULT_*` seeds stay by that same decision, because the
+      signed-out demo runs on them — so there is nothing outstanding here.
+      Reopen only if the decision to keep the signed-out demo changes.
+- [x] 🔴 **Use the real clock.** Calendar maths runs on a fixed fictional week
       (`TODAY_MS = Date.UTC(2025, 9, 22)`; screens hardcode `TODAY_INDEX = 2`).
       Real users would see October 2025. Replace with the current time, and
       re-check `format.ts`'s UTC wall-clock rule (CLAUDE.md, "Display every
-      date and time") once times come from real bookings. Signed in, every
-      converted screen is on the real clock; `grep -rl TODAY_INDEX src`
-      lists only Schedule (the coach's demo week) now.
+      date and time") once times come from real bookings. Done: signed in,
+      every screen is on the real clock. `grep -rl TODAY_INDEX src` now
+      returns `Schedule.tsx` alone, and both uses there are the signed-out
+      branch of a conditional (`remote ? weekdayOf(realTodayMs) :
+      TODAY_INDEX`) — the demo week the 3 Oct decision keeps.
+      ClientSchedule, ClientBooking and CoachPreview converted in steps 4
+      and 6 (#99).
 - [ ] 🔴 Loading, empty and error states on every screen. Today every read is
       synchronous localStorage; network reads can be slow or fail.
-      Done on every converted screen (26 use `LoadState`: loading, then an
-      error with a working retry — never the demo data as a fallback); the
-      rest land with §2's remaining screens.
+      Done on every converted screen (35 files use `LoadState` as of 4 Oct,
+      up from 26: loading, then an error with a working retry — never the
+      demo data as a fallback); the rest land with §2's remaining screens,
+      which are now only the four listed in the first item.
       Discover now distinguishes an empty directory ("No pros yet") from a
       search that matched nothing — it will be empty until real pros sign
       up, and the search-failed wording read like a broken screen.
