@@ -3,9 +3,10 @@
  * step 6): `notifications` rows addressed to them (notifications_select_own),
  * and marking them read (notifications_update_own).
  *
- * The database writes four kinds to a member today (0002, 0011): a message
- * from their coach, a payment recorded, and a session their coach moved or
- * cancelled. Anything else is left out rather than shown blank. Payloads
+ * The database writes six kinds to a member (0002, 0011, 0021): a message
+ * from their coach, a payment recorded, a session their coach moved or
+ * cancelled, and a coach accepting or declining their session request.
+ * Anything else is left out rather than shown blank. Payloads
  * are read defensively: a missing field drops that detail, not the row.
  * Session times cross this edge as wall-clock ms (src/lib/wallClock.ts).
  */
@@ -22,7 +23,9 @@ const unknown = (error: { message: string }) => ({ ok: false, code: 'unknown', m
 /** How many of the newest the screen shows. */
 export const NOTIFICATIONS_SHOWN = 50;
 
-export const MEMBER_NOTIFICATION_KINDS = ['message', 'payment-received', 'session-moved', 'session-cancelled'] as const;
+export const MEMBER_NOTIFICATION_KINDS = [
+  'message', 'payment-received', 'session-moved', 'session-cancelled', 'request-accepted', 'request-declined',
+] as const;
 export type MemberNotificationKind = (typeof MEMBER_NOTIFICATION_KINDS)[number];
 
 export interface MemberNotification {
@@ -38,8 +41,15 @@ export interface MemberNotification {
   /** payment-received. */
   amount: number | null;
   currency: string;
-  /** session-moved: the new time; session-cancelled: the time it was. */
+  /** session-moved: the new time; session-cancelled: the time it was;
+      request-*: the time asked for. */
   sessionWallMs: number | null;
+  /** request-*: the coach who answered, and their name then ('' if their
+      account is gone). A declined stranger has no relationship to name them. */
+  coachId: string | null;
+  coachName: string;
+  /** request-declined: it asked to move a booked session, not for a new one. */
+  move: boolean;
 }
 
 interface NotificationRow {
@@ -68,7 +78,13 @@ function toNotification(r: NotificationRow): MemberNotification | null {
     preview: str(p.preview).trim(),
     amount: r.kind === 'payment-received' && p.amount != null && Number.isFinite(amount) ? amount : null,
     currency: str(p.currency) || 'EGP',
-    sessionWallMs: r.kind === 'session-moved' ? time(p.to) : r.kind === 'session-cancelled' ? time(p.scheduled_at) : null,
+    sessionWallMs: r.kind === 'session-moved' ? time(p.to)
+      : r.kind === 'session-cancelled' ? time(p.scheduled_at)
+        : r.kind === 'request-accepted' || r.kind === 'request-declined' ? time(p.requested_start)
+          : null,
+    coachId: str(p.coach_id) || null,
+    coachName: str(p.coach_name).trim(),
+    move: p.move === true,
   };
 }
 

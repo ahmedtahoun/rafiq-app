@@ -517,9 +517,27 @@ defensively. Session times are wall-clock. Opening one marks it read
 switches to the relationship it is about, and opens its screen; "Mark all
 read" marks only theirs, and says so if it fails. Home's bell dot is
 whether any of them is unread, re-read each time Home mounts; a failed
-read shows no dot. Nothing yet tells a member when a coach accepts or
-declines their request: that would need a trigger (a later migration).
-Tests: tests/member-notifications.spec.js.
+read shows no dot. Since 0021 a member is also told when a coach answers
+their request (below). Tests: tests/member-notifications.spec.js.
+
+## Step 6, the member side: a request answered (0021)
+
+`0021_request_answer_notifications.sql` tells a member when a coach
+accepts or declines their session request: `request-accepted` (a new
+session booked from it) and `request-declined` (a new session, or a move
+of a booked one, `payload.move`; also when a deleting coach declines what
+is still open, 0012). An accepted move adds nothing: 0011's trigger on
+sessions already says it moved. A withdrawn request tells nobody. It is a
+constraint trigger deferred to commit: accept_session_request() marks the
+request accepted before it creates the roster row, so only at commit is
+there a relationship to point at, and an accept refused after that (the
+free plan's limit, 0020) rolls back with no notice sent. The payload
+carries the coach's id and name and the time asked for. On the member's
+Notifications, an accepted one or a declined move opens Sessions for that
+relationship; a declined first session opens that coach's page to pick
+another time. A coach with no name (account deleted) reads as "the
+coach". Tests: supabase/tests/25_request_answer_notifications.sql (23
+assertions) and tests/member-notifications.spec.js.
 
 ## Step 6, the member side: the real clock
 
