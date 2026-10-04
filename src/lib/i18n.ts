@@ -525,7 +525,7 @@ const en = {
     // Neither screen carries a translations() block in the prototype — both
     // are English-only there — so the Arabic below is authored, not ported.
     templatesTitle: 'Session Templates',
-    templatesIntro: 'Reusable session cadence and starter tasks — applied automatically when you add a member with a matching specialty and plan.',
+    templatesIntro: 'A session cadence and starter tasks you can reuse, for each specialty and plan.',
     templatesRowMeta: '{cadence} sessions · {count} starter tasks',
     templatesNew: 'New Template',
     templateDetailTitle: 'Edit Template',
@@ -545,6 +545,8 @@ const en = {
     templateDetailDeleteConfirmBodyTemplate: '{name} will be removed. Members already using it keep their current tasks — this only affects new members you add going forward.',
     templateDetailDeleteConfirm: 'Delete',
     templateDetailMissing: "This template no longer exists — it may have been deleted. Go back to pick another.",
+    templateDetailSaveFailed: "Your template wasn't saved. Please try again.", templateDetailDeleteFailed: "The template wasn't deleted. Please try again.",
+    templatesNoTemplates: 'No templates yet', templatesNoTemplatesSub: 'Save a session cadence and the starter tasks you use often.',
     templatePlanBasic: 'Basic',
     templatePlanFullAccess: 'Full Access',
     templateCadenceWeekly: 'Weekly',
@@ -1618,7 +1620,7 @@ const ar: Record<MessageKey, string> = {
     // Templates.dc.html / TemplateDetail.dc.html — authored, not ported:
     // neither screen has a translations() block in the prototype.
     templatesTitle: 'قوالب الجلسات',
-    templatesIntro: 'إيقاع جلسات ومهام بداية جاهزة — تُطبَّق تلقائيًا عند إضافة عضو بنفس التخصص والخطة.',
+    templatesIntro: 'إيقاع جلسات ومهام بداية تعيد استخدامها، لكل تخصص وخطة.',
     templatesRowMeta: 'جلسات {cadence} · {count} مهام بداية',
     templatesNew: 'قالب جديد',
     templateDetailTitle: 'تعديل القالب',
@@ -1638,6 +1640,8 @@ const ar: Record<MessageKey, string> = {
     templateDetailDeleteConfirmBodyTemplate: 'سيتم حذف {name}. الأعضاء الذين يستخدمونه حاليًا يحتفظون بمهامهم — هذا يؤثر فقط على الأعضاء الجدد الذين تضيفهم لاحقًا.',
     templateDetailDeleteConfirm: 'حذف',
     templateDetailMissing: 'لم يعد هذا القالب موجودًا — ربما تم حذفه. ارجع لاختيار قالب آخر.',
+    templateDetailSaveFailed: 'لم يتم حفظ القالب. حاول مرة أخرى.', templateDetailDeleteFailed: 'لم يتم حذف القالب. حاول مرة أخرى.',
+    templatesNoTemplates: 'لا توجد قوالب بعد', templatesNoTemplatesSub: 'احفظ إيقاع الجلسات ومهام البداية التي تستخدمها كثيرًا.',
     templatePlanBasic: 'أساسية',
     templatePlanFullAccess: 'وصول كامل',
     templateCadenceWeekly: 'أسبوعيًا',

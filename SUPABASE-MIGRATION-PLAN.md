@@ -549,6 +549,20 @@ only the member's own and the device's are allowed, so a demo read keyed
 by the demo member *or* hidden in a shared demo store (`clients`,
 `standing_slots`, …) fails it.
 
+## The rest: session templates
+
+No schema change: `templates` (0005) is the coach's own, read and written
+only by them (`templates_own`). `src/lib/templateData.ts` follows
+offeringData.ts. Signed in, Templates lists the coach's rows (an empty
+state for a new coach, retry on a failed read, never the demo's), and
+TemplateDetail commits everything, starter tasks included, on Save: a new
+template is created only then, and Cancel leaves the row as it was. Nothing
+references a template, so Delete is a real delete. The list's two-letter
+`icon` follows the name. Signed out, the demo's 14 and its write-through
+task list are unchanged. Nothing applies a template when a member is added
+(in the demo or for real), so the screen's intro no longer says it does.
+Tests: tests/templates-remote.spec.js.
+
 ## Testing this kind of code
 
 `tests/README.md`'s existing pattern (`native-oauth.spec.js`) already
