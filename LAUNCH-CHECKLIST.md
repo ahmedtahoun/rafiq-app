@@ -65,11 +65,14 @@ as done below, when signed in; every other screen still reads and writes
       and Preview Profile's offerings are real too (2026-10-03): a coach
       creates, edits and archives their own `offerings` rows, which is what
       members book from, and "Add what you offer" is a Home setup step.
+      Session templates are real too (2026-10-04): Templates and
+      TemplateDetail read and write the coach's own `templates` rows
+      (`templateData.ts`); signed out, the demo keeps its 14.
       Still on `mockStore` when signed in: Home's package and follow-up
       alerts, Profile stats, Earnings' totals, and the
       member screens listed under the demo identities below — Reem's
       current tasks.
-- [ ] 🔴 **Remove the demo identities.** 14 member screens hardcoded
+- [x] 🔴 **Remove the demo identities.** 14 member screens hardcoded
       `const CLIENT_ID = 'sara'`, and the Pro side is the seeded
       `DEFAULT_PRO_ID = 'pro-yasmin'`. Both must come from the signed-in user.
       Done for the coach's roster and the member's Home, Tasks, My Pros,
@@ -92,9 +95,16 @@ as done below, when signed in; every other screen still reads and writes
       every use is signed-out only now, and Home, Tasks and Profile no
       longer show the demo's sample goal signed in:
       tests/member-demo-identity.spec.js walks the member screens signed in
-      and fails on any demo store read. Left before ticking: add Discover,
-      Notifications, Programs, RateCoach and Booking to that walk, so it
-      guards the whole member side.
+      and fails on any demo store read or demo name. Done (2026-10-04): the
+      walk covers every member screen that reads the member's data — Home,
+      My Pro, Profile, Edit profile, Messages, Tasks, My Pros, Sessions,
+      Discover, Notifications, My programs, Program detail, Rate coach,
+      Booking and the coach page — and waits for each lazily loaded screen
+      rather than a fixed delay. Breaking any one of them back to the demo
+      fails it. The one device key it allows that isn't the member's is
+      `rafiq_fav_coaches`: Discover's favourites start empty (not demo
+      data) but are still kept on the phone, not in `favourite_coaches`
+      (0005).
 - [ ] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,
       the 8 fictional `DIRECTORY_COACHES`, and any other `DEFAULT_*` seed.
@@ -112,7 +122,7 @@ as done below, when signed in; every other screen still reads and writes
       re-check `format.ts`'s UTC wall-clock rule (CLAUDE.md, "Display every
       date and time") once times come from real bookings. Signed in, every
       converted screen is on the real clock; `grep -rl TODAY_INDEX src`
-      still lists ClientSchedule, ClientBooking, CoachPreview and Schedule.
+      lists only Schedule (the coach's demo week) now.
 - [ ] 🔴 Loading, empty and error states on every screen. Today every read is
       synchronous localStorage; network reads can be slow or fail.
       Done on every converted screen (26 use `LoadState`: loading, then an
@@ -121,18 +131,14 @@ as done below, when signed in; every other screen still reads and writes
       Discover now distinguishes an empty directory ("No pros yet") from a
       search that matched nothing — it will be empty until real pros sign
       up, and the search-failed wording read like a broken screen.
-- [ ] 🟡 Discover and coach profiles read the `coach_directory` and
+- [x] 🟡 Discover and coach profiles read the `coach_directory` and
       `coach_reviews` views. The views sign reviews with a **first name and
       last initial**; the app currently shows the reviewer's full name
-      publicly — that must go. Half done: signed in, Discover and a coach's
-      page read `coach_directory` (and show a review count, no review
-      text); `coach_reviews` is still to do.
-      Audited every surface that renders a name: nothing reads
-      `coach_reviews` yet, and the only full names anywhere are Discover's
-      hardcoded sample stories, already hidden when signed in — so no real
-      reviewer's name is exposed today. Whoever wires reviews must select
-      the view's `reviewer_name` and never join back to
-      `profiles.full_name`.
+      publicly — that must go. Done: signed in, Discover and a coach's page
+      read `coach_directory`, and their reviews come from `coach_reviews`
+      (step 6), selecting the view's `reviewer_name` — never a join back to
+      `profiles.full_name`. Discover's hardcoded sample stories went with
+      the fictional coaches.
 - [x] 🟡 Messaging updates live (Supabase Realtime on `messages`). Done in
       step 5 (`0014`, `src/lib/messageData.ts`): both threads and the
       coach's inbox on Supabase, with real blocking from either side.
@@ -405,10 +411,19 @@ Waits on the name decision (§1).
       Done: one inline-SVG `<Logo>` on RoleSelect and Auth (Welcome never had
       one), the same glyph as the icon, so it no longer changes font in
       Arabic.
-- [ ] 🔴 **Screenshots, in English and Arabic:** iPhone 6.9" (1320×2868),
+- [x] 🔴 **Screenshots, in English and Arabic:** iPhone 6.9" (1320×2868),
       3–10 per language; Google Play: at least 2 phone screenshots, a 1024×500
       feature graphic and a 512×512 icon. Take them from the connected app, not
       the demo data.
+      Done: `npm run screenshots` renders all of it from the signed-in app
+      against `tests/fakeSupabase.js`, twelve screens per language, and
+      commits the PNGs to `store/screenshots/out/`. Play needed its own
+      capture — 2868÷1320 is 2.17:1 and Play caps a screenshot at 2:1 — so
+      it gets 1242×2208. Clock pinned and data seeded, so a re-run produces
+      the same bytes. Every Arabic image checked by eye. See
+      `store/screenshots/README.md` for the sizes, the upload order (01–08
+      to Play, 01–10 to Apple) and which screens were chosen. Not in `npm
+      test` or CI: deliverables, not assertions.
 - [x] 🔴 Store text in English and Arabic: name (iOS: 30 characters),
       subtitle, description, keywords, category, "what's new".
       **Drafted in `store/listing.md`**, both languages, both stores, every
@@ -479,9 +494,28 @@ only Rafiq can resolve (as `service_role`). Nothing works them yet.
       Done: `supabase/admin/README.md` — open reports (suspend, close),
       pending verifications (approve/reject), pending deletions (through
       the `account-deletion` Edge Function).
-- [ ] 🟡 Before public launch: a small admin web app (verification review,
+- [x] 🟡 Before public launch: a small admin web app (verification review,
       reports with suspend/block, deletion requests, user lookup), behind an
       admin role. The `service_role` key stays server-side, never in a browser.
+      Done: `admin/` (its own Vite + React + TS app, port 5175) talking to
+      `supabase/functions/admin/`, which verifies the caller's JWT, checks
+      `admin_users` and only then acts as service_role — the same check as
+      `payouts` and `account-deletion`, and the only place it can live,
+      since `admin_users` has RLS on and no grants. The app holds the anon
+      key and nothing else. Every action is a named operation with
+      validated input; there is no "run this query" path, and an unknown
+      operation is a 400. Deletions go through the existing
+      `account-deletion` function rather than a second copy of it, and its
+      refusals ("an unsettled payout remains") reach the admin unflattened.
+      Queue moves are conditional on the row's current state, so two people
+      working one queue cannot resolve the same row twice. 31 Deno tests on
+      the function (each asserting which tables a given action writes, so a
+      stray write fails even when the reply looks right) and 10 Playwright
+      tests on the app against a faked function. `admin/README.md` has the
+      deploy steps. Two CI gaps are Ahmed's call, both noted in the PR:
+      `deno check` names its files explicitly and does not name the new
+      function, and `tsconfig.app.json` is `include: ["src"]`, so CI does
+      not typecheck `admin/`.
 - [ ] 🟡 A written response time for reports and deletions — and meet it.
       Deletions: 30 days (public deletion page). Reports: not stated yet.
 

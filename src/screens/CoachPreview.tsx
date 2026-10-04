@@ -11,13 +11,15 @@ import { useRemoteSession } from '../lib/remoteSession';
 import { wallNowMs, wallTodayMs } from '../lib/wallClock';
 import { useRemoteLoad } from '../store/remoteLoad';
 import {
-  getFavouriteCoaches, toggleFavouriteCoach, initialsOf, countryFlagOf,
+  initialsOf, countryFlagOf,
 } from '../lib/directory';
 import {
   fetchCoachPreview, sendSessionRequest, weekdayOf,
   type CoachOffering, type CoachPreviewData,
 } from '../lib/requestData';
 import { fetchCoachReviews, type CoachReview } from '../lib/reviewData';
+import { fetchOwnFavourites } from '../lib/favouriteData';
+import { useFavourites } from '../store/favourites';
 import './CoachPreview.css';
 
 /** Directory languages reuse Discover's filter labels, so a language
@@ -95,6 +97,8 @@ interface PreviewSource {
   noHours: boolean;
   /** When the member's open request to this coach is for, if they have one. */
   existingRequest: string | null;
+  /** The heart: whether the member has saved this coach, and saving it. */
+  favourite: { on: boolean; toggle: () => void; failed: boolean };
   /** true when sent; 'blocked' when the member may not ask this coach (0017). */
   request: (offering: PreviewOffering, slotWallMs: number, whenLabel: string) => Promise<boolean | 'blocked'>;
 }
@@ -149,22 +153,23 @@ const REMOTE_WEEKS = 3;
 
 /** Exported for ClientBooking: signed in, booking is this page. */
 export function RemoteCoachPreview({ coachId }: { coachId: string }) {
-  const load = useRemoteLoad<{ preview: CoachPreviewData | null; reviews: CoachReview[] }>(`coachPreview:${coachId}`, true, async () => {
-    const [preview, reviews] = await Promise.all([fetchCoachPreview(coachId, wallNowMs()), fetchCoachReviews(coachId)]);
-    return preview.ok && reviews.ok
-      ? { ok: true as const, data: { preview: preview.data, reviews: reviews.data } }
+  const load = useRemoteLoad<{ preview: CoachPreviewData | null; reviews: CoachReview[]; favourites: string[] }>(`coachPreview:${coachId}`, true, async () => {
+    const [preview, reviews, favourites] = await Promise.all([fetchCoachPreview(coachId, wallNowMs()), fetchCoachReviews(coachId), fetchOwnFavourites()]);
+    return preview.ok && reviews.ok && favourites.ok
+      ? { ok: true as const, data: { preview: preview.data, reviews: reviews.data, favourites: favourites.data } }
       : { ok: false as const };
   });
   if (load.status === 'loading') return <LoadState status="loading" />;
   if (load.status === 'error') return <LoadState status="error" onRetry={load.retry} showBack />;
   if (!load.data.preview) return <CoachMissing />;
-  return <RemoteCoachPreviewReady data={load.data.preview} reviews={load.data.reviews} />;
+  return <RemoteCoachPreviewReady data={load.data.preview} reviews={load.data.reviews} favourites={load.data.favourites} />;
 }
 
-function RemoteCoachPreviewReady({ data, reviews }: { data: CoachPreviewData; reviews: CoachReview[] }) {
+function RemoteCoachPreviewReady({ data, reviews, favourites }: { data: CoachPreviewData; reviews: CoachReview[]; favourites: string[] }) {
   const t = useT();
   const fmt = useFormat();
   const { coach } = data;
+  const hearts = useFavourites(favourites);
 
   const specDef = SPECIALTIES.find((s) => s.value === coach.specialty);
   const specialtyLabel = specDef ? t(specDef.labelKey) : coach.specialty;
@@ -252,6 +257,7 @@ function RemoteCoachPreviewReady({ data, reviews }: { data: CoachPreviewData; re
     nextAvailable,
     noHours: !coach.week.some((d) => d.enabled),
     existingRequest: data.pending ? whenOf(data.pending.startWallMs) : null,
+    favourite: { on: hearts.isFavourite(coach.id), toggle: () => void hearts.toggle(coach.id), failed: hearts.failed },
     async request(offering, slotWallMs) {
       const real = data.offerings.find((o) => o.id === offering.id);
       const result = await sendSessionRequest({
@@ -282,8 +288,7 @@ function CoachPreviewBody({ source }: { source: PreviewSource }) {
   const [sending, setSending] = useState(false);
   const [failed, setFailed] = useState<false | 'failed' | 'blocked'>(false);
   const [confirmed, setConfirmed] = useState(false);
-  const [favourites, setFavourites] = useState(getFavouriteCoaches);
-  const isFav = !!favourites[coach.id];
+  const isFav = source.favourite.on;
 
   const selectedOffering = offerings.find((o) => o.id === offeringId) ?? offerings[0];
 
@@ -415,13 +420,14 @@ function CoachPreviewBody({ source }: { source: PreviewSource }) {
                 ? t('discoverFavouriteRemove', { name: coach.name })
                 : t('discoverFavouriteAdd', { name: coach.name })}
               aria-pressed={isFav}
-              onClick={() => setFavourites(toggleFavouriteCoach(coach.id))}
+              onClick={source.favourite.toggle}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill={isFav ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2}>
                 <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
               </svg>
             </button>
           </div>
+          {source.favourite.failed && <div className="coach-preview-fav-error" role="alert">{t('favouriteSaveFailed')}</div>}
 
           <div className="coach-preview-avatar">
             {coach.avatarPhotoUrl

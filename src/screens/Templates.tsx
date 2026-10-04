@@ -2,6 +2,10 @@ import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
 import { ChevronIcon, PlusIcon } from '../components/icons';
 import { cadenceLabelKey, createTemplate, getTemplates } from '../lib/mockStore';
+import { LoadState } from '../components/LoadState';
+import { fetchOwnTemplates } from '../lib/templateData';
+import { useRemoteSession } from '../lib/remoteSession';
+import { useRemoteLoad } from '../store/remoteLoad';
 import './Templates.css';
 
 // 1:1 port of Templates.dc.html — the coach's reusable session cadence and
@@ -15,12 +19,20 @@ import './Templates.css';
 // reads its subject that way. Keeping the id in the route avoids a
 // localStorage round-trip and a detail screen that opens on whatever was
 // tapped last.
+//
+// Signed in, the coach's own rows (templateData.ts); signed out, the demo's.
+// A real coach's new template is created on Save ('new'), as an offering is;
+// the demo still adds a blank one when the button is tapped.
 export default function Templates() {
   const t = useT();
   const back = useAppStore((s) => s.back);
   const nav = useAppStore((s) => s.nav);
+  const remote = useRemoteSession();
+  const load = useRemoteLoad('own_templates', remote, fetchOwnTemplates);
 
-  const templates = getTemplates();
+  if (remote && load.status === 'loading') return <LoadState status="loading" />;
+  if (remote && load.status === 'error') return <LoadState status="error" onRetry={load.retry} showBack />;
+  const templates = remote && load.status === 'ready' ? load.data : getTemplates();
 
   function open(templateId: string) {
     nav({ screen: 'templateDetail', params: { templateId } });
@@ -40,9 +52,9 @@ export default function Templates() {
       <div className="templates-list">
         {templates.map((tpl) => (
           <button key={tpl.id} type="button" className="templates-row" onClick={() => open(tpl.id)}>
-            <div className="templates-row-icon" style={{ background: tpl.bg }}>{tpl.icon}</div>
+            <div className="templates-row-icon" style={{ background: tpl.bg }}><bdi>{tpl.icon}</bdi></div>
             <div className="templates-row-text">
-              <div className="templates-row-name">{tpl.name}</div>
+              <div className="templates-row-name"><bdi>{tpl.name}</bdi></div>
               <div className="templates-row-meta">
                 {t('templatesRowMeta', { cadence: t(cadenceLabelKey(tpl.cadence)), count: tpl.tasks.length })}
               </div>
@@ -51,7 +63,14 @@ export default function Templates() {
           </button>
         ))}
 
-        <button type="button" className="templates-new" onClick={() => open(createTemplate())}>
+        {templates.length === 0 && (
+          <div className="templates-empty">
+            <div className="templates-empty-title">{t('templatesNoTemplates')}</div>
+            <div className="templates-empty-sub">{t('templatesNoTemplatesSub')}</div>
+          </div>
+        )}
+
+        <button type="button" className="templates-new" onClick={() => open(remote ? 'new' : createTemplate())}>
           <PlusIcon size={16} color="var(--accent)" />
           {t('templatesNew')}
         </button>

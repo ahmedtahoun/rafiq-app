@@ -732,3 +732,13 @@
   border-radius: inherit;
   display: block;
 }
+
+/* A heart that didn't save, said where the member is looking. */
+.discover-fav-error {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--red-bg);
+  color: var(--red);
+  font-size: 13px;
+  font-weight: 600;
+}
