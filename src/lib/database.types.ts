@@ -1831,6 +1831,8 @@ export type Database = {
         | "package-soon"
         | "session-moved"
         | "session-cancelled"
+        | "request-accepted"
+        | "request-declined"
       offering_type:
         | "session"
         | "consultation"
@@ -2024,6 +2026,8 @@ export const Constants = {
         "package-soon",
         "session-moved",
         "session-cancelled",
+        "request-accepted",
+        "request-declined",
       ],
       offering_type: [
         "session",

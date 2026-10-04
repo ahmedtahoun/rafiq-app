@@ -1053,6 +1053,11 @@ const en = {
     clientNotifSessionCancelled: 'Your session with {coach} was cancelled',
     clientNotifMovedTo: 'Now {when}',
     clientNotifYourCoach: 'your coach',
+    clientNotifTheCoach: 'the coach',
+    clientNotifRequestAccepted: 'Your session request to {coach} was accepted',
+    clientNotifRequestDeclined: "Your session request to {coach} wasn't accepted",
+    clientNotifMoveDeclined: "Your request to move your session with {coach} wasn't accepted",
+    clientNotifRequestedFor: 'You asked for {when}',
     clientNotificationsMarkFailed: "Couldn't mark them read. Please try again.",
 
     clientHelpTitle: 'Get Help',
@@ -2126,6 +2131,11 @@ const ar: Record<MessageKey, string> = {
     clientNotifSessionCancelled: 'تم إلغاء جلستك مع {coach}',
     clientNotifMovedTo: 'الموعد الجديد: {when}',
     clientNotifYourCoach: 'مدربك',
+    clientNotifTheCoach: 'المدرب',
+    clientNotifRequestAccepted: 'تم قبول طلب جلستك مع {coach}',
+    clientNotifRequestDeclined: 'لم يتم قبول طلب جلستك مع {coach}',
+    clientNotifMoveDeclined: 'لم يتم قبول طلب نقل جلستك مع {coach}',
+    clientNotifRequestedFor: 'الموعد الذي طلبته: {when}',
     clientNotificationsMarkFailed: 'تعذّر تعليمها كمقروءة. يرجى المحاولة مرة أخرى.',
 
     clientHelpTitle: 'المساعدة',
