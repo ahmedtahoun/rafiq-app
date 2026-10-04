@@ -9,6 +9,7 @@
     "lint": "oxlint",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
+    "screenshots": "playwright test -c store/screenshots/playwright.config.mjs",
     "preview": "vite preview",
     "build:site": "node scripts/build-site.mjs",
     "app-version": "node scripts/set-version.mjs",
