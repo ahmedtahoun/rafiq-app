@@ -21,6 +21,11 @@ import {
   requestVerification,
 } from '../lib/mockStore';
 import { usePlan } from '../lib/planData';
+import { MIN_REVIEWS_FOR_RATING } from '../lib/mockStore';
+import { fetchOwnCoachStats } from '../lib/coachStatsData';
+import { fetchInbox } from '../lib/messageData';
+import { useRemoteLoad } from '../store/remoteLoad';
+import { useRoster } from '../store/rosterStore';
 import './Profile.css';
 
 // Matches tokens.css's --accent — darken() needs a literal hex, not the
@@ -92,23 +97,57 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
   // No badge until the plan is known, rather than "Upgrade" flashing at a Pro.
   const subscriptionBadge = plan.status !== 'ready' ? null : pro ? t('profileSubscriptionBadgePro') : t('profileSubscriptionBadgeFree');
 
-  const aggRating = getProAggregateRating();
-  const ratingLabel = aggRating.average.toFixed(1);
-  const reviewsCountLabel = String(aggRating.count);
+  // Signed in, the numbers are the coach's own: their ratings and open
+  // items (coachStatsData.ts), their roster, and their inbox. Until each
+  // arrives its figure reads "–" rather than a zero it doesn't know yet;
+  // a failed read says so under the figures, with a retry.
+  const remote = own.remote;
+  const roster = useRoster();
+  const stats = useRemoteLoad('coach_stats', remote, () => fetchOwnCoachStats());
+  const rosterIds = roster.status === 'ready' ? roster.clients.map((c) => c.id) : [];
+  const inbox = useRemoteLoad(`inbox:${rosterIds.join(',')}`, remote && roster.status === 'ready', () => fetchInbox(rosterIds));
+  const statsFailed = remote && (stats.status === 'error' || roster.status === 'error');
+  const retryStats = () => {
+    if (stats.status === 'error') stats.retry();
+    if (roster.status === 'error') roster.retry();
+  };
 
-  const obligations = getProActiveObligations();
+  const aggRating: { count: number; average: number; hasEnoughReviews: boolean } | null = !remote
+    ? getProAggregateRating()
+    : stats.status === 'ready'
+      ? { count: stats.data.ratingCount, average: stats.data.ratingAvg, hasEnoughReviews: stats.data.ratingCount >= MIN_REVIEWS_FOR_RATING }
+      : null;
+  const ratingLabel = aggRating ? aggRating.average.toFixed(1) : '';
+  const reviewsCountLabel = aggRating ? String(aggRating.count) : '–';
+
+  // What blocks deleting the account. Signed in that is 0012's own list —
+  // upcoming sessions, open disputes, unsettled payouts — and while it
+  // isn't known the sheet offers the request: processing it refuses
+  // anything still open, so filing it early can't delete too soon.
   const obligationParts: string[] = [];
-  if (obligations.totalUnusedCredits > 0) obligationParts.push(t('profileObligationCredits', { n: obligations.totalUnusedCredits }));
-  if (obligations.clientsWithUpcomingSessions > 0) obligationParts.push(t('profileObligationSessions', { n: obligations.clientsWithUpcomingSessions }));
-  if (obligations.openDisputesCount > 0) obligationParts.push(t('profileObligationDisputes', { n: obligations.openDisputesCount }));
+  if (!remote) {
+    const demo = getProActiveObligations();
+    if (demo.totalUnusedCredits > 0) obligationParts.push(t('profileObligationCredits', { n: demo.totalUnusedCredits }));
+    if (demo.clientsWithUpcomingSessions > 0) obligationParts.push(t('profileObligationSessions', { n: demo.clientsWithUpcomingSessions }));
+    if (demo.openDisputesCount > 0) obligationParts.push(t('profileObligationDisputes', { n: demo.openDisputesCount }));
+  } else if (stats.status === 'ready') {
+    if (stats.data.upcomingClients > 0) obligationParts.push(t('profileObligationSessions', { n: stats.data.upcomingClients }));
+    if (stats.data.openDisputes > 0) obligationParts.push(t('profileObligationDisputes', { n: stats.data.openDisputes }));
+    if (stats.data.unsettledPayouts > 0) obligationParts.push(t('profileObligationPayouts', { n: stats.data.unsettledPayouts }));
+  }
+  const obligations = { blocked: obligationParts.length > 0 };
   const obligationsSummary = obligationParts.length ? `${t('profileDeleteBlockedIntro')} ${obligationParts.join(isAr ? '، ' : ', ')}.` : '';
 
-  const clients = getClients();
-  const activeRoster = clients.filter((c) => c.active);
-  const activeCount = activeRoster.length;
-  const completionPct = activeRoster.length ? Math.round(activeRoster.reduce((sum, c) => sum + c.progress, 0) / activeRoster.length) : 0;
+  const clients = remote ? (roster.status === 'ready' ? roster.clients : null) : getClients();
+  const activeRoster = clients?.filter((c) => c.active) ?? [];
+  const activeCount = clients ? String(activeRoster.length) : '–';
+  const completionPct = !clients ? '–' : `${activeRoster.length ? Math.round(activeRoster.reduce((sum, c) => sum + c.progress, 0) / activeRoster.length) : 0}%`;
 
-  const totalUnread = clients.reduce((sum, c) => sum + getUnreadMessageCount(c.id, 'pro'), 0);
+  const totalUnread = !remote
+    ? getClients().reduce((sum, c) => sum + getUnreadMessageCount(c.id, 'pro'), 0)
+    : inbox.status === 'ready'
+      ? Object.values(inbox.data).reduce((sum, e) => sum + e.unread, 0)
+      : 0;
   const hasUnreadMessages = totalUnread > 0;
   const totalUnreadLabel = totalUnread > 9 ? '9+' : String(totalUnread);
 
@@ -246,20 +285,28 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
             </div>
             <div className="profile-badge-row">
               <div className="profile-cert-badge">{profile.cert}</div>
-              {aggRating.hasEnoughReviews ? (
+              {aggRating && (aggRating.hasEnoughReviews ? (
                 <div className="profile-rating-badge">
                   <StarIcon size={9} color="var(--accent)" />
                   {ratingLabel}
                 </div>
               ) : (
                 <div className="profile-badge-soft">{t('profileNotEnoughReviews')}</div>
-              )}
+              ))}
             </div>
           </div>
         </div>
 
         {hasBio && <div className="profile-bio">{profile.bio}</div>}
 
+        {statsFailed && (
+          <div className="profile-stats-failed" role="alert">
+            <span>{t('profileStatsFailed')}</span>
+            <button type="button" className="profile-stats-retry" onClick={retryStats}>
+              {t('retry')}
+            </button>
+          </div>
+        )}
         <div className="profile-stats-row">
           <div className="profile-stat">
             <div className="profile-stat-num">{reviewsCountLabel}</div>
@@ -272,7 +319,7 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
           </div>
           <div className="profile-stat-divider" />
           <div className="profile-stat">
-            <div className="profile-stat-num">{completionPct}%</div>
+            <div className="profile-stat-num">{completionPct}</div>
             <div className="profile-stat-label">{t('profileCompletion')}</div>
           </div>
         </div>

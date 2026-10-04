@@ -82,7 +82,10 @@ as done below, when signed in; every other screen still reads and writes
       item (Reem's queue):
 
       - **Home's package and follow-up alerts** — `src/screens/Main.tsx`.
-      - **Profile stats** — `src/screens/Profile.tsx`.
+      - ~~**Profile stats**~~ — done (2026-10-04): reviews and rating
+        from the coach's `ratings`, members and completion from the
+        roster, the Messages badge from the inbox, and the delete sheet's
+        open items from 0012's own list (`src/lib/coachStatsData.ts`).
       - **Earnings' totals** — `src/screens/Earnings.tsx` uses
         `getEarningsSummary`.
 - [x] 🔴 **Remove the demo identities.** 14 member screens hardcoded
