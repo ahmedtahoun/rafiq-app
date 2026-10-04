@@ -65,6 +65,9 @@ as done below, when signed in; every other screen still reads and writes
       and Preview Profile's offerings are real too (2026-10-03): a coach
       creates, edits and archives their own `offerings` rows, which is what
       members book from, and "Add what you offer" is a Home setup step.
+      Session templates are real too (2026-10-04): Templates and
+      TemplateDetail read and write the coach's own `templates` rows
+      (`templateData.ts`); signed out, the demo keeps its 14.
       Still on `mockStore` when signed in: Home's package and follow-up
       alerts, Profile stats, Earnings' totals, and the
       member screens listed under the demo identities below — Reem's
