@@ -52,8 +52,26 @@ jobs:
       # with Deno itself, and run their unit tests (no network: Paymob is a recorder).
       - name: Edge Functions (Deno check + test)
         run: |
-          npx --yes deno check supabase/functions/payouts/index.ts supabase/functions/account-deletion/index.ts
+          npx --yes deno check supabase/functions/payouts/index.ts supabase/functions/account-deletion/index.ts supabase/functions/admin/index.ts
           npx --yes deno test --no-prompt supabase/functions
+
+      # The admin tool is its own app with its own package.json, so the
+      # root tsconfig (`include: ["src"]`) never sees it and nothing above
+      # would catch a type error in it.
+      #
+      # The placeholder Supabase values are not secrets and are not a real
+      # project: they exist because Vite inlines `import.meta.env.*` at
+      # build time, so with them unset the app's own "not configured"
+      # branch is a compile-time constant and the bundler drops the rest
+      # of the app. The build would pass while building almost nothing.
+      # With them set, this builds the real bundle.
+      - name: Admin app (typecheck + build)
+        env:
+          VITE_SUPABASE_URL: https://example.supabase.co
+          VITE_SUPABASE_ANON_KEY: ci-placeholder
+        run: |
+          npm ci --prefix admin
+          npm run build --prefix admin
 
   app-tests:
     name: app browser tests

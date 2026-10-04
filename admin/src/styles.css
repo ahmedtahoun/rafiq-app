@@ -1,0 +1,83 @@
+/* Deliberately plain. This is an internal tool for a handful of people,
+   so it borrows nothing from the app's design system — no tokens.css, no
+   webfonts, nothing to keep in step with the product. */
+:root {
+  --ink: #1b1b1b;
+  --muted: #6b6b6b;
+  --line: #dcdcdc;
+  --bg: #fafafa;
+  --card: #ffffff;
+  --danger: #a3271b;
+  --ok: #1d6b3f;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+main { max-width: 56rem; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+main.centre { display: grid; gap: 1rem; place-content: center; min-height: 100vh; text-align: center; }
+
+h1 { font-size: 1.1rem; margin: 0; }
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+}
+.bar nav { display: flex; gap: 0.25rem; flex: 1; }
+.bar .me { display: flex; gap: 0.5rem; align-items: center; }
+
+button {
+  font: inherit;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--card);
+  cursor: pointer;
+}
+button:hover:not(:disabled) { border-color: var(--muted); }
+button:disabled { opacity: 0.5; cursor: default; }
+button.danger { color: var(--danger); border-color: currentColor; }
+button.tab { border-color: transparent; background: none; }
+button.tab.on { border-color: var(--line); background: var(--bg); font-weight: 600; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-block-end: 0.75rem;
+}
+.card header { display: flex; justify-content: space-between; gap: 1rem; align-items: baseline; }
+.card header time { color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
+.card.row { display: flex; justify-content: space-between; gap: 1rem; align-items: center; }
+
+.details { white-space: pre-wrap; }
+
+dl { display: grid; grid-template-columns: auto 1fr; gap: 0.2rem 0.75rem; margin: 0.5rem 0; }
+dt { color: var(--muted); }
+dd { margin: 0; }
+
+label { display: block; margin-block: 0.5rem; color: var(--muted); }
+textarea, input { display: block; width: 100%; font: inherit; color: var(--ink); padding: 0.4rem; border: 1px solid var(--line); border-radius: 6px; background: var(--card); }
+
+.actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.lookup { display: flex; gap: 0.75rem; align-items: end; margin-block-end: 1rem; }
+.lookup label { flex: 1; margin: 0; }
+
+.muted { color: var(--muted); }
+.small { font-size: 0.85rem; }
+.error { color: var(--danger); border: 1px solid currentColor; border-radius: 6px; padding: 0.6rem; background: #fff; }
+.pill { border: 1px solid var(--line); border-radius: 999px; padding: 0.1rem 0.5rem; font-size: 0.8rem; color: var(--muted); }
+.pill.ok { color: var(--ok); border-color: currentColor; }

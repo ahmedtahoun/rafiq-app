@@ -478,9 +478,28 @@ only Rafiq can resolve (as `service_role`). Nothing works them yet.
       Done: `supabase/admin/README.md` — open reports (suspend, close),
       pending verifications (approve/reject), pending deletions (through
       the `account-deletion` Edge Function).
-- [ ] 🟡 Before public launch: a small admin web app (verification review,
+- [x] 🟡 Before public launch: a small admin web app (verification review,
       reports with suspend/block, deletion requests, user lookup), behind an
       admin role. The `service_role` key stays server-side, never in a browser.
+      Done: `admin/` (its own Vite + React + TS app, port 5175) talking to
+      `supabase/functions/admin/`, which verifies the caller's JWT, checks
+      `admin_users` and only then acts as service_role — the same check as
+      `payouts` and `account-deletion`, and the only place it can live,
+      since `admin_users` has RLS on and no grants. The app holds the anon
+      key and nothing else. Every action is a named operation with
+      validated input; there is no "run this query" path, and an unknown
+      operation is a 400. Deletions go through the existing
+      `account-deletion` function rather than a second copy of it, and its
+      refusals ("an unsettled payout remains") reach the admin unflattened.
+      Queue moves are conditional on the row's current state, so two people
+      working one queue cannot resolve the same row twice. 31 Deno tests on
+      the function (each asserting which tables a given action writes, so a
+      stray write fails even when the reply looks right) and 10 Playwright
+      tests on the app against a faked function. `admin/README.md` has the
+      deploy steps. Two CI gaps are Ahmed's call, both noted in the PR:
+      `deno check` names its files explicitly and does not name the new
+      function, and `tsconfig.app.json` is `include: ["src"]`, so CI does
+      not typecheck `admin/`.
 - [ ] 🟡 A written response time for reports and deletions — and meet it.
       Deletions: 30 days (public deletion page). Reports: not stated yet.
 
