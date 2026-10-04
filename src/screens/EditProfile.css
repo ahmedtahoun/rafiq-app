@@ -105,12 +105,6 @@
   cursor: pointer;
 }
 
-.edit-profile-locked-link {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
 .edit-profile-field {
   display: flex;
   flex-direction: column;
@@ -173,14 +167,6 @@
   font-weight: 700;
   box-shadow: var(--shadow-soft);
   cursor: pointer;
-}
-
-.edit-profile-cover-locked {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  color: var(--ink-soft);
 }
 
 .edit-profile-cover-remove {
@@ -385,25 +371,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.edit-profile-locked-body {
-  font-size: 13px;
-  color: var(--ink-soft);
-  line-height: 1.5;
-  margin: 0 0 14px;
-}
-
-.edit-profile-locked-not-now {
-  width: 100%;
-  text-align: center;
-  background: var(--line);
-  color: var(--ink);
-  border-radius: 14px;
-  padding: 13px;
-  font-size: 13.5px;
-  font-weight: 700;
-  margin-top: 10px;
 }
 
 @keyframes fadeInUp {

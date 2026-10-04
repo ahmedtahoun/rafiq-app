@@ -23,7 +23,8 @@ import { CoachTabBar } from '../components/TabBars';
 import { BottomSheet } from '../components/BottomSheet';
 import { LoadState } from '../components/LoadState';
 import { useRoster, type RosterView } from '../store/rosterStore';
-import { FREE_MEMBER_CAP, getClientDetailHref, isTaskOverdue, isVerified, type Client } from '../lib/mockStore';
+import { getClientDetailHref, isTaskOverdue, type Client } from '../lib/mockStore';
+import { FREE_MEMBER_CAP, atMemberCap, usePlan } from '../lib/planData';
 import './Clients.css';
 
 type StatusFilter = 'all' | 'active' | 'needs' | 'payment' | 'task' | 'inactive';
@@ -52,7 +53,7 @@ function ClientsView({ roster }: { roster: Extract<RosterView, { status: 'ready'
 
   const baseClients = roster.clients;
   const favorites = roster.favourites;
-  const isPro = isVerified();
+  const plan = usePlan();
 
   const activeRoster = baseClients.filter((c) => c.active);
   const statTotal = baseClients.length;
@@ -124,7 +125,8 @@ function ClientsView({ roster }: { roster: Extract<RosterView, { status: 'ready'
   const specialtyChipDefs = [{ key: 'all', label: t('clientsAllSpecialties') }, ...distinctSpecialties.map((label) => ({ key: label, label }))];
 
   const hasActiveFilters = filter !== 'all' || specialtyFilter !== 'all';
-  const showCapBanner = !isPro && statActive >= FREE_MEMBER_CAP;
+  // Shown only once the plan is known: a coach on Pro never sees it flash.
+  const showCapBanner = plan.status === 'ready' && atMemberCap(plan.plan, statActive);
 
 
   return (
