@@ -476,6 +476,47 @@ export type Database = {
           },
         ]
       }
+      device_tokens: {
+        Row: {
+          created_at: string
+          lang: string
+          muted: string[]
+          platform: string
+          time_zone: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          lang: string
+          muted?: string[]
+          platform: string
+          time_zone: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          lang?: string
+          muted?: string[]
+          platform?: string
+          time_zone?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       enrollments: {
         Row: {
           client_id: string
@@ -1794,6 +1835,16 @@ export type Database = {
         Returns: undefined
       }
       refresh_next_session: { Args: { p_client: string }; Returns: undefined }
+      register_device: {
+        Args: {
+          p_lang: string
+          p_muted: string[]
+          p_platform: string
+          p_time_zone: string
+          p_token: string
+        }
+        Returns: undefined
+      }
       relationship_can_message: { Args: { p_client: string }; Returns: boolean }
       reschedule_booking: {
         Args: { p_block: string; p_start: string }
@@ -1804,6 +1855,7 @@ export type Database = {
         Args: { p_blocked: boolean; p_client: string }
         Returns: Json
       }
+      unregister_device: { Args: { p_token: string }; Returns: undefined }
     }
     Enums: {
       account_status: "active" | "suspended" | "deleted"
@@ -1836,6 +1888,7 @@ export type Database = {
         | "session-cancelled"
         | "request-accepted"
         | "request-declined"
+        | "request-received"
       offering_type:
         | "session"
         | "consultation"
@@ -2031,6 +2084,7 @@ export const Constants = {
         "session-cancelled",
         "request-accepted",
         "request-declined",
+        "request-received",
       ],
       offering_type: [
         "session",
