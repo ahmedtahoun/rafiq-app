@@ -1,4 +1,4 @@
-import { PolicyPage } from '../components/PolicyPage';
+import { PolicyPage, POLICY_SECTION_COUNT } from '../components/PolicyPage';
 import { NotTherapySection } from '../components/NotTherapySection';
 
 // The member-facing terms, over the same shared PolicyPage body.
@@ -16,7 +16,7 @@ export default function ClientTermsOfService() {
       titleKey="clientTermsTitle"
       updatedKey="clientTermsUpdated"
       sectionPrefix="clientTermsSection"
-      sectionCount={6}
+      sectionCount={POLICY_SECTION_COUNT.clientTermsSection}
       footer={<NotTherapySection bodyKey="clientTermsNotTherapyBody" />}
     />
   );

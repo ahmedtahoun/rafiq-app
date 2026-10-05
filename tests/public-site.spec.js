@@ -21,12 +21,9 @@ const DOCS = {
   terms: ['termsSection', 'clientTermsSection'],
 };
 const UPDATED = { privacySection: 'privacyUpdated', clientPrivacySection: 'clientPrivacyUpdated', termsSection: 'termsUpdated', clientTermsSection: 'clientTermsUpdated' };
-// How many numbered sections each document has, matching `sectionCount` on
-// the four screens and SECTION_COUNT in scripts/build-site.mjs. The privacy
-// policies carry four the terms do not: notifications, where the data is
-// held, how long it is kept, and backups. Hardcoding six here would have
-// published those four without ever checking them.
-const SECTION_COUNT = { privacySection: 10, clientPrivacySection: 10, termsSection: 6, clientTermsSection: 6 };
+// Section counts come from the app's own POLICY_SECTION_COUNT, read inside
+// the page below. Hardcoding six here would have published the privacy
+// policies' four new sections without ever checking them.
 // The block after the numbered sections: "Coaching is not therapy" and the
 // crisis lines, on the Terms documents only. It can fall behind the app the
 // same way the numbered sections can, so it is checked the same way.
@@ -56,8 +53,9 @@ async function mainText(browser, file) {
 test('the published policies say exactly what the app says, in both languages', async ({ browser, page }) => {
   // The app's own copy, straight from i18n.ts through the dev server.
   await page.goto('/');
-  const expected = await page.evaluate(async ({ DOCS, UPDATED, NOT_THERAPY, SECTION_COUNT }) => {
+  const expected = await page.evaluate(async ({ DOCS, UPDATED, NOT_THERAPY }) => {
     const { translate } = await import('/src/lib/i18n.ts');
+    const { POLICY_SECTION_COUNT: SECTION_COUNT } = await import('/src/components/PolicyPage.tsx');
     const { CRISIS_RESOURCES } = await import('/src/lib/crisisResources.ts');
     const out = {};
     for (const lang of ['en', 'ar']) {
@@ -81,7 +79,7 @@ test('the published policies say exactly what the app says, in both languages', 
       }
     }
     return out;
-  }, { DOCS, UPDATED, NOT_THERAPY, SECTION_COUNT });
+  }, { DOCS, UPDATED, NOT_THERAPY });
 
   for (const [key, strings] of Object.entries(expected)) {
     const [lang, slug] = key.split('/');

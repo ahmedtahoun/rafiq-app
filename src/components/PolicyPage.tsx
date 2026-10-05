@@ -30,6 +30,27 @@ type ValidSectionCount<P extends SectionPrefix> = {
     : never;
 }[SectionNumber];
 
+/** How many numbered sections each document has.
+
+    One source of truth, because this fact was copied five times and a
+    four-section change to the privacy policies broke three specs at once:
+    the four screens pass it to `PolicyPage`, `tests/copy-and-i18n.spec.js`
+    and `tests/misc.spec.js` assert against it, and
+    `tests/public-site.spec.js` uses it to check the published pages.
+    `scripts/build-site.mjs` keeps its own copy — it runs outside the
+    browser — but `public-site.spec.js` compares published text against the
+    app's copy, so a generator that fell behind this map fails there.
+
+    `satisfies` checks each count against its own document, so a number
+    whose keys do not exist is a compile error here rather than a missing
+    heading at runtime. */
+export const POLICY_SECTION_COUNT = {
+  privacySection: 10,
+  clientPrivacySection: 10,
+  termsSection: 6,
+  clientTermsSection: 6,
+} as const satisfies { [P in SectionPrefix]: ValidSectionCount<P> };
+
 interface PolicyPageProps<P extends SectionPrefix> {
   titleKey: MessageKey;
   updatedKey: MessageKey;
