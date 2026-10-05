@@ -7,8 +7,9 @@ each phone's own language and time zone. What it guarantees is at the top of
 `../_shared/pushSend.ts`; the tests are `../_shared/pushSend_test.ts`.
 
 Pushed: a new session request or move request (to the coach), a request
-accepted or declined, a session moved or cancelled, a new message (never its
-text), and a member finishing a task (to the coach). Not pushed: a recorded
+accepted or declined, a session moved or cancelled, a reminder before each
+session (to both, 0025), a new message (never its text), and a member
+finishing a task (to the coach). Not pushed: a recorded
 payment, until Paymob collects session fees (LAUNCH-CHECKLIST §4).
 
 The app side (registering phones, asking permission, the switches) is a
@@ -51,6 +52,13 @@ function's secrets.
    `notifications`, event Insert, type Supabase Edge Functions,
    `push-send`, method POST, and an HTTP header `x-push-secret` with the
    same value as `PUSH_WEBHOOK_SECRET`.
+6. **Session reminders (0025).** A job every five minutes writes a
+   reminder for each session starting 45 to 60 minutes later; the webhook
+   above sends it. `db push` schedules the job itself if `pg_cron` is
+   already enabled. Check under Dashboard → Integrations → Cron for a job
+   named `session-reminders`. If it isn't there, enable `pg_cron`
+   (Dashboard → Database → Extensions) and run once in the SQL editor:
+   `select cron.schedule('session-reminders', '*/5 * * * *', 'select public.queue_session_reminders()');`
 
 Either platform can go first: without Apple's keys, iPhones are skipped and
 Android phones still get their banners, and the other way round.

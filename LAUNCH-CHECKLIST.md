@@ -461,7 +461,7 @@ builds".
       | Task done: "Omar finished Evening walk" | coach | 0002 `task-completed` |
       | New message | both | 0002 `message` |
       | Payment received: "Sara paid 750 EGP" | coach | 0002 `payment-received`. Only means real money once Paymob collects session fees (§3); until then it fires when the coach records a payment, so don't send that one as push. |
-      | Session reminder, an hour before | both | Nothing yet: needs a scheduled job. |
+      | Session reminder, an hour before | both | 0025: a job every five minutes reminds both sides 45 to 60 minutes before (push only; scheduled with `pg_cron`, push-send README step 6). |
       How: every event above already writes a `notifications` row, so push is
       delivery, not new logic. Add `@capacitor/push-notifications`; a
       `device_tokens` table (one row per device; the user writes only their
@@ -487,9 +487,11 @@ builds".
       message's text, and drops phones Apple or Google say are gone
       (`supabase/functions/push-send/README.md`). *Ahmed:* the APNs key,
       the Firebase project, the secrets, `db push`, deploy, and the
-      Database Webhook, all in that README. Left: the app half (the plugin,
+      Database Webhook, all in that README. The session reminder is 0025
+      (both sides, 45 to 60 minutes before; *Ahmed:* `db push` and the
+      `pg_cron` schedule, README step 6). Left: the app half (the plugin,
       registering, asking permission, the switches, the copy and privacy
-      forms) and the session reminder an hour before.
+      forms).
 - [x] 🔴 **Account deletion must actually happen.** The app files a request
       into `account_deletion_requests`; someone has to process it (§9), within
       a stated time. **Stated: within 30 days**, on the public deletion page.
