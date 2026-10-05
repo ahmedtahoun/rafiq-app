@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { IGNORED_CONSOLE } from './helpers.js';
 import { installFakeSupabase, signIn, dbCalls, setFunctionReply } from './fakeSupabase.js';
+import { installFakeCall } from './fakeVideoCall.js';
 
 /**
  * 1:1 video, signed in (Daily). The session room used to be the design's
@@ -11,7 +12,9 @@ import { installFakeSupabase, signIn, dbCalls, setFunctionReply } from './fakeSu
  * and that nothing records), and joins the call.
  *
  * No camera and no Daily here: the call is a fake swapped in through
- * videoCall.ts's setVideoCallFactory, recording what the screen asks of it.
+ * videoCall.ts's setVideoCallFactory, recording what the screen asks of
+ * it. It lives in tests/fakeVideoCall.js, shared with the store
+ * screenshots (store/screenshots/shots.mjs).
  */
 
 const COACH = 'coach-1';
@@ -73,30 +76,6 @@ async function open(browser, { role = 'coach', lang = 'en', now, screen, params 
   await page.evaluate(async ([s, p]) => (await import('/src/store/appStore.ts')).useAppStore.getState().nav({ screen: s, params: p }), [screen, params ?? {}]);
   await page.waitForTimeout(400);
   return { page, ctx, errs };
-}
-
-/** Swaps Daily for a recorder: window.__video.calls, .emit(state), .end(why). */
-function installFakeCall(page) {
-  return page.evaluate(async () => {
-    const m = await import('/src/lib/videoCall.ts');
-    const side = (present) => ({ present, videoTrack: null, audioTrack: null, videoOn: present, audioOn: present });
-    window.__video = { calls: [] };
-    m.setVideoCallFactory(() => {
-      const v = window.__video;
-      let change = () => {};
-      let end = () => {};
-      v.emit = (otherPresent) => change({ self: side(true), other: side(otherPresent) });
-      v.end = (why) => end(why);
-      return {
-        join: async (url, token) => { v.calls.push(['join', url, token]); change({ self: side(true), other: side(false) }); },
-        leave: async () => { v.calls.push(['leave']); },
-        setMic: (on) => v.calls.push(['mic', on]),
-        setCamera: (on) => v.calls.push(['camera', on]),
-        onChange: (cb) => { change = cb; },
-        onEnd: (cb) => { end = cb; },
-      };
-    });
-  });
 }
 
 /** Leave the room and open it again, the way someone would: Back, then

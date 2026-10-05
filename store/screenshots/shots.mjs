@@ -3,8 +3,9 @@ import { mkdir, copyFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { IGNORED_CONSOLE, installScreenSettle } from '../../tests/helpers.js';
-import { installFakeSupabase, signIn } from '../../tests/fakeSupabase.js';
-import { NOW, COACH, MEMBER, coachTables, memberTables } from './seed.mjs';
+import { installFakeSupabase, signIn, setFunctionReply } from '../../tests/fakeSupabase.js';
+import { installFakeCall } from '../../tests/fakeVideoCall.js';
+import { NOW, COACH, MEMBER, COPY, coachTables, memberTables } from './seed.mjs';
 import { featureGraphic } from './feature-graphic.mjs';
 
 /**
@@ -35,25 +36,96 @@ const DEVICES = {
  * 10 per language, Google up to 8, so the first eight carry the story on
  * their own and 09–12 are there for Apple and for Ahmed to swap in.
  */
+/**
+ * The session the call shots use: `s-3` / `tb-3` in the coach seed runs
+ * 08:30–09:20 UTC, and NOW is 09:00, so it is live without moving the
+ * clock or adding a row. Its member is the third of the seed's three, so
+ * the name is theirs in whichever language is being shot.
+ */
+const CALL_SESSION = 's-3';
+const callParams = (lang) => ({ sessionId: CALL_SESSION, name: COPY[lang].members[2].name });
+
+/**
+ * What the `session-video` function would answer for it. The url and
+ * token are never dialled — `installFakeCall` has replaced Daily — so
+ * they only have to be the right shape. `closes_at` is the end of the
+ * booking plus the 30 minutes `JOIN_LATE_MIN` allows.
+ */
+const callPass = (lang) => ({
+  url: `https://rafiq.daily.co/rafiq-${CALL_SESSION}`,
+  token: 'screenshot-token',
+  role: 'coach',
+  other_name: COPY[lang].members[2].name,
+  closes_at: '2026-09-28T09:50:00Z',
+});
+
 const SHOTS = [
   { n: 1, id: 'coach-home', side: 'coach', screen: 'main' },
   { n: 2, id: 'coach-members', side: 'coach', screen: 'clients' },
   { n: 3, id: 'coach-member', side: 'coach', screen: 'clientDetail', params: { clientId: 'c-nour' } },
   { n: 4, id: 'coach-schedule', side: 'coach', screen: 'schedule' },
-  { n: 5, id: 'coach-messages', side: 'coach', screen: 'messagesInbox' },
-  { n: 6, id: 'coach-offerings', side: 'coach', screen: 'offerings' },
-  { n: 7, id: 'member-home', side: 'member', screen: 'clientHome' },
-  { n: 8, id: 'member-discover', side: 'member', screen: 'discover' },
-  { n: 9, id: 'member-tasks', side: 'member', screen: 'clientTasks' },
-  { n: 10, id: 'member-sessions', side: 'member', screen: 'clientSchedule' },
+  // 05 and 06 are the 1:1 call, placed inside Play's eight because it is
+  // the thing the listing is selling and Play shows only the first eight.
+  // They cost Offerings and Discover their place in that eight (both are
+  // 09 and 10 now, still inside Apple's ten) — see README.md, which spells
+  // out the trade and how to undo it.
+  { n: 5, id: 'coach-session-ready', side: 'coach', screen: 'sessionRoom', params: callParams },
+  // Same screen, so no navigation: `act` joins the call the room is
+  // already offering, and brings the other person in.
+  { n: 6, id: 'coach-session-call', side: 'coach', act: joinTheCall },
+  { n: 7, id: 'coach-messages', side: 'coach', screen: 'messagesInbox' },
+  { n: 8, id: 'member-home', side: 'member', screen: 'clientHome' },
+  { n: 9, id: 'coach-offerings', side: 'coach', screen: 'offerings' },
+  { n: 10, id: 'member-discover', side: 'member', screen: 'discover' },
+  { n: 11, id: 'member-tasks', side: 'member', screen: 'clientTasks' },
+  { n: 12, id: 'member-sessions', side: 'member', screen: 'clientSchedule' },
   // English only until the untranslated specialty/language chips are
   // fixed: PreviewProfile and ClientCoach print coach_profiles.title and
   // the language list raw, so the Arabic ones read "Life coaching" under
   // an Arabic name. Both are spares beyond either store's cap, so holding
   // them back costs no upload. See the issue linked in README.md.
-  { n: 11, id: 'coach-preview', side: 'coach', screen: 'previewProfile', langs: ['en'] },
-  { n: 12, id: 'member-coach', side: 'member', screen: 'clientCoach', langs: ['en'] },
+  { n: 13, id: 'coach-preview', side: 'coach', screen: 'previewProfile', langs: ['en'] },
+  { n: 14, id: 'member-coach', side: 'member', screen: 'clientCoach', langs: ['en'] },
 ];
+
+/**
+ * Join the call that shot 05 left on its ready screen, and put the other
+ * person in it.
+ *
+ * Nothing here touches Daily or a camera: `installFakeCall` swapped the
+ * factory in `openSide`, and `setFunctionReply` answers the one Edge
+ * Function call the room makes. With no video track on either side the
+ * room draws each participant as an initials avatar, which is what these
+ * screenshots want anyway — the seed has no faces in it.
+ */
+async function joinTheCall(page, lang) {
+  await setFunctionReply(page, 'session-video', 200, callPass(lang));
+  await page.locator('.session-room-join').click();
+  await expect(page.locator('.session-room-live'), 'the call never went live').toBeVisible();
+  // Until this fires the stage reads "Waiting for … to join", which is
+  // the wrong frame for a store listing: it sells an empty room.
+  await page.evaluate(() => window.__video.emit(true));
+  await expect(page.locator('.session-room-stage-name')).toHaveText(COPY[lang].members[2].name);
+
+  // The self tile is a <video> fed by a canvas: capturing before its
+  // first frame arrives would photograph a black rectangle.
+  await page.waitForFunction(() => {
+    const v = document.querySelector('.session-room-video-self');
+    return v instanceof HTMLVideoElement && v.videoWidth > 0 && v.readyState >= 2;
+  }, null, { timeout: 10_000 });
+  // Stop repainting so the element holds one still frame; frames still
+  // arriving during the capture make the PNG differ between runs.
+  await page.evaluate(() => window.__video.freeze());
+  await page.waitForTimeout(500);
+  // The stand-in is painted mirrored so the screen's own mirror cancels
+  // it (tests/fakeVideoCall.js). If the screen ever stops mirroring, the
+  // compensation would start printing the initials backwards — fail
+  // here rather than ship that to a store.
+  await expect(
+    page.locator('.session-room-video-self'),
+    'the self tile is no longer mirrored: drop the pre-flip in installFakeCall',
+  ).toHaveClass(/is-mirrored/);
+}
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -123,11 +195,17 @@ async function openSide(browser, { lang, device, side }) {
   const userId = side === 'coach' ? COACH : MEMBER;
   const tables = side === 'coach' ? coachTables(lang) : memberTables(lang);
   await installFakeSupabase(page, { userId, tables });
+  const initialsOf = (name) => name.split(/\s+/).slice(0, 2).map((w) => w[0]).join('');
   if (side === 'coach') {
-    const name = tables.profiles[0].full_name;
-    await serveInitialsAvatar(page, { initials: name.split(/\s+/).slice(0, 2).map((w) => w[0]).join('') });
+    await serveInitialsAvatar(page, { initials: initialsOf(tables.profiles[0].full_name) });
   }
   await signIn(page, userId);
+  // Before any shot opens the session room. Harmless for the rest: the
+  // factory is only reached when someone taps Join, and nothing in this
+  // harness ever reaches Daily or asks for a camera.
+  await installFakeCall(page, {
+    selfVideo: side === 'coach' ? { initials: initialsOf(tables.profiles[0].full_name) } : null,
+  });
 
   return { ctx, page, errs };
 }
@@ -155,9 +233,30 @@ async function show(page, screen, params) {
   }, [screen, params ?? null]);
   expect(settled, `${screen} never settled: its chunk or a read did not finish`).toBe(true);
 
-  await page.evaluate(() => document.fonts.ready);
-  // __screenSettled covers the chunk and the paint; this is the one-off
-  // entrance transitions in the screen CSS, which it does not watch.
+  await settleMedia(page);
+}
+
+/**
+ * Fonts and images in, then a beat for the entrance transition.
+ *
+ * The images matter and were missing: `02-coach-members` came out with a
+ * different hash on roughly one run in three, because an avatar had not
+ * finished decoding when the shutter fired. `__screenSettled` watches
+ * the chunk and the paint, and `document.fonts.ready` the text — neither
+ * waits for an <img>. Everything else on these screens happened to be
+ * fast enough to hide it.
+ */
+async function settleMedia(page) {
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await Promise.all(
+      [...document.images]
+        .filter((img) => !img.complete)
+        .map((img) => img.decode().catch(() => {})),
+    );
+  });
+  // The one-off entrance transitions in the screen CSS, which nothing
+  // above watches.
   await page.waitForTimeout(400);
 }
 
@@ -173,13 +272,30 @@ for (const lang of ['en', 'ar']) {
         const { ctx, page, errs } = await openSide(browser, { lang, device, side });
 
         for (const shot of mine) {
-          await show(page, shot.screen, shot.params);
+          // `params` may be a function of the language, because a shot's
+          // subject is named in the language being shot.
+          const params = typeof shot.params === 'function' ? shot.params(lang) : shot.params;
+          if (shot.screen) await show(page, shot.screen, params);
+          if (shot.act) {
+            await shot.act(page, lang);
+            await settleMedia(page);
+          }
           // The whole viewport, which is what the device itself shows:
           // .phone-frame caps at 430px, so at Apple's 440 there is a 5px
           // gutter each side — real, and cropping it out would make the
           // image 1290 wide when Apple asks for 1320. Headless page
           // screenshots carry no browser chrome.
-          await page.screenshot({ path: join(dir, `${pad(shot.n)}-${shot.id}.png`) });
+          //
+          // `animations: 'disabled'` is what makes "the same bytes every
+          // run" true on a screen that moves. It rewinds an infinite CSS
+          // animation to its first frame and runs a finite one to its
+          // last. The session room's live dot pulses forever
+          // (SessionRoom.css:185), so without this its opacity — and the
+          // file's hash — depended on when the capture happened to land.
+          // The app has exactly two infinite animations, that dot and
+          // LoadState's spinner, and a shot of the spinner would be a
+          // bug anyway.
+          await page.screenshot({ path: join(dir, `${pad(shot.n)}-${shot.id}.png`), animations: 'disabled' });
         }
 
         // A screenshot of a screen that logged an error is not shippable.
