@@ -236,14 +236,15 @@ test('SWITCHING COACHES RESETS BOOKING STATE', async ({ browser }) => {
 test('NAV WIRING', async ({ browser }) => {
   const { page, ctx, errs } = await open(browser, { data: directoryTables({ relationship: true }), screen: 'clientHome' });
   // Discover left the tab bar (five tabs a side, 1 Oct 2026): a member with
-  // a coach reaches it from Your Pro → My pros → Find a pro.
-  await page.locator('.bottom-nav-item', { hasText: 'Your Pro' }).click();
+  // a coach reaches it from Profile → My pros → Find a pro. (Your Pro is a
+  // tab root with no back arrow, so My pros is reached from Profile.)
+  await page.locator('.bottom-nav-item', { hasText: 'Profile' }).click();
   await page.waitForTimeout(400);
-  await page.locator('.client-coach-hero-btn').first().click();
+  await page.locator('.client-profile-card').filter({ has: page.locator('.client-profile-coach-avatar') }).first().click();
   await page.waitForTimeout(400);
   await page.locator('.my-coaches-find').click();
   await page.waitForTimeout(400);
-  expect.soft(String(await screenOf(page)), 'Your Pro → My pros reaches Discover').toBe('discover');
+  expect.soft(String(await screenOf(page)), 'Profile → My pros reaches Discover').toBe('discover');
 
   await page.locator('.discover-card-main').first().click();
   await page.waitForTimeout(350);
