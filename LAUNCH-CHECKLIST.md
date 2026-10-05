@@ -100,7 +100,7 @@ as done below, when signed in; every other screen still reads and writes
         coach's own `payments` ledger (`src/lib/earningsData.ts`):
         completed charges less refunds, pending on its own line, paid and
         due over active members, with LoadState and a retry.
-- [x] 🔴 **Remove the demo identities.** 14 member screens hardcoded
+- [ ] 🔴 **Remove the demo identities.** 14 member screens hardcoded
       `const CLIENT_ID = 'sara'`, and the Pro side is the seeded
       `DEFAULT_PRO_ID = 'pro-yasmin'`. Both must come from the signed-in user.
       Done for the coach's roster and the member's Home, Tasks, My Pros,
@@ -131,6 +131,27 @@ as done below, when signed in; every other screen still reads and writes
       screen rather than a fixed delay. Breaking any one of them back to the
       demo fails it. Since #112 it allows no device key that isn't the
       member's own: saved coaches are `favourite_coaches` rows now.
+      **The coach half is not done, and this box was ticked while it was
+      still open** — the evidence above covers only the member screens,
+      and this item is also the Pro side's `DEFAULT_PRO_ID`.
+      tests/coach-demo-identity.spec.js now walks all 23 coach screens
+      signed in, on the same pattern: Home, Members, a member's page, Edit
+      member, Add task, Schedule, Add time block, Availability, the inbox,
+      a thread, Notifications, Offerings, an offering, Templates, a
+      template, Profile, Edit profile, Account details, Preview profile,
+      Share profile, Subscription, Earnings and Payout account. Breaking
+      any one of them back to the demo fails it (verified against
+      Templates). Twenty-one of the twenty-three are clean (Profile went
+      with #123). Two still read the demo store signed in, both
+      `getClients()` reaching `DEFAULT_CLIENTS` directly or through a
+      helper that walks it: `PreviewProfile.tsx:85,86,90,91` and
+      `ShareProfile.tsx:83,90`. The visible effect is a number, not a
+      name: `DEFAULT_CLIENTS` is six active members, so the share card and
+      the public preview show six however many the coach really has. The
+      two are held in the spec's `KNOWN_DEMO_READS` with their call
+      sites, so a new demo read anywhere else fails the walk and fixing
+      one of these also fails it — delete its entry then, and tick this
+      box when the map is empty.
 - [x] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,
       the 8 fictional `DIRECTORY_COACHES`, and any other `DEFAULT_*` seed.
