@@ -20,15 +20,8 @@ import {
 import { fetchCoachReviews, type CoachReview } from '../lib/reviewData';
 import { fetchOwnFavourites } from '../lib/favouriteData';
 import { useFavourites } from '../store/favourites';
+import { languageLabel } from '../lib/coachLabels';
 import './CoachPreview.css';
-
-/** Directory languages reuse Discover's filter labels, so a language
-    reads the same wherever a member meets it. */
-function languageKey(language: string): MessageKey {
-  if (language === 'Arabic') return 'discoverLanguageArabic';
-  if (language === 'French') return 'discoverLanguageFrench';
-  return 'discoverLanguageEnglish';
-}
 
 const OFFERING_TYPE_KEY: Record<CoachOffering['type'], MessageKey> = {
   session: 'offeringTypeSession',
@@ -459,7 +452,7 @@ function CoachPreviewBody({ source }: { source: PreviewSource }) {
               member browsing cannot otherwise find out here. */}
           <div className="coach-preview-chips">
             {coach.languages.map((language) => (
-              <span key={language} className="coach-preview-skill">{t(languageKey(language))}</span>
+              <span key={language} className="coach-preview-skill">{languageLabel(language, t)}</span>
             ))}
           </div>
         </div>

@@ -78,15 +78,25 @@ as done below, when signed in; every other screen still reads and writes
       `favourite_coaches` rows, 0005, instead of `localStorage`, so they
       follow the member to another device).
 
-      Still on `mockStore` when signed in, and all that is left of this
-      item (Reem's queue):
+      The three that were left went on 4 October. Before ticking this,
+      the coach side needs what the member side has: a walk of every
+      coach screen signed in that fails on any demo read
+      (`tests/member-demo-identity.spec.js` is the pattern). ShareProfile
+      and Subscription still import `mockStore`; the walk will say whether
+      they read it signed in. Signed out, the demo still runs on it, by
+      the 3 Oct decision.
 
-      - ~~**Home's package and follow-up alerts**~~ — done (2026-10-04):
+      Done on 4 October:
+
+      - ~~**Home's package and follow-up alerts**~~ — done (2026-10-04, #122):
         the coach's `packages` rows (expired, used up, expiring within a
         week) and each member's latest attended session's `followed_up`,
         which Remind sets (`fetchHomeAlerts` in `src/lib/rosterData.ts`).
-      - **Profile stats** — `src/screens/Profile.tsx`.
-      - ~~**Earnings' totals**~~ — done (2026-10-04): signed in, the
+      - ~~**Profile stats**~~ — done (2026-10-04, #123): reviews and rating
+        from the coach's `ratings`, members and completion from the
+        roster, the Messages badge from the inbox, and the delete sheet's
+        open items from 0012's own list (`src/lib/coachStatsData.ts`).
+      - ~~**Earnings' totals**~~ — done (2026-10-04, #121): signed in, the
         coach's own `payments` ledger (`src/lib/earningsData.ts`):
         completed charges less refunds, pending on its own line, paid and
         due over active members, with LoadState and a retry.

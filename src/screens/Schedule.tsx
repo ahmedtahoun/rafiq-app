@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT, dayKey, type MessageKey } from '../lib/i18n';
+import { useT, dayKey, isolate, type MessageKey } from '../lib/i18n';
 import {
   ArrowForwardIcon,
   
@@ -46,7 +46,6 @@ import {
   getRescheduleEligibility,
   getSessionLogs,
   getSessionRoomHref,
-  getSessionTypeInfo,
   hourRangeLabel,
   isRelationshipBlocked,
   msFromDayHour,
@@ -318,14 +317,21 @@ export default function Schedule() {
           : null;
     const canRemind = b.clientId && !live ? canInteract(b.clientId) : false;
     const range = hourRangeLabel(b.startH, b.endH);
-    const durationSuffix = b.sessionType ? t('scheduleMinutesSuffix', { n: getSessionTypeInfo(b.sessionType).minutes }) : '';
+    // A session's length is its block's, not its type's nominal one: a
+    // 60-minute booking read "50 min" when it came from the type.
+    const durationSuffix = b.sessionType ? t('scheduleMinutesSuffix', { n: Math.round((b.endH - b.startH) * 60) }) : '';
+    // Drawn from what the block is, in the language on screen. A stored
+    // label is in whatever language wrote it — the database writes
+    // "Session · {name}" in English, AddTimeBlock the coach's language at
+    // the time — so it never reaches the screen.
+    const baseLabel = blockLabel(b.kind, name);
     const style = KIND_STYLE[b.kind];
     const remindMessage = name ? `Hi ${name.split(' ')[0]}, just a reminder about your session (${range}) — see you then!` : '';
     return {
       ...b,
       name,
       range,
-      displayLabel: b.label + durationSuffix,
+      displayLabel: baseLabel + durationSuffix,
       avatarBg,
       initials,
       detailHref,
@@ -349,6 +355,13 @@ export default function Schedule() {
     };
   });
 
+  function blockLabel(kind: UIKind, name: string | null): string {
+    if (kind === 'available') return t('schedulePreferredHours');
+    if (kind === 'busy') return t('scheduleLegendUnavailable');
+    if (!name) return t(kind === 'booked' ? 'scheduleLegendBooked' : 'scheduleLegendPending');
+    return t(kind === 'booked' ? 'scheduleBlockSession' : 'scheduleBlockRequested', { name: isolate(name) });
+  }
+
   function openBlockSheet(b: (typeof blocks)[number]) {
     setActiveBlock({
       key: b.key,
@@ -358,7 +371,7 @@ export default function Schedule() {
       startH: b.startH,
       endH: b.endH,
       kind: b.kind,
-      name: b.name ?? (b.kind === 'busy' ? b.label : ''),
+      name: b.name ?? (b.kind === 'busy' ? t('scheduleLegendUnavailable') : ''),
       range: b.range,
       avatarBg: b.avatarBg,
       initials: b.initials,
