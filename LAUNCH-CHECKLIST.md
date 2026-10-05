@@ -541,6 +541,12 @@ Waits on the name decision (§1).
       (several are not 24/7) and whether it answers in Arabic, English or
       both. Delete a row that turns out not to exist — an empty list still
       renders "contact your local emergency services", which is honest.
+      **Candidates to dial are in `research/crisis-lines.md`** — a number
+      per row with its sources and how much to trust it, what to ask when
+      the call connects, and the shape of the edit afterwards. Desk
+      research only: three of the five look solid, `befrienders` looks
+      dead, and `emergency` needs a decision (112 or 123) before it needs
+      a dial.
 - [ ] 🟡 Coaching Service Agreement text (`AGREEMENT_TEXT` in `mockStore.ts`)
       reviewed.
 
