@@ -439,6 +439,13 @@ builds".
       public page with a booking button first (competitor teardown, build
       #1), then rebuild Share around its real address and bring the button
       back (`tests/ux-fixes.spec.js` checks it's gone until then).
+      **The page is built** (0026 and `site/functions/`, 2026-10-05):
+      opt-in, at `rafiqpro.com/c/<code>`, EN + AR, no photo yet
+      (`site/README.md`, "The public coach page"). *Ahmed:* `db push`, and
+      the Pages root directory and environment variables when the site is
+      hosted (README steps 2–3). Left: the app half (the switch in Profile,
+      Share around the real link, the Share button back, and the app
+      opening on `app.rafiqie.coach://c/<code>`).
 - [x] 🔴 **Push notifications, or honest toggles.** Profile screens offer
       "Session reminders", "Task reminders" and "Payment reminders", but the
       app has no push notifications (no `@capacitor/push-notifications`, no
