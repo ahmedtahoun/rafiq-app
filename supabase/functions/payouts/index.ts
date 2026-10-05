@@ -42,7 +42,6 @@ function config(): PayoutsConfig | null {
   return Object.values(cfg).every(Boolean) ? cfg : null;
 }
 
-/** Last four characters only — responses go to a browser. */
 const FINAL = new Set(['success', 'failed']);
 
 async function record(db: SupabaseClient, id: string, o: Outcome) {
