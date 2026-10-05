@@ -31,7 +31,7 @@ Plus three shorter texts that carry as much weight as the four above:
 
 | Text | Where | Source |
 |---|---|---|
-| **Coaching service agreement** — the waiver a member signs before working with a coach | In-app, at the start of a coaching relationship | `AGREEMENT_TEXT`, `src/lib/mockStore.ts` |
+| **Coaching service agreement** — the waiver a member is *meant* to sign before working with a coach. **No signed-in member is shown it today**, so nothing has been signed — see §3 | Demo only: the card sits behind `!remote` (`ClientProfile.tsx:298`). The `agreements` table (0005) is ready and unused | `AGREEMENT_TEXT`, `src/lib/mockStore.ts` |
 | **"Coaching is not therapy"** and the crisis lines — the one page reachable with no account and no app | Foot of both Terms documents, both languages, and the public terms page | `termsNotTherapyBody`, `clientTermsNotTherapyBody`, `src/lib/crisisResources.ts` |
 | **Account deletion page** — what deletion does, what is kept, and what blocks it | Public: `/delete-account/`, `/ar/delete-account/`. Google Play requires this URL as a condition of listing | `site/copy.mjs` |
 
@@ -96,11 +96,27 @@ details; technical logs about a week. **The five is a guess at Egyptian tax
 and commercial law.** Please confirm or replace it.
 
 ### The coaching service agreement
-A waiver signed inside the app. Three questions on it: whether the English
-is enforceable as drafted, whether the Arabic says the same thing in a way
-that is enforceable in Egypt, and whether a tap is adequate evidence of
-signature. It was English-only for Arabic-speaking members until this
-round, which may affect anything already signed.
+
+**Read this one knowing it is not in use yet.** The text exists and the
+database is ready for it — `agreements` (0005) carries a status and a
+`signed_at`, with a constraint that the two agree — but no code reads or
+writes that table, and the only screen that shows the agreement keeps it
+behind `!remote` (`ClientProfile.tsx:298`), which is the signed-out demo.
+So signed in, no member is shown the waiver, nobody signs it, and no row
+is ever created (issue #143). We are asking you to review the text we
+intend to use, not one anyone has agreed to.
+
+That changes one of the three questions and leaves the other two alone:
+
+- **Is the English enforceable as drafted?** Review as normal.
+- **Does the Arabic say the same thing, in a way that is enforceable in
+  Egypt?** Review as normal. It was English-only for Arabic-speaking
+  members until this round. That matters for anything signed *later*, and
+  for nothing signed so far — because nothing has been.
+- **Is a tap adequate evidence of signature?** **Hypothetical for now**,
+  and the useful answer is the other way round: tell us what the evidence
+  has to look like and we will build the flow that produces it, rather
+  than asking you to bless a tap we have already shipped.
 
 ### q9 — log retention (ours to confirm)
 "About a week" is Supabase's figure for the Pro plan and the plan has not
