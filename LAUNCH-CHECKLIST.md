@@ -182,12 +182,16 @@ as done below, when signed in; every other screen still reads and writes
       TODAY_INDEX`) — the demo week the 3 Oct decision keeps.
       ClientSchedule, ClientBooking and CoachPreview converted in steps 4
       and 6 (#99).
-- [ ] 🔴 Loading, empty and error states on every screen. Today every read is
+- [x] 🔴 Loading, empty and error states on every screen. Today every read is
       synchronous localStorage; network reads can be slow or fail.
-      Done on every converted screen (35 files use `LoadState` as of 4 Oct,
+      Done on every converted screen (38 files use `LoadState` as of 5 Oct,
       up from 26: loading, then an error with a working retry — never the
-      demo data as a fallback); the rest land with §2's remaining screens,
-      which are now only the four listed in the first item.
+      demo data as a fallback). §2's last screens went with them: Earnings
+      (#121), Home's alerts (#122), Profile (#123), and Preview and Share
+      Profile (#126). The two walks (`tests/member-demo-identity.spec.js`,
+      `tests/coach-demo-identity.spec.js`) open every screen that reads
+      the signed-in user's data and require each to settle on real
+      content, not a spinner or an error.
       Discover now distinguishes an empty directory ("No pros yet") from a
       search that matched nothing — it will be empty until real pros sign
       up, and the search-failed wording read like a broken screen.

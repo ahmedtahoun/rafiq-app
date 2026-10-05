@@ -58,7 +58,7 @@ function ledger() {
   };
 }
 
-async function open(browser, { lang = 'en', dark = false, tables, fail = [] }) {
+async function open(browser, { lang = 'en', dark = false, tables, fail = [], settle = true }) {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await ctx.newPage();
   const errs = [];
@@ -78,7 +78,10 @@ async function open(browser, { lang = 'en', dark = false, tables, fail = [] }) {
   await installFakeSupabase(page, { userId: UID, tables, fail });
   await signIn(page, UID);
   await page.evaluate(async () => (await import('/src/store/appStore.ts')).useAppStore.getState().nav('earnings'));
-  await page.evaluate(() => window.__screenSettled());
+  // A failed read ends on LoadState's error, which __screenSettled reads as
+  // still loading and would wait out its full timeout for: that test waits
+  // on the alert itself instead.
+  if (settle) await page.evaluate(() => window.__screenSettled());
   return { page, ctx, errs };
 }
 
@@ -153,7 +156,7 @@ for (const lang of ['en', 'ar']) {
 }
 
 test('a failed read shows the error and a retry that works — never the demo totals', async ({ browser }) => {
-  const { page, ctx } = await open(browser, { tables: ledger(), fail: ['payments'] });
+  const { page, ctx } = await open(browser, { tables: ledger(), fail: ['payments'], settle: false });
   await expect(page.locator('.phone-frame')).toHaveCount(1);
   const alert = page.locator('.load-state[role="alert"]');
   await expect(alert).toBeVisible();
