@@ -51,6 +51,12 @@ export interface MemberPastSession {
 
 export interface MemberSchedule {
   upcoming: MemberUpcoming | null;
+  /**
+   * The latest session that has begun and nobody has recorded yet: its
+   * video call stays open until 30 minutes after it ends (videoData.ts),
+   * after `upcoming`, which is strictly in the future, has moved on.
+   */
+  started: MemberUpcoming | null;
   /** The member's pending request to move `upcoming`, if any. */
   move: { id: string; startWallMs: number } | null;
   request: MemberOpenRequest | null;
@@ -83,30 +89,38 @@ export async function fetchMemberSchedule(clientId: string, coachId: string): Pr
   const ratingOf = new Map(ratings.data.filter((r) => r.session_id).map((r) => [r.session_id!, r.rating]));
 
   const now = Date.now();
-  const next = sessions.data
-    .filter((s) => s.attendance === null && Date.parse(s.scheduled_at) > now)
+  const open = sessions.data.filter((s) => s.attendance === null);
+  const next = open
+    .filter((s) => Date.parse(s.scheduled_at) > now)
     .sort((a, b) => Date.parse(a.scheduled_at) - Date.parse(b.scheduled_at))[0];
-  let upcoming: MemberUpcoming | null = null;
-  if (next) {
-    // The block holds the session's length and type; a session with none
-    // (a walk-in's, logged by the coach) reads as a standard 50 minutes.
+  const begun = open
+    .filter((s) => Date.parse(s.scheduled_at) <= now)
+    .sort((a, b) => Date.parse(b.scheduled_at) - Date.parse(a.scheduled_at))[0];
+
+  // The block holds a session's length and type; a session with none (a
+  // walk-in's, logged by the coach) reads as a standard 50 minutes.
+  async function withBlock(row: NonNullable<typeof sessions.data>[number]): Promise<MemberUpcoming | { error: { message: string } }> {
     let endsAt: string | null = null;
     let sessionType: SessionType = 'standard';
-    if (next.time_block_id) {
-      const block = await supabase.from('time_blocks').select('ends_at, session_type').eq('id', next.time_block_id).maybeSingle();
-      if (block.error) return unknown(block.error);
+    if (row.time_block_id) {
+      const block = await supabase.from('time_blocks').select('ends_at, session_type').eq('id', row.time_block_id).maybeSingle();
+      if (block.error) return { error: block.error };
       endsAt = block.data?.ends_at ?? null;
       sessionType = block.data?.session_type ?? 'standard';
     }
-    const startWallMs = toWallMs(next.scheduled_at);
-    upcoming = {
-      sessionId: next.id,
-      blockId: next.time_block_id,
+    const startWallMs = toWallMs(row.scheduled_at);
+    return {
+      sessionId: row.id,
+      blockId: row.time_block_id,
       startWallMs,
       endWallMs: endsAt ? toWallMs(endsAt) : startWallMs + 50 * 60000,
       sessionType,
     };
   }
+  const upcoming = next ? await withBlock(next) : null;
+  if (upcoming && 'error' in upcoming) return unknown(upcoming.error);
+  const started = begun ? await withBlock(begun) : null;
+  if (started && 'error' in started) return unknown(started.error);
 
   // A new-session request, and a move of the upcoming booking (0017).
   const r = requests.data.find((x) => !x.reschedule_of);
@@ -115,6 +129,7 @@ export async function fetchMemberSchedule(clientId: string, coachId: string): Pr
     ok: true,
     data: {
       upcoming,
+      started,
       move: m ? { id: m.id, startWallMs: toWallMs(m.requested_start) } : null,
       hours: toWeek(hours.data),
       request: r

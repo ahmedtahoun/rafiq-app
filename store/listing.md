@@ -71,13 +71,39 @@ a listing would normally say that this one must not:
 
    One thing to decide before uploading, since the two documents
    currently disagree: the screenshot set built in §7 includes a Discover
-   shot (`08-member-discover`), taken signed in against seeded sample
+   shot (`10-member-discover`, renumbered from 08 when the call shots went
+   in at 05 and 06), taken signed in against seeded sample
    coaches. The note further down this file says Discover should not be
    among the launch screenshots because it will be nearly empty. Both
    positions are defensible — sample data in a screenshot is ordinary,
    and a directory that looks busier than day one is not — but only one
    can ship. Ahmed decides; the shot is numbered 08, so leaving it out
    costs nothing but the upload order.
+
+5. **Video sessions are real, and these are the limits of the claim.**
+   A session runs on video inside the app, through Daily. What the listing
+   may say, all of it checkable in the code:
+
+   - **1:1, inside the app.** No link to find, no second app to install.
+   - **Join opens ten minutes before** the session starts
+     (`JOIN_EARLY_MS`, `src/lib/videoData.ts:83`).
+   - **Never recorded** — and stronger than a promise: the app refuses to
+     open a call at all if recording has been switched on, on the Daily
+     domain or on the room. `recording_enabled_on_domain` and
+     `recording_enabled_on_room` are in the `UNAVAILABLE` list
+     (`videoData.ts:38`), and a room that reports either is treated as
+     unavailable rather than joined.
+
+   What it may **not** say: that calls can be recorded or saved for later
+   (they cannot), that there are group or multi-party calls (a room belongs
+   to one session between one coach and one member), or that a member can
+   dial in by phone. Nor that you can start a call whenever you like —
+   there has to be a booked session, and you have to be inside its window.
+
+   `sessionRoomLeaveHint` still reads "no recording or real call happens",
+   which looks like stale copy from before video shipped but is not: it
+   renders only in `DemoSessionRoom()`, the signed-out preview
+   (`SessionRoom.tsx:44–197`). Checked rather than assumed.
 
 ---
 
@@ -102,22 +128,39 @@ installed name is a small, permanent papercut.
 | **`Coaching, sessions, progress`** | 28 |
 | `Your coach and you, in sync` | 27 |
 | `Book, message, track progress` | 29 |
+| `Video sessions and progress` | 27 |
 
-The first is recommended because it is the only one that reads correctly
-for **both** roles — a coach runs sessions and tracks progress, a member
-attends them and makes it. The second leans member, the third leans member
-too.
+The first is still recommended because it is the only one that reads
+correctly for **both** roles — a coach runs sessions and tracks progress, a
+member attends them and makes it. The second leans member, the third leans
+member too.
+
+The fourth makes video explicit. Thirty characters cannot hold both "video"
+and the two-sided reading, so it is a straight trade: it buys the newest
+feature in the second-most-weighted field and loses the word that covers
+tasks, packages and messages. The recommendation stays with the first,
+because "sessions" now *means* video sessions and the description says so
+in its first bullet on each side.
 
 ### Short description (Play) — 80 max
 
-`Coaching that stays in one place: sessions, tasks, messages and progress.` — 73
+`Coaching in one place: video sessions, tasks, messages and progress.` — 68
+
+Was "Coaching that stays in one place: sessions, tasks…" (73). "video"
+costs six characters and "that stays" pays for them: Play truncates this
+line hard on a narrow phone, and the first forty characters are what most
+people read.
 
 ### Promotional text (App Store) — 170 max
 
 Editable without a review, so this is the field to change when the first
 real coaches join.
 
-`Rafiq Pro is new in Egypt and taking on its first coaches. If you coach — life, fitness, yoga, nutrition, diving — we would like you on it early.` — 145
+`Rafiq Pro is new in Egypt and taking on its first coaches. Sessions run on video, in the app. If you coach — life, fitness, yoga, nutrition, diving — we would like you on it early.` — 180 ⚠️ **over**
+
+That is 179 against a 170 cap, so it needs cutting. The version that fits:
+
+`Rafiq Pro is new in Egypt, taking on its first coaches. Sessions run on video in the app. If you coach — life, fitness, yoga, nutrition, diving — we want you on early.` — 167
 
 ### Description — 4,000 max
 
@@ -140,6 +183,8 @@ FOR COACHES
   agreed to do and you can see whether it happened.
 • Session packages that count themselves down, so nobody has to remember
   how many are left.
+• Meet your member on video, in the app. Join opens ten minutes before
+  the session starts, and nothing is recorded.
 • A conversation with each member, next to the session it belongs to.
 • Write what you offer — 1:1 sessions, a programme, a workshop — and a
   page members can see it on.
@@ -150,6 +195,8 @@ FOR MEMBERS
 
 • What your coach set for you, this week: tasks, sessions and where you
   are in the programme.
+• Your session happens on video, in the app. No link to find, no other
+  app to install; Join opens ten minutes before the time you booked.
 • Book a time from your coach's real availability, ask to move one, or
   cancel — without a phone call.
 • A check-in on how you are doing, so the person coaching you knows
@@ -173,12 +220,16 @@ relationships; if you need clinical care, please see a professional.
 Rafiq Pro does not send push notifications. Everything it has to tell you
 is waiting in the app when you open it.
 
+Sessions are never recorded. Rafiq Pro will not open a call at all if
+recording has been switched on, so there is no copy of your session to
+keep, lose or hand over.
+
 You sign in with Google or Apple. There is no password to lose.
 
 Rafiq Pro is new, and starting in Egypt.
 ```
 
-2,216 characters.
+2,641 characters, against a 4,000 cap.
 
 ### Keywords — 100 max
 
@@ -186,10 +237,19 @@ Apple counts commas, so there are no spaces after them. "Rafiq" and the
 subtitle's words are already indexed and are deliberately absent.
 
 ```
-coach,coaching,wellness,life coach,yoga,nutrition,fitness,diving,client,booking,schedule,Egypt
+coach,coaching,wellness,life coach,yoga,nutrition,fitness,diving,client,booking,schedule,Egypt,video
 ```
 
-94 characters, 12 terms.
+**100 characters exactly**, 13 terms — on the cap, with nothing spare.
+Adding `video` cost six characters and used every one that was left, so
+the next term in has to push one out. `client` is the weakest if you need
+room: it reads as a coach's word, and a member searching for coaching does
+not type it.
+
+`video call` and `video session` were considered and dropped: Apple matches
+across comma-separated terms, so `video` plus the already-indexed
+`sessions` in the subtitle covers both phrases without paying for them
+twice.
 
 Dropped on purpose: `therapy`, `therapist`, `counselling` — the app says in
 its own copy that it is not therapy, and buying those searches would
@@ -201,9 +261,10 @@ contradict it and invite the age-rating and medical-claims questions in
 ```
 This is the first release.
 
-Rafiq Pro, in English and Arabic: a roster, a schedule, tasks between
-sessions, session packages, messages and a coach page for coaches; the
-plan your coach set, booking, check-ins and Discover for members.
+Rafiq Pro, in English and Arabic: a roster, a schedule, video sessions,
+tasks between sessions, session packages, messages and a coach page for
+coaches; the plan your coach set, booking, your sessions on video,
+check-ins and Discover for members.
 
 Tell us what is missing — support@rafiqpro.com.
 ```
@@ -245,18 +306,29 @@ no medical advice.
 | **`جلسات ومهام وتقدّم معًا`** | 23 |
 | `مدربك وأنت، في مكان واحد` | 24 |
 | `التدريب كله في مكان واحد` | 24 |
+| `جلسات فيديو ومهام وتقدّم` | 24 |
 
 `جلسات ومهام وتقدّم في مكان واحد` هي الترجمة الحرفية للإنجليزي لكنها 31 حرفًا —
 حرف واحد فوق الحد، لأن الشدّة في «تقدّم» حرف مستقل في العدّ. الخيارات أعلاه
 تترك هامشًا.
 
+الخيار الرابع يذكر الفيديو صراحة. العربية تتسع له هنا بخلاف الإنجليزية،
+لأن «جلسات فيديو ومهام وتقدّم» 24 حرفًا فقط. والمقترح يبقى الأول: كلمة
+«جلسات» صارت تعني جلسات الفيديو، والوصف يقولها في أول نقطة لكل جانب.
+
 ### الوصف القصير (جوجل بلاي) — 80 حرفًا
 
-`التدريب في مكان واحد: الجلسات والمهام والرسائل والتقدّم.` — 56
+`التدريب في مكان واحد: جلسات فيديو ومهام ورسائل وتقدّم.` — 54
+
+أقصر من السابقة (56) ويذكر الفيديو، لأن «الجلسات والمهام والرسائل» بأل
+التعريف أطول من الإضافة المجردة.
 
 ### النص الترويجي (آبل) — 170 حرفًا
 
-`رفيق تطبيق جديد في مصر ويستقبل أوائل المدربين. إن كنت تدرّب — حياتيًا أو رياضيًا أو يوغا أو تغذية أو غوصًا — يسعدنا انضمامك مبكرًا.` — 131
+`رفيق تطبيق جديد في مصر ويستقبل أوائل المدربين. الجلسات تجري بالفيديو داخل التطبيق. إن كنت تدرّب — حياتيًا أو رياضيًا أو يوغا أو تغذية أو غوصًا — يسعدنا انضمامك مبكرًا.` — 167
+
+ثلاثة أحرف فقط تحت الحد، فأي تعديل لاحق على هذا النص يحتاج عدًّا من جديد.
+والحقل قابل للتعديل دون مراجعة، فهو أول ما يُحدَّث عند انضمام أول المدربين.
 
 ### الوصف — 4000 حرف
 
@@ -275,6 +347,8 @@ no medical advice.
 • مهام بين الجلسات بموعد نهائي، فيعرف العضو ما اتفق عليه وتعرف أنت إن
   حدث.
 • باقات جلسات تحسب نفسها، فلا أحد مضطر لتذكّر ما تبقى.
+• التقِ عضوك بالفيديو داخل التطبيق. يفتح الانضمام عشر دقائق قبل بدء
+  الجلسة، ولا يُسجَّل شيء.
 • محادثة مع كل عضو، بجانب الجلسة التي تخصّها.
 • اكتب ما تقدّمه — جلسات فردية أو برنامجًا أو ورشة — وصفحة يراها الأعضاء.
 • أرباحك، وما دُفع وما لم يُدفع، وبيانات استلام مستحقاتك، محفوظة حيث لا
@@ -283,6 +357,8 @@ no medical advice.
 للأعضاء
 
 • ما وضعه لك محترفك هذا الأسبوع: المهام والجلسات وأين وصلت في البرنامج.
+• جلستك تجري بالفيديو داخل التطبيق. لا رابط تبحث عنه ولا تطبيق آخر
+  تثبّته؛ ويفتح الانضمام عشر دقائق قبل الموعد الذي حجزته.
 • احجز موعدًا من أوقات محترفك الحقيقية، أو اطلب نقل موعد، أو ألغِه — دون
   مكالمة.
 • تسجيل لحالتك، ليعرف من يدرّبك قبل الجلسة القادمة لا بعدها.
@@ -304,20 +380,24 @@ no medical advice.
 رفيق لا يرسل إشعارات فورية. كل ما يريد إخبارك به ينتظرك داخل التطبيق حين
 تفتحه.
 
+الجلسات لا تُسجَّل أبدًا. ولا يفتح رفيق المكالمة من الأصل إذا كان التسجيل
+مُفعَّلًا، فلا توجد نسخة من جلستك تُحفظ أو تُفقد أو تُسلَّم لأحد.
+
 تسجيل الدخول بجوجل أو آبل. لا كلمة مرور تُنسى.
 
 رفيق تطبيق جديد، يبدأ من مصر.
 ```
 
-1,638 حرفًا.
+1,999 حرفًا، والحد 4000.
 
 ### الكلمات المفتاحية — 100 حرف
 
 ```
-مدرب,تدريب,كوتش,كوتشينج,صحة,يوغا,تغذية,لياقة,غوص,حجز,جلسات,مصر
+مدرب,تدريب,كوتش,كوتشينج,صحة,يوغا,تغذية,لياقة,غوص,حجز,جلسات,مصر,فيديو
 ```
 
-62 حرفًا، 12 كلمة. هناك متسع — **أحمد يؤكد** أي مصطلحات يبحث بها المصريون
+68 حرفًا، 13 كلمة — بخلاف الإنجليزية التي وصلت إلى الحد تمامًا، العربية
+ما زال فيها متسع واسع. هناك متسع — **أحمد يؤكد** أي مصطلحات يبحث بها المصريون
 فعلًا: "كوتش" و"كوتشينج" مكتوبتان صوتيًا لأن هذا ما يُكتب في البحث عادة،
 لكن هذا تخمين وليس بحث كلمات مفتاحية.
 
@@ -329,9 +409,9 @@ no medical advice.
 ```
 هذا أول إصدار.
 
-رفيق بالعربية والإنجليزية: قائمة أعضاء وجدول ومهام بين الجلسات وباقات
-جلسات ورسائل وصفحة للمحترف؛ والخطة التي وضعها محترفك والحجز وتسجيل الحالة
-والاستكشاف للأعضاء.
+رفيق بالعربية والإنجليزية: قائمة أعضاء وجدول وجلسات فيديو ومهام بين
+الجلسات وباقات جلسات ورسائل وصفحة للمحترف؛ والخطة التي وضعها محترفك
+والحجز وجلساتك بالفيديو وتسجيل الحالة والاستكشاف للأعضاء.
 
 أخبرنا بما ينقص — support@rafiqpro.com
 ```
@@ -342,12 +422,17 @@ no medical advice.
 
 Not copy, but the listing is not submittable without them:
 
-- **Screenshots**, both languages — iPhone 6.9" (1320×2868), 3–10 per
-  language; Play needs at least 2 phone screenshots, a 1024×500 feature
-  graphic and a 512×512 icon. §7 says to take them from the connected app,
-  not the demo data, which means real accounts with real content. Discover
-  should not be one of the screenshots at launch — it will be nearly
-  empty.
+- ~~**Screenshots**, both languages~~ **Done.** `store/screenshots/`
+  produces 14 per language at iPhone 6.9" (1320×2868) and 14 at Play's
+  1242×2208, plus the 1024×500 feature graphic and both icons — all
+  committed under `out/`. They are captured against the screenshot seed
+  rather than live accounts, which §7 asked for; that is a deliberate
+  trade recorded in `store/screenshots/README.md`.
+
+  Still a decision, not a blocker: **Discover** (`10-member-discover`) is
+  in the set and the note above argues it should not ship at launch,
+  because signed in it will be nearly empty. Leaving it out costs only the
+  upload order.
 - ~~**The app icon** (§7) — both platforms still ship Capacitor's
   placeholder.~~ Done (#83): both platforms ship the real mark, and §7
   is ticked. `store/screenshots/out/shared/` carries the 512×512 Play

@@ -209,3 +209,19 @@ test('member Sessions: Join shows in the window and opens the call with the coac
   expect(errs).toEqual([]);
   await ctx.close();
 });
+
+test('member Sessions: Join stays once the session has begun, until 30 minutes after it ends', async ({ browser }) => {
+  // 07:00–07:50, and nothing booked after it: twenty minutes in, there is
+  // no upcoming session left, but the call is still open.
+  const { page, ctx, errs } = await open(browser, { role: 'client', now: '2026-09-29T07:20:00Z', screen: 'clientSchedule' });
+  await expect(page.locator('.client-schedule-empty-upcoming')).toBeVisible();
+  await page.locator('.client-schedule-join').click();
+  expect(await state(page)).toEqual({ screen: 'sessionRoom', params: { sessionId: 's-next', name: 'Dina Farouk' } });
+  expect(errs).toEqual([]);
+  await ctx.close();
+
+  const after = await open(browser, { role: 'client', now: '2026-09-29T08:25:00Z', screen: 'clientSchedule' });
+  await expect(after.page.locator('.client-schedule-empty-upcoming')).toBeVisible();
+  await expect(after.page.locator('.client-schedule-join')).toHaveCount(0);
+  await after.ctx.close();
+});

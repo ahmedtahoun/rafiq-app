@@ -265,6 +265,10 @@ const en = {
     editClientTitle: 'Edit Member', editClientCancel: 'Cancel', editClientSave: 'Save',
     editClientChangePhoto: 'Change photo',
     editClientGoal: 'Goal', editClientNotes: 'Important notes (optional)',
+    // Under the coach's private notes, on Add and Edit member: notes about a
+    // person are their personal data under Law 151/2020, so they can ask
+    // for them (store/app-privacy.md §2 and §9). Ahmed approves the wording.
+    notesMemberCanAsk: 'Members can ask to see notes written about them.',
     editClientArchive: 'Archive Member', editClientArchiveTitle: 'Archive {name}?',
     editClientArchiveBody: "They'll be moved out of your active roster. Their history and progress stay saved, and you can reactivate them anytime.",
     editClientArchiveConfirm: 'Archive',
@@ -439,6 +443,19 @@ const en = {
     clientProfileDeleteBody: "This removes your personal info from {coach}'s roster. {coach} keeps their own record of your sessions and payments, as they're entitled to. This can't be undone.",
     clientProfileObligationCredits: '{n} unused session credit(s)', clientProfileObligationSession: 'an upcoming session',
     clientProfileAgreementAwaiting: 'Awaiting your review', clientProfileAgreementSigned: 'Agreed',
+
+    // The coaching agreement — the waiver a member reviews and signs,
+    // picked by their coach's specialty category (getAgreementInfo in
+    // mockStore.ts). This is the one text in the app a member is asked to
+    // agree to, so it goes through t() like everything else; it used to be
+    // English for an Arabic member, carried over from a prototype whose own
+    // AGREEMENT_TEXT sat outside translations().
+    agreementPhysicalTitle: 'Assumption of Risk & Safety Waiver',
+    agreementPhysicalBody: 'I confirm I am physically fit to take part in this activity and have disclosed any relevant medical conditions to my pro. I understand it carries inherent physical risk, and I release my pro from liability for injury except in cases of gross negligence. I agree to follow all safety instructions given during sessions.',
+    agreementEmotionalTitle: 'Coaching Agreement & Scope of Practice',
+    agreementEmotionalBody: 'I understand coaching is not a substitute for therapy, medical care, or mental health treatment, and my pro does not diagnose or treat any condition. Sessions are confidential except where disclosure is required by law. I understand the cancellation policy and agree to communicate openly with my pro about my goals.',
+    agreementGeneralTitle: 'Coaching Service Agreement',
+    agreementGeneralBody: 'I agree to attend scheduled sessions and give advance notice of any changes. I understand session packages are non-transferable, and my pro will keep our discussions confidential. This agreement can be updated at any time by mutual consent.',
 
     // EditClientProfile.dc.html
     editClientProfileAge: 'Age',
@@ -903,6 +920,7 @@ const en = {
     clientCoachBioFallback: 'Helping people move through big life transitions with clarity and confidence — one honest conversation at a time.',
     clientCoachSessionsQuick: 'Sessions', clientCoachTasksQuick: 'Tasks',
     clientCoachLiveToday: 'Today · Join',
+    clientCoachJoinSession: 'Join session',
     clientCoachNextLabel: 'Next', clientCoachNoSession: 'None booked',
     clientCoachTasksPending: '{n} pending', clientCoachTasksDone: 'All done',
     clientCoachPaymentPaid: 'Payment up to date', clientCoachPaymentDue: 'Payment due', clientCoachPaymentOverdue: 'Payment overdue',
@@ -1400,6 +1418,7 @@ const ar: Record<MessageKey, string> = {
     editClientTitle: 'تعديل العضو', editClientCancel: 'إلغاء', editClientSave: 'حفظ',
     editClientChangePhoto: 'تغيير الصورة',
     editClientGoal: 'الهدف', editClientNotes: 'ملاحظات مهمة (اختياري)',
+    notesMemberCanAsk: 'يحق للأعضاء طلب الاطلاع على الملاحظات المكتوبة عنهم.',
     editClientArchive: 'أرشفة العضو', editClientArchiveTitle: 'أرشفة {name}؟',
     editClientArchiveBody: 'سيتم نقلهم خارج قائمتك النشطة. يبقى سجلهم وتقدمهم محفوظين، ويمكنك إعادة تنشيطهم في أي وقت.',
     editClientArchiveConfirm: 'أرشفة',
@@ -1567,6 +1586,21 @@ const ar: Record<MessageKey, string> = {
     clientProfileDeleteBody: 'سيؤدي هذا إلى إزالة معلوماتك الشخصية من قائمة {coach}. تحتفظ {coach} بسجلها الخاص بجلساتك ومدفوعاتك، وهذا من حقها. لا يمكن التراجع عن هذا.',
     clientProfileObligationCredits: '{n} رصيد جلسات غير مستخدم', clientProfileObligationSession: 'جلسة قادمة',
     clientProfileAgreementAwaiting: 'بانتظار موافقتك', clientProfileAgreementSigned: 'تم القبول',
+
+    // Written, not translated. Two deliberate choices, both flagged in
+    // store/LAWYER-PACKAGE.md for counsel:
+    //   - the signer's own words avoid a gendered predicate ("حالتي البدنية
+    //     تسمح لي" rather than "أنا لائق/لائقة"), because the app does not
+    //     know the member's gender and a waiver should not guess it;
+    //   - the pro is referred to in the masculine generic, as Arabic legal
+    //     drafting usually does, even though the member's UI copy addresses
+    //     her pro as محترفتك.
+    agreementPhysicalTitle: 'إقرار بتحمّل المخاطر وإخلاء المسؤولية عن السلامة',
+    agreementPhysicalBody: 'أُقرّ بأن حالتي البدنية تسمح لي بالمشاركة في هذا النشاط، وبأنني أبلغت محترفي بأي حالة طبية ذات صلة. وأعلم أن هذا النشاط يحمل في طبيعته مخاطر بدنية، وأُعفي محترفي من المسؤولية عن أي إصابة، إلا في حالات الإهمال الجسيم. وأتعهد باتباع جميع تعليمات السلامة التي تُعطى أثناء الجلسات.',
+    agreementEmotionalTitle: 'اتفاق التدريب ونطاق الممارسة',
+    agreementEmotionalBody: 'أعلم أن التدريب ليس بديلًا عن العلاج النفسي أو الرعاية الطبية أو علاج الصحة النفسية، وأن محترفي لا يُشخّص أي حالة ولا يعالجها. والجلسات سرية إلا حيث يقضي القانون بالإفصاح. وأعلم سياسة الإلغاء، وأتعهد بالتواصل بصراحة مع محترفي بشأن أهدافي.',
+    agreementGeneralTitle: 'اتفاق خدمة التدريب',
+    agreementGeneralBody: 'أتعهد بحضور الجلسات المحددة وبالإبلاغ مسبقًا عن أي تغيير. وأعلم أن حِزم الجلسات غير قابلة للتحويل إلى شخص آخر، وأن محترفي سيحافظ على سرية ما نتناوله. ويمكن تعديل هذا الاتفاق في أي وقت بموافقة الطرفين.',
 
     // EditClientProfile.dc.html
     editClientProfileAge: 'العمر',
@@ -2013,6 +2047,7 @@ const ar: Record<MessageKey, string> = {
     clientCoachBioFallback: 'مساعدة الأشخاص على تجاوز التحولات الكبرى في حياتهم بوضوح وثقة — حديث صادق واحد في كل مرة.',
     clientCoachSessionsQuick: 'الجلسات', clientCoachTasksQuick: 'المهام',
     clientCoachLiveToday: 'اليوم · انضمام',
+    clientCoachJoinSession: 'الانضمام للجلسة',
     clientCoachNextLabel: 'القادمة', clientCoachNoSession: 'لا يوجد حجز',
     clientCoachTasksPending: '{n} معلقة', clientCoachTasksDone: 'كل شيء منجز',
     clientCoachPaymentPaid: 'الدفع محدث', clientCoachPaymentDue: 'الدفع مستحق', clientCoachPaymentOverdue: 'الدفع متأخر',

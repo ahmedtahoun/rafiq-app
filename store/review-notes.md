@@ -22,6 +22,28 @@ Written against the app on 2026-09-30. Labels are quoted from
       both: a reviewer can't receive your codes, and Google blocks unknown
       devices on accounts that have it. Store the passwords in the password
       manager, not in this repo.
+- [ ] **Unlist the review coach, before any real member can see them.**
+      `coach_directory` (0005) lists every active coach who finished
+      onboarding, so without this the review coach appears in every real
+      member's Discover — with its seeded 5-star review — and can be booked
+      or reported by them. `0022` adds the switch; it is dashboard-only, so
+      a coach cannot set it from the app:
+
+      ```sql
+      update public.coach_profiles set unlisted = true
+      where profile_id = (select id from public.profiles where email = '<review coach email>');
+      ```
+
+      The coach still sees their own page, and so do their own members, so
+      nothing in the run-through below breaks. `supabase/admin/README.md`
+      has the query for checking who is unlisted.
+
+      Do this **before** the first submission, not after: `review-accounts.sql`
+      refuses to run once a real member has joined the review coach's
+      roster, asked them for a session or reported them — deliberately,
+      because a reset would erase that member's rows and a report is
+      moderation evidence. Unlisting first is what keeps you out of that
+      state.
 - [ ] The redirect URL `app.rafiqie.coach://auth-callback` is in Supabase →
       Auth → URL Configuration (checklist §4), or native sign-in fails.
 - [ ] The build under test is the store build (TestFlight or Play internal
@@ -33,6 +55,17 @@ Written against the app on 2026-09-30. Labels are quoted from
       program, which the run-through below then exercises. Run it again
       after the run-through and after each review, to put back whatever was
       changed.
+
+      **It does not seed a session you can join.** Its three sessions are
+      14 days ago, 7 days ago and 3 days out; the video room only opens ten
+      minutes before a session starts (`JOIN_EARLY_MS`). Step 17 makes one,
+      and it has to be made on the day.
+
+      **Its hours decide when you can do step 17 at all.** The script seeds
+      availability 10:00–18:00 Cairo on Saturday–Wednesday. Outside that
+      the coach has no free slot for the member to book into, so plan the
+      run-through for a Sat–Wed daytime or widen the hours on Availability
+      first.
 
 ## 2. The run-through
 
@@ -68,26 +101,81 @@ before moving on. Stop and file a bug at the first step that isn't.
 11. Tick the task → on the coach's phone the member's record shows it done.
 12. Discover → the coach from step 2 is listed → their page → request a
     session at a free time → **Request sent!**
+
+    The coach is unlisted (§1) and still appears here, which is correct
+    rather than a leak: `coach_directory` returns an unlisted coach to
+    the coach themselves and to anyone on their roster, and step 9 put
+    this member on it. Signed in as any *other* member, this coach is not
+    in Discover at all — worth confirming once from a throwaway account,
+    since it is the whole point of unlisting them.
 13. Coach: Notifications → **Accept**. Member: the session appears, and so
     does the notification.
 14. **Message** the coach → it appears on the coach's phone without a
     refresh → reply → it appears on the member's.
-15. Member: ask to move the session → coach accepts → both see the new time.
-16. Coach: mark a past session attended. Member: **Rate Session** → the
+15. **The unread badge and the chime** (#128). With the coach's phone on a
+    screen that is *not* the thread — Home will do — send a message from
+    the member. The coach's phone **plays a sound** and the **Messages**
+    tab shows a count. Open the thread: the count clears. Then the other
+    way round, where the member's badge sits on **Your Pro**.
+
+    Two things that should *not* happen, and are the reason this step
+    exists: no sound while the thread is already open on screen, and no
+    sound if notifications are off (the coach's main switch, the member's
+    Messages switch — Profile → Preferences). A banner with the app
+    **closed** is a phone notification and is not in this version.
+16. Member: ask to move the session → coach accepts → both see the new time.
+17. **A video session, both ends.** Nothing seeded is joinable — see §1 —
+    so make one:
+
+    - Coach: **Schedule** → add a booked session starting in the next few
+      minutes, with the review member.
+    - Both phones: open the session. **Join** is disabled until ten
+      minutes before the start, then enables.
+    - Both tap Join. Grant camera and microphone when asked — the prompts
+      should read in the app's language. Each side sees and hears the
+      other.
+    - Leave from one side; the other is told. Rejoin works.
+
+    Worth doing once on **cellular**, not Wi-Fi: it is the condition a
+    reviewer is most likely to be on and the one least tested.
+
+    If the room says it is unavailable rather than opening, that is the
+    app refusing to start a call on a Daily domain or room with recording
+    switched on (`recording_enabled_on_domain` / `recording_enabled_on_room`,
+    `src/lib/videoData.ts`). It is the guard working, not a bug — fix it in
+    the Daily dashboard, not in the app.
+18. Coach: mark a past session attended. Member: **Rate Session** → the
     review shows on the coach's page signed with first name and last
     initial, never a full name.
-17. Member: **Report a problem** on the coach → **Report submitted**. It
+19. Member: **Report a problem** on the coach → **Report submitted**. It
     appears in the open-reports query (`supabase/admin/README.md`).
-18. Member: **Block** in the thread → neither side can send; unblock →
+20. Member: **Block** in the thread → neither side can send; unblock →
     both can.
-19. Airplane mode on either phone → an error with a retry, never a blank
+21. Airplane mode on either phone → an error with a retry, never a blank
     screen or demo data → back online → retry works.
-20. Android: the hardware back button walks back through screens and only
+22. Android: the hardware back button walks back through screens and only
     leaves the app from a tab root.
+
+> ### ⏳ Push notifications — not yet, add when #135/#137 land
+>
+> Both PRs are open and unmerged, so there is nothing to test and the
+> Apple notes in §3 still say there are none. **When they land, add a step
+> here and change three other things**, or the submission will describe an
+> app that no longer matches:
+>
+> - a step: with the app **fully closed**, a message from the other side
+>   raises a banner; tapping it opens that thread, not just the app;
+> - a step: turning the switch off in Profile → Preferences stops the
+>   banner, and turning it back on resumes it;
+> - §3's Apple notes: delete "There are no push notifications in this
+>   version. Notifications are shown inside the app.";
+> - the privacy policies already describe the notification token (#140),
+>   and `helpCenterA2` still says there are none — Reem changes that string
+>   when push ships.
 
 ### Deletion (on a third, throwaway account, not the review accounts)
 
-21. Sign up a throwaway member, link it to the review coach, then
+23. Sign up a throwaway member, link it to the review coach, then
     **Delete Account** → confirm → the request shows in pending deletions →
     process it (`account-deletion` function) → the login is gone, and the
     coach's record keeps the sessions without the name.
@@ -132,6 +220,17 @@ App Store Connect → the version → **App Review Information**.
 > other from the message thread ("Block"). Reports are reviewed by the
 > Rafiq team.
 >
+> Video sessions: a booked session can be held on video inside the app,
+> through Daily (daily.co), our video provider. The call is 1:1 between
+> the coach and that member, the Join button opens ten minutes before the
+> start, and **sessions are never recorded** — the app refuses to open a
+> call at all if recording is enabled on the room. Camera and microphone
+> are requested at that point and nowhere else.
+>
+> To see one: both accounts are on each other's schedule. Add a session
+> starting within the next ten minutes from the coach's Schedule, then tap
+> Join on both.
+>
 > Account deletion (5.1.1(v)): Profile → Delete Account.
 >
 > Coaching is not therapy or medical advice. This is stated in the terms
@@ -140,12 +239,15 @@ App Store Connect → the version → **App Review Information**.
 > There are no push notifications in this version. Notifications are shown
 > inside the app.
 
-⚠️ Two lines in those notes depend on decisions that are still open. Check
+⚠️ Three lines in those notes depend on things that are still open. Check
 them before pasting:
-- "No payment is taken": only true while the payments model (§3) is
-  undecided. If Paymob for sessions or In-App Purchase ships first, rewrite
-  that paragraph.
-- "Reports are reviewed": the response time isn't stated yet (§9).
+- "No payment is taken": only true while the payments model
+  (LAUNCH-CHECKLIST §3) is undecided. If Paymob for sessions or In-App
+  Purchase ships first, rewrite that paragraph.
+- "Reports are reviewed": the response time isn't stated yet
+  (LAUNCH-CHECKLIST §9).
+- "There are no push notifications in this version": true today, and false
+  the moment #135/#137 merge. See the box at the end of §2.
 
 ## 4. Google Play: App access
 
@@ -161,3 +263,10 @@ is restricted" → add two sets of instructions, one per role:
 
 Google's reviewers sign in from their own devices too, so the no-2-Step
 rule above applies here as well.
+
+Add to **Other information** on the Coach entry, since a reviewer will not
+find it otherwise: "A booked session can be held on video inside the app.
+Add a session starting within the next ten minutes from Schedule, then tap
+Join. Calls are 1:1 and are never recorded." The Data safety form's answer
+for call audio and video is `store/play-console.md` §7, question 13 —
+settle that before this is submitted, not after.

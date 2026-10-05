@@ -79,13 +79,15 @@ const SHOTS = [
   { n: 10, id: 'member-discover', side: 'member', screen: 'discover' },
   { n: 11, id: 'member-tasks', side: 'member', screen: 'clientTasks' },
   { n: 12, id: 'member-sessions', side: 'member', screen: 'clientSchedule' },
-  // English only until the untranslated specialty/language chips are
-  // fixed: PreviewProfile and ClientCoach print coach_profiles.title and
-  // the language list raw, so the Arabic ones read "Life coaching" under
-  // an Arabic name. Both are spares beyond either store's cap, so holding
-  // them back costs no upload. See the issue linked in README.md.
-  { n: 13, id: 'coach-preview', side: 'coach', screen: 'previewProfile', langs: ['en'] },
-  { n: 14, id: 'member-coach', side: 'member', screen: 'clientCoach', langs: ['en'] },
+  // Captured in Arabic too since #118. These two were English-only while
+  // PreviewProfile and ClientCoach printed coach_profiles.title and the
+  // language list raw, so the Arabic ones read "Life coaching" under an
+  // Arabic name (#95). Both now go through coachLabels.ts —
+  // tests/coach-labels.spec.js pins the Arabic chips on PreviewProfile,
+  // and ClientCoach renders its title through the same helper
+  // (ClientCoach.tsx:192).
+  { n: 13, id: 'coach-preview', side: 'coach', screen: 'previewProfile' },
+  { n: 14, id: 'member-coach', side: 'member', screen: 'clientCoach' },
 ];
 
 /**

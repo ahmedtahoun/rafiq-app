@@ -5,7 +5,11 @@ import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
 import { darken } from '../lib/color';
 import { CheckIcon, ChevronIcon, ClientsIcon, EyeIcon, ShareIcon, StarIcon } from '../components/icons';
-import { getClients, getProAggregateRating } from '../lib/mockStore';
+import { getClients, getProAggregateRating, MIN_REVIEWS_FOR_RATING } from '../lib/mockStore';
+import { fetchOwnCoachStats } from '../lib/coachStatsData';
+import { useRemoteSession } from '../lib/remoteSession';
+import { useRemoteLoad } from '../store/remoteLoad';
+import { useRoster } from '../store/rosterStore';
 import './ShareProfile.css';
 
 const ACCENT = '#B75C3D';
@@ -62,14 +66,36 @@ const CHANNELS: ShareChannel[] = ['whatsapp', 'messages', 'email', 'sms'];
 
 // 1:1 port of ShareProfile.dc.html — the shareable card, link and QR mock a
 // coach hands to a prospective member.
+//
+// Signed in, the member count and rating are the coach's own (the roster
+// and coachStatsData.ts); signed out, the demo's. The screen is still off
+// the Profile menu until the public coach page exists (LAUNCH-CHECKLIST).
 export default function ShareProfile() {
   const own = useOwnCoachProfile();
-  if (own.status === 'loading') return <LoadState status="loading" />;
+  const remote = useRemoteSession();
+  const roster = useRoster();
+  const stats = useRemoteLoad('coach_stats', remote, () => fetchOwnCoachStats());
+  if (own.status === 'loading' || (remote && (stats.status === 'loading' || roster.status === 'loading'))) return <LoadState status="loading" />;
   if (own.status === 'error') return <LoadState status="error" onRetry={own.retry} showBack />;
-  return <ShareProfileView own={own} />;
+  if (remote && stats.status === 'error') return <LoadState status="error" onRetry={stats.retry} showBack />;
+  if (remote && roster.status === 'error') return <LoadState status="error" onRetry={roster.retry} showBack />;
+  if (remote && stats.status === 'ready' && roster.status === 'ready') {
+    return (
+      <ShareProfileView
+        own={own}
+        activeCount={roster.clients.filter((c) => c.active).length}
+        rating={{ average: stats.data.ratingAvg, hasEnoughReviews: stats.data.ratingCount >= MIN_REVIEWS_FOR_RATING }}
+      />
+    );
+  }
+  return <ShareProfileView own={own} activeCount={getClients().filter((c) => c.active).length} rating={getProAggregateRating()} />;
 }
 
-function ShareProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }> }) {
+function ShareProfileView({ own, activeCount, rating }: {
+  own: Extract<OwnProfileView, { status: 'ready' }>;
+  activeCount: number;
+  rating: { average: number; hasEnoughReviews: boolean };
+}) {
   const t = useT();
   const back = useAppStore((s) => s.back);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -80,14 +106,12 @@ function ShareProfileView({ own }: { own: Extract<OwnProfileView, { status: 'rea
   const primarySpecialty = (profile.title || 'Life coaching').split(' · ')[0];
   const slug = profile.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   const profileUrl = `rafiq.app/pro/${slug}`;
-  const activeCount = getClients().filter((c) => c.active).length;
 
   // The design hardcodes 4.9 stars and 142 views as demo values. The rating
   // has a real seam, so it is read from it and shows a dash until there are
   // enough reviews — the same treatment Profile gives it. Views have no
   // source anywhere in the app, so they stay a dash rather than becoming a
   // number a coach might show a prospective member.
-  const rating = getProAggregateRating();
   const ratingLabel = rating.hasEnoughReviews ? rating.average.toFixed(1) : '—';
   const viewsLabel = '—';
 

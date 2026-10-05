@@ -315,12 +315,9 @@ test('Arabic RTL + dark', async ({ browser }) => {
 test('Retired stubs + navigation', async ({ browser }) => {
 {
   const { page } = await open(browser, { screen: 'clientCoach' });
-  await page.locator('.client-coach-hero-btn').first().click();
-  await page.waitForTimeout(400);
-  expect.soft(String(await screenOf(page)), 'ClientCoach back chevron → myCoaches').toBe('myCoaches');
+  // Your Pro is a tab root: no back arrow.
+  expect.soft(String(await page.locator('.client-coach-hero-btn, .client-coach-hero-top').count()), 'ClientCoach has no back chevron').toBe('0');
 
-  await page.evaluate(async () => (await import('/src/store/appStore.ts')).useAppStore.getState().nav('clientCoach'));
-  await page.waitForTimeout(400);
   await page.locator('.client-coach-primary').click();
   await page.waitForTimeout(400);
   expect.soft(String(await screenOf(page)), 'ClientCoach message button → coachMessages').toBe('coachMessages');
@@ -339,13 +336,14 @@ test('Retired stubs + navigation', async ({ browser }) => {
   await page.close();
 }
 {
-  // Via the real entry point, so history is what a member would have.
-  const { page } = await open(browser, { screen: 'clientCoach' });
-  await page.locator('.client-coach-hero-btn').first().click();
+  // Via the real entry point (Profile's pro card), so history is what a
+  // member would have.
+  const { page } = await open(browser, { screen: 'clientProfile' });
+  await page.locator('.client-profile-card').filter({ has: page.locator('.client-profile-coach-avatar') }).first().click();
   await page.waitForTimeout(400);
   await page.evaluate(async () => (await import('/src/store/appStore.ts')).useAppStore.getState().back());
   await page.waitForTimeout(400);
-  expect.soft(String(await screenOf(page)), 'back from myCoaches → clientCoach').toBe('clientCoach');
+  expect.soft(String(await screenOf(page)), 'back from myCoaches → clientProfile').toBe('clientProfile');
   await page.close();
 }
 {

@@ -52,7 +52,7 @@ jobs:
       # with Deno itself, and run their unit tests (no network: Paymob is a recorder).
       - name: Edge Functions (Deno check + test)
         run: |
-          npx --yes deno check supabase/functions/payouts/index.ts supabase/functions/account-deletion/index.ts supabase/functions/admin/index.ts supabase/functions/session-video/index.ts
+          npx --yes deno check supabase/functions/payouts/index.ts supabase/functions/account-deletion/index.ts supabase/functions/admin/index.ts supabase/functions/session-video/index.ts supabase/functions/push-send/index.ts
           npx --yes deno test --no-prompt supabase/functions
 
       # The admin tool is its own app with its own package.json, so the
@@ -112,6 +112,22 @@ jobs:
           VITE_SUPABASE_URL: https://placeholder.supabase.co
           VITE_SUPABASE_ANON_KEY: placeholder-anon-key
         run: npm test
+
+      # The admin tool's own suite, here rather than in the job above
+      # because that one has no browser. Same Playwright version as the
+      # root, so the Chromium installed above serves both, and its config
+      # starts its own dev server on 5175.
+      #
+      # Without this the admin tool had a browser suite nothing ran:
+      # `checks` typechecks and builds it, which cannot catch a queue that
+      # renders nothing or an action that posts the wrong operation.
+      - name: Admin tool browser tests
+        env:
+          VITE_SUPABASE_URL: https://placeholder.supabase.co
+          VITE_SUPABASE_ANON_KEY: placeholder-anon-key
+        run: |
+          npm ci --prefix admin
+          npm test --prefix admin
 
       - name: Upload report on failure
         if: failure()

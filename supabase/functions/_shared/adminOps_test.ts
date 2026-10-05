@@ -376,3 +376,126 @@ Deno.test("a lookup term cannot break out of PostgREST's filter grammar", async 
   await ask(f.deps, { op: 'lookupUser', query: 'a%,role.eq.admin,x(' });
   assertEquals(f.reads.at(-1)?.or, 'email.ilike.%a  role.eq.admin x%,full_name.ilike.%a  role.eq.admin x%');
 });
+
+// ---------------------------------------------------------------------------
+// Payouts
+//
+// Reading is done in adminOps; moving money is delegated to the `payouts`
+// function, which owns the Paymob client and the claim that stops a double
+// click paying a coach twice. So these tests are about two things: that
+// nothing here writes to `payouts`, and that nothing here returns an
+// account number to a browser.
+// ---------------------------------------------------------------------------
+
+const PAYOUT = '66666666-6666-4666-8666-666666666666';
+
+const payoutRow = (over: Row = {}) => ({
+  id: PAYOUT,
+  amount: 1500,
+  currency: 'EGP',
+  issuer: 'wallet',
+  status: 'requested',
+  comment: null,
+  destination: { msisdn: '01005551234', bank_code: null, account_number: '1234567890123', full_name: 'A Coach' },
+  created_at: '2026-10-01T09:00:00.000Z',
+  ...over,
+});
+
+Deno.test('listPayouts never returns an unmasked destination', async () => {
+  const f = fake({ admins: [ADMIN], tables: { payouts: [payoutRow()] } });
+  const out = await ask(f.deps, { op: 'listPayouts' });
+  assertEquals(out.status, 200);
+
+  const rows = out.body.payouts as Row[];
+  assertEquals(rows.length, 1);
+  const d = rows[0].destination as Record<string, string | null>;
+  // Last four digits only, and the full number nowhere in the reply.
+  assertEquals(d.msisdn, '••••1234');
+  assertEquals(d.account_number, '••••0123');
+  assertEquals(d.full_name, 'A Coach');
+  const serialised = JSON.stringify(out.body);
+  assert(!serialised.includes('01005551234'), 'the full msisdn reached the reply');
+  assert(!serialised.includes('1234567890123'), 'the full account number reached the reply');
+  assertEquals(f.writes, []);
+});
+
+Deno.test('listPayouts embeds the coach through coach_profiles, not profiles', async () => {
+  const f = fake({ admins: [ADMIN], tables: { payouts: [payoutRow()] } });
+  await ask(f.deps, { op: 'listPayouts' });
+  const columns = f.reads.at(-1)?.columns ?? '';
+  // payouts.coach_id references coach_profiles(profile_id), so the embed has
+  // to go through it. The fake models tables, not PostgREST, so this pins
+  // the string and only the real project can confirm it resolves — the same
+  // caveat VERIFICATION_COLUMNS carries.
+  assert(
+    columns.includes('coach:coach_profiles!coach_id(profile:profiles!profile_id('),
+    `embed goes through coach_profiles, got: ${columns}`,
+  );
+  // Not a plain substring check: `coach_profiles!coach_id` contains
+  // `profiles!coach_id`, so the naive version fails on the correct string.
+  assert(!/(?<!coach_)profiles!coach_id/.test(columns), 'embedded profiles directly off coach_id');
+});
+
+Deno.test('listPayouts filters by status, and refuses one outside the enum', async () => {
+  const f = fake({ admins: [ADMIN], tables: { payouts: [payoutRow()] } });
+  await ask(f.deps, { op: 'listPayouts', status: 'requested' });
+  assertEquals(f.reads.at(-1)?.filters, [['status', 'requested']]);
+
+  assertEquals((await ask(f.deps, { op: 'listPayouts', status: 'paid' })).status, 422);
+  assertEquals((await ask(f.deps, { op: 'listPayouts', status: 7 })).status, 422);
+  // The refusals never reached the table.
+  assertEquals(f.reads.filter((r) => r.table === 'payouts').length, 1);
+});
+
+Deno.test('a non-admin cannot list payouts', async () => {
+  const f = fake({ jwtUser: MEMBER, admins: [ADMIN], tables: { payouts: [payoutRow()] } });
+  assertEquals((await ask(f.deps, { op: 'listPayouts' })).status, 403);
+  assertEquals(f.reads.filter((r) => r.table === 'payouts'), []);
+  assertEquals(f.calls, []);
+});
+
+Deno.test('createPayout delegates, and never writes payouts itself', async () => {
+  const f = fake({ admins: [ADMIN], call: { status: 201, body: { payout: { id: PAYOUT } } } });
+  const out = await ask(f.deps, { op: 'createPayout', coach_id: COACH, amount: 1500, comment: 'September' });
+  assertEquals(out.status, 201);
+  assertEquals(f.calls, [{
+    name: 'payouts',
+    body: { action: 'create', coach_id: COACH, amount: 1500, comment: 'September' },
+    jwt: 'admin-jwt',
+  }]);
+  assertEquals(f.writes, []);
+});
+
+Deno.test('createPayout refuses an amount that is not a positive number', async () => {
+  const f = fake({ admins: [ADMIN] });
+  for (const amount of [0, -5, 'lots', null, undefined, Number.NaN]) {
+    assertEquals((await ask(f.deps, { op: 'createPayout', coach_id: COACH, amount })).status, 422);
+  }
+  assertEquals((await ask(f.deps, { op: 'createPayout', coach_id: 'not-a-uuid', amount: 10 })).status, 422);
+  // Nothing reached the payouts function: a bad amount is caught here.
+  assertEquals(f.calls, []);
+});
+
+Deno.test('sendPayout and syncPayout delegate with the right action', async () => {
+  const f = fake({ admins: [ADMIN], call: { status: 200, body: { payout: { id: PAYOUT, status: 'processing' } } } });
+  await ask(f.deps, { op: 'sendPayout', payout_id: PAYOUT });
+  await ask(f.deps, { op: 'syncPayout', payout_id: PAYOUT });
+  assertEquals(f.calls.map((c) => c.body.action), ['send', 'sync']);
+  assertEquals(f.calls.every((c) => c.name === 'payouts'), true);
+  assertEquals(f.writes, []);
+});
+
+Deno.test("the payouts function's refusals reach the admin unflattened", async () => {
+  // 409 is "someone already sent this one"; 500 paymob_not_configured is
+  // "there is no key on the server". An admin has to tell those apart, so
+  // neither may become a generic failure on the way through.
+  for (const call of [
+    { status: 409, body: { error: 'not_in_requested_state' } },
+    { status: 500, body: { error: 'paymob_not_configured' } },
+  ]) {
+    const f = fake({ admins: [ADMIN], call });
+    const out = await ask(f.deps, { op: 'sendPayout', payout_id: PAYOUT });
+    assertEquals(out.status, call.status);
+    assertEquals(out.body, call.body);
+  }
+});

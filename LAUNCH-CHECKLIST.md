@@ -18,10 +18,11 @@ this repo · *Design* = assets.
 calendar time no matter how fast the code moves:
 1. Connecting the app to the live database (§2) — the biggest piece of work.
 2. The name decision (§1) — icon, screenshots and store listing all wait on it.
-3. ~~Google Play closed testing — **12 testers for 14 days** on a new personal
-   developer account (§6).~~ Not applicable: **organization account**
-   (Ahmed, 2026-10-05), which is exempt. What replaces it as the long pole
-   is the legal entity and its D-U-N-S number — see `LAUNCH-RUNBOOK.md`.
+3. Google Play closed testing — **12 testers for 14 days** on a new personal
+   developer account (§6). **Proposed instead: an organization account**,
+   which is exempt — awaiting Ahmed's confirmation. If that is confirmed,
+   the long pole becomes the legal entity and its D-U-N-S number instead.
+   Either way `LAUNCH-RUNBOOK.md` has the ordering.
 4. The payments model (§3) — Apple's rules shape what can even be built.
 
 ---
@@ -45,10 +46,10 @@ calendar time no matter how fast the code moves:
       Coaches can still be paid to a bank account or a mobile wallet.
       Still open: the commission, and the advisor questions in §3.
 - [ ] 🔴 **Company / legal entity** that owns the developer accounts and
-      receives store payouts. **Raised from 🟡 to 🔴 on 2026-10-05**: the
-      Play account is now an organization one, which is verified against
-      this entity and its D-U-N-S number, so nothing on the Play side
-      starts until it exists. (The App Store Paid Apps agreement is not
+      receives store payouts. **Proposed as 🔴 rather than 🟡**: an
+      organization Play account (proposed, §5) is verified against this
+      entity and its D-U-N-S number, so nothing on the Play side would
+      start until it exists. On a personal account it stays 🟡. (The App Store Paid Apps agreement is not
       part of this while v1 sells nothing — `LAUNCH-RUNBOOK.md` §0.)
       Decide at the same time whether the **Apple** enrolment should also
       be the company: team `55BRQ92599` cannot be converted, so an
@@ -57,7 +58,11 @@ calendar time no matter how fast the code moves:
       than after. Runbook §3.
 - [ ] 🟡 **Launch coaches.** Discover must not open empty or with fake coaches
       (see §2). Recruit a first set of real coaches who finish signup before
-      public launch.
+      public launch. The invite and a 10-minute setup guide, both languages,
+      are drafted in `store/coach-invite.md` — along with why *finish signup*
+      is the whole job: `coach_directory` lists a coach the moment
+      `signup_completed_at` is set, with no photo, offering or bookable hour
+      required, so a half-finished profile is a live card in Discover.
 
 ## 2. Connect the app to the database (Dev)
 
@@ -66,7 +71,7 @@ locked down, 488 schema assertions in CI). The app uses it for the screens liste
 as done below, when signed in; every other screen still reads and writes
 `src/lib/mockStore.ts` / `src/lib/directory.ts` (localStorage on the phone).
 
-- [ ] 🔴 Replace each `mockStore` / `directory` function body with a Supabase
+- [x] 🔴 Replace each `mockStore` / `directory` function body with a Supabase
       query against the matching table — the tables mirror `mockStore`'s
       types, and `supabase/README.md` covers where the model differs.
       Suggested order: reports, verification and deletion requests (the admin
@@ -94,13 +99,19 @@ as done below, when signed in; every other screen still reads and writes
       `favourite_coaches` rows, 0005, instead of `localStorage`, so they
       follow the member to another device).
 
-      The three that were left went on 4 October. Before ticking this,
-      the coach side needs what the member side has: a walk of every
-      coach screen signed in that fails on any demo read
-      (`tests/member-demo-identity.spec.js` is the pattern). ShareProfile
-      and Subscription still import `mockStore`; the walk will say whether
-      they read it signed in. Signed out, the demo still runs on it, by
-      the 3 Oct decision.
+      The three that were left went on 4 October. The coach side now has
+      what the member side has (2026-10-05):
+      `tests/coach-demo-identity.spec.js` walks all 24 coach screens that
+      read the coach's data, signed in, and fails on any demo store read
+      or demo name. Its first run found two: Preview Profile and Share
+      Profile read the demo roster's ratings and member count. Both read
+      the coach's own now (Preview's reviews are `coach_reviews`, as the
+      coach page shows them). Subscription imports `mockStore` for its
+      signed-out cancel only. Three device keys are read signed in on
+      purpose and allowed by name: the notification switches, Home's
+      "Reminded" marks and a drafted reminder, all this phone's own.
+      Signed out, the demo still runs on `mockStore`, by the 3 Oct
+      decision.
 
       Done on 4 October:
 
@@ -116,7 +127,7 @@ as done below, when signed in; every other screen still reads and writes
         coach's own `payments` ledger (`src/lib/earningsData.ts`):
         completed charges less refunds, pending on its own line, paid and
         due over active members, with LoadState and a retry.
-- [ ] 🔴 **Remove the demo identities.** 14 member screens hardcoded
+- [x] 🔴 **Remove the demo identities.** 14 member screens hardcoded
       `const CLIENT_ID = 'sara'`, and the Pro side is the seeded
       `DEFAULT_PRO_ID = 'pro-yasmin'`. Both must come from the signed-in user.
       Done for the coach's roster and the member's Home, Tasks, My Pros,
@@ -147,27 +158,8 @@ as done below, when signed in; every other screen still reads and writes
       screen rather than a fixed delay. Breaking any one of them back to the
       demo fails it. Since #112 it allows no device key that isn't the
       member's own: saved coaches are `favourite_coaches` rows now.
-      **The coach half is not done, and this box was ticked while it was
-      still open** — the evidence above covers only the member screens,
-      and this item is also the Pro side's `DEFAULT_PRO_ID`.
-      tests/coach-demo-identity.spec.js now walks all 23 coach screens
-      signed in, on the same pattern: Home, Members, a member's page, Edit
-      member, Add task, Schedule, Add time block, Availability, the inbox,
-      a thread, Notifications, Offerings, an offering, Templates, a
-      template, Profile, Edit profile, Account details, Preview profile,
-      Share profile, Subscription, Earnings and Payout account. Breaking
-      any one of them back to the demo fails it (verified against
-      Templates). Twenty-one of the twenty-three are clean (Profile went
-      with #123). Two still read the demo store signed in, both
-      `getClients()` reaching `DEFAULT_CLIENTS` directly or through a
-      helper that walks it: `PreviewProfile.tsx:85,86,90,91` and
-      `ShareProfile.tsx:83,90`. The visible effect is a number, not a
-      name: `DEFAULT_CLIENTS` is six active members, so the share card and
-      the public preview show six however many the coach really has. The
-      two are held in the spec's `KNOWN_DEMO_READS` with their call
-      sites, so a new demo read anywhere else fails the walk and fixing
-      one of these also fails it — delete its entry then, and tick this
-      box when the map is empty.
+      The coach half is done too (#124's walk, closed by #126): every coach
+      screen signed in, no demo read left (`KNOWN_DEMO_READS` is empty).
 - [x] 🔴 **Remove the demo data:** `DEFAULT_CLIENTS`, `DEFAULT_TASKS`,
       `DEFAULT_ENROLLMENTS`, `DEFAULT_TEMPLATES`, `FALLBACK_MEMBER_SESSIONS`,
       the 8 fictional `DIRECTORY_COACHES`, and any other `DEFAULT_*` seed.
@@ -192,12 +184,16 @@ as done below, when signed in; every other screen still reads and writes
       TODAY_INDEX`) — the demo week the 3 Oct decision keeps.
       ClientSchedule, ClientBooking and CoachPreview converted in steps 4
       and 6 (#99).
-- [ ] 🔴 Loading, empty and error states on every screen. Today every read is
+- [x] 🔴 Loading, empty and error states on every screen. Today every read is
       synchronous localStorage; network reads can be slow or fail.
-      Done on every converted screen (35 files use `LoadState` as of 4 Oct,
+      Done on every converted screen (38 files use `LoadState` as of 5 Oct,
       up from 26: loading, then an error with a working retry — never the
-      demo data as a fallback); the rest land with §2's remaining screens,
-      which are now only the four listed in the first item.
+      demo data as a fallback). §2's last screens went with them: Earnings
+      (#121), Home's alerts (#122), Profile (#123), and Preview and Share
+      Profile (#126). The two walks (`tests/member-demo-identity.spec.js`,
+      `tests/coach-demo-identity.spec.js`) open every screen that reads
+      the signed-in user's data and require each to settle on real
+      content, not a spinner or an error.
       Discover now distinguishes an empty directory ("No pros yet") from a
       search that matched nothing — it will be empty until real pros sign
       up, and the search-failed wording read like a broken screen.
@@ -482,6 +478,18 @@ builds".
       first booking request, for example), not at first launch.
       Reference: ProCoach's ads (payment, booking and "workout crushed"
       banners) and an Arabic coach dashboard Ahmed shared, same date.
+      **Server half done (2026-10-05):** `0023` adds `device_tokens`
+      (written only through `register_device` / `unregister_device`, as
+      the caller; a phone moves to whoever signs in on it; ten per person)
+      and the missing "new request" notification (`request-received`).
+      The `push-send` Edge Function sends each pushed kind to the
+      recipient's phones in the phone's language and time zone, never a
+      message's text, and drops phones Apple or Google say are gone
+      (`supabase/functions/push-send/README.md`). *Ahmed:* the APNs key,
+      the Firebase project, the secrets, `db push`, deploy, and the
+      Database Webhook, all in that README. Left: the app half (the plugin,
+      registering, asking permission, the switches, the copy and privacy
+      forms) and the session reminder an hour before.
 - [x] 🔴 **Account deletion must actually happen.** The app files a request
       into `account_deletion_requests`; someone has to process it (§9), within
       a stated time. **Stated: within 30 days**, on the public deletion page.

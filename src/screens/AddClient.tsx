@@ -182,7 +182,7 @@ function AddClientView({ roster }: { roster: Extract<RosterView, { status: 'read
         </div>
 
         <TextAreaField id="acgoal" label={t('addClientGoal')} rows={3} placeholder={t('addClientGoalPlaceholder')} value={goal} onChange={(e) => setGoal(e.target.value)} />
-        <TextAreaField id="acnotes" label={t('addClientNotes')} rows={2} placeholder={t('addClientNotesPlaceholder')} value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <TextAreaField id="acnotes" label={t('addClientNotes')} hint={t('notesMemberCanAsk')} rows={2} placeholder={t('addClientNotesPlaceholder')} value={notes} onChange={(e) => setNotes(e.target.value)} />
       </div>
 
       <div className="add-client-footer">

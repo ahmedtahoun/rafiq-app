@@ -583,9 +583,11 @@ Since 2026-10-04 the walk covers every member screen that reads the
 member's data (Discover, Notifications, My programs, Program detail, Rate
 coach, Booking and the coach page added), waits for each screen's chunk
 (`installScreenSettle`) instead of a fixed delay, and fails if any of them
-is switched back to its demo version. Favourites (`rafiq_fav_coaches`) are
-the one device-local store left on the member side; moving them to
-`favourite_coaches` (0005) would take that key off the walk's allowlist.
+is switched back to its demo version. Favourites moved to
+`favourite_coaches` (0005) in #112, which took `rafiq_fav_coaches` off the
+walk's allowlist: no device-local store is left on the member side. The
+coach side has the same walk since 2026-10-05
+(`tests/coach-demo-identity.spec.js`, #126).
 
 ## The rest: session templates
 

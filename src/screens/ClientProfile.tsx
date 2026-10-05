@@ -306,7 +306,7 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
               </svg>
             </div>
             <div className="client-profile-card-text">
-              <div className="client-profile-card-title">{agreementInfo.title}</div>
+              <div className="client-profile-card-title">{t(agreementInfo.titleKey)}</div>
               <div className="client-profile-agreement-status" style={{ color: agreementColor }}>
                 {agreementStatusLabel}
               </div>
@@ -327,7 +327,7 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
           </button>
           {showAgreementExpand && (
             <div className="client-profile-agreement-expand">
-              <div className="client-profile-agreement-body">{agreementInfo.body}</div>
+              <div className="client-profile-agreement-body">{t(agreementInfo.bodyKey)}</div>
               {!isAgreementSigned && (
                 <button type="button" className="client-profile-agreement-sign" onClick={signAgreement}>
                   {t('clientProfileIAgree')}

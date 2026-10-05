@@ -37,9 +37,13 @@ test('ClientCoach renders', async ({ browser }) => {
   const { page, ctx, errs } = await open(browser);
   expect.soft(String(await state(page)), 'screen').toBe('clientCoach');
   expect.soft(String(await page.locator('.client-coach-name').innerText()), 'coach name shown').toBe('Yasmin El-Sayed');
-  expect.soft(String(await page.locator('.client-coach-stat').count()), 'three stats').toBe('3');
+  // Only the real numbers: this demo pro has too few reviews and no join
+  // date, so Sessions is the one stat, never a row of dashes.
+  expect.soft(await page.locator('.client-coach-stat-label').allInnerTexts(), 'only real stats').toEqual(['Sessions']);
+  expect.soft(await page.locator('.client-coach-stat-value').allInnerTexts(), 'no dashes').not.toContain('—');
   expect.soft(String(await page.locator('.client-coach-quick-card').count()), 'quick cards').toBe('3'); // sessions, tasks, and (demo) programs
-  expect.soft(String(await page.locator('.client-coach-payment').count()), 'payment strip').toBe('1');
+  // Hidden from the member until members can pay in the app; the coach still sees it.
+  expect.soft(String(await page.locator('.client-coach-payment').count()), 'no payment strip').toBe('0');
   expect.soft(String(await page.locator('.client-coach-upgrade').count()), 'upgrade CTA shown for a Basic member').toBe('1');
   expect.soft(String(await page.locator('.client-coach-standing').count()), 'no standing slot yet').toBe('0');
   expect.soft(String(await page.locator('.bottom-nav').count()), 'bottom nav').toBe('1');
