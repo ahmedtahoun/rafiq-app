@@ -94,7 +94,9 @@ test('the coach’s page shows their members’ reviews, newest first, signed wi
     limit: 5,
   }));
   // Nothing else is read for a reviewer's name.
-  expect((await dbCalls(page)).filter((c) => c.table === 'clients' || (c.table === 'profiles' && c.op === 'select' && c.filters.some(([, v]) => v !== MEMBER)))).toEqual([]);
+  // (The tab bar's unread badge reads the member's own roster rows by id
+  // only, store/unread.ts — no name, so it isn't what this guards.)
+  expect((await dbCalls(page)).filter((c) => (c.table === 'clients' && c.columns !== 'id') || (c.table === 'profiles' && c.op === 'select' && c.filters.some(([, v]) => v !== MEMBER)))).toEqual([]);
   expect(errs).toEqual([]);
   await ctx.close();
 });

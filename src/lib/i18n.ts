@@ -181,6 +181,7 @@ const en = {
     mainNudged: 'Nudged', mainDone: 'Done',
     mainEarningsReceived: 'received', mainEarningsDueOne: '1 member due', mainEarningsDueMany: '{n} members due', mainEarningsAllPaid: 'Everyone is paid up',
     mainHome: 'Home', tabProfile: 'Profile', mainClientsNav: 'Members', mainMessagesNav: 'Messages',
+    tabUnreadLabel: '{label}, {count} unread',
 
     // Profile.dc.html
     profilePreview: 'Preview', profileShare: 'Share', profileEdit: 'Edit',
@@ -1309,6 +1310,7 @@ const ar: Record<MessageKey, string> = {
     mainNudged: 'تم التذكير', mainDone: 'تم',
     mainEarningsReceived: 'مستلم', mainEarningsDueOne: 'عضو واحد بحاجة للدفع', mainEarningsDueMany: '{n} أعضاء بحاجة للدفع', mainEarningsAllPaid: 'الجميع دفعوا',
     mainHome: 'الرئيسية', tabProfile: 'حسابي', mainClientsNav: 'الأعضاء', mainMessagesNav: 'الرسائل',
+    tabUnreadLabel: '{label}، {count} غير مقروءة',
 
     // Profile.dc.html
     profilePreview: 'معاينة', profileShare: 'مشاركة', profileEdit: 'تعديل',

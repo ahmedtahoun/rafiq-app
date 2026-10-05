@@ -392,6 +392,14 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
     real.auth.getUser = async () => ({ data: { user: userId ? { id: userId } : null }, error: null });
     real.auth.signOut = async () => { log({ op: 'auth.signOut' }); return { error: null }; };
 
+    // Realtime: a quiet channel. Signed in, the app always holds one
+    // (store/unread.ts), and the real client would open a websocket to
+    // whatever .env.local points at — locally, the live project — and keep
+    // retrying it. A spec that delivers messages replaces these after
+    // installing the fake (unread-badge.spec.js, messaging-remote.spec.js).
+    real.channel = (name) => ({ name, on() { return this; }, subscribe() { return this; } });
+    real.removeChannel = async () => 'ok';
+
     const storage = {
       from: (bucket) => ({
         upload: async (path, file, opts) => {

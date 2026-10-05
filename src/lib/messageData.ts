@@ -142,3 +142,49 @@ export async function fetchInbox(clientIds: string[]): Promise<MessageResult<Rec
   }
   return ok(entries);
 }
+
+/**
+ * Everything the signed-in person hasn't read yet, across every thread
+ * they're in: for the tab bar's badge. The same count the inbox shows per
+ * row — the other side's messages after this side's read cursor.
+ */
+export async function fetchUnreadTotal(role: MessageRole): Promise<MessageResult<number>> {
+  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const uid = await currentUserId();
+  if (!uid) return NOT_SIGNED_IN;
+  const supabase = getSupabase();
+  const mine = await supabase.from('clients').select('id').eq(role === 'pro' ? 'coach_id' : 'member_id', uid);
+  if (mine.error) return fail(mine.error);
+  const ids = mine.data.map((c) => c.id);
+  if (ids.length === 0) return ok(0);
+  const other = role === 'pro' ? 'client' : 'coach';
+  const [messages, reads] = await Promise.all([
+    supabase.from('messages').select('client_id, created_at').in('client_id', ids).eq('sender_role', other),
+    supabase.from('message_reads').select('client_id, last_read_at').in('client_id', ids).eq('reader_role', dbRole(role)),
+  ]);
+  if (messages.error) return fail(messages.error);
+  if (reads.error) return fail(reads.error);
+  const lastRead = new Map(reads.data.map((r) => [r.client_id, Date.parse(r.last_read_at)]));
+  return ok(messages.data.filter((m) => Date.parse(m.created_at) > (lastRead.get(m.client_id) ?? 0)).length);
+}
+
+/**
+ * Every new message the signed-in person can read, in any thread: one
+ * channel for the whole app, for the badge and the in-app sound. Realtime
+ * applies messages_select to the subscriber, so it never hears anyone
+ * else's threads. Returns the unsubscribe.
+ */
+export function subscribeToMyMessages(onMessage: (m: { clientId: string; senderRole: MessageRole }) => void): () => void {
+  if (!isSupabaseConfigured()) return () => {};
+  const supabase = getSupabase();
+  const channel = supabase
+    .channel('messages:mine')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+      const row = payload.new as MessageRow & { client_id: string };
+      onMessage({ clientId: row.client_id, senderRole: row.sender_role === 'coach' ? 'pro' : 'client' });
+    })
+    .subscribe();
+  return () => {
+    void supabase.removeChannel(channel);
+  };
+}

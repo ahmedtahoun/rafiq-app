@@ -13,6 +13,10 @@ export interface BottomNavItem {
       FAB (`<dc-import name="QuickActions" context="home">`) sitting
       between two ordinary tabs. When set, `icon`/`screen` are ignored. */
   render?: () => ReactNode;
+  /** A count shown on the icon (unread messages); hidden at 0. */
+  badge?: number;
+  /** The tab's accessible name when it has a badge, from t(). */
+  badgeLabel?: string;
 }
 
 interface BottomNavProps {
@@ -48,10 +52,14 @@ export function BottomNav({ items }: BottomNavProps) {
             type="button"
             className={`bottom-nav-item${isActive ? ' bottom-nav-item-active' : ''}`}
             aria-current={isActive ? 'page' : undefined}
+            aria-label={item.badge ? item.badgeLabel : undefined}
             onClick={() => nav({ screen: item.screen, params: item.params })}
           >
             <span className="bottom-nav-icon">
               <Icon size={21} />
+              {!!item.badge && (
+                <span className="bottom-nav-badge" aria-hidden="true">{item.badge > 9 ? '9+' : item.badge}</span>
+              )}
             </span>
             <span className="bottom-nav-label">{item.label}</span>
           </button>
