@@ -13,9 +13,14 @@ a phone. Nothing in it is a code change except the two marked *(small PR)*.
 
 ## The shape of it
 
-**Decided (Ahmed, 2026-10-05): an organization Play account.** That
-removes the 14-day closed test from the critical path, and puts something
-else on it.
+**Proposed: an organization Play account** — awaiting Ahmed's written
+confirmation (asked in the PR that added this). The ordering below assumes
+it. If it comes back as a personal account instead, the critical path
+reverts to the 14-day closed test and this section is wrong, not just its
+detail.
+
+An organization account removes the 14-day closed test from the critical
+path, and puts something else on it.
 
 An organization account is verified against a **legal entity with a
 D-U-N-S number**. So the thing that now decides the launch date is
@@ -62,7 +67,8 @@ worth looking up before requesting anything.
 
 So: roughly a week of paperwork against two weeks of recruiting and
 holding 12 testers, and the entity is needed anyway for store payouts
-(§1). The decision looks right. Confirm the Play side's own timeline in
+(§1). The proposal looks right on those numbers. Confirm the Play side's
+own timeline in
 the console, since that is the half I could not verify.
 
 ## Waits you do not control
@@ -92,9 +98,11 @@ is immediate. Add it in a later pass.
 
 ## 0. Decide these first — each one changes the work
 
-- [x] **Personal or organization Google Play account.** **Organization**
-      (Ahmed, 2026-10-05). Exempt from the 12-testers / 14-days rule.
-      Changing it later means a new account, so this is settled.
+- [ ] **Personal or organization Google Play account.** **Proposed:
+      organization**, which is exempt from the 12-testers / 14-days rule.
+      Not yet confirmed in writing by Ahmed, so this box stays open.
+      Changing it after the account exists means a new account, so confirm
+      before creating one.
 - [ ] 🔴 **The legal entity** that owns both developer accounts and
       receives payouts (checklist §1). **This is now the first blocker**,
       not a 🟡 — the organization account is verified against it, and
@@ -175,7 +183,8 @@ Do all three the same day.
 
 Needs the entity decision from §0.
 
-- [ ] **Google Play Console** — create it as an **organization**, with
+- [ ] **Google Play Console** — once the account type is confirmed. As an
+      **organization** (proposed), with
       the entity's legal name, address and D-U-N-S number. Verification
       starts its clock here. The name you enter is the developer name
       shown on the listing, so enter the entity's name as registered.
@@ -256,7 +265,9 @@ it before you fill the form; it is the only unanswered question in there.
       run-through happen. With an organization account there is **no
       14-day closed test to sit through**, so production access is a
       matter of the declarations above being complete rather than of
-      waiting — which is exactly what the organization decision bought.
+      waiting — which is exactly what an organization account buys. On a
+      personal account, this is instead where the 12 testers are recruited
+      and the 14 days start.
 
 ## 6. In parallel with the paperwork
 
