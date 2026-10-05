@@ -185,7 +185,10 @@ test('a member no coach has accepted yet sees how to find one', async ({ browser
 for (const what of ['enrollments.select', 'offerings.select']) {
   test(`a failed read (${what}) shows retry, never the demo's programs`, async ({ browser }) => {
     const { page, ctx, errs } = await open(browser, { fail: [what] });
-    await expect(page.locator('.load-state')).toBeVisible();
+    // The error, not just any LoadState: the spinner is one too, and
+    // clearing the failure while it shows lets the read succeed, leaving
+    // no Try again to press.
+    await expect(page.getByRole('button', { name: 'Try again' })).toBeVisible();
     await expect(page.locator('body')).not.toContainText(DEMO);
     await setFailing(page, []);
     await page.getByRole('button', { name: 'Try again' }).click();
