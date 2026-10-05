@@ -313,10 +313,14 @@ if anyone asks.
 **6 — Does Paymob actually require the national ID?** Unresolved; their
 documentation is not reachable from the sandbox this was written in.
 What the repository shows is a *belief*: `paymobPayouts.ts:84` enforces
-exactly 14 digits. **The staging payout run (§3) settles it in one
-call**, and it is worth doing early — if the answer is no, question 5
-disappears, the hardest row in the inventory goes with it, and `0009`'s
-constraint gets simpler.
+exactly 14 digits. **`scripts/paymob-national-id-check.ts` settles it
+in one command** — two 1.00 EGP staging disbursements through the real
+`buildDisburseBody`, identical except that the first omits `national_id`,
+so a failure on its own proves nothing and the pair is the control. It
+needs the Paymob staging credentials, so only Ahmed can run it, and it
+writes nothing to the database. Worth doing early — if the answer is no,
+question 5 disappears, the hardest row in the inventory goes with it, and
+`0009`'s constraint gets simpler.
 
 **9 — Supabase log retention** is plan-dependent: roughly a day on Free,
 about a week on Pro. §5 upgrades to Pro before launch, so confirm the
