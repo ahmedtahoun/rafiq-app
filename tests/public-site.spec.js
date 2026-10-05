@@ -21,6 +21,12 @@ const DOCS = {
   terms: ['termsSection', 'clientTermsSection'],
 };
 const UPDATED = { privacySection: 'privacyUpdated', clientPrivacySection: 'clientPrivacyUpdated', termsSection: 'termsUpdated', clientTermsSection: 'clientTermsUpdated' };
+// How many numbered sections each document has, matching `sectionCount` on
+// the four screens and SECTION_COUNT in scripts/build-site.mjs. The privacy
+// policies carry four the terms do not: notifications, where the data is
+// held, how long it is kept, and backups. Hardcoding six here would have
+// published those four without ever checking them.
+const SECTION_COUNT = { privacySection: 10, clientPrivacySection: 10, termsSection: 6, clientTermsSection: 6 };
 // The block after the numbered sections: "Coaching is not therapy" and the
 // crisis lines, on the Terms documents only. It can fall behind the app the
 // same way the numbered sections can, so it is checked the same way.
@@ -50,7 +56,7 @@ async function mainText(browser, file) {
 test('the published policies say exactly what the app says, in both languages', async ({ browser, page }) => {
   // The app's own copy, straight from i18n.ts through the dev server.
   await page.goto('/');
-  const expected = await page.evaluate(async ({ DOCS, UPDATED, NOT_THERAPY }) => {
+  const expected = await page.evaluate(async ({ DOCS, UPDATED, NOT_THERAPY, SECTION_COUNT }) => {
     const { translate } = await import('/src/lib/i18n.ts');
     const { CRISIS_RESOURCES } = await import('/src/lib/crisisResources.ts');
     const out = {};
@@ -58,7 +64,8 @@ test('the published policies say exactly what the app says, in both languages', 
       for (const [slug, prefixes] of Object.entries(DOCS)) {
         out[`${lang}/${slug}`] = prefixes.flatMap((p) => [
           translate(lang, UPDATED[p]),
-          ...[1, 2, 3, 4, 5, 6].flatMap((n) => [translate(lang, `${p}${n}Heading`), translate(lang, `${p}${n}Body`)]),
+          ...Array.from({ length: SECTION_COUNT[p] }, (_, i) => i + 1)
+            .flatMap((n) => [translate(lang, `${p}${n}Heading`), translate(lang, `${p}${n}Body`)]),
           ...(NOT_THERAPY[p]
             ? [
                 translate(lang, 'notTherapyTitle'),
@@ -74,7 +81,7 @@ test('the published policies say exactly what the app says, in both languages', 
       }
     }
     return out;
-  }, { DOCS, UPDATED, NOT_THERAPY });
+  }, { DOCS, UPDATED, NOT_THERAPY, SECTION_COUNT });
 
   for (const [key, strings] of Object.entries(expected)) {
     const [lang, slug] = key.split('/');

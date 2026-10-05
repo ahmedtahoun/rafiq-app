@@ -38,7 +38,12 @@ const { MIN_REVIEWS_FOR_RATING } = await vite.ssrLoadModule('/src/lib/mockStore.
 await vite.close();
 
 const LANGS = ['en', 'ar'];
-const SECTIONS = [1, 2, 3, 4, 5, 6];
+/** How many numbered sections each document has, matching `sectionCount`
+    on the four screens. The privacy policies carry four more than the
+    terms (notifications, where data is held, retention, backups), so this
+    is per-prefix rather than one shared list. */
+const SECTION_COUNT = { privacySection: 10, clientPrivacySection: 10, termsSection: 6, clientTermsSection: 6 };
+const sectionsOf = (prefix) => Array.from({ length: SECTION_COUNT[prefix] }, (_, i) => i + 1);
 
 /** A policy document is one of the app's four, split by who it's for. */
 const DOCS = {
@@ -135,7 +140,7 @@ function render(lang, slug) {
       <section id="${p.prefix}" class="doc-part">
         <h2>${esc(c[p.labelKey])}</h2>
         <p class="updated">${esc(t(p.updatedKey))}</p>
-        ${SECTIONS.map((n) => `
+        ${sectionsOf(p.prefix).map((n) => `
         <h3>${esc(t(`${p.prefix}${n}Heading`))}</h3>
         <p>${text(t(`${p.prefix}${n}Body`))}</p>`).join('')}${p.notTherapyKey ? `
         <h3>${esc(t('notTherapyTitle'))}</h3>

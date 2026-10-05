@@ -16,7 +16,7 @@ export default function ClientPrivacyPolicy() {
       titleKey="clientPrivacyTitle"
       updatedKey="clientPrivacyUpdated"
       sectionPrefix="clientPrivacySection"
-      sectionCount={6}
+      sectionCount={10}
     />
   );
 }

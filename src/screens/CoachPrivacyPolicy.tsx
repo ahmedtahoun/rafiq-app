@@ -8,7 +8,7 @@ export default function CoachPrivacyPolicy() {
       titleKey="privacyTitle"
       updatedKey="privacyUpdated"
       sectionPrefix="privacySection"
-      sectionCount={6}
+      sectionCount={10}
     />
   );
 }

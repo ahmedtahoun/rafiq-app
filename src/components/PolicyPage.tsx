@@ -9,21 +9,37 @@ import './PolicyPage.css';
     `${prefix}${n}Heading` into real keys and check every one of them. */
 type SectionPrefix = 'privacySection' | 'termsSection' | 'clientPrivacySection' | 'clientTermsSection';
 
-const SECTION_NUMBERS = [1, 2, 3, 4, 5, 6] as const;
+const SECTION_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
 type SectionNumber = (typeof SECTION_NUMBERS)[number];
 
-interface PolicyPageProps {
+/** The section counts one document may claim: every number whose heading
+    *and* body key exist for that document's own prefix.
+
+    This used to be a single `SectionNumber` shared by all four documents,
+    which coupled them — the keys are checked by expanding
+    `${prefix}${n}Heading`, so a seventh privacy section demanded a
+    seventh terms section too, and the only way round it was to park extra
+    copy in `footer`. Keyed on the prefix, the privacy policies can run to
+    ten sections while the terms stay at six, and every key is still
+    checked at the call site. */
+type ValidSectionCount<P extends SectionPrefix> = {
+  [N in SectionNumber]: `${P}${N}Heading` extends MessageKey
+    ? `${P}${N}Body` extends MessageKey
+      ? N
+      : never
+    : never;
+}[SectionNumber];
+
+interface PolicyPageProps<P extends SectionPrefix> {
   titleKey: MessageKey;
   updatedKey: MessageKey;
   /** Section copy lives at `${sectionPrefix}{n}Heading` / `...Body`, 1-based. */
-  sectionPrefix: SectionPrefix;
-  sectionCount: SectionNumber;
+  sectionPrefix: P;
+  sectionCount: ValidSectionCount<P>;
   /** Rendered after the numbered sections. The Terms screens put
-      "Coaching is not therapy" and the crisis list here rather than
-      extending SECTION_NUMBERS to 7: the numbered keys are checked by
-      expanding `${prefix}${n}Heading` over every prefix, so a seventh
-      number would demand privacySection7Heading too. A footer names its
-      keys outright and stays just as checked. */
+      "Coaching is not therapy" and the crisis list here, which is still
+      the right home for it: it is one block of prose with its own keys,
+      not a numbered section of the document. */
   footer?: ReactNode;
 }
 
@@ -37,13 +53,21 @@ interface PolicyPageProps {
  * supply their own i18n keys rather than carrying two copies of the same
  * markup that would drift the first time one is touched.
  */
-export function PolicyPage({ titleKey, updatedKey, sectionPrefix, sectionCount, footer }: PolicyPageProps) {
+export function PolicyPage<P extends SectionPrefix>({ titleKey, updatedKey, sectionPrefix, sectionCount, footer }: PolicyPageProps<P>) {
   const t = useT();
   const back = useAppStore((s) => s.back);
   const lang = useAppStore((s) => s.lang);
   const setLang = useAppStore((s) => s.setLang);
 
   const sections = SECTION_NUMBERS.slice(0, sectionCount);
+
+  /** `ValidSectionCount<P>` already proved at the call site that every
+      number up to `sectionCount` has both keys for this prefix, which is
+      where getting it wrong would be a real bug. The compiler cannot carry
+      that proof through a `P` it has not resolved, so the composed key is
+      asserted here and nowhere else. */
+  const sectionKey = (n: SectionNumber, part: 'Heading' | 'Body') =>
+    `${sectionPrefix}${n}${part}` as MessageKey;
 
   return (
     <div className="phone-frame policy-page">
@@ -65,8 +89,8 @@ export function PolicyPage({ titleKey, updatedKey, sectionPrefix, sectionCount, 
         <div className="policy-page-updated">{t(updatedKey)}</div>
         {sections.map((n) => (
           <section key={n} className="policy-page-section">
-            <h2 className="policy-page-heading">{t(`${sectionPrefix}${n}Heading`)}</h2>
-            <p className="policy-page-text">{t(`${sectionPrefix}${n}Body`)}</p>
+            <h2 className="policy-page-heading">{t(sectionKey(n, 'Heading'))}</h2>
+            <p className="policy-page-text">{t(sectionKey(n, 'Body'))}</p>
           </section>
         ))}
         {footer}
