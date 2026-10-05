@@ -10,10 +10,10 @@ Ahmed can upload without running anything.
 
 ```
 out/
-  en/iphone/01-coach-home.png …  12 × 1320×2868
-  en/play/01-coach-home.png   …  12 × 1242×2208  + feature-graphic.png
-  ar/iphone/…                    the same twelve, Arabic
-  ar/play/…
+  en/iphone/01-coach-home.png …  14 × 1320×2868
+  en/play/01-coach-home.png   …  14 × 1242×2208  + feature-graphic.png
+  ar/iphone/…                    12 of the 14, Arabic (13 and 14 are
+  ar/play/…                      English-only — see below)
   shared/play-icon-512.png       512×512
   shared/app-icon-1024.png       1024×1024
 ```
@@ -56,9 +56,9 @@ Play's "24-bit PNG, no alpha" asks for. The 1024 × 500 feature graphic is
 2.05 : 1, which is fine: the 2 : 1 cap is a screenshot rule and the
 feature graphic is a separate asset with one fixed size.
 
-Counts: twelve screens are captured, Apple takes up to 10 and Play up to
-8. The number in each filename is the upload order — **01–08 to Play,
-01–10 to Apple** — and 01–08 tell the story on their own, so 09–12 are
+Counts: fourteen screens are captured, Apple takes up to 10 and Play up
+to 8. The number in each filename is the upload order — **01–08 to Play,
+01–10 to Apple** — and 01–08 tell the story on their own, so 09–14 are
 spares to swap in.
 
 ## Which screens, and why
@@ -73,16 +73,61 @@ and Notifications are left out because Reem is still converting them.
 | 02 | Coach Members | That the roster is real, and small enough to read |
 | 03 | A member's page | The actual working surface — tasks, progress, history in one place |
 | 04 | Coach Schedule | Shows the week is the coach's own, not a demo week |
-| 05 | Coach Messages | Messaging is in the app, which the listing has to prove (it is not WhatsApp) |
-| 06 | Coach Offerings | What a coach sells and for how much, in EGP |
-| 07 | Member Home | The other half of the product, for the member half of the audience |
-| 08 | Member Discover | How a member finds a coach |
-| 09 | Member Tasks | The between-sessions work the description leans on |
-| 10 | Member Sessions | Past and upcoming, with recaps |
-| 11 | Coach Preview Profile | What a coach's own page looks like to a member — **English only**, see below |
-| 12 | Member's coach page | The relationship once it exists — **English only**, see below |
+| 05 | Session, before joining | The 1:1 call exists and is about to start — and says "Nothing is recorded" on the screen itself |
+| 06 | Session, in the call | The call running, with the other person in it. The feature the listing sells |
+| 07 | Coach Messages | Messaging is in the app, which the listing has to prove (it is not WhatsApp) |
+| 08 | Member Home | The other half of the product, for the member half of the audience |
+| 09 | Coach Offerings | What a coach sells and for how much, in EGP |
+| 10 | Member Discover | How a member finds a coach |
+| 11 | Member Tasks | The between-sessions work the description leans on |
+| 12 | Member Sessions | Past and upcoming, with recaps |
+| 13 | Coach Preview Profile | What a coach's own page looks like to a member — **English only**, see below |
+| 14 | Member's coach page | The relationship once it exists — **English only**, see below |
 
-**11 and 12 are captured in English only.** `PreviewProfile` and
+### What 05 and 06 cost, and how to undo it
+
+Play shows only the first eight, so putting the call at 05 and 06 pushed
+two screens out of that set. **Offerings and Discover** took it: they are
+09 and 10 now, still inside Apple's ten, but no longer on the Play
+listing. The order after 04 is a judgement about merchandising rather
+than a fact — the story runs schedule → join → in the call → message
+between sessions, and the call is the thing the description leads on. If
+you would rather keep pricing or discovery in Play's eight, renumber the
+`n` values in `shots.mjs`; nothing else depends on them.
+
+### How the call is captured
+
+No Daily, no camera, no token that works: `tests/fakeVideoCall.js` swaps
+the call out through `setVideoCallFactory`, the same fake
+`tests/session-video.spec.js` uses, and `setFunctionReply` answers the
+one `session-video` call the room makes. The session is `s-3` in the
+seed, which runs 08:30–09:20 UTC against a clock pinned to 09:00, so it
+is live without inventing a row.
+
+Nobody's face appears. The other participant has no video track, so the
+screen falls back to an initials avatar — what it really does for
+someone whose camera is off. The coach's own tile has no such fallback
+(the screen leaves it blank while a camera is starting), so the fake
+hands it a canvas painted with their initials, drawn mirrored because
+the screen mirrors a self-view; the run asserts the tile is still
+mirrored, so that compensation cannot rot silently.
+
+**Two determinism traps live in this shot**, both now handled, and both
+worth knowing before changing anything here:
+
+- The live dot pulses forever (`SessionRoom.css:185`), so the capture
+  landed at a different opacity each run. Every shot is now taken with
+  `animations: 'disabled'`, which rewinds an infinite animation to its
+  first frame and runs a finite one to its last.
+- A canvas feeding a `<video>` stops emitting when it stops changing, so
+  it is repainted on a timer and then frozen once the element has a
+  frame. Frames still arriving during a capture change the bytes.
+
+I first blamed the `<video>` for the non-determinism and that was wrong;
+it was the dot. With animations frozen the video track hashes the same
+every run.
+
+**13 and 14 are captured in English only.** `PreviewProfile` and
 `ClientCoach` print `coach_profiles.title` and the language list raw, so
 in Arabic they read "Life coaching" and "English" under an Arabic name —
 the same stored value Discover translates correctly. That is an app bug,
@@ -92,6 +137,25 @@ deliberately not fixed here (this PR may not touch `src/screens/`). Both
 are spares beyond Apple's 10 and Play's 8, so nothing is blocked; add the
 Arabic captures by deleting `langs: ['en']` from those two entries in
 `shots.mjs` once #95 lands.
+
+## Proving "the same bytes every run"
+
+It is a claim, so check it rather than trust it:
+
+```sh
+npm run screenshots && find store/screenshots/out -name '*.png' | sort | xargs sha256sum > /tmp/a
+npm run screenshots && find store/screenshots/out -name '*.png' | sort | xargs sha256sum > /tmp/b
+diff /tmp/a /tmp/b
+```
+
+Three consecutive runs were identical across all 56 files when this was
+last changed. Two earlier breaks of that promise are worth knowing about,
+because both were invisible in a single run: the pulsing live dot above,
+and `02-coach-members`, which differed on about one run in three because
+an avatar had not finished decoding when the shutter fired. Waiting on
+`document.fonts.ready` covers text and `__screenSettled` covers the
+chunk; neither waits for an `<img>`, so the run now awaits
+`img.decode()` as well.
 
 ## What the images may show
 
