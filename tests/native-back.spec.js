@@ -44,7 +44,20 @@ async function open(browser, platform) {
   await page.goto('/');
   await page.evaluate(() => localStorage.clear());
   await page.reload();
-  await page.waitForTimeout(400);
+  if (platform) {
+    // App.tsx registers the listener from its mount effect, after an
+    // import: a fixed wait here was a race a loaded run lost, pressing back
+    // before anyone was listening — the press vanished and the poll below
+    // timed out on an unchanged screen. Wait for the listener itself.
+    await expect
+      .poll(() => page.evaluate(async () => {
+        const { App } = await import('/@id/@capacitor/app');
+        return App.hasListeners('backButton');
+      }), { message: 'the backButton listener was never registered' })
+      .toBe(true);
+  } else {
+    await page.waitForTimeout(400);
+  }
   return { page, ctx, errs };
 }
 
