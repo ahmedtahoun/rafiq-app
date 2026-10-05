@@ -14,7 +14,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PGBIN="${PGBIN:-/usr/lib/postgresql/16/bin}"
 PGROOT="${PGROOT:-/var/tmp/rafiq-pgtest}"
-MIN_ASSERTIONS=584
+MIN_ASSERTIONS=598
 
 OUT=""
 OWN_CLUSTER=""
@@ -147,6 +147,9 @@ OUT="$(mktemp)"
   echo
   echo "=== REVIEW ACCOUNTS ==="
   psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/26_review_accounts.sql"
+  echo
+  echo "=== UNLISTED COACHES ==="
+  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/27_unlisted_coaches.sql"
 } | grep -v '^$' | tee "$OUT"
 
 PASSED="$(grep -c '^PASS' "$OUT" || true)"

@@ -19,14 +19,20 @@
   NSPrivacyTracking below and the absence of
   NSUserTrackingUsageDescription from Info.plist.
 
-  Three entries depend on open questions in store/app-privacy.md and are
-  marked where they appear:
-    - PhysicalAddress (question 1): self-typed city and country only.
-    - Health, in its "coaching focus" part (question 3), and Fitness
-      (question 4): the inventory recommends declaring both.
-    - CrashData is deliberately ABSENT (question 11): Sentry is off
-      until VITE_SENTRY_DSN is set, and with no DSN the SDK is never
-      imported. The day that changes, add it here with Linked false.
+  Settled on 4 Oct 2026 (store/app-privacy.md §8):
+    - City and country are NOT a postal address. They are two optional
+      self-typed fields with no street, postcode or anything derived, so
+      they fall under OtherDataTypes, which is declared below.
+      PhysicalAddress is deliberately absent.
+    - Health and Fitness are both declared. Mood check-ins require
+      Health on their own; a coaching focus of "stress & anxiety" is an
+      inference about health; and a task carries a `done` flag, so the
+      app records whether someone did the exercise, not just that it was
+      set.
+    - CrashData is deliberately ABSENT: Sentry is off until
+      VITE_SENTRY_DSN is set, and with no DSN the SDK is never imported.
+      The day that changes, add it here with Linked FALSE — no user
+      context is ever attached.
 -->
 <plist version="1.0">
 <dict>
@@ -65,21 +71,6 @@
 		<dict>
 			<key>NSPrivacyCollectedDataType</key>
 			<string>NSPrivacyCollectedDataTypePhoneNumber</string>
-			<key>NSPrivacyCollectedDataTypeLinked</key>
-			<true/>
-			<key>NSPrivacyCollectedDataTypeTracking</key>
-			<false/>
-			<key>NSPrivacyCollectedDataTypePurposes</key>
-			<array>
-				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
-			</array>
-		</dict>
-		<!-- OPEN QUESTION 1: self-typed city and country only, no street
-		     and nothing derived. Remove this entry if that is declared as
-		     Other Data instead. -->
-		<dict>
-			<key>NSPrivacyCollectedDataType</key>
-			<string>NSPrivacyCollectedDataTypePhysicalAddress</string>
 			<key>NSPrivacyCollectedDataTypeLinked</key>
 			<true/>
 			<key>NSPrivacyCollectedDataTypeTracking</key>

@@ -65,15 +65,15 @@ analytics, no advertising and no marketing use of any of it.
 | Name | **Yes** | Yes | App Functionality | `profiles.full_name`, from the sign-in provider or typed; also the name a coach records on a roster row |
 | Email Address | **Yes** | Yes | App Functionality | `profiles.email`. With Sign in with Apple this may be a private relay address |
 | Phone Number | **Yes** | Yes | App Functionality | `profiles.phone`, optional; a coach may record a member's |
-| Physical Address | **See open question 1** | Yes | App Functionality | Self-typed city and country only — no street, no postcode, nothing derived. Apple's "Physical Address" overstates it and "Other Data" understates it |
+| Physical Address | **No** | — | — | Decided (§8, q1): city and country are two optional self-typed fields with no street, postcode or anything derived, and nothing is measured from the device. They are declared under **Other Data** instead |
 | Other User Contact Info | No | — | — | |
 
 ### Health & Fitness
 
 | Type | Collected | Linked | Purposes | Where it comes from |
 |---|---|---|---|---|
-| Health | **Yes** | Yes | App Functionality | **Mood check-ins** (`mood_checkins`) — self-reported wellbeing, dated, tied to an identified account. Not ambiguous. Also **coaching focus** (open question 3, decided yes) |
-| Fitness | **Yes** (open question 4, decided yes) | Yes | App Functionality | Tasks a coach sets, which are often exercise or sleep ("10-minute evening walk") |
+| Health | **Yes** | Yes | App Functionality | **Mood check-ins** (`mood_checkins`) — self-reported wellbeing, dated, tied to an identified account. Not ambiguous. Also **coaching focus**, if you answer open question 3 as recommended |
+| Fitness | **See open question 4** | Yes | App Functionality | Tasks a coach sets, which are often exercise or sleep ("10-minute evening walk") |
 
 Declaring health data is what obliges the privacy policy to explain how
 it is protected, which §8 already requires.
@@ -89,7 +89,15 @@ it is protected, which §8 already requires.
 Apple's "Payment Info" is written for how a user *pays*; these are the
 details a coach is *paid to*. It is still the nearest honest type.
 
-**The national ID has no good home** — see open question 5.
+**The national ID goes in Other Data, not here** — decided at §8, q5.
+It is an identity document, not a form of payment, and Apple asks you to
+pick the type that matches the data rather than its purpose.
+
+**These three rows are "shared"** — decided at §8, q12. Everything else
+in this form is processing by a service provider acting on our
+instructions; Paymob is different, because a regulated financial
+institution uses a national ID for its own KYC and anti-money-laundering
+obligations. That is its purpose, not ours.
 
 ### Purchases
 
@@ -233,47 +241,164 @@ health and financial data. Nothing failed, because nothing looked.
 Both failure modes were confirmed by causing them: emptying the array,
 and misspelling `PhotosorVideos` as `PhotosOrVideos`.
 
-**Three entries depend on open questions below**, and are marked in the
-file where they appear:
+**The manifest now reflects the decisions in §8**, so it declares
+fourteen types rather than fifteen: `PhysicalAddress` was removed when
+q1 settled, and `Health` and `Fitness` stayed when q3 and q4 did.
 
-| Entry | Question | If the answer changes |
-|---|---|---|
-| `PhysicalAddress` | 1 — is self-typed city and country an address? | Remove the entry; it becomes Other Data, which is already declared |
-| `Health` (its "coaching focus" part) | 3 — **decided yes** | The entry stays regardless — mood check-ins alone require it |
-| `Fitness` | 4 — **decided yes** | Stays |
-
-And one is **deliberately absent**: `CrashData`. Sentry is off until
+One type is **deliberately absent**: `CrashData`. Sentry is off until
 `VITE_SENTRY_DSN` is set, and with no DSN the SDK is never imported, so
 declaring it today would be untrue. The day that changes, add it with
 `Linked` **false** — and change the Diagnostics row in §3 with it.
 
-## 8. The open questions
+## 8. The questions, answered
 
-The same list as `store/play-console.md`, which is
-`store/privacy-inventory.md`'s "Ahmed to confirm" set — but two of them
-land *harder* on Apple's form than on Google's, so they are first.
+Settled 4 October 2026. These were `store/privacy-inventory.md`'s
+"Ahmed to confirm" list; the inventory now carries the same answers.
+Three are **recommendations awaiting an external fact or a lawyer** and
+say so.
 
-| # | Question | Where it bites on this form |
-|---|---|---|
-| **5** | **Where does a national ID go?** Apple has no type for a government identity number. Its Sensitive Info list is race, orientation, pregnancy, disability, religion, union, politics, genetics, biometrics — a national ID is none of them. Financial Info → Payment Info is the nearest honest home given it exists only to send money; Other Data is the alternative | Financial Info → Payment Info, or Other Data |
-| **1** | **Self-declared city and country** — "Physical Address" overstates it, "Other Data" understates it. Apple's Physical Address is the one that reads worst on a product page for what is two optional text fields | Contact Info → Physical Address |
-| 3 | Whether coaching focus counts as health data. **Decided (Ahmed, 2026-10-04): yes.** | Health & Fitness → Health |
-| 4 | Whether tasks count as fitness data. **Decided (Ahmed, 2026-10-04): yes.** | Health & Fitness → Fitness |
-| 6 | Whether Paymob genuinely requires `national_id`. If not, stop collecting it — question 5 disappears with it | Financial Info |
-| 2 | Whether a member may see their coach's private notes under Law 151/2020 | Not a form field; a legal exposure |
-| 7 | What Law 151/2020 requires for the transfer to Ireland | The policy this form must match |
-| 8 | A retention period for data not covered by a deletion request | The policy |
-| 9 | Supabase's own log retention, which holds IP addresses | Whether IPs are collected at all |
-| 10 | The age rating questionnaire | Apple's own, separate from App Privacy |
-| 11 | Whether to switch crash reporting on, and which Sentry region | Diagnostics → Crash Data flips to Yes |
+### Decided
 
-And the one this pair of documents adds:
+**1 — City and country are not a postal address.** Declared as **Other
+Data** (Apple) / **Other info** (Google), not Address. There is no
+street, postcode or line-1 field anywhere in `0001`: it is two optional
+self-typed fields, plus a flag emoji and a dial code. It is not Location
+either — Apple's location types describe what the device measures, not
+what someone types. Declaring Address would overstate in the direction
+that alarms: a product page reading "collects your physical address"
+when the app holds "Cairo" misleads the reader more than the honest
+catch-all does. *Removed `PhysicalAddress` from the manifest.*
 
-| 12 | **Is Paymob "sharing" or "processing"?** Apple asks whether data is shared with third parties for *their* purposes. Everything above is answered as processing. Paymob is the one where a reasonable person could disagree — a coach's name, national ID and account number leave our chain to a payment provider | Financial Info, three rows |
+**3 — Coaching focus is health data. Yes.** The decisive point is that
+the marginal cost is **zero**: mood check-ins already force a Health
+declaration, so adding focus changes neither product page. Accuracy for
+free. "Stress & anxiety" or "sleep" as a chosen focus is an inference
+about someone's health whether or not a diagnosis was typed.
+
+**4 — Tasks are fitness data. Yes.** Stronger than it looks: a task
+carries a **`done` flag**, so the app records whether the person did the
+exercise, not merely that a coach set it. And a coach can type anything,
+so the content cannot be bounded.
+
+**5 — The national ID goes in Other Data, not Payment Info.** Apple's
+Payment Info means "form of payment, payment card number, bank account
+number"; a national ID is none of those. It is an identity document that
+happens to be required alongside a payment, and Apple asks for the type
+that matches the data rather than its purpose. Sensitive Info is
+explicitly enumerated — race, orientation, pregnancy, disability,
+religion, union, politics, genetics, biometrics — and a government ID is
+not in it. The precision belongs in the policy, where
+`privacySection1Body` already names it. *No manifest change: both
+`OtherDataTypes` and `PaymentInfo` were already declared, the latter for
+the wallet and bank numbers.*
+
+**11 — Crash reporting: on, EU region, after launch.** The privacy cost
+is unusually low and already paid for — no user context, no breadcrumbs,
+the device name dropped, identifiers substituted out, and a test that
+proves it. Against that, shipping a native app with no crash visibility
+is its own risk. Use Sentry's **EU region** (`de.sentry.io`) so there is
+one data-residency story rather than two; the region lives in the DSN
+string, so it is a paste-time choice and needs no code change. Set it in
+a release where both store forms are updated in the same go.
+
+**12 — Paymob is "shared", not merely processed.** The processor
+exemption holds when a third party acts only on your instructions. A
+regulated financial institution uses a national ID for its own KYC and
+AML obligations — its own legal purpose. Three Financial Info rows are
+therefore declared as shared on both forms. Conservative, and defensible
+if anyone asks.
+
+### Recommended, pending one fact
+
+**6 — Does Paymob actually require the national ID?** Unresolved; their
+documentation is not reachable from the sandbox this was written in.
+What the repository shows is a *belief*: `paymobPayouts.ts:84` enforces
+exactly 14 digits. **The staging payout run (§3) settles it in one
+call**, and it is worth doing early — if the answer is no, question 5
+disappears, the hardest row in the inventory goes with it, and `0009`'s
+constraint gets simpler.
+
+**9 — Supabase log retention** is plan-dependent: roughly a day on Free,
+about a week on Pro. §5 upgrades to Pro before launch, so confirm the
+figure on the plan actually bought. Recommendation: **state it in the
+privacy policy, do not declare it on either form** — operational host
+logs are not what the forms ask about, and neither has a box that fits.
+This is the answer to put least weight on.
+
+### Not ours to settle — these need a lawyer
+
+**2 — Can a member see their coach's private notes?** Assume **yes**:
+notes about a person are personal data about that person, and
+151/2020's access right does not care that the coach considers them
+private. There is no screen and there need not be — a documented email
+route satisfies an access right. **The real exposure is not legal, it is
+that coaches do not know.** Someone writing candidly in the belief it can
+never be seen is the problem. The fix is a line in the notes UI and in
+the terms, both outside what this change may touch; see §9 below.
+
+**7 — The transfer to `eu-west-1`.** The shape is adequacy *or* explicit
+consent, plus a permit from Egypt's Data Protection Centre. Whether that
+Centre is issuing has moved around and must be checked locally, now.
+Pragmatically: name the transfer in the policy, carry consent through
+policy acceptance at sign-up, and have Egyptian counsel confirm the
+licence question.
+
+**8 — Retention.** There is no stated period and there needs to be one.
+Proposal: data kept while the account exists; financial records
+(sessions, payments, payouts) a further **five years** as commercial and
+tax law requires; technical logs about a week. The five years should be
+confirmed against Egyptian requirements by an accountant.
+
+**And a gap found while answering it: nothing mentions backups.** Not
+the policy, not the deletion page, not the app. Supabase holds
+point-in-time backups, so a deletion does not purge data instantly — the
+deletion page's promise and the technical reality disagree for the
+length of the backup window. Wording for this is in §9.
+
+**10 — Age rating questionnaires.** Use the answers drafted here and in
+`store/play-console.md`: honest answers to each item, user interaction
+and personal-information exchange declared yes, target audience **18+**
+on both stores regardless of the rating that falls out. Expect roughly
+12+ on Apple and PEGI 3 with interactive-element notices on Google. The
+exact rating is an output, not a decision.
 
 ---
 
-## 9. Where Apple and Google differ, so the two forms stay honest
+## 9. Wording for the privacy policy
+
+Three of the answers above need the policy to say something it does not
+say today. The policy's text lives in `src/lib/i18n.ts`, which this
+change may not touch, so the English is below for whoever edits it —
+Arabic to be written alongside, not machine-translated.
+
+**Where the data is held** (question 7):
+
+> Your data is stored on servers in Ireland, operated by our hosting
+> provider Supabase. This means information about you leaves Egypt. By
+> using Rafiq Pro you consent to that transfer.
+
+**How long it is kept** (question 8):
+
+> We keep your data for as long as your account exists. When an account
+> is deleted, records we must keep for legal and financial reasons —
+> sessions, payments and payouts — are kept for five years, without the
+> details that identify you. Technical logs, which include IP addresses,
+> are kept by our hosting provider for a short period, currently about a
+> week.
+
+**Backups** (the gap above):
+
+> Deleting your account removes your data from Rafiq Pro immediately.
+> Encrypted backups of our database are kept for a short period for
+> disaster recovery, so a copy may persist there until that backup
+> expires. Backups are never used to restore an individual account.
+
+**And one that is not policy copy but a product change** (question 2):
+coaches should be told that notes they write about a member may be
+disclosed to that member on request. A line by the notes field, and a
+line in the coach terms. Worth raising with whoever owns those screens.
+
+## 10. Where Apple and Google differ, so the two forms stay honest
 
 Filling one from the other is how they end up contradicting each other.
 The places they genuinely diverge:
@@ -290,11 +415,11 @@ The places they genuinely diverge:
 
 ---
 
-## 10. Before you submit
+## 11. Before you submit
 
 - [ ] Every row above matches the privacy policy, which must be live (§5)
-- [ ] The eleven open questions are answered, and this file updated
-- [ ] `PrivacyInfo.xcprivacy` still matches the final answers (§7) — it matches this draft; re-check the three question-dependent entries once the questions are settled
+- [ ] The three still-open items in §8 are closed: the Paymob staging run (q6), the Supabase plan's log retention (q9), and counsel on q2, q7 and q8
+- [ ] `PrivacyInfo.xcprivacy` still matches the answers in §8 — it does today, and `tests/privacy-manifest.spec.js` fails if a value stops being one of Apple's
 - [ ] If `VITE_SENTRY_DSN` is set in the build being submitted, Diagnostics → Crash Data is **Yes**
 - [ ] Nothing in the app calls `requestTrackingAuthorization`, and no `NSUserTrackingUsageDescription` has appeared
 - [ ] The crisis numbers are confirmed — health data is declared here, and §8 ties the two together

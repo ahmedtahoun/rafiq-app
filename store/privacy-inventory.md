@@ -9,8 +9,9 @@ the privacy policy against what the app actually does. It is not the policy
 itself.
 
 **"Ahmed to confirm"** marks anything the code cannot settle — a business
-decision, a third party's own behaviour, or a legal question. There are
-twelve of them, collected at the end.
+decision, a third party's own behaviour, or a legal question. All were
+answered on 4 Oct 2026; the list at the end records each answer, and
+the five that still need an external fact or a lawyer.
 
 **Where it is stored** means the table or bucket in the live Supabase
 project, unless it says otherwise. Signed out, everything in the app is in
@@ -85,8 +86,8 @@ is served — there is no screen for it today.
 | What | Where | Apple | Google |
 |---|---|---|---|
 | Mood check-ins, kept as dated history | `mood_checkins` (`great`, `good`, `okay`, `low`, `hard` + timestamp) | **Health & Fitness → Health** | **Health and fitness → Health info** |
-| Coaching focus — life, meditation, breathwork, stress & anxiety, sleep, fitness, nutrition, yoga, diving… | `member_profiles.focus`, `clients.focus` / `.specialty` | Health & Fitness → Health — **decided, yes** | Health and fitness → Health info — **decided, yes** |
-| Tasks a coach sets, which are often exercise or sleep | `tasks.title` / `.description` | Health & Fitness → Fitness — **decided, yes** | Health and fitness → Fitness info — **decided, yes** |
+| Coaching focus — life, meditation, breathwork, stress & anxiety, sleep, fitness, nutrition, yoga, diving… | `member_profiles.focus`, `clients.focus` / `.specialty` | Health & Fitness → Health — **Ahmed to confirm** | Health and fitness → Health info — **Ahmed to confirm** |
+| Tasks a coach sets, which are often exercise or sleep | `tasks.title` / `.description` | Health & Fitness → Fitness — **Ahmed to confirm** | Health and fitness → Fitness info — **Ahmed to confirm** |
 
 Mood is not ambiguous: it is self-reported wellbeing, dated, tied to an
 identified account. It goes in both forms as health data, and §8 already
@@ -437,36 +438,62 @@ schema.
 
 ---
 
-## Everything marked "Ahmed to confirm", in one list
+## Everything marked "Ahmed to confirm" — answered 4 Oct 2026
 
-1. **Self-declared city and country** — Apple's Physical Address and
-   Google's Address overstate it; Other Data / Other info understate it.
-   Pick one.
-2. **Whether a member may see the coach's private notes** about them under
-   Law 151/2020's access right. There is no screen for it.
-3. **Whether coaching focus counts as health data** on both forms.
-   **Decided (Ahmed, 2026-10-04): yes.**
-4. **Whether tasks count as fitness data** on both forms. **Decided
-   (Ahmed, 2026-10-04): yes.**
-5. **Where a national ID goes on Apple's form** — Apple has no type for a
-   government identity number.
-6. **Whether Paymob genuinely requires `national_id`** (already §3, the
-   staging payout run). If not, stop collecting it.
-7. ~~Whether to self-host the fonts~~ — done (#75); Google Fonts is off
-   the third-party table.
-8. **What Law 151/2020 requires for the transfer to Ireland.** The
-   region is known now: `eu-west-1`. What is not is whether hosting there
-   needs a licence or a clause in the policy.
-9. **A retention period** for data not covered by a deletion request.
-   Neither policy states one.
-10. **Supabase's own log retention**, which holds IP addresses and is
-    invisible from this repo.
-11. **The age rating and content questionnaires** (§8) — this inventory
-    is the input to them, but the answers are Ahmed's.
-12. **Whether to switch crash reporting on at all**, and if so which
-    Sentry region the project lives in — the same data-residency question
-    as 8, for a second processor. Setting `VITE_SENTRY_DSN` is what adds
-    the Diagnostics rows to both forms.
+The reasoning for each is in `store/app-privacy.md` §8; both store-form
+documents carry the same answers. Six are settled, five still need an
+external fact or a lawyer and are marked **OPEN**.
+
+1. **Self-declared city and country** → **Other Data / Other info**, not
+   Address. No street, postcode or line-1 field exists; nothing is
+   measured from the device. Declaring "Address" would overstate in the
+   direction that alarms the reader.
+2. **OPEN (counsel).** Whether a member may see their coach's private
+   notes under Law 151/2020. Assume **yes** — notes about a person are
+   personal data about that person — and handle requests by email; no
+   screen is required. The real exposure is that **coaches do not
+   know**, which is a product change, not a form answer.
+3. **Coaching focus is health data** → **yes**. Mood check-ins already
+   force a Health declaration, so the marginal cost is zero.
+4. **Tasks are fitness data** → **yes**. A task carries a `done` flag,
+   so the app records whether the person did the exercise.
+5. **A national ID on Apple's form** → **Other Data**, not Payment Info.
+   It is an identity document, not a form of payment, and Apple asks for
+   the type that matches the data rather than its purpose. Google's
+   "Other info" was already right.
+6. **OPEN (one call).** Whether Paymob genuinely requires `national_id`.
+   `_shared/paymobPayouts.ts:84` enforces 14 digits, which encodes a
+   belief rather than evidence; the staging payout run settles it. If
+   the answer is no, stop collecting it and question 5 disappears.
+7. ~~Whether to self-host the fonts~~ — done (#75).
+8. **OPEN (counsel).** What Law 151/2020 requires for the transfer to
+   `eu-west-1`. Shape: adequacy *or* explicit consent, plus a permit
+   from the Data Protection Centre. Name the transfer in the policy,
+   carry consent through policy acceptance, and confirm the permit
+   locally.
+9. **OPEN (counsel/accountant).** A retention period. Proposed: account
+   lifetime; financial records five years; technical logs about a week.
+   **And a gap found while answering it — nothing anywhere mentions
+   backups**, so the deletion page's promise and the backup window
+   disagree. Wording for all three is in `store/app-privacy.md` §9.
+10. **OPEN (one fact).** Supabase's own log retention, plan-dependent
+    (~a week on Pro). State it in the policy; do not declare it on
+    either store form.
+11. **The age rating and content questionnaires** → answer honestly
+    using the drafts in `store/play-console.md` and
+    `store/app-privacy.md`; target audience **18+** on both stores. The
+    rating itself is an output.
+12. **Crash reporting** → **on, EU region (`de.sentry.io`), after
+    launch**, in a release that updates both store forms with it. The
+    privacy cost is unusually low and already paid for: no user context,
+    no breadcrumbs, identifiers substituted out, and a test that proves
+    it. The region lives in the DSN, so it needs no code change.
+
+**Added while answering these — 13. Paymob is "shared", not merely
+processed.** The processor exemption holds when a third party acts only
+on your instructions. A regulated financial institution uses a national
+ID for its own KYC and AML obligations. Three Financial info rows are
+declared shared on both forms.
 
 ---
 

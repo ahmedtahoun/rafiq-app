@@ -428,6 +428,7 @@ export type Database = {
           session_mode: Database["public"]["Enums"]["session_mode"]
           signup_completed_at: string | null
           title: string
+          unlisted: boolean
           updated_at: string
           verification_status: Database["public"]["Enums"]["verification_status"]
         }
@@ -444,6 +445,7 @@ export type Database = {
           session_mode?: Database["public"]["Enums"]["session_mode"]
           signup_completed_at?: string | null
           title?: string
+          unlisted?: boolean
           updated_at?: string
           verification_status?: Database["public"]["Enums"]["verification_status"]
         }
@@ -460,6 +462,7 @@ export type Database = {
           session_mode?: Database["public"]["Enums"]["session_mode"]
           signup_completed_at?: string | null
           title?: string
+          unlisted?: boolean
           updated_at?: string
           verification_status?: Database["public"]["Enums"]["verification_status"]
         }

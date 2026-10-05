@@ -495,7 +495,7 @@ Waits on the name decision (§1).
       rating, target audience, Data safety row by row, the Health apps
       and Financial features declarations, Advertising ID, and
       countries/pricing — with the open questions listed rather than
-      guessed. Apple's App Privacy form is still to draft. Filling the two forms is still
+      guessed. **Apple's half is drafted too:** `store/app-privacy.md`, with the privacy manifest (`PrivacyInfo.xcprivacy`) filled in to match and `tests/privacy-manifest.spec.js` keeping the two in step. All twelve open questions were answered on 4 Oct; five still need an external fact or a lawyer, and both documents say which. Filling the two forms is still
       Ahmed's, and eleven questions in it need answering first — among them
       where a national ID goes on Apple's form (it has no type for a
       government ID), whether coaching focus counts as health data, and
@@ -607,8 +607,8 @@ only Rafiq can resolve (as `service_role`). Nothing works them yet.
       Google and Apple, reviewers can't get in otherwise. Notes:
       `store/review-notes.md`. Their data: `supabase/admin/review-accounts.sql`
       (run before each submission; it also resets what a reviewer changed).
-      Before the first one, decide how the review coach stays out of
-      Discover (`supabase/admin/README.md`, "Review accounts").
+      Unlist the review coach first (`0022`, step 2 of "Review accounts"
+      in `supabase/admin/README.md`), or real members see it in Discover.
 - [ ] TestFlight (internal, then external) and Google Play closed testing
       before production; phased release.
 
