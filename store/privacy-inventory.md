@@ -131,15 +131,34 @@ does not remove it from the other person's phone.
 ### Video sessions (Daily)
 
 The camera and microphone are used only during a 1:1 video session, and
-only after the person taps Join. The call runs through Daily (§11); it
-is **not recorded or stored** by Rafiq or by Daily, so on both forms
-audio and video are *processed, not collected*. Apple: no "Audio Data"
-or "Photos or Videos" row for calls. Google: Data safety asks about data
-collected or shared; ephemeral real-time processing that isn't stored
-is outside it, but the camera and microphone permissions still show on
-the listing — **Ahmed to confirm** with the form's own help text. Not
-recording is also what keeps a 1:1 online session outside Play Billing
+only after the person taps Join. Android requests `CAMERA`,
+`RECORD_AUDIO` and `MODIFY_AUDIO_SETTINGS`; iOS has
+`NSCameraUsageDescription` and `NSMicrophoneUsageDescription`. The call
+runs through Daily (§11) and is **not recorded or stored** — enforced,
+not promised: no room sets `enable_recording`, nobody joins as an owner,
+and `session-video` refuses a Daily domain with recording on
+(`supabase/functions/_shared/sessionVideo.ts`). Not recording is also
+what keeps a 1:1 online session outside Play Billing
 (research/payments-rules.md).
+
+The two forms do **not** answer this the same way, and only one of them
+is settled:
+
+- **Apple: settled.** Its definition of "collect" is retention beyond
+  servicing a request in real time, and its guidance says data
+  immediately discarded need not be disclosed (quoted in
+  `store/app-privacy.md`, *Video sessions*, from developer.apple.com read
+  2026-10-05). No "Audio Data" row; "Photos or Videos" stays Yes for the
+  stored profile and cover photos only.
+- **Google: open.** Data safety offers a *Processed ephemerally*
+  checkbox, but no page reachable from the sandbox this was written in
+  states that ephemeral-only processing is exempt from being declared
+  collected at all — and `support.google.com` is blocked, so the help
+  text is unread. Recommendation is to declare both rows as collected
+  with Processed ephemerally = Yes, Shared = No; the argument and the
+  alternative are in `store/play-console.md` §7, and it is q13 in that
+  file's open list. The permissions show on the listing either way, which
+  is the practical reason to declare rather than stay silent.
 
 ---
 

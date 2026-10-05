@@ -232,6 +232,60 @@ ours. Those rows are marked below.
 | Data type | Collected | Purposes | Required? | Notes |
 |---|---|---|---|---|
 | Photos | Yes | App functionality | Optional | Profile and cover photos, private `avatars` / `covers` buckets, served by signed URL |
+| Videos | **Yes, Processed ephemerally = Yes** | App functionality | Optional | A 1:1 session's camera video, carried live by Daily and never recorded or stored. **Recommended, not settled — see *Video sessions* below** |
+
+#### Audio
+
+| Data type | Collected | Purposes | Required? | Notes |
+|---|---|---|---|---|
+| Voice or sound recordings | **Yes, Processed ephemerally = Yes** | App functionality | Optional | A 1:1 session's microphone audio, same treatment as Videos above. **Recommended, not settled — see *Video sessions* below** |
+| Music files | No | — | — | |
+| Other audio files | No | — | — | |
+
+#### Video sessions — the one row I could not settle from here
+
+Since #104 a 1:1 session runs on Daily, so Android requests `CAMERA`,
+`RECORD_AUDIO` and `MODIFY_AUDIO_SETTINGS` (only when someone taps Join).
+Nothing is recorded: a room never sets `enable_recording`, nobody is an
+owner, and the function refuses a Daily domain that has recording on
+(`supabase/functions/_shared/sessionVideo.ts`).
+
+On **Apple's** form this is settled, because Apple defines "collect" as
+retaining data beyond servicing the request in real time and says in
+writing that data immediately discarded need not be disclosed
+(`store/app-privacy.md`, *Video sessions*, quoting
+developer.apple.com, read 2026-10-05). Audio Data stays No there.
+
+**Google is not the same question, and I could not verify it.**
+`support.google.com` is unreachable from the sandbox this was written in,
+so the Data safety help text itself is unread. What the reachable
+developer documentation
+(developer.android.com/privacy-and-security/declare-data-use, read
+2026-10-05) shows is: these category names — "Voice or sound recordings",
+"Videos" — and **no statement of an exemption for data processed only in
+real time**. Apple states one; this page does not. That asymmetry is the
+whole difficulty, and assuming Google's rule matches Apple's would be a
+guess.
+
+Two defensible answers:
+
+| | Answer | The case for it |
+|---|---|---|
+| **A (recommended)** | Collected = **Yes**, Processed ephemerally = **Yes**, Shared = No, Optional | The form has an ephemeral checkbox for exactly this shape of processing, and using it describes what happens instead of relying on an exemption nobody here has read. Over-declaring is survivable; under-declaring is a policy violation and a takedown |
+| B | Not declared at all | Every category Google offers is a *file* — "recordings", "Videos", "Music files". A live call produces no file, and nothing is retained, so arguably no data type applies |
+
+Go with **A** unless the help text positively says ephemeral-only
+processing is out of scope, in which case B is cleaner. **Ahmed to
+confirm** at
+https://support.google.com/googleplay/android-developer/answer/10787469 —
+the question to answer is literally: *does data processed only
+ephemerally have to be declared as collected at all, or does the
+ephemeral checkbox presuppose that it does?*
+
+**Shared = No either way.** Daily runs the call on our instructions and
+cannot use the media for its own purposes, because there is none to use —
+nothing is recorded. That is the processor case, unlike Paymob at q12,
+which has its own KYC obligations and is therefore Shared = Yes.
 
 #### App activity
 
@@ -250,8 +304,13 @@ ours. Those rows are marked below.
 #### Not collected, worth being sure about
 
 Location (no geolocation API is called; city is typed text) · Contacts ·
-Calendar · Files and docs · Audio · Web browsing history · Installed
-apps · Device or other IDs · **Advertising ID**.
+Calendar · Files and docs · Web browsing history · Installed apps ·
+Device or other IDs · **Advertising ID**.
+
+**"Audio" used to be on that list and has been taken off it.** It was
+true until #104 and is not any more: the microphone is used in a 1:1
+session. Whether that means a declared row is the open question above —
+but it is no longer a category this app can claim to be clear of.
 
 ---
 
@@ -354,6 +413,49 @@ The listing's own text, in both languages, is `store/listing.md`.
 
 ---
 
+## 13. App permissions
+
+Numbered after §12 rather than inserted in sequence, so the §2/§7/§10
+cross-references in this file and in `store/app-privacy.md` keep pointing
+at the same sections.
+
+The app requests four, all in `android/app/src/main/AndroidManifest.xml`:
+
+| Permission | Asked when | Why |
+|---|---|---|
+| `INTERNET` | Never prompted (normal permission) | Everything is a Supabase call |
+| `CAMERA` | Tapping **Join** on a 1:1 session, or choosing a profile/cover photo | The call's video; the photo picker |
+| `RECORD_AUDIO` | Tapping **Join** | The call's audio |
+| `MODIFY_AUDIO_SETTINGS` | Tapping **Join** | Routing call audio to the earpiece or speaker |
+
+Three things to be able to say about them:
+
+- **Both are ordinary runtime permissions** — "dangerous" in Android's
+  own terms, granted by a system consent prompt
+  (developer.android.com/guide/topics/permissions/overview, read
+  2026-10-05, which singles out the microphone and camera as
+  "particularly sensitive"). `MODIFY_AUDIO_SETTINGS` is normal and
+  `INTERNET` is normal, so neither prompts.
+  **Unverified:** whether App content's *Sensitive app permissions*
+  declaration covers either of them. My understanding is that it covers
+  SMS and Call Log, All files access, background location and the like,
+  and not camera or microphone — so there would be no declaration form to
+  fill in here, only the Data safety answers and the prompt text. That
+  list is in the Play Console help centre, which is unreachable from the
+  sandbox this was written in, so **confirm it in the console**: App
+  content will simply not offer the declaration if it does not apply.
+- **Nothing is requested at launch.** Each prompt happens on the tap that
+  needs it, which is both the policy expectation and the thing a reviewer
+  checks by hand. The iOS strings say why in one line each
+  (`ios/App/App/Info.plist`); Android's prompt text is the system's.
+- **They appear on the store listing regardless**, under the app's
+  permission list, whichever way the Data safety question above is
+  answered. A reviewer seeing `RECORD_AUDIO` on the listing and "Audio:
+  not collected" on the form is the mismatch Play rejects for — which is
+  the practical argument for answer **A** in §7.
+
+---
+
 ## The questions, answered
 
 Settled 4 October 2026. The full reasoning is in
@@ -376,6 +478,7 @@ so this document can be filled in without opening the other two.
 |---|---|---|
 | 6 | Does Paymob genuinely require `national_id`? | **`scripts/paymob-national-id-check.ts`** — one command against Paymob staging, two 1.00 EGP disbursements differing only in that field. `paymobPayouts.ts:84` enforces 14 digits, but that encodes a belief, not evidence. If the answer is no, q5 disappears and `0009` gets simpler |
 | 9 | Supabase log retention | Confirm on the plan actually bought (~a week on Pro). Recommendation: say it in the policy, **do not** declare it on this form — host logs are not what it asks about |
+| **13** | **Does Data safety need a row for call audio and video?** Apple's form is settled (its "collect" definition exempts data discarded after real-time servicing, quoted in `store/app-privacy.md`). Google states no such exemption on any page reachable from here, and `support.google.com` is blocked | The Data safety help text, at the URL in §7. Recommendation **A**: declare both as Collected with **Processed ephemerally = Yes**, Shared = No. §7 has the full argument and the alternative |
 | 2 | May a member see their coach's private notes? | Counsel. Assume yes; the exposure is that **coaches do not know**, which is a product change |
 | 7 | Law 151/2020 and the transfer to Ireland | Egyptian counsel, on whether a Data Protection Centre permit is required and obtainable |
 | 8 | A retention period | Proposed: account lifetime, plus five years for financial records, logs about a week. Confirm the five against Egyptian tax and commercial law |
