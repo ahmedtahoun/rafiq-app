@@ -83,8 +83,10 @@ as done below, when signed in; every other screen still reads and writes
 
       - **Home's package and follow-up alerts** — `src/screens/Main.tsx`.
       - **Profile stats** — `src/screens/Profile.tsx`.
-      - **Earnings' totals** — `src/screens/Earnings.tsx` uses
-        `getEarningsSummary`.
+      - ~~**Earnings' totals**~~ — done (2026-10-04): signed in, the
+        coach's own `payments` ledger (`src/lib/earningsData.ts`):
+        completed charges less refunds, pending on its own line, paid and
+        due over active members, with LoadState and a retry.
 - [x] 🔴 **Remove the demo identities.** 14 member screens hardcoded
       `const CLIENT_ID = 'sara'`, and the Pro side is the seeded
       `DEFAULT_PRO_ID = 'pro-yasmin'`. Both must come from the signed-in user.
