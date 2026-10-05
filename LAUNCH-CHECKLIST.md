@@ -141,14 +141,14 @@ as done below, when signed in; every other screen still reads and writes
       template, Profile, Edit profile, Account details, Preview profile,
       Share profile, Subscription, Earnings and Payout account. Breaking
       any one of them back to the demo fails it (verified against
-      Templates). Twenty of the twenty-three are clean. Three still read
-      the demo store signed in, every one of them `getClients()` reaching
-      `DEFAULT_CLIENTS` directly or through a helper that walks it:
-      `Profile.tsx:95,99,106,111`, `PreviewProfile.tsx:81,82,86,87` and
+      Templates). Twenty-one of the twenty-three are clean (Profile went
+      with #123). Two still read the demo store signed in, both
+      `getClients()` reaching `DEFAULT_CLIENTS` directly or through a
+      helper that walks it: `PreviewProfile.tsx:85,86,90,91` and
       `ShareProfile.tsx:83,90`. The visible effect is a number, not a
       name: `DEFAULT_CLIENTS` is six active members, so the share card and
       the public preview show six however many the coach really has. The
-      three are held in the spec's `KNOWN_DEMO_READS` with their call
+      two are held in the spec's `KNOWN_DEMO_READS` with their call
       sites, so a new demo read anywhere else fails the walk and fixing
       one of these also fails it — delete its entry then, and tick this
       box when the map is empty.

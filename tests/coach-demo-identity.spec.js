@@ -286,20 +286,7 @@ const ALLOWED = /^(rafiq_(role|lang|dark|pro_notif_prefs|nudged)|rafiq_message_d
  */
 const DEMO_RATINGS = ['sara', 'omar', 'mona', 'khaled', 'laila', 'nour'].map((id) => `rafiq_ratings_${id}`);
 const KNOWN_DEMO_READS = {
-  profile: [
-    'rafiq_clients', ...DEMO_RATINGS,
-    'rafiq_package_sara', 'rafiq_custom_blocks', 'rafiq_session_logs_sara',
-    'rafiq_package_omar', 'rafiq_session_logs_omar',
-    'rafiq_package_mona', 'rafiq_session_logs_mona',
-    'rafiq_package_khaled', 'rafiq_session_logs_khaled',
-    'rafiq_package_laila', 'rafiq_session_logs_laila',
-    'rafiq_messages_read_pro_sara', 'rafiq_messages_sara',
-    'rafiq_messages_read_pro_omar', 'rafiq_messages_omar',
-    'rafiq_messages_read_pro_mona', 'rafiq_messages_mona',
-    'rafiq_messages_read_pro_khaled', 'rafiq_messages_khaled',
-    'rafiq_messages_read_pro_laila', 'rafiq_messages_laila',
-    'rafiq_messages_read_pro_nour', 'rafiq_messages_nour',
-  ],
+  // Profile went with #123 (coachStatsData.ts, useRoster, the inbox).
   previewProfile: ['rafiq_clients', ...DEMO_RATINGS],
   shareProfile: ['rafiq_clients', ...DEMO_RATINGS],
 };
