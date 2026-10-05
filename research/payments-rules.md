@@ -33,10 +33,22 @@ Play's Payments policy FAQ exempts a 1:1 online paid service only when:
 
 Its examples include "health coaching (such as personal trainer sessions or
 counseling services)". So **Rafiq must never record sessions or offer
-replays** without moving those sessions to Play Billing. Today the "Join
-Session" room is a preview with no real call ("no recording or real call
-happens"). Whoever wires up video calling must leave recording out. Treat
-recording or replay as a payments decision, not a feature.
+replays** without moving those sessions to Play Billing. Treat recording or
+replay as a payments decision, not a feature.
+
+**Since #104 the call is real, and recording is kept out by code rather
+than by intention.** This paragraph used to say the Join Session room was
+"a preview with no real call"; that stopped being true when 1:1 sessions
+moved onto Daily. What holds the exemption now is
+`supabase/functions/_shared/sessionVideo.ts`: a room is created without
+`enable_recording`, every participant gets a non-owner token (only owners
+can start a recording), and before issuing one the function reads the
+Daily **domain's** config and returns 503 `recording_enabled_on_domain`
+if recording is enabled there — so turning it on in Daily's dashboard
+breaks joining rather than silently starting to record. Anyone changing
+that file is changing which payment rail these sessions are allowed to
+use. The store forms depend on it too (`store/play-console.md` §7,
+`store/app-privacy.md`).
 
 **3. The 15% Apple rate is not automatic.**
 The App Store Small Business Program needs enrolment: the Account Holder

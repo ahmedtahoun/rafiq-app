@@ -110,11 +110,46 @@ obligations. That is its purpose, not ours.
 | Type | Collected | Linked | Purposes | Where it comes from |
 |---|---|---|---|---|
 | Emails or Text Messages | **Yes** | Yes | App Functionality | In-app messages between a coach and a member (`messages`, `0014`). Not end-to-end encrypted: encrypted in transit and at rest, readable by the two parties and by `service_role` |
-| Photos or Videos | **Yes** | Yes | App Functionality | Profile and cover photos, private `avatars` / `covers` buckets, served by signed URL. No video anywhere |
+| Photos or Videos | **Yes** | Yes | App Functionality | Profile and cover photos, private `avatars` / `covers` buckets, served by signed URL. **Declared for the photos only** — a 1:1 session's video is carried live and never stored, so it is not collected (see *Video sessions* below) |
 | Customer Support | **Yes** | Yes | App Functionality | A member's report about their coach — `pro_reports`, its `reason` and free-text `details`. Seen by the reporter and Rafiq, **never by the coach**. Support itself is a `mailto:`, which leaves the app |
 | Other User Content | **Yes** | Yes | App Functionality | Goals, session recaps, a coach's private notes, reviews, offerings, cancellation reasons, and a coach's verification request (`verification_requests.note`, `coach_profiles.cert`) |
-| Audio Data | No | — | — | No microphone use |
+| Audio Data | No | — | — | The microphone **is** used, in a 1:1 video session. The audio is carried live and never recorded or stored, so it is not collected as Apple defines the word (see *Video sessions* below) |
 | Gameplay Content | No | — | — | |
+
+#### Video sessions, and why neither row changes to Yes
+
+Since #104 a 1:1 session runs inside the app on Daily. Android asks for
+`CAMERA`, `RECORD_AUDIO` and `MODIFY_AUDIO_SETTINGS`; iOS has
+`NSCameraUsageDescription` and `NSMicrophoneUsageDescription`. Both are
+requested only when someone taps Join, never at launch.
+
+This form turns on what Apple means by "collect", which is narrower than
+"uses". From developer.apple.com/app-store/app-privacy-details/, read
+2026-10-05:
+
+> "Collect" refers to transmitting data off the device in a way that
+> allows you and/or your third-party partners to access it for a period
+> longer than what is necessary to service the transmitted request in
+> real time.
+
+and, in its *Additional guidance*:
+
+> if data is sent to your servers then immediately discarded after
+> servicing the request, you do not need to disclose this in your answers
+> in App Store Connect.
+
+Call media is exactly that case, and it is enforced rather than promised
+(`supabase/functions/_shared/sessionVideo.ts`): a room never sets
+`enable_recording`, nobody joins as an owner (only owners can start a
+recording), and before issuing a token the function reads the Daily
+**domain's** own config and returns 503 `recording_enabled_on_domain` if
+recording is on there. So nothing is retained anywhere, and **Audio Data
+stays No** while **Photos or Videos stays Yes for the stored profile and
+cover photos only**.
+
+If recording is ever added, both rows change and so does the payments
+answer — Play's 1:1 exemption depends on the session not being recorded
+or replayable (`research/payments-rules.md`).
 
 ### Identifiers
 
@@ -163,12 +198,13 @@ analytics of any kind.
 ## 4. Third-party partners
 
 Apple's question covers data collected *by* third-party code in the app,
-not only by you. The app embeds no third-party SDK that collects
-anything:
+not only by you. Two of the parties below ship code that runs on the
+device:
 
 | Party | In-app SDK? | What reaches them |
 |---|---|---|
 | Supabase | Yes (the client) | Everything above — it is the database, auth, storage and realtime. A processor, not a recipient with its own purpose |
+| **Daily** (video sessions) | **Yes** — `@daily-co/daily-js`, imported only when a call is joined (`src/lib/videoCall.ts:85`) | The live audio and video of a 1:1 session while it happens, the person's display name, and connection diagnostics the library reports to Daily. Nothing is recorded or stored, enforced as described above |
 | Google / Apple sign-in | Via the system browser | They return a name and an email; nothing of ours goes to them |
 | Paymob | **No SDK** — server-side only | A coach's name, national ID, account number, amount. Nothing about members |
 | Sentry | Built, **not imported** while the DSN is unset | Nothing today |
