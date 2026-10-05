@@ -139,6 +139,9 @@ test('web: App.tsx never registers the listener, so a stray backButton event doe
   expect.soft(before.histLen, '  one entry deep').toBe(1);
 
   await pressBack(page);
+  // A settle, not a race: this asserts that *nothing* happens, and there is
+  // no event to poll for. The failure mode of too short a wait here is a
+  // false pass, not the false fail the polls above replace.
   await page.waitForTimeout(150);
 
   const after = await storeState(page);
@@ -164,11 +167,17 @@ for (const platform of ['android', 'ios']) {
     expect.soft(before, `${platform}: on addClient, one entry of history`).toEqual({ screen: 'addClient', histLen: 1 });
 
     await pressBack(page);
-    await page.waitForTimeout(150);
 
-    const after = await storeState(page);
-    expect.soft(after.screen, `${platform}: popped back to clients`).toBe('clients');
-    expect.soft(after.histLen, `${platform}:   history is empty again`).toBe(0);
+    // Poll, don't sleep. The listener runs asynchronously, and a fixed wait
+    // is a race the suite loses under load — this is what made the `welcome`
+    // case below fail about one full run in ten while passing 10/10 on its
+    // own. Polling the thing that must happen also earns the negative check
+    // after it: once the pop is visible the handler has already picked its
+    // branch, so "did not exit" is a real assertion rather than a guess
+    // about timing.
+    await expect.soft
+      .poll(() => storeState(page), { message: `${platform}: popped back to clients, history empty again` })
+      .toEqual({ screen: 'clients', histLen: 0 });
     expect.soft(await exitCalls(page), `${platform}:   and did not exit`).toBe(0);
 
     await ctx.close();
@@ -188,9 +197,10 @@ for (const platform of ['android', 'ios']) {
       expect.soft(before, `${platform}: on ${screen}, no history`).toEqual({ screen, histLen: 0 });
 
       await pressBack(page);
-      await page.waitForTimeout(150);
 
-      expect.soft(await exitCalls(page), `${platform}: exitApp() called once`).toBe(1);
+      await expect.soft
+        .poll(() => exitCalls(page), { message: `${platform}: exitApp() called once` })
+        .toBe(1);
       expect.soft(await storeState(page), `${platform}: and back() did not move anything`).toEqual(before);
 
       await ctx.close();
@@ -205,6 +215,8 @@ for (const platform of ['android', 'ios']) {
     const { page, ctx, errs } = await open(browser, platform);
     await nav(page, { screen: 'welcome' });
     await pressBack(page);
+    // Also a settle: an unhandled rejection would surface on a later tick,
+    // and absence is not pollable.
     await page.waitForTimeout(150);
     await ctx.close();
     expect.soft(errs, `${platform}: no page errors`).toEqual([]);
