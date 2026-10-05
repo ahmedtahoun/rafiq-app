@@ -291,6 +291,14 @@ The sources, read on 2026-10-01, and what they mean for the build are in
 
 ## 4. Native builds and device testing (Dev)
 
+**`store/device-pass.md` is the script for the rows below that need a
+phone.** It is the hardware pass — safe areas, the keyboard, the status
+bar in dark mode, orientation, native sign-in, the video call, Arabic
+gestures — and it is deliberately not a second copy of
+`store/review-notes.md` §2, which is the functional run-through. Do the
+hardware pass first; a keyboard that covers the composer blocks the
+functional one anyway.
+
 Both apps built and ran on the iPhone simulator and an Android 15 emulator
 (2026-09-29), and the safe-area fix was re-checked on both (2026-09-30).
 Nothing has run on a real phone yet. Build commands: CLAUDE.md, "Native
