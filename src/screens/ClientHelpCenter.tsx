@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { useT, isolate } from '../lib/i18n';
 import { ChevronIcon, MessageIcon } from '../components/icons';
 import { getCoachProfile } from '../lib/mockStore';
+import { useRemoteSession } from '../lib/remoteSession';
+import { useMemberSpace } from '../store/memberStore';
 import './ClientHelpCenter.css';
 
 // Six FAQs, keyed so the copy lives in i18n like everything else.
@@ -12,12 +14,26 @@ export default function ClientHelpCenter() {
   const t = useT();
   const nav = useAppStore((s) => s.nav);
   const back = useAppStore((s) => s.back);
+  const remote = useRemoteSession();
+  const space = useMemberSpace();
 
   // The design opens the first question by default, so the screen never
   // reads as a wall of unanswered headings.
   const [openId, setOpenId] = useState<number | null>(1);
 
-  const coachName = getCoachProfile().name || 'Yasmin El-Sayed';
+  // Signed in, the pro's name is the member's own relationship, the same
+  // read CoachMessages makes. It used to be `getCoachProfile()` with no
+  // remote branch, so a real member was offered "Message Yasmin El-Sayed"
+  // — mockStore's demo coach, whoever their pro actually was.
+  //
+  // Deliberately never blocking and never guessing. Someone opening Help
+  // Centre may be here *because* something is broken, so a name that has
+  // not arrived yet, or failed to, hides the contact row and leaves every
+  // answer readable — rather than a LoadState over the whole screen, or a
+  // placeholder name that claims a pro they do not have.
+  const coachName = remote
+    ? (space.status === 'ready' && space.remote ? (space.current?.coach.name ?? '') : '')
+    : (getCoachProfile().name || 'Yasmin El-Sayed');
 
   return (
     <div className="phone-frame client-help-screen">
@@ -57,10 +73,14 @@ export default function ClientHelpCenter() {
           );
         })}
 
-        <button type="button" className="client-help-contact" onClick={() => nav('coachMessages')}>
-          <MessageIcon size={16} color="#FFFFFF" />
-          {t('clientHelpContact', { coach: coachName })}
-        </button>
+        {coachName && (
+          <button type="button" className="client-help-contact" onClick={() => nav('coachMessages')}>
+            <MessageIcon size={16} color="#FFFFFF" />
+            {/* A name inside a translated sentence: isolated, or bidi
+                reordering moves it in Arabic (CLAUDE.md). */}
+            {t('clientHelpContact', { coach: isolate(coachName) })}
+          </button>
+        )}
       </div>
     </div>
   );

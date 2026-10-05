@@ -97,6 +97,11 @@ const SCREENS = [
   'clientHome', 'clientCoach', 'clientProfile', 'editClientProfile', 'coachMessages', 'clientTasks', 'myCoaches', 'clientSchedule',
   'discover', 'clientNotifications', 'myPrograms', { screen: 'programDetail', params: { offeringId: 'off-reset' } },
   { screen: 'rateCoach', params: { sessionId: 's-past' } }, 'clientBooking', { screen: 'coachPreview', params: { coachId: 'coach-a' } },
+  // Added after #155: Help Centre was the one member screen outside this
+  // list, and it was reading the demo coach's name signed in. Being off the
+  // list is what let that ship, so a screen that reads the member's data
+  // belongs on it even when the screen is mostly static copy.
+  'clientHelpCenter',
 ];
 
 test('signed in, no member screen reads or shows the demo member', async ({ browser }) => {
