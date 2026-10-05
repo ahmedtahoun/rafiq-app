@@ -169,7 +169,7 @@ function EditClientForm({ client, actions }: { client: Client; actions: RosterAc
         </div>
 
         <TextAreaField id="ecgoal" label={t('editClientGoal')} rows={2} value={goal} onChange={(e) => setGoal(e.target.value)} />
-        <TextAreaField id="ecnotes" label={t('editClientNotes')} rows={2} placeholder={t('addClientNotesPlaceholder')} value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <TextAreaField id="ecnotes" label={t('editClientNotes')} hint={t('notesMemberCanAsk')} rows={2} placeholder={t('addClientNotesPlaceholder')} value={notes} onChange={(e) => setNotes(e.target.value)} />
 
         <button type="button" className="edit-client-archive-btn" onClick={() => setShowArchiveConfirm(true)}>
           {t('editClientArchive')}
