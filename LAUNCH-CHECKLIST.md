@@ -18,8 +18,10 @@ this repo · *Design* = assets.
 calendar time no matter how fast the code moves:
 1. Connecting the app to the live database (§2) — the biggest piece of work.
 2. The name decision (§1) — icon, screenshots and store listing all wait on it.
-3. Google Play closed testing — **12 testers for 14 days** on a new personal
-   developer account (§6). Start it the moment a working Android build exists.
+3. ~~Google Play closed testing — **12 testers for 14 days** on a new personal
+   developer account (§6).~~ Not applicable: **organization account**
+   (Ahmed, 2026-10-05), which is exempt. What replaces it as the long pole
+   is the legal entity and its D-U-N-S number — see `LAUNCH-RUNBOOK.md`.
 4. The payments model (§3) — Apple's rules shape what can even be built.
 
 ---
@@ -42,8 +44,17 @@ calendar time no matter how fast the code moves:
       out" is a record of what Rafiq owes, not money parked in Rafiq.
       Coaches can still be paid to a bank account or a mobile wallet.
       Still open: the commission, and the advisor questions in §3.
-- [ ] 🟡 **Company / legal entity** that owns the developer accounts, receives
-      store payouts and signs the App Store Paid Apps agreement.
+- [ ] 🔴 **Company / legal entity** that owns the developer accounts and
+      receives store payouts. **Raised from 🟡 to 🔴 on 2026-10-05**: the
+      Play account is now an organization one, which is verified against
+      this entity and its D-U-N-S number, so nothing on the Play side
+      starts until it exists. (The App Store Paid Apps agreement is not
+      part of this while v1 sells nothing — `LAUNCH-RUNBOOK.md` §0.)
+      Decide at the same time whether the **Apple** enrolment should also
+      be the company: team `55BRQ92599` cannot be converted, so an
+      organization account there is a new team, new certificates and a new
+      Sign in with Apple key — far cheaper before the first submission
+      than after. Runbook §3.
 - [ ] 🟡 **Launch coaches.** Discover must not open empty or with fake coaches
       (see §2). Recruit a first set of real coaches who finish signup before
       public launch.

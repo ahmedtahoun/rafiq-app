@@ -13,29 +13,57 @@ a phone. Nothing in it is a code change except the two marked *(small PR)*.
 
 ## The shape of it
 
-The thing that decides the launch date is not the work. It is **the
-14-day Google Play closed test**, which cannot start until an Android
-build is in a testing track, which cannot happen until Play's *App
-content* section is complete, which needs a **public privacy policy URL**.
+**Decided (Ahmed, 2026-10-05): an organization Play account.** That
+removes the 14-day closed test from the critical path, and puts something
+else on it.
 
-So the first afternoon's job is hosting the site. It unblocks the Play
-clock and the Google sign-in fix at the same time, and it is the cheapest
-item on the list — the pages are written, built and committed.
+An organization account is verified against a **legal entity with a
+D-U-N-S number**. So the thing that now decides the launch date is
+§1's open "company / legal entity" row — which was a 🟡 and has just
+become the first blocker. Nothing about the Play account can start
+before it.
 
 ```
+   legal entity  ──►  D-U-N-S number  ──►  org account verification
+   (§1, open)         (free, ~5 business days)     │
+                                                   ▼
    host the site ──┬──► OAuth consent screen → In production
                    │      (fixes reviewer sign-in)
                    │
-                   └──► Play: App content ──► build in a testing track
-                                                      │
-                                                14 days ⏳
-                                                      │
-                                                   submit
+                   └──► Play: App content ──► internal testing
+                                                   │
+                                                   ▼
+                                       production, no 14-day test
 ```
 
-Everything else — crisis numbers, the device pass, the privacy forms, the
-lawyer, the review accounts — fits inside those 14 days if the clock is
-started first. Do it the other way round and they are serial.
+The two columns are independent: hosting the site, the OAuth screen and
+Supabase need no entity and no D-U-N-S, so start them the same day and
+let the paperwork run alongside. Crisis numbers, the device pass, the
+privacy forms, the lawyer and the review accounts all fit in the same
+window.
+
+### Is organization actually faster? Probably, and the sources disagree
+
+Several sites put the D-U-N-S wait at "up to 30 days" and conclude that
+14 days of closed testing is the quicker path. Treat that with
+suspicion: the pages saying it are companies that **sell 12-tester
+packages**, and Google's own documentation is blocked from this sandbox
+so I could not check it against the source.
+
+What I could check is Apple's, for the *same* D&B number, and Apple
+documents it concretely:
+
+> After requesting a D‑U‑N‑S Number, please allow up to 5 business days
+> to receive your number from D&B. […] allow up to 2 business days for
+> Apple to receive your information from D&B.
+
+It is also **free**, and D&B may already have assigned your entity one —
+worth looking up before requesting anything.
+
+So: roughly a week of paperwork against two weeks of recruiting and
+holding 12 testers, and the entity is needed anyway for store payouts
+(§1). The decision looks right. Confirm the Play side's own timeline in
+the console, since that is the half I could not verify.
 
 ## Waits you do not control
 
@@ -43,8 +71,10 @@ Start these early; they are the only things that cannot be hurried.
 
 | Wait | How long | Starts when |
 |---|---|---|
-| Play developer account identity verification | days | You create the account |
-| Play closed testing, **personal account only** | **14 days, 12 testers** | A build is in the closed track |
+| **D-U-N-S number** from D&B | ~5 business days, free | You request it (check first — you may already have one) |
+| D&B → the stores | up to 2 business days | D&B issues the number |
+| Play **organization** account verification | days | You submit the entity details |
+| ~~Play closed testing, 12 testers / 14 days~~ | **not applicable** | Organization accounts are exempt |
 | Google OAuth brand verification, *if triggered* | days to weeks | You submit the consent screen |
 | DNS / DMARC propagation | hours | You add the records |
 | TestFlight external beta review | ~1 day | First external build |
@@ -62,13 +92,18 @@ is immediate. Add it in a later pass.
 
 ## 0. Decide these first — each one changes the work
 
-- [ ] **Personal or organization Google Play account.** An organization
-      skips the 12-testers / 14-days rule entirely, which is the single
-      biggest lever on the launch date. It needs a registered entity and
-      a D-U-N-S number, which has its own lead time. Decide before you
-      create the account: changing it later means a new account.
-- [ ] **The legal entity** that owns both developer accounts and receives
-      payouts (checklist §1). Gates the Play decision above.
+- [x] **Personal or organization Google Play account.** **Organization**
+      (Ahmed, 2026-10-05). Exempt from the 12-testers / 14-days rule.
+      Changing it later means a new account, so this is settled.
+- [ ] 🔴 **The legal entity** that owns both developer accounts and
+      receives payouts (checklist §1). **This is now the first blocker**,
+      not a 🟡 — the organization account is verified against it, and
+      nothing on the Play side starts without it.
+- [ ] **Look up whether the entity already has a D-U-N-S number** before
+      requesting one. D&B assigns them unasked, and a duplicate request
+      is a delay rather than a second number.
+- [ ] **Apple: individual or organization enrolment too?** Worth deciding
+      in the same breath, because the answer may be expensive. See below.
 - [ ] **112 or 123** for the emergency row (`research/crisis-lines.md` §1).
       112 matches the copy as written; 123 is what people know.
 - [ ] **Does v1 sell anything?** Today: no. `Subscription.tsx` shows
@@ -140,8 +175,10 @@ Do all three the same day.
 
 Needs the entity decision from §0.
 
-- [ ] **Google Play Console** — create the account (identity verification
-      starts its clock here), then the app.
+- [ ] **Google Play Console** — create it as an **organization**, with
+      the entity's legal name, address and D-U-N-S number. Verification
+      starts its clock here. The name you enter is the developer name
+      shown on the listing, so enter the entity's name as registered.
 - [ ] **App Store Connect** — the app record for `app.rafiqie.coach`.
       Then put its Apple ID into `APP_STORE_ID` in `src/lib/support.ts`
       *(small PR)*; until that lands, "Rate Rafiq" is hidden on iOS.
@@ -151,6 +188,28 @@ Needs the entity decision from §0.
       is silently dropped.
 - [ ] Skip the Paid Apps agreement, tax, banking and the Play payments
       profile while v1 sells nothing (§0).
+
+### Check which kind of Apple account team 55BRQ92599 is, before building
+
+`RELEASE.md` §3 signs automatically as team `55BRQ92599`, and the Apple
+sign-in secret was generated under it around 2026-09-22. If that team is
+an **individual** enrolment, two things follow and both cost real work:
+
+1. The App Store shows **a person's name** as the seller, not the
+   company's — next to a Play listing that will show the entity's.
+2. Apple does not convert an individual enrolment into an organization
+   one. An organization account is a **different team**: new
+   distribution certificate and profile, a new Sign in with Apple key
+   and secret, and the app record moved across.
+
+Doing that *after* the first submission is considerably worse than doing
+it before. So if the App Store side should also be the company — and for
+consistency with Play it probably should — find out now, while there is
+no app record to move and no users to disrupt. The same D-U-N-S number
+serves both stores, so the paperwork is already in hand.
+
+This is a question, not a recommendation: an individual Apple enrolment
+is perfectly legitimate and launching on it is a choice, not a mistake.
 
 ## 4. Sign and build — start the clock
 
@@ -192,13 +251,18 @@ the Data safety form. `store/play-console.md` sets out options A and B
 with a recommendation and could not be settled from this sandbox. Decide
 it before you fill the form; it is the only unanswered question in there.
 
-- [ ] Once App content is complete: **promote to closed testing** and
-      recruit the 12 testers. **The 14 days start now.** Everything below
-      happens while that runs.
+- [ ] Once App content is complete: push a build to **internal
+      testing**, which is where the device pass and the review
+      run-through happen. With an organization account there is **no
+      14-day closed test to sit through**, so production access is a
+      matter of the declarations above being complete rather than of
+      waiting — which is exactly what the organization decision bought.
 
-## 6. During the 14 days
+## 6. In parallel with the paperwork
 
-None of these blocks the others.
+None of these blocks the others, and none of them needs the entity, the
+D-U-N-S number or a store account. This is the work to be getting on with
+while verification runs.
 
 - [ ] **Dial the five crisis lines.** `research/crisis-lines.md` has a
       candidate and sources per row, what to ask, and the shape of the
@@ -257,8 +321,10 @@ in the console on day one, because they move the date:
 
 1. Whether App content must be complete before an **internal** track, or
    only before a **closed** one.
-2. Whether the 12-testers / 14-days rule still applies in its current
-   form, and exactly what an organization account skips.
+2. **Exactly what the organization account exempts you from**, and
+   Play's own stated timeline for verifying one. This is the load-bearing
+   claim behind the whole ordering above, and it is the one I had to take
+   from third-party sites with a commercial interest in the answer.
 3. Whether a logo on the OAuth consent screen still triggers brand
    verification.
 
