@@ -3,7 +3,7 @@ import { useAppStore } from '../store/appStore';
 import { useT, dayKey, isolate, type MessageKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
-import { SPECIALTIES } from '../lib/specialties';
+import { specialtyLabels } from '../lib/coachLabels';
 import {
   MessageIcon, ScheduleIcon, CheckIcon, StarIcon, WarningIcon,
   ChevronIcon,
@@ -29,22 +29,10 @@ const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
 const DAY_MS = 86400000;
 const ACCENT_HEX = '#B75C3D';
 
-/**
- * A coach's title is the specialties they picked in Edit Profile, stored as
- * their English values joined with " · " (EditProfile.tsx). Each is shown
- * in the app's language, as Discover does; a value that isn't a specialty
- * any more is shown as stored, isolated so it can't reorder the Arabic
- * around it. Empty reads as Life coaching, as it always has here.
- */
+/** A coach's title in the app's language (coachLabels.ts); empty reads as
+    Life coaching, as it always has here. */
 function specialtyTitle(title: string, t: ReturnType<typeof useT>): string {
-  const labels = title
-    .split(' · ')
-    .map((value) => value.trim())
-    .filter(Boolean)
-    .map((value) => {
-      const def = SPECIALTIES.find((s) => s.value === value);
-      return def ? t(def.labelKey) : isolate(value);
-    });
+  const labels = specialtyLabels(title, t);
   return labels.length > 0 ? labels.join(' · ') : t('specLife');
 }
 

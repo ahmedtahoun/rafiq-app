@@ -3,6 +3,7 @@ import { useOwnCoachProfile, type OwnProfileView } from '../store/ownProfileStor
 import { LoadState } from '../components/LoadState';
 import { useAppStore } from '../store/appStore';
 import { useT, isolate, type MessageKey } from '../lib/i18n';
+import { languageLabel, specialtyLabels } from '../lib/coachLabels';
 import { darken } from '../lib/color';
 import { useFormat } from '../lib/format';
 import { CheckIcon, ChevronIcon, ShieldIcon, StarIcon } from '../components/icons';
@@ -60,7 +61,10 @@ function PreviewProfileView({ own, offerings, remote }: { own: Extract<OwnProfil
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
   const initials = profile.name.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2);
-  const specialties = (profile.title || 'Life coaching').split(' · ').filter(Boolean);
+  // In the app's language (coachLabels.ts, #95): this is the screen captioned
+  // "this is what members see", and they see them translated.
+  const titleLabels = specialtyLabels(profile.title, t);
+  const specialties = titleLabels.length > 0 ? titleLabels : [t('specLife')];
   const verified = own.verificationStatus === 'verified';
   const { money } = useFormat();
 
@@ -157,7 +161,7 @@ function PreviewProfileView({ own, offerings, remote }: { own: Extract<OwnProfil
             <div className="preview-profile-cred-row"><ShieldIcon size={15} color="var(--accent)" /><span>{sessionModeLabel}</span></div>
             {languages.length > 0 && (
               <div className="preview-profile-cred-chips">
-                {languages.map((l) => <span key={l} className="preview-profile-soft-chip">{l}</span>)}
+                {languages.map((l) => <span key={l} className="preview-profile-soft-chip">{languageLabel(l, t)}</span>)}
               </div>
             )}
           </div>
