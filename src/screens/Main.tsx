@@ -37,6 +37,7 @@ import {
   isTaskOverdue,
   markNudged,
   markSessionFollowedUp,
+  packageStatusOf,
   type Client,
   type NavTarget,
 } from '../lib/mockStore';
@@ -44,6 +45,7 @@ import { useRemoteSession } from '../lib/remoteSession';
 import { fetchIncomingRequests, fetchOwnWeeklyAvailability } from '../lib/requestData';
 import { fetchCoachWeek, type CalendarBlock } from '../lib/scheduleData';
 import { fetchOwnOfferings } from '../lib/offeringData';
+import { fetchHomeAlerts, markSessionFollowedUpRemote, type HomeAlerts } from '../lib/rosterData';
 import { wallNowMs } from '../lib/wallClock';
 import { canOfferJoin } from '../lib/videoData';
 import { useOwnCoachProfile } from '../store/ownProfileStore';
@@ -138,6 +140,7 @@ export default function Main() {
   const week = useRemoteLoad(`home_today_${todayStartMs}`, remote && todayStartMs > 0, () => fetchCoachWeek(todayStartMs));
   const hours = useRemoteLoad('weekly_availability', remote, fetchOwnWeeklyAvailability);
   const offerings = useRemoteLoad('own_offerings', remote, fetchOwnOfferings);
+  const alerts = useRemoteLoad('home_alerts', remote, fetchHomeAlerts);
 
   if (roster.status === 'loading' || own.status === 'loading') return <LoadState status="loading" />;
   if (roster.status === 'error') return <LoadState status="error" onRetry={roster.retry} />;
@@ -164,6 +167,7 @@ export default function Main() {
       hoursSet={hoursSet}
       offeringsSet={offeringsSet}
       requestCount={requestCount}
+      alerts={alerts}
     />
   );
 }
@@ -176,6 +180,7 @@ function MainView({
   hoursSet,
   offeringsSet,
   requestCount,
+  alerts,
 }: {
   roster: Extract<RosterView, { status: 'ready' }>;
   coachName: string;
@@ -185,6 +190,8 @@ function MainView({
   /** Same as hoursSet: null while signed-in offerings are loading. */
   offeringsSet: boolean | null;
   requestCount: number;
+  /** Signed in: packages and follow-ups, which the attention list needs. */
+  alerts: RemoteLoad<HomeAlerts>;
 }) {
   const t = useT();
   const fmt = useFormat();
@@ -225,9 +232,10 @@ function MainView({
   const nextKey = sessions.find((s) => s.endMs > nowMs)?.key ?? null;
 
   // --- Payments ----------------------------------------------------------------
-  // Signed out, the demo's recorded payments give a total. Signed in there
-  // is no total to show yet (Earnings still reads the demo store), so the
-  // card counts who is paid up from each member's own payment status.
+  // Signed out, the demo's recorded payments give a total. Signed in the
+  // card counts who is paid up from each member's own payment status, and
+  // the total is one tap away on Earnings, so Home doesn't read the whole
+  // ledger on every visit.
   const paidCount = activeRoster.filter((c) => c.paymentStatus === 'paid').length;
   const earnings = remote ? null : getEarningsSummary();
   const paidPct = earnings
@@ -250,18 +258,24 @@ function MainView({
   // Priority order ported 1:1 from Main.dc.html's if/else chain: payment
   // overdue > package blocked (expired/out of sessions) > task overdue >
   // payment due > package expiring soon > no upcoming session > no
-  // post-session follow-up > no recent check-in. Packages and session
-  // follow-ups are still demo-store records, so signed in the cascade skips
-  // them rather than read the demo's.
+  // post-session follow-up > no recent check-in. Signed in, packages and
+  // follow-ups come from `alerts` (the coach's `packages` rows and each
+  // member's latest attended session); until they have loaded the list
+  // isn't shown, since a package alert outranks most of the others.
   const nudged = getNudged();
+  const remoteAlerts = remote && alerts.status === 'ready' ? alerts.data : null;
 
   const attention: AttentionItem[] = activeRoster
     .map((c): AttentionItem | null => {
       const overdueTask = roster.tasksOf(c.id).find((task) => isTaskOverdue(task, todayMs)) || null;
       const hasUpcoming = c.nextSessionAtMs != null && c.nextSessionAtMs >= todayMs;
       const noSession = !hasUpcoming && !c.programCompleted;
-      const pkgStatus = remote ? null : getPackageStatus(c.id);
-      const latestSession = remote ? null : getSessionLogs(c.id)[0] || null;
+      const remotePkg = remoteAlerts?.packages[c.id];
+      const pkgStatus = remote ? (remotePkg ? packageStatusOf(remotePkg, todayMs) : null) : getPackageStatus(c.id);
+      // The session to follow up on: the latest one, if it hasn't been.
+      const latestSession = remote
+        ? (remoteAlerts?.lastHeld[c.id] ? { id: remoteAlerts.lastHeld[c.id].sessionId, followedUp: remoteAlerts.lastHeld[c.id].followedUp } : null)
+        : getSessionLogs(c.id)[0] || null;
       const hasUnfollowedSession = !!(latestSession && latestSession.followedUp === false);
 
       let kind: AttentionKind | null = null;
@@ -323,7 +337,12 @@ function MainView({
         isPackageAlert,
         isNudged,
         onRemind: () => {
-          if (kind === 'noFollowUp' && latestSession) {
+          if (kind === 'noFollowUp' && latestSession && remote) {
+            // Remind opens the thread, and Home re-reads its alerts when the
+            // coach comes back: a write that failed shows the alert again
+            // there rather than hide it on this phone only.
+            void markSessionFollowedUpRemote(latestSession.id);
+          } else if (kind === 'noFollowUp' && latestSession) {
             markSessionFollowedUp(c.id, latestSession.id);
           } else {
             markNudged(nudgeKey);
@@ -337,7 +356,8 @@ function MainView({
       };
     })
     .filter((a): a is AttentionItem => a !== null);
-  const remindable = attention.filter((a) => a.showRemind);
+  // Nothing to nudge until the list itself is showing.
+  const remindable = remote && alerts.status !== 'ready' ? [] : attention.filter((a) => a.showRemind);
 
   function remindAndGo(item: AttentionItem) {
     item.onRemind();
@@ -513,7 +533,12 @@ function MainView({
               </button>
             )}
           </div>
-          {attention.length > 0 ? (
+          {remote && alerts.status === 'error' ? (
+            <Card className="main-empty">
+              <div className="main-empty-text">{t('mainAttentionFailed')}</div>
+              <button type="button" className="main-see-all" onClick={alerts.retry}>{t('retry')}</button>
+            </Card>
+          ) : remote && alerts.status === 'loading' ? null : attention.length > 0 ? (
             attention.map((a) => (
               <Card key={a.clientId} className="main-attention-row">
                 <button type="button" className="main-attention-main" onClick={() => nav(a.detailHref)}>

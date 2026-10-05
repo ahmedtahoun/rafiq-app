@@ -339,6 +339,62 @@ export async function fetchClientRecord(clientId: string): Promise<RosterResult<
   });
 }
 
+// ---------------------------------------------------------------------------
+// What Home's "Needs your attention" reads besides the roster
+// ---------------------------------------------------------------------------
+
+/** The latest session a member attended, and whether the coach followed it up. */
+export interface LastHeldSession {
+  sessionId: string;
+  followedUp: boolean;
+}
+
+export interface HomeAlerts {
+  /** Only relationships with a package; the rest have none set up yet. */
+  packages: Record<string, RawPackage>;
+  /** Only relationships with an attended session. */
+  lastHeld: Record<string, LastHeldSession>;
+}
+
+/**
+ * Every package on the coach's roster, and each member's latest attended
+ * session (attendance 'attended', 0015) with its `followed_up` flag, for
+ * the package and follow-up alerts. A no-show or a disputed session has
+ * nothing to follow up on, so it doesn't count as the latest.
+ */
+export async function fetchHomeAlerts(): Promise<RosterResult<HomeAlerts>> {
+  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const uid = await currentUserId();
+  if (!uid) return NOT_SIGNED_IN;
+  const supabase = getSupabase();
+
+  const clients = await supabase.from('clients').select('id').eq('coach_id', uid);
+  if (clients.error) return unknown(clients.error);
+  const ids = clients.data.map((c) => c.id);
+  if (ids.length === 0) return ok({ packages: {}, lastHeld: {} });
+
+  const [pkgs, held] = await Promise.all([
+    supabase.from('packages').select('client_id, total, used, expires_at').in('client_id', ids),
+    supabase.from('sessions').select('id, client_id, followed_up, scheduled_at').in('client_id', ids).eq('attendance', 'attended').order('scheduled_at', { ascending: false }),
+  ]);
+  if (pkgs.error) return unknown(pkgs.error);
+  if (held.error) return unknown(held.error);
+
+  const packages: Record<string, RawPackage> = {};
+  for (const p of pkgs.data) packages[p.client_id] = { total: p.total, used: p.used, expiresAtMs: toWallMs(p.expires_at) };
+  const lastHeld: Record<string, LastHeldSession> = {};
+  // Newest first, so the first row per member is their latest.
+  for (const s of held.data) lastHeld[s.client_id] ??= { sessionId: s.id, followedUp: s.followed_up };
+  return ok({ packages, lastHeld });
+}
+
+/** The coach has followed up on a session (Home's Remind). */
+export async function markSessionFollowedUpRemote(sessionId: string): Promise<RosterResult<null>> {
+  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  const { error } = await getSupabase().from('sessions').update({ followed_up: true }).eq('id', sessionId);
+  return error ? unknown(error) : ok(null);
+}
+
 export async function setSessionRecap(sessionId: string, recap: string): Promise<RosterResult<null>> {
   if (!isSupabaseConfigured()) return NOT_CONFIGURED;
   const { error } = await getSupabase().from('sessions').update({ recap }).eq('id', sessionId);

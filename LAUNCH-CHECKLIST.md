@@ -81,7 +81,10 @@ as done below, when signed in; every other screen still reads and writes
       Still on `mockStore` when signed in, and all that is left of this
       item (Reem's queue):
 
-      - **Home's package and follow-up alerts** — `src/screens/Main.tsx`.
+      - ~~**Home's package and follow-up alerts**~~ — done (2026-10-04):
+        the coach's `packages` rows (expired, used up, expiring within a
+        week) and each member's latest attended session's `followed_up`,
+        which Remind sets (`fetchHomeAlerts` in `src/lib/rosterData.ts`).
       - **Profile stats** — `src/screens/Profile.tsx`.
       - ~~**Earnings' totals**~~ — done (2026-10-04): signed in, the
         coach's own `payments` ledger (`src/lib/earningsData.ts`):
