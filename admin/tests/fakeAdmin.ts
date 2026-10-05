@@ -75,3 +75,27 @@ export const aReport = (over: Record<string, unknown> = {}) => ({
   coach: { id: '33333333-3333-4333-8333-333333333333', full_name: 'Laila Hafez', email: 'laila@example.com', account_status: 'active' },
   ...over,
 });
+
+/**
+ * A payout as the function returns it: the coach nested through
+ * `coach_profiles`, and the destination already masked. There is no
+ * unmasked shape here because there is none in the app — the server
+ * masks before replying (`maskDestination`), so a fixture carrying a
+ * full account number would be testing something that cannot happen.
+ */
+export const aPayout = (over: Record<string, unknown> = {}) => ({
+  id: '66666666-6666-4666-8666-666666666666',
+  amount: 1500,
+  currency: 'EGP',
+  issuer: 'wallet',
+  status: 'requested',
+  comment: 'September sessions',
+  destination: { msisdn: '••••1234', bank_code: null, account_number: null, full_name: 'Laila Hafez' },
+  paymob_transaction_id: null,
+  status_description: null,
+  created_at: '2026-10-01T22:30:00.000Z',
+  sent_at: null,
+  settled_at: null,
+  coach: { profile: { id: '33333333-3333-4333-8333-333333333333', full_name: 'Laila Hafez', email: 'laila@example.com' } },
+  ...over,
+});

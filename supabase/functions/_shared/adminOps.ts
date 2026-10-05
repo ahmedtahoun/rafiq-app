@@ -19,6 +19,8 @@
  * asked to do is a fixed list, not a parameter.
  */
 
+import { maskDestination } from './paymobPayouts.ts';
+
 export type Row = Record<string, unknown>;
 export type Result<T> = { data: T | null; error: { message: string; code?: string } | null };
 
@@ -125,6 +127,42 @@ const VERIFICATION_COLUMNS =
   'coach:coach_profiles!coach_id(profile:profiles!profile_id(id, full_name, email, account_status))';
 
 const PROFILE_COLUMNS = 'id, full_name, email, role, account_status, created_at';
+
+/**
+ * `payouts.coach_id` references `coach_profiles(profile_id)` (0007), NOT
+ * `profiles(id)` — the same shape as `verification_requests` above, and
+ * the same trap. The embed has to go through `coach_profiles`; asking for
+ * `profiles!coach_id` is answered with an error by the real database and
+ * with silence by the fake, which models tables rather than PostgREST.
+ * The test below pins the string; only the real project can confirm it
+ * resolves. That is exactly how the first draft of VERIFICATION_COLUMNS
+ * reached review (#98).
+ *
+ * `destination` IS selected, and is then replaced by its masked form
+ * before the reply leaves this function — see `listPayouts`. It is a
+ * snapshot of where money went, and this reply reaches a browser holding
+ * only the anon key.
+ */
+const PAYOUT_COLUMNS =
+  'id, amount, currency, issuer, status, comment, destination, ' +
+  'paymob_transaction_id, status_code, status_description, ' +
+  'created_at, sent_at, settled_at, ' +
+  'coach:coach_profiles!coach_id(profile:profiles!profile_id(id, full_name, email))';
+
+/** `payout_status` in 0007. A filter outside it is a typo, not a query. */
+const PAYOUT_STATUSES = ['requested', 'processing', 'pending', 'success', 'failed', 'unknown'];
+
+/**
+ * Every payout row that leaves this module goes through here. `destination`
+ * is a jsonb snapshot — msisdn, bank code, account number, name — and the
+ * admin app is a browser. Masking at the edge, once, means no caller can
+ * forget to.
+ */
+function maskPayout(row: Row): Row {
+  const d = row.destination;
+  if (!d || typeof d !== 'object') return { ...row, destination: null };
+  return { ...row, destination: maskDestination(d as Parameters<typeof maskDestination>[0]) };
+}
 
 /**
  * Moves a queue row to a final state, but only from the state it is
@@ -296,6 +334,60 @@ export async function handleAdminRequest(deps: Deps, req: { jwt: string; body: R
       // Passed through as-is: that function's 409 ("something is still
       // open") and its message name what blocked the deletion, and the
       // admin reading it needs that, not a flattened 500.
+      return { status: out.status, body: (out.body ?? {}) as Row };
+    }
+
+    // ---- Payouts ------------------------------------------------------
+    // Reading is done here; moving money is not. `create`, `send` and
+    // `sync` are delegated to the `payouts` function, which already owns
+    // the Paymob client, the secrets, and the claim that stops a double
+    // click sending the same money twice (it moves a payout out of
+    // 'requested' with .eq('status','requested') before calling out).
+    // Re-implementing any of that here would be a second thing to keep
+    // correct, exactly as with deletions above.
+    case 'listPayouts': {
+      const status = body.status;
+      if (status !== undefined && status !== null) {
+        if (typeof status !== 'string') return bad('status must be a string');
+        if (!PAYOUT_STATUSES.includes(status)) {
+          return bad(`status must be one of ${PAYOUT_STATUSES.join(', ')}`);
+        }
+      }
+      let q = deps.db.from('payouts').select(PAYOUT_COLUMNS);
+      if (typeof status === 'string') q = q.eq('status', status);
+      const { data, error } = await q.order('created_at', { ascending: false }).limit(100);
+      if (error) return { status: 500, body: { error: 'list_failed', detail: error.message } };
+      return { status: 200, body: { payouts: (data ?? []).map(maskPayout) } };
+    }
+
+    case 'createPayout':
+    case 'sendPayout':
+    case 'syncPayout': {
+      const payload: Row = {};
+      if (body.op === 'createPayout') {
+        const coachId = uuid(body, 'coach_id');
+        if (isReply(coachId)) return coachId;
+        const amount = body.amount;
+        if (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0) {
+          return bad('amount must be a number greater than zero');
+        }
+        const comment = note(body, 'comment');
+        if (isReply(comment)) return comment;
+        payload.action = 'create';
+        payload.coach_id = coachId;
+        payload.amount = amount;
+        if (comment) payload.comment = comment;
+      } else {
+        const id = uuid(body, 'payout_id');
+        if (isReply(id)) return id;
+        payload.action = body.op === 'sendPayout' ? 'send' : 'sync';
+        payload.payout_id = id;
+      }
+      const out = await deps.callFunction('payouts', payload, jwt);
+      // Passed through unflattened, like deletions: that function's 409
+      // ("not in requested state"), its 422 ("invalid payout") and its
+      // 500 ("paymob_not_configured") each name something the admin has
+      // to act on, and a generic failure would hide which.
       return { status: out.status, body: (out.body ?? {}) as Row };
     }
 

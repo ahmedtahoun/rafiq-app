@@ -17,7 +17,11 @@ export type Op =
   | { op: 'rejectVerification'; request_id: string; note: string }
   | { op: 'listDeletions' }
   | { op: 'processDeletion'; request_id: string }
-  | { op: 'lookupUser'; query: string };
+  | { op: 'lookupUser'; query: string }
+  | { op: 'listPayouts'; status?: PayoutStatus }
+  | { op: 'createPayout'; coach_id: string; amount: number; comment?: string }
+  | { op: 'sendPayout'; payout_id: string }
+  | { op: 'syncPayout'; payout_id: string };
 
 export class ApiError extends Error {
   constructor(readonly status: number, readonly code: string, readonly detail?: string) {
@@ -87,3 +91,36 @@ export type Deletion = {
 };
 
 export type Profile = Person & { role: string; account_status: string; created_at: string };
+
+/** `payout_status` in 0007, in the order a payout moves through it. */
+export const PAYOUT_STATUSES = ['requested', 'processing', 'pending', 'success', 'failed', 'unknown'] as const;
+export type PayoutStatus = (typeof PAYOUT_STATUSES)[number];
+
+/**
+ * `destination` arrives masked — `••••1234` — and that is the only form
+ * this app ever sees. The full account number and msisdn stay on the
+ * server (`maskDestination` in `_shared/paymobPayouts.ts`), and the
+ * national ID never reaches the payout row at all.
+ *
+ * The coach is nested for the same reason a verification's is:
+ * `payouts.coach_id` references `coach_profiles(profile_id)`, so the
+ * function embeds through it. `payoutCoachOf` is the only place that
+ * shape is known.
+ */
+export type Payout = {
+  id: string;
+  amount: number;
+  currency: string;
+  issuer: string;
+  status: PayoutStatus;
+  comment: string | null;
+  destination: { msisdn: string | null; bank_code: string | null; account_number: string | null; full_name: string } | null;
+  paymob_transaction_id: string | null;
+  status_description: string | null;
+  created_at: string;
+  sent_at: string | null;
+  settled_at: string | null;
+  coach: { profile: Person | null } | null;
+};
+
+export const payoutCoachOf = (p: Payout): Person | null => p.coach?.profile ?? null;

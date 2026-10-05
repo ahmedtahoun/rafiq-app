@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { aReport, fakeFunction, signInAs } from './fakeAdmin';
+import { aPayout, aReport, fakeFunction, signInAs } from './fakeAdmin';
 
 test('signed out: nothing but a sign-in button', async ({ page }) => {
   await page.goto('/');
@@ -212,4 +212,76 @@ test('a deleted account offers no way back', async ({ page }) => {
   await expect(page.getByText('deleted')).toBeVisible();
   // Someone who asked to be gone is not brought back by a stray click.
   await expect(page.getByRole('button', { name: /suspend/i })).toHaveCount(0);
+});
+
+test('payouts: the queue renders a masked destination and offers Send only while requested', async ({ page }) => {
+  await signInAs(page);
+  await fakeFunction(page, {
+    listReports: { body: { reports: [] } },
+    listPayouts: {
+      body: {
+        payouts: [
+          aPayout(),
+          aPayout({ id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', status: 'processing', sent_at: '2026-10-02T08:00:00.000Z' }),
+          aPayout({ id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', status: 'success', settled_at: '2026-10-02T09:00:00.000Z' }),
+        ],
+      },
+    },
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Payouts' }).click();
+
+  await expect(page.getByText('1500 EGP · wallet ·')).toHaveCount(3);
+  // The only form of the number this app ever receives.
+  await expect(page.getByText('••••1234').first()).toBeVisible();
+
+  // Send belongs to a payout still in 'requested'; Sync to one in flight.
+  // A settled one offers neither.
+  await expect(page.getByRole('button', { name: 'Send' })).toHaveCount(1);
+  await expect(page.getByRole('button', { name: 'Sync' })).toHaveCount(1);
+});
+
+test('payouts: creating one sends the coach and amount, and never a destination', async ({ page }) => {
+  await signInAs(page);
+  const posted = await fakeFunction(page, {
+    listReports: { body: { reports: [] } },
+    listPayouts: { body: { payouts: [] } },
+    createPayout: { status: 201, body: { payout: { id: aPayout().id } } },
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Payouts' }).click();
+
+  await page.getByRole('textbox', { name: 'Coach id' }).fill('33333333-3333-4333-8333-333333333333');
+  await page.getByRole('textbox', { name: 'Amount' }).fill('1500');
+  await page.getByRole('textbox', { name: 'Comment' }).fill('September sessions');
+  await page.getByRole('button', { name: 'Create payout' }).click();
+
+  await expect.poll(() => posted.filter((p) => p.op === 'createPayout')).toHaveLength(1);
+  expect(posted.find((p) => p.op === 'createPayout')).toEqual({
+    op: 'createPayout',
+    coach_id: '33333333-3333-4333-8333-333333333333',
+    amount: 1500,
+    comment: 'September sessions',
+  });
+  // Where the money goes comes from the coach's saved payout account on
+  // the server. Nothing in this app can name a destination, so nothing in
+  // this app can send money to one someone typed in.
+  const sent = posted.find((p) => p.op === 'createPayout') as Record<string, unknown>;
+  expect(Object.keys(sent)).not.toContain('destination');
+});
+
+test('payouts: a refusal from the payouts function is shown as what it is', async ({ page }) => {
+  await signInAs(page);
+  await fakeFunction(page, {
+    listReports: { body: { reports: [] } },
+    listPayouts: { body: { payouts: [aPayout()] } },
+    sendPayout: { status: 409, body: { error: 'not_in_requested_state' } },
+  });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Payouts' }).click();
+  await page.getByRole('button', { name: 'Send' }).click();
+
+  // Someone else already sent it. That is a different problem from a
+  // missing Paymob key, and the admin needs to be able to tell.
+  await expect(page.getByRole('alert')).toContainText('not_in_requested_state');
 });

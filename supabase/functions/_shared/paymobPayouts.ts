@@ -51,6 +51,30 @@ export function destinationSnapshot(d: Destination): DestinationSnapshot {
   };
 }
 
+/**
+ * A destination snapshot with the numbers cut down to their last four
+ * digits, for anything that leaves the server.
+ *
+ * It lives here, next to the snapshot it masks, because two callers need
+ * it now: `payouts/index.ts` returns a newly created payout, and
+ * `adminOps.ts` lists existing ones into a browser holding only the anon
+ * key. It was private to the first of those; a second copy would be a
+ * second thing to keep correct, and the one that drifted would be the one
+ * leaking an account number.
+ *
+ * The national ID needs no handling here because it never reaches a
+ * snapshot — `destinationSnapshot` above drops it.
+ */
+export function maskDestination(d: DestinationSnapshot): Record<string, string | null> {
+  const tail = (v?: string | null) => (v ? `••••${v.slice(-4)}` : null);
+  return {
+    msisdn: tail(d.msisdn),
+    bank_code: d.bank_code ?? null,
+    account_number: tail(d.account_number),
+    full_name: d.full_name,
+  };
+}
+
 export interface PayoutRequest {
   /** Our payout id — sent as Paymob's client reference for timeout recovery. */
   id: string;
