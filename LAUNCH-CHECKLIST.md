@@ -4,6 +4,11 @@ Everything between today and a published Rafiq, checked against the repo on
 2026-09-30. Tick items off in the PR that does them (`- [x]`), so this file
 stays the source of truth the same way `WORK-SPLIT.md` is.
 
+This file says **what** is left. `LAUNCH-RUNBOOK.md` says **in what
+order**, and which steps wait on which — start there if you are about to
+sit down and do the console work. `RELEASE.md` is **how** a build reaches
+TestFlight and Play.
+
 **Tags:** 🔴 **blocker** — the stores reject the app, or it doesn't work for a
 real user · 🟡 **required before public launch** · ⚪ recommended.
 **Owner:** *Ahmed* = a decision or an account only you hold · *Dev* = code in
