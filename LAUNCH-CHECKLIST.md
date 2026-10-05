@@ -58,7 +58,11 @@ calendar time no matter how fast the code moves:
       than after. Runbook §3.
 - [ ] 🟡 **Launch coaches.** Discover must not open empty or with fake coaches
       (see §2). Recruit a first set of real coaches who finish signup before
-      public launch.
+      public launch. The invite and a 10-minute setup guide, both languages,
+      are drafted in `store/coach-invite.md` — along with why *finish signup*
+      is the whole job: `coach_directory` lists a coach the moment
+      `signup_completed_at` is set, with no photo, offering or bookable hour
+      required, so a half-finished profile is a live card in Discover.
 
 ## 2. Connect the app to the database (Dev)
 
