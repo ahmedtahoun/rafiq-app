@@ -146,12 +146,14 @@ test('ClientHelpCenter', async ({ browser }) => {
   expect.soft(String(await screenOf(page)), 'screen is clientHelpCenter').toBe('clientHelpCenter');
   expect.soft(String(errs.length), 'no console/page errors').toBe('0');
   expect.soft(String(await txt(page, '.client-help-title')), 'title').toBe('Get Help');
-  // From the screen's own FAQ_IDS rather than a number typed here: the
-  // Help Centre grew by two when video sessions and the unread badge
-  // shipped, and a hardcoded six would have to be found and changed every
-  // time a question is added.
-  const faqCount = await page.evaluate(async () => (await import('/src/screens/ClientHelpCenter.tsx')).FAQ_IDS.length);
-  expect.soft(String(await n(page, '.client-help-question')), `${faqCount} questions`).toBe(String(faqCount));
+  // Typed here, not read from the screen's own list: counting FAQ_IDS
+  // against itself can't notice a question dropped from it. Eight since
+  // video sessions and the unread badge shipped, and the two new ones by
+  // name.
+  expect.soft(String(await n(page, '.client-help-question')), '8 questions').toBe('8');
+  const questions = await page.locator('.client-help-question').allInnerTexts();
+  expect.soft(questions.some((q) => q.includes('How do video sessions work?')), 'the video question').toBe(true);
+  expect.soft(questions.some((q) => q.includes('Where do I see new messages?')), 'the messages question').toBe(true);
   expect.soft(String(await n(page, '.client-help-answer')), 'first answer open by default').toBe('1');
   expect.soft(String((await txt(page, '.client-help-answer')).includes('Sessions tab')), 'and it is the first').toBe('true');
   expect.soft(String(await page.locator('.client-help-question[aria-expanded="true"]').count()), 'aria-expanded tracks it').toBe('1');
