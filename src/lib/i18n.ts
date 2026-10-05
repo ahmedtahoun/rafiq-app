@@ -211,6 +211,7 @@ const en = {
     profileDeleteBlockedTitle: "Can't delete yet", profileGotIt: 'Got it',
     profileObligationCredits: '{n} unused session credit(s) across your members', profileObligationSessions: '{n} member(s) with an upcoming session',
     profileObligationDisputes: '{n} open dispute(s)', profileDeleteBlockedIntro: 'You still have',
+    profileObligationPayouts: '{n} payout(s) not settled yet', profileStatsFailed: "Your numbers didn't load.",
     profileNotEnoughReviews: 'Not enough reviews yet',
 
     // EditProfile.dc.html
@@ -1338,6 +1339,7 @@ const ar: Record<MessageKey, string> = {
     profileDeleteBlockedTitle: 'لا يمكن الحذف بعد', profileGotIt: 'حسنًا',
     profileObligationCredits: '{n} رصيد جلسات غير مستخدم لدى أعضائك', profileObligationSessions: '{n} عضو لديه جلسة قادمة',
     profileObligationDisputes: '{n} نزاع مفتوح', profileDeleteBlockedIntro: 'لا يزال لديك',
+    profileObligationPayouts: '{n} تحويل لم تتم تسويته بعد', profileStatsFailed: 'لم يتم تحميل أرقامك.',
     profileNotEnoughReviews: 'لا توجد تقييمات كافية بعد',
 
     // EditProfile.dc.html

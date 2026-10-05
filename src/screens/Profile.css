@@ -151,6 +151,31 @@ html[dir='rtl'] .profile-name {
   border-radius: 20px 20px 0 0;
 }
 
+.profile-stats-failed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.28);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.profile-stats-retry {
+  flex-shrink: 0;
+  padding: 5px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 999px;
+  background: transparent;
+  color: #ffffff;
+  font: inherit;
+  cursor: pointer;
+}
+
 .profile-stat {
   text-align: center;
 }

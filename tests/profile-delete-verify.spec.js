@@ -46,8 +46,10 @@ const COACH_TABLES = {
 };
 
 // The delete confirm sheet shows its Cancel/Delete variant only when
-// nothing is outstanding. Obligations are still mockStore's (clients and
-// sessions are migration step 3), and the demo seed has plenty, on purpose.
+// nothing is outstanding. A coach's open items are read from their own rows
+// signed in (tests/profile-stats.spec.js), so CLEAR_PRO_OBLIGATIONS no longer
+// changes what the coach's sheet shows; the member's are still mockStore's,
+// and the demo seed has plenty, on purpose.
 const CLEAR_PRO_OBLIGATIONS = `(m) => { for (const c of m.getClients()) m.updateClient(c.id, { active: false }); }`;
 const CLEAR_SARA_OBLIGATIONS = `(m) => {
   m.updateClient('sara', { nextSessionAtMs: null });
