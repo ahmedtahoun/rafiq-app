@@ -12,13 +12,17 @@ import {
   getOfferings,
   getProAggregateRating,
   getRatings,
+  MIN_REVIEWS_FOR_RATING,
   setSelectedOfferingId,
   type Offering,
   type OfferingType,
 } from '../lib/mockStore';
 import { fetchOwnOfferings } from '../lib/offeringData';
+import { fetchOwnCoachStats, type CoachStats } from '../lib/coachStatsData';
+import { fetchCoachReviews, type CoachReview } from '../lib/reviewData';
 import { useRemoteSession } from '../lib/remoteSession';
 import { useRemoteLoad } from '../store/remoteLoad';
+import { useRoster } from '../store/rosterStore';
 import './PreviewProfile.css';
 
 const ACCENT = '#B75C3D';
@@ -35,23 +39,102 @@ const TYPE_LABEL_KEY: Record<OfferingType, MessageKey> = {
 // 1:1 port of PreviewProfile.dc.html — what a member sees when they open
 // this coach's profile.
 //
-// Every field comes from the same sources the rest of the Pro side reads
-// (useOwnCoachProfile, getOfferings, getProAggregateRating, getRatings), so the
-// preview can never drift from the real profile. Nothing on this screen is
-// illustrative: no sample reviews, no stand-in rating.
-export default function PreviewProfile() {
-  const own = useOwnCoachProfile();
-  // Signed in, the offerings are the coach's own rows, the same ones members
-  // see on the coach page; it showed the demo catalogue to every coach.
-  const remote = useRemoteSession();
-  const load = useRemoteLoad('own_offerings', remote, fetchOwnOfferings);
-  if (own.status === 'loading' || (remote && load.status === 'loading')) return <LoadState status="loading" />;
-  if (own.status === 'error') return <LoadState status="error" onRetry={own.retry} showBack />;
-  if (remote && load.status === 'error') return <LoadState status="error" onRetry={load.retry} showBack />;
-  return <PreviewProfileView own={own} offerings={remote && load.status === 'ready' ? load.data : getOfferings()} remote={remote} />;
+// Every field comes from the same sources the rest of the Pro side reads, so
+// the preview can never drift from the real profile. Nothing on this screen
+// is illustrative: no sample reviews, no stand-in rating.
+//
+// Signed in that is the coach's own rows: their offerings, the same ones
+// members see on the coach page; their rating (coachStatsData.ts); their
+// members (the roster); and the reviews members see, from `coach_reviews`
+// with its first-name-and-initial signature, never a member's full name.
+// Signed out it is the demo's.
+
+interface PreviewRating {
+  count: number;
+  average: number;
+  hasEnoughReviews: boolean;
 }
 
-function PreviewProfileView({ own, offerings, remote }: { own: Extract<OwnProfileView, { status: 'ready' }>; offerings: Offering[]; remote: boolean }) {
+interface PreviewReview {
+  key: string;
+  name: string;
+  initials: string;
+  avatarBg: string;
+  rating: string;
+  quote: string;
+}
+
+export default function PreviewProfile() {
+  const own = useOwnCoachProfile();
+  const remote = useRemoteSession();
+  const userId = useAppStore((s) => s.userId);
+  const roster = useRoster();
+  const load = useRemoteLoad<{ offerings: Offering[]; stats: CoachStats; reviews: CoachReview[] }>(`own_preview:${userId}`, remote && !!userId, async () => {
+    const [offerings, stats, reviews] = await Promise.all([fetchOwnOfferings(), fetchOwnCoachStats(), fetchCoachReviews(userId ?? '')]);
+    return offerings.ok && stats.ok && reviews.ok
+      ? { ok: true as const, data: { offerings: offerings.data, stats: stats.data, reviews: reviews.data } }
+      : { ok: false as const };
+  });
+  if (own.status === 'loading' || (remote && (load.status === 'loading' || roster.status === 'loading'))) return <LoadState status="loading" />;
+  if (own.status === 'error') return <LoadState status="error" onRetry={own.retry} showBack />;
+  if (remote && load.status === 'error') return <LoadState status="error" onRetry={load.retry} showBack />;
+  if (remote && roster.status === 'error') return <LoadState status="error" onRetry={roster.retry} showBack />;
+
+  if (remote && load.status === 'ready' && roster.status === 'ready') {
+    const { stats } = load.data;
+    return (
+      <PreviewProfileView
+        own={own}
+        offerings={load.data.offerings}
+        rating={{ count: stats.ratingCount, average: stats.ratingAvg, hasEnoughReviews: stats.ratingCount >= MIN_REVIEWS_FOR_RATING }}
+        activeCount={roster.clients.filter((c) => c.active).length}
+        reviews={load.data.reviews.map((r) => ({
+          key: r.id,
+          name: r.reviewerName,
+          initials: r.reviewerName.trim().split(/\s+/).map((w) => w[0] ?? '').join('').toUpperCase().slice(0, 2),
+          avatarBg: r.avatarBg,
+          rating: r.rating.toFixed(1),
+          quote: r.comment.trim(),
+        }))}
+        remote
+      />
+    );
+  }
+
+  // Real written feedback only. A star-only rating still counts toward the
+  // aggregate but has no quote to show, so it is not listed.
+  const demoReviews = getClients().flatMap((c) =>
+    Object.entries(getRatings(c.id))
+      .filter(([, r]) => r.comment?.trim())
+      .map(([sessionId, r]) => ({
+        key: `${c.id}_${sessionId}`,
+        name: c.name,
+        initials: c.initials,
+        avatarBg: c.avatarBg,
+        rating: r.rating.toFixed(1),
+        quote: r.comment!.trim(),
+      })),
+  );
+  return (
+    <PreviewProfileView
+      own={own}
+      offerings={getOfferings()}
+      rating={getProAggregateRating()}
+      activeCount={getClients().filter((c) => c.active).length}
+      reviews={demoReviews}
+      remote={false}
+    />
+  );
+}
+
+function PreviewProfileView({ own, offerings, rating: agg, activeCount, reviews, remote }: {
+  own: Extract<OwnProfileView, { status: 'ready' }>;
+  offerings: Offering[];
+  rating: PreviewRating;
+  activeCount: number;
+  reviews: PreviewReview[];
+  remote: boolean;
+}) {
   const t = useT();
   const back = useAppStore((s) => s.back);
   const nav = useAppStore((s) => s.nav);
@@ -81,25 +164,6 @@ function PreviewProfileView({ own, offerings, remote }: { own: Extract<OwnProfil
   const certifications = profile.certifications?.length
     ? profile.certifications
     : profile.cert?.trim() ? [profile.cert] : [];
-
-  const agg = getProAggregateRating();
-  const activeCount = getClients().filter((c) => c.active).length;
-
-  // Real written feedback only. A star-only rating still counts toward the
-  // aggregate above but has no quote to show, so it is not listed here.
-  const reviews = getClients().flatMap((c) => {
-    const ratings = getRatings(c.id);
-    return Object.entries(ratings)
-      .filter(([, r]) => r.comment?.trim())
-      .map(([sessionId, r]) => ({
-        key: `${c.id}_${sessionId}`,
-        name: c.name,
-        initials: c.initials,
-        avatarBg: c.avatarBg,
-        rating: r.rating.toFixed(1),
-        quote: r.comment!.trim(),
-      }));
-  });
 
   const selected = offerings.find((o) => o.id === selectedId) ?? null;
   const heroStyle = profile.coverPhotoUrl
@@ -240,7 +304,7 @@ function PreviewProfileView({ own, offerings, remote }: { own: Extract<OwnProfil
                   <div key={r.key} className="preview-profile-review">
                     <div className="preview-profile-review-head">
                       <span className="preview-profile-review-avatar" style={{ background: r.avatarBg }}>{r.initials}</span>
-                      <span className="preview-profile-review-name">{r.name}</span>
+                      <span className="preview-profile-review-name"><bdi>{r.name}</bdi></span>
                       <span className="preview-profile-review-rating">
                         <StarIcon size={11} color="var(--amber)" filled />{r.rating}
                       </span>

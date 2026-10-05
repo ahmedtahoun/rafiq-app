@@ -218,6 +218,7 @@ const SCREENS = [
   'clients',
   { screen: 'clientDetail', params: { clientId: 'c-tarek' } },
   { screen: 'editClient', params: { clientId: 'c-tarek' } },
+  'addClient',
   { screen: 'addTask', params: { clientId: 'c-tarek' } },
   'schedule',
   'addTimeBlock',
@@ -261,35 +262,14 @@ const SCREENS = [
 const ALLOWED = /^(rafiq_(role|lang|dark|pro_notif_prefs|nudged)|rafiq_message_draft_c-(tarek|dalia|rashad)|sb-.+)$/;
 
 /**
- * The demo reads that are on `main` today, with the call site for each.
- *
- * This is a ratchet, not an exemption: the walk asserts the offenders it
- * finds are EXACTLY this map. A new screen reading the demo fails it, and
- * so does fixing one of these — at which point delete its entry here, and
- * the §2 box moves one screen closer to being tickable.
- *
- * Every one of them is `getClients()` reaching mockStore's six-member
- * DEFAULT_CLIENTS, directly or through a helper that walks it:
- *
- *   Profile.tsx:95   getProAggregateRating()  → clients, ratings_<demo id>
- *   Profile.tsx:99   getProActiveObligations()→ package_*, custom_blocks,
- *                                               session_logs_*
- *   Profile.tsx:106  getClients()             → clients
- *   Profile.tsx:111  getUnreadMessageCount()  → messages_*,
- *                                               messages_read_pro_*
- *   PreviewProfile.tsx:81  getProAggregateRating()
- *   PreviewProfile.tsx:82  getClients()
- *   PreviewProfile.tsx:86  getClients()
- *   PreviewProfile.tsx:87  getRatings(c.id)
- *   ShareProfile.tsx:83    getClients()
- *   ShareProfile.tsx:90    getProAggregateRating()
+ * The demo reads still on `main`, with the call site for each. This was a
+ * ratchet: the walk asserts the offenders it finds are EXACTLY this map, so
+ * a new screen reading the demo fails it, and so does fixing one without
+ * deleting its entry. Profile went with #123; Preview Profile and Share
+ * Profile with #126 (coachStatsData.ts, the roster, coach_reviews). Nothing
+ * is left, and it should stay that way.
  */
-const DEMO_RATINGS = ['sara', 'omar', 'mona', 'khaled', 'laila', 'nour'].map((id) => `rafiq_ratings_${id}`);
-const KNOWN_DEMO_READS = {
-  // Profile went with #123 (coachStatsData.ts, useRoster, the inbox).
-  previewProfile: ['rafiq_clients', ...DEMO_RATINGS],
-  shareProfile: ['rafiq_clients', ...DEMO_RATINGS],
-};
+const KNOWN_DEMO_READS = {};
 
 /** The keys this screen asked for, and the recorder emptied for the next. */
 const keysOf = (page) => page.evaluate(() => {
@@ -315,38 +295,6 @@ test('signed in, no coach screen reads or shows the demo coach', async ({ browse
   // Exact, not a subset: this fails on a new offender AND on a fixed one.
   expect(offenders).toEqual(KNOWN_DEMO_READS);
   expect(errs).toEqual([]);
-  await ctx.close();
-});
-
-/**
- * What the three screens above actually show for it, which is the reason
- * they matter rather than a tidiness point.
- *
- * `getClients()` with nothing stored returns mockStore's DEFAULT_CLIENTS —
- * six members, all active — so the count is the demo's six however many
- * the coach really has. This coach has two. PreviewProfile is what a
- * prospective member is shown, and ShareProfile is the card that gets
- * sent, so the number is a claim about the coach's practice.
- *
- * Marked `test.fail()`, not `fixme`: the body runs, and it asserts the
- * CORRECT number. Playwright expects the failure, so CI is green while the
- * bug stands — and the day the read is fixed this test "unexpectedly
- * passes" and goes red, which is the reminder to drop the marker and the
- * matching KNOWN_DEMO_READS entries. `fixme` would not run it at all.
- */
-test('the share card and the public preview count the coach’s own members', async ({ browser }) => {
-  // Inside the body, so it marks this test only: at file scope it would
-  // mark every test in the file as expected-to-fail.
-  test.fail();
-  const { page, ctx } = await open(browser);
-  for (const [screen, selector] of [
-    ['shareProfile', '.share-profile-stat-value'],
-    ['previewProfile', '.preview-profile-stat-value'],
-  ]) {
-    await go(page, screen);
-    // Two active on this roster: Tarek and Dalia. Rashad is archived.
-    await expect(page.locator(selector).filter({ hasText: /^\d+$/ }).first(), screen).toHaveText('2');
-  }
   await ctx.close();
 });
 
@@ -391,5 +339,58 @@ test('every screen of the walk shows the coach’s own data, not an empty state'
     await expect(frame(page), nameOf(target)).toContainText(expected);
   }
   expect(errs).toEqual([]);
+  await ctx.close();
+});
+
+// --- What the public screens show: the coach's own numbers -----------------------------------
+
+/**
+ * Preview Profile is what a prospective member is shown, and Share Profile
+ * the card that gets sent, so their numbers are claims about the coach's
+ * practice. Both used to count mockStore's six demo members and their
+ * ratings; they read the coach's own now. Three ratings (5, 4, 4) so the
+ * average shows, and one with words, which coach_reviews signs with a first
+ * name and last initial.
+ */
+const rated = () => ({
+  ...tables(),
+  ratings: [5, 4, 4].map((rating, i) => ({ id: `r${i}`, client_id: 'c-tarek', coach_id: COACH, session_id: null, rating, comment: '', created_at: '2026-09-21T10:00:00Z' })),
+  coach_reviews: [{ id: 'r0', coach_id: COACH, rating: 5, comment: 'Clear and kind.', created_at: '2026-09-21T10:00:00Z', reviewer_name: 'Tarek Z.', avatar_bg: '#3E6FB0' }],
+});
+
+test('Preview Profile shows what members see: the coach’s own rating, members and reviews', async ({ browser }) => {
+  const { page, ctx, errs } = await open(browser, { data: rated() });
+  await go(page, 'previewProfile');
+  // 5, 4, 4 is 4.3 over three ratings; two active members (Rashad is archived).
+  await expect(page.locator('.preview-profile-stat-value')).toHaveText(['4.3', '3', '2']);
+  const review = page.locator('.preview-profile-review');
+  await expect(review).toHaveCount(1);
+  // Signed as coach_reviews signs it: never the member's full name.
+  await expect(review.locator('.preview-profile-review-name')).toHaveText('Tarek Z.');
+  await expect(review.locator('.preview-profile-review-name bdi')).toHaveCount(1);
+  await expect(review.locator('.preview-profile-review-quote')).toHaveText('Clear and kind.');
+  await expect(frame(page)).not.toContainText('Tarek Zaki');
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
+test('Share Profile counts the coach’s own members and rating', async ({ browser }) => {
+  const { page, ctx, errs } = await open(browser, { data: rated() });
+  await go(page, 'shareProfile');
+  // Rating, members, and views, which have no source and stay a dash.
+  await expect(page.locator('.share-profile-stat-value')).toHaveText(['4.3', '2', '—']);
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
+test('a failed read on Preview Profile is an error with a retry, not the demo', async ({ browser }) => {
+  const { page, ctx } = await open(browser, { data: rated() });
+  await page.evaluate(() => { window.__fake.fail = ['coach_reviews']; });
+  await page.evaluate(async () => (await import('/src/store/appStore.ts')).useAppStore.getState().nav('previewProfile'));
+  await expect(page.locator('.load-state[role="alert"]')).toBeVisible();
+  await expect(page.locator('.preview-profile-stats')).toHaveCount(0);
+  await page.evaluate(() => { window.__fake.fail = []; });
+  await page.locator('.load-state button', { hasText: 'Try again' }).click();
+  await expect(page.locator('.preview-profile-stat-value')).toHaveText(['4.3', '3', '2']);
   await ctx.close();
 });
