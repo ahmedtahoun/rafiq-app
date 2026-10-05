@@ -151,12 +151,16 @@ as done below, when signed in; every other screen still reads and writes
       longer show the demo's sample goal signed in:
       tests/member-demo-identity.spec.js walks the member screens signed in
       and fails on any demo store read or demo name. Done (2026-10-04, #109):
-      the walk covers every member screen that reads the member's data —
-      Home, My Pro, Profile, Edit profile, Messages, Tasks, My Pros,
-      Sessions, Discover, Notifications, My programs, Program detail, Rate
-      coach, Booking and the coach page — and waits for each lazily loaded
-      screen rather than a fixed delay. Breaking any one of them back to the
-      demo fails it. Since #112 it allows no device key that isn't the
+      the walk covers 15 member screens — Home, My Pro, Profile, Edit
+      profile, Messages, Tasks, My Pros, Sessions, Discover, Notifications,
+      My programs, Program detail, Rate coach, Booking and the coach page —
+      and waits for each lazily loaded screen rather than a fixed delay.
+      **It is not every member screen, and the gap cost something:** Help
+      Centre is outside that list, and it reads the demo coach's name
+      signed in, so a real member is offered "Message Yasmin El-Sayed"
+      (#155). The coach walk's list is all 24 of its screens; this one is
+      15, and Help Centre is not among them. Breaking any one of them back
+      to the demo fails it. Since #112 it allows no device key that isn't the
       member's own: saved coaches are `favourite_coaches` rows now.
       The coach half is done too (#124's walk, closed by #126): every coach
       screen signed in, no demo read left (`KNOWN_DEMO_READS` is empty).
@@ -191,9 +195,10 @@ as done below, when signed in; every other screen still reads and writes
       demo data as a fallback). §2's last screens went with them: Earnings
       (#121), Home's alerts (#122), Profile (#123), and Preview and Share
       Profile (#126). The two walks (`tests/member-demo-identity.spec.js`,
-      `tests/coach-demo-identity.spec.js`) open every screen that reads
-      the signed-in user's data and require each to settle on real
-      content, not a spinner or an error.
+      `tests/coach-demo-identity.spec.js`) open the screens on each walk's
+      own list and require each to settle on real content, not a spinner or
+      an error — 24 coach screens, and 15 member ones, which is every
+      member screen but Help Centre (#155).
       Discover now distinguishes an empty directory ("No pros yet") from a
       search that matched nothing — it will be empty until real pros sign
       up, and the search-failed wording read like a broken screen.
@@ -294,7 +299,16 @@ The sources, read on 2026-10-01, and what they mean for the build are in
 - [ ] 🟡 *Ahmed:* check `src/lib/paymobBanks.ts` against the bank codes table
       in Paymob's Instant Cashin docs — it was written without access to them.
 - [x] 🟡 *Dev:* payout history on Earnings (signed-in only; newest first).
-- [ ] 🟡 *Dev:* an admin screen to create, send and sync payouts (§9).
+- [x] 🟡 *Dev:* an admin screen to create, send and sync payouts (§9).
+      Done (2026-10-05, #149): the admin app lists payouts newest first
+      with a status filter, and Create, Send and Sync all go through the
+      existing `payouts` function rather than a second copy of it, so
+      0009's rule that a payout record never carries a national ID, and the
+      issuer and destination checks, hold for an admin too. Destinations are
+      masked in every response. One thing no test here can prove: the
+      PostgREST embed joining a payout to its coach through
+      `coach_profiles` resolves only against the real project, because the
+      fake models tables, not PostgREST's query grammar.
 - [ ] 🔴 *Ahmed:* production Paymob Payouts credentials — new ones, never the
       staging set, and shared through a password manager, not email.
 
