@@ -262,6 +262,10 @@ const en = {
     editClientTitle: 'Edit Member', editClientCancel: 'Cancel', editClientSave: 'Save',
     editClientChangePhoto: 'Change photo',
     editClientGoal: 'Goal', editClientNotes: 'Important notes (optional)',
+    // Under the coach's private notes, on Add and Edit member: notes about a
+    // person are their personal data under Law 151/2020, so they can ask
+    // for them (store/app-privacy.md §2 and §9). Ahmed approves the wording.
+    notesMemberCanAsk: 'Members can ask to see notes written about them.',
     editClientArchive: 'Archive Member', editClientArchiveTitle: 'Archive {name}?',
     editClientArchiveBody: "They'll be moved out of your active roster. Their history and progress stay saved, and you can reactivate them anytime.",
     editClientArchiveConfirm: 'Archive',
@@ -1391,6 +1395,7 @@ const ar: Record<MessageKey, string> = {
     editClientTitle: 'تعديل العضو', editClientCancel: 'إلغاء', editClientSave: 'حفظ',
     editClientChangePhoto: 'تغيير الصورة',
     editClientGoal: 'الهدف', editClientNotes: 'ملاحظات مهمة (اختياري)',
+    notesMemberCanAsk: 'يحق للأعضاء طلب الاطلاع على الملاحظات المكتوبة عنهم.',
     editClientArchive: 'أرشفة العضو', editClientArchiveTitle: 'أرشفة {name}؟',
     editClientArchiveBody: 'سيتم نقلهم خارج قائمتك النشطة. يبقى سجلهم وتقدمهم محفوظين، ويمكنك إعادة تنشيطهم في أي وقت.',
     editClientArchiveConfirm: 'أرشفة',
