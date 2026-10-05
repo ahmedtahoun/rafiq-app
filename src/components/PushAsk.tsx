@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useT } from '../lib/i18n';
 import { useAppStore } from '../store/appStore';
 import { declinePushOffer, syncPushDevice, type PushPermission } from '../lib/push';
+import { closePushAsk, usePushAsk } from '../store/pushAsk';
 import { BottomSheet } from './BottomSheet';
 import { Button } from './Button';
 import './PushAsk.css';
@@ -9,12 +10,14 @@ import './PushAsk.css';
 /**
  * The app's own "get notifications on your phone?" — what comes before the
  * phone's permission prompt, never instead of an explanation. Offered once
- * per phone, at a moment where a banner would obviously help: a member
- * just sent their first request, or a coach opened Notifications. "Turn on"
- * is what shows the phone's prompt; "Not now" is remembered, and Profile's
- * "Notifications on this phone" row is the way back.
+ * per phone (store/pushAsk.ts), at a moment where a banner would obviously
+ * help: the first message sent or received, the first session booked.
+ * "Turn on" is what shows the phone's prompt; "Not now" is remembered, and
+ * Profile's "Notifications on this phone" row is the way back.
  */
-export function PushAsk({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function PushAsk() {
+  const open = usePushAsk((s) => s.open);
+  const onClose = closePushAsk;
   const t = useT();
   const role = useAppStore((s) => s.role);
   const [busy, setBusy] = useState(false);

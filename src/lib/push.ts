@@ -5,8 +5,9 @@
  *
  * What this does:
  * - Never asks at launch. The OS prompt only follows the app's own
- *   explanation (PushAsk, after a member's first request or on a coach's
- *   Notifications) or a tap on "Turn on" in Profile. Once someone has
+ *   explanation (PushAsk, store/pushAsk.ts: the first message sent or
+ *   received, the first session booked) or a tap on "Turn on" in Profile's
+ *   notification card. Once someone has
  *   answered, the app doesn't ask again; "Not now" is remembered too.
  * - Signed in with permission already given, it registers this phone for
  *   them, and again whenever the language or a switch changes, so the
@@ -57,6 +58,14 @@ export const pushPlugin = {
       setTimeout(() => done(null), 15_000);
       PushNotifications.register().catch(() => done(null));
     });
+  },
+  /** The phone's time zone, for "Tue 10:00 AM" in the banner. */
+  timeZone(): string {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Africa/Cairo';
+    } catch {
+      return 'Africa/Cairo';
+    }
   },
   onTap(handler: (data: PushData) => void): () => void {
     const h = PushNotifications.addListener('pushNotificationActionPerformed', (a) => handler((a.notification.data ?? {}) as PushData));
@@ -127,14 +136,6 @@ export function mutedCategories(role: 'coach' | 'client' | null): { enabled: boo
   return { enabled: p.enabled, muted };
 }
 
-function deviceTimeZone(): string {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Africa/Cairo';
-  } catch {
-    return 'Africa/Cairo';
-  }
-}
-
 /**
  * Bring this phone's registration in line with the app: registered with
  * today's language, zone and switches if permission is given and the
@@ -151,6 +152,22 @@ export function syncPushDevice(opts: { ask?: boolean } = {}): Promise<PushPermis
   return run;
 }
 let syncQueue: Promise<unknown> = Promise.resolve();
+/** The zone this phone was last registered with, to notice a new one. */
+let registeredZone: string | null = null;
+
+/**
+ * App.tsx: travelling, the phone's zone changes while the app sleeps. When
+ * it comes back to the foreground in another zone, the registration is
+ * brought up to date, so "Tue 10:00 AM" in a banner is the phone's own time.
+ */
+export function initPushZoneWatch(): () => void {
+  const onVisible = () => {
+    if (document.visibilityState !== 'visible' || registeredZone === null) return;
+    if (pushPlugin.timeZone() !== registeredZone) void syncPushDevice();
+  };
+  document.addEventListener('visibilitychange', onVisible);
+  return () => document.removeEventListener('visibilitychange', onVisible);
+}
 
 async function syncOnce({ ask = false }: { ask?: boolean }): Promise<PushPermission> {
   const { userId, lang, role } = useAppStore.getState();
@@ -177,7 +194,9 @@ async function syncOnce({ ask = false }: { ask?: boolean }): Promise<PushPermiss
   if (!token) return permission;
   writeKey(TOKEN_KEY, token);
   const platform = pushPlugin.platform() === 'ios' ? 'ios' : 'android';
-  await registerDevice({ token, platform, lang: lang === 'ar' ? 'ar' : 'en', timeZone: deviceTimeZone(), muted });
+  const timeZone = pushPlugin.timeZone();
+  const result = await registerDevice({ token, platform, lang: lang === 'ar' ? 'ar' : 'en', timeZone, muted });
+  if (result.ok) registeredZone = timeZone;
   return permission;
 }
 
@@ -190,17 +209,27 @@ export async function stopPushDevice(): Promise<void> {
   writeKey(TOKEN_KEY, null);
 }
 
-/** Where a tapped banner goes, for the signed-in role. */
+const SESSION_KINDS = new Set(['session-moved', 'session-cancelled', 'request-accepted', 'request-declined']);
+
+/**
+ * Where a tapped banner goes, for the signed-in role: the thread for a
+ * message, the session for a session change or an answer, the request for
+ * a new one.
+ */
 export function pushTarget(data: PushData, role: 'coach' | 'client' | null): NavTarget {
   const kind = data.kind ?? '';
   const clientId = data.client_id;
   if (role === 'coach') {
     if (kind === 'message' && clientId) return { screen: 'messages', params: { clientId } };
     if (kind === 'task-completed' && clientId) return { screen: 'clientDetail', params: { clientId } };
+    // A member moving or cancelling: the coach's week.
+    if (SESSION_KINDS.has(kind)) return { screen: 'schedule', params: {} };
+    // A new request, and anything else: where requests are answered.
     return { screen: 'notifications', params: {} };
   }
   // The member's thread is their current coach's (CoachMessages picks it).
   if (kind === 'message') return { screen: 'coachMessages', params: {} };
+  if (SESSION_KINDS.has(kind)) return { screen: 'clientSchedule', params: {} };
   return { screen: 'clientNotifications', params: {} };
 }
 

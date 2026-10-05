@@ -494,9 +494,11 @@ builds".
       registered with the app's language, zone and switches, and again
       when any of them changes; the master switch off or signing out
       unregisters it. The app never asks at launch: `PushAsk` explains
-      first, after a member's first request or on a coach's Notifications,
-      once per phone, and Profile's "Notifications on this phone" row is
-      the way back. The coach's card gained "New messages" and "Tasks
+      first, on the first message sent or received or the first session
+      booked (a member's request, a coach's accept), once per phone, and
+      Profile's "Notifications on this phone" row is the way back. No
+      system banner while the app is open (`presentationOptions: []`):
+      the in-app badge and chime cover it (#128). The coach's card gained "New messages" and "Tasks
       completed" (phone only). A tapped banner opens what it is about.
       Copy, Help Center, both privacy policies (and the site), the privacy
       inventory, the listing and the review notes say so. *Ahmed:* in

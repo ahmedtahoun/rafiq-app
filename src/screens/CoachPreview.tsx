@@ -21,8 +21,7 @@ import { fetchCoachReviews, type CoachReview } from '../lib/reviewData';
 import { fetchOwnFavourites } from '../lib/favouriteData';
 import { useFavourites } from '../store/favourites';
 import { languageLabel } from '../lib/coachLabels';
-import { PushAsk } from '../components/PushAsk';
-import { usePushOffer } from '../store/pushHooks';
+import { offerPush } from '../store/pushAsk';
 import './CoachPreview.css';
 
 const OFFERING_TYPE_KEY: Record<CoachOffering['type'], MessageKey> = {
@@ -274,8 +273,6 @@ function CoachPreviewBody({ source }: { source: PreviewSource }) {
   const back = useAppStore((s) => s.back);
   const { money, instantDate } = useFormat();
   const { coach, offerings, weeks, nextAvailable } = source;
-  // After a request is sent: would they like the answer on their phone?
-  const push = usePushOffer();
 
   const [week, setWeek] = useState(nextAvailable?.week ?? 0);
   const [day, setDay] = useState(source.initialDay);
@@ -346,7 +343,8 @@ function CoachPreviewBody({ source }: { source: PreviewSource }) {
     setSending(false);
     if (sent === true) {
       setConfirmed(true);
-      push.offer();
+      // A session asked for: would they like the answer on their phone?
+      offerPush();
     } else setFailed(sent === 'blocked' ? 'blocked' : 'failed');
   }
 
@@ -400,7 +398,6 @@ function CoachPreviewBody({ source }: { source: PreviewSource }) {
             {t('coachPreviewDone')}
           </button>
         </div>
-        <PushAsk open={push.open} onClose={push.close} />
       </div>
     );
   }

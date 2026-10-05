@@ -1,16 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { pushPermission, shouldOfferPush, syncPushDevice, type PushPermission } from '../lib/push';
-
-/** Opens PushAsk (components/PushAsk.tsx) once per phone, when it may still ask. */
-export function usePushOffer() {
-  const [open, setOpen] = useState(false);
-  const offer = useCallback(() => {
-    void shouldOfferPush().then((should) => {
-      if (should) setOpen(true);
-    });
-  }, []);
-  return { open, offer, close: () => setOpen(false) };
-}
+import { pushPermission, syncPushDevice, type PushPermission } from '../lib/push';
 
 /**
  * Where this phone's permission stands, for Profile's row. 'unsupported' in

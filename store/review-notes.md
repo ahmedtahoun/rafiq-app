@@ -237,8 +237,8 @@ App Store Connect → the version → **App Review Information**.
 > and during member onboarding, with crisis resources.
 >
 > Push notifications are optional. The app asks only after explaining why
-> (after a member's first booking request, or when a coach opens
-> Notifications), never at launch, and Profile → Notifications turns them
+> (on the first message sent or received, or the first session booked),
+> never at launch, and Profile → Notifications turns them
 > on or off. Everything they say is also shown inside the app.
 
 ⚠️ Three lines in those notes depend on things that are still open. Check

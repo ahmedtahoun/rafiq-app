@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useRosterStore } from '../store/rosterStore';
 import { useRemoteLoad } from '../store/remoteLoad';
@@ -22,8 +22,7 @@ import {
   type ProNotification,
 } from '../lib/mockStore';
 import { FREE_MEMBER_CAP, MEMBER_CAP, usePlan } from '../lib/planData';
-import { PushAsk } from '../components/PushAsk';
-import { usePushOffer } from '../store/pushHooks';
+import { offerPush } from '../store/pushAsk';
 import './Notifications.css';
 
 const REQUEST_AVATAR = '#B75C3D';
@@ -53,13 +52,6 @@ export default function Notifications() {
   const [busy, setBusy] = useState(false);
   const [sheetError, setSheetError] = useState<MessageKey | null>(null);
   const [banner, setBanner] = useState<string | null>(null);
-  // A coach looking at their requests: would they like them on their phone?
-  // Offered once per phone (PushAsk), signed in only.
-  const push = usePushOffer();
-  const { offer } = push;
-  useEffect(() => {
-    if (remote) offer();
-  }, [remote, offer]);
 
   if (remote && incoming.status === 'loading') return <LoadState status="loading" />;
   if (remote && incoming.status === 'error') return <LoadState status="error" onRetry={incoming.retry} showBack />;
@@ -106,6 +98,8 @@ export default function Notifications() {
       // store's to show, so it re-reads.
       const roster = useRosterStore.getState();
       if (roster.userId) void roster.refresh(roster.userId);
+      // A session booked: would they like the next requests on their phone?
+      offerPush();
       return;
     }
     if (result.code === 'gone') settle(r, t('notificationsRequestGone'));
@@ -266,7 +260,6 @@ export default function Notifications() {
           </div>
         )}
       </BottomSheet>
-      <PushAsk open={push.open} onClose={push.close} />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 import { IGNORED_CONSOLE, installScreenSettle } from './helpers.js';
 import { installFakeSupabase, signIn, dbRows, dbCalls } from './fakeSupabase.js';
 
@@ -26,6 +27,22 @@ const coachTables = () => ({
   offerings: [], ratings: [], payouts: [], messages: [], message_reads: [], device_tokens: [],
 });
 
+/** A coach with a member waiting on a first session, and one already on the roster to message. */
+const busyCoach = () => ({
+  ...coachTables(),
+  profiles: [...coachTables().profiles, { id: 'm-hana', full_name: 'Hana Mostafa', role: 'client', account_status: 'active', phone: '', country_code: '+20', email: 'h@x.com' }],
+  session_requests: [{
+    id: 'req-1', member_id: 'm-hana', coach_id: COACH, offering_id: null, requested_start: '2026-09-29T07:00:00Z',
+    price: 0, currency: 'EGP', status: 'pending', created_at: '2026-09-27T10:00:00Z', responded_at: null, reschedule_of: null,
+  }],
+  clients: [{
+    id: 'c-omar', coach_id: COACH, member_id: 'm-omar', full_name: 'Omar Said', age: null, phone: '', country_code: '+20', email: null, city: null,
+    program: '', specialty: 'Career coaching', plan: 'Basic', initials: 'OS', avatar_bg: '#3E6FB0', active: true, progress: 0, needs_checkin: false,
+    next_session_at: null, next_session_type: null, program_completed: false, payment_status: 'paid', goal: '', focus: '', signup_completed_at: null,
+    invite_code: null, invite_expires_at: null, created_at: '2026-09-01T00:00:00Z',
+  }],
+});
+
 const memberTables = () => ({
   profiles: [{ id: MEMBER, full_name: 'Hana Mostafa', phone: '', country_code: '+20', email: 'h@x.com', account_status: 'active', role: 'client' }],
   member_profiles: [{ profile_id: MEMBER, goal: '', focus: 'career', signup_completed_at: '2026-09-01T00:00:00Z' }],
@@ -43,7 +60,7 @@ const memberTables = () => ({
  * `phone`: null for a plain browser; otherwise the permission the phone
  * reports ('granted' | 'prompt' | 'denied') and what it answers when asked.
  */
-async function open(browser, { role = 'coach', lang = 'en', dark = false, phone = { permission: 'granted', answer: 'granted' } } = {}) {
+async function open(browser, { role = 'coach', lang = 'en', dark = false, phone = { permission: 'granted', answer: 'granted' }, data } = {}) {
   const ctx = await browser.newContext({ viewport: { width: 420, height: 900 } });
   const page = await ctx.newPage();
   await page.clock.setFixedTime(NOW);
@@ -62,7 +79,17 @@ async function open(browser, { role = 'coach', lang = 'en', dark = false, phone 
   }, [role, lang, dark]);
   await page.reload();
   const uid = role === 'coach' ? COACH : MEMBER;
-  await installFakeSupabase(page, { userId: uid, tables: role === 'coach' ? coachTables() : memberTables() });
+  await installFakeSupabase(page, { userId: uid, tables: data ?? (role === 'coach' ? coachTables() : memberTables()) });
+  // Realtime: kept, so a test can deliver a message as if it had arrived.
+  await page.evaluate(async () => {
+    const real = (await import('/src/lib/supabase.ts')).getSupabase();
+    window.__channels = {};
+    real.channel = (name) => {
+      const ch = { name, on(_type, _filter, handler) { window.__channels[name] = handler; return ch; }, subscribe() { return ch; } };
+      return ch;
+    };
+    real.removeChannel = async () => 'ok';
+  });
   if (phone) {
     await page.evaluate(async (p) => {
       const m = await import('/src/lib/push.ts');
@@ -210,17 +237,36 @@ test('member: after their first request the app explains, and only "Turn on" sho
   await ctx.close();
 });
 
-test('coach: Notifications offers it once; "Not now" is remembered, and Profile is the way back', async ({ browser }) => {
-  const { page, ctx } = await open(browser, { phone: { permission: 'prompt', answer: 'denied' } });
+test('coach: opening Notifications asks nothing; accepting the first request does', async ({ browser }) => {
+  const { page, ctx, errs } = await open(browser, { data: busyCoach(), phone: { permission: 'prompt', answer: 'granted' } });
   await go(page, 'notifications');
-  const sheet = page.locator('.sheet-panel');
-  await expect(sheet).toContainText('We\'ll tell you the moment a member asks for a session');
+  await page.waitForTimeout(300);
+  await expect(page.locator('.sheet-panel')).toHaveCount(0);
+
+  await page.locator('.notifications-row', { hasText: 'Hana' }).click();
+  await page.locator('.notifications-sheet').getByRole('button', { name: 'Accept' }).click();
+  const sheet = page.locator('.sheet-panel', { hasText: 'Get notifications on your phone?' });
+  await expect(sheet).toContainText("We'll tell you the moment a member asks for a session");
+  await sheet.getByRole('button', { name: 'Turn on' }).click();
+  expect((await push(page)).asked).toBe(1);
+  await expect.poll(() => lastRegistration(page)).toMatchObject({ p_token: 'tok-1' });
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
+test('coach: the first message sent offers it; "Not now" is remembered, and Profile is the way back', async ({ browser }) => {
+  const { page, ctx } = await open(browser, { data: busyCoach(), phone: { permission: 'prompt', answer: 'denied' } });
+  await go(page, { screen: 'messages', params: { clientId: 'c-omar' } });
+  await page.getByRole('textbox', { name: 'Message' }).fill('See you Tuesday');
+  await page.getByRole('button', { name: 'Send' }).click();
+  const sheet = page.locator('.sheet-panel', { hasText: 'Get notifications on your phone?' });
   await sheet.getByRole('button', { name: 'Not now' }).click();
   await expect(sheet).toHaveCount(0);
   expect((await push(page)).asked).toBe(0);
 
-  await go(page, 'main');
-  await go(page, 'notifications');
+  // Remembered: the next message doesn't ask again.
+  await page.getByRole('textbox', { name: 'Message' }).fill('And bring the CV');
+  await page.getByRole('button', { name: 'Send' }).click();
   await page.waitForTimeout(300);
   await expect(page.locator('.sheet-panel')).toHaveCount(0);
 
@@ -234,9 +280,48 @@ test('coach: Notifications offers it once; "Not now" is remembered, and Profile 
   await ctx.close();
 });
 
+test('a message received offers it; one of the person\'s own does not', async ({ browser }) => {
+  const { page, ctx } = await open(browser, { data: busyCoach(), phone: { permission: 'prompt', answer: 'granted' } });
+  await go(page, 'main');
+  await expect.poll(() => page.evaluate(() => typeof window.__channels['messages:mine'])).toBe('function');
+  await page.evaluate(() => window.__channels['messages:mine']({ new: { client_id: 'c-omar', sender_role: 'coach', body: 'mine', created_at: new Date().toISOString() } }));
+  await page.waitForTimeout(300);
+  await expect(page.locator('.sheet-panel')).toHaveCount(0);
+  await page.evaluate(() => window.__channels['messages:mine']({ new: { client_id: 'c-omar', sender_role: 'client', body: 'theirs', created_at: new Date().toISOString() } }));
+  await expect(page.locator('.sheet-panel', { hasText: 'Get notifications on your phone?' })).toBeVisible();
+  await ctx.close();
+});
+
+test('a phone back from another time zone is re-registered with it', async ({ browser }) => {
+  const { page, ctx } = await open(browser);
+  await expect.poll(() => lastRegistration(page)).toMatchObject({ p_time_zone: 'Africa/Cairo' });
+  const before = (await rpcs(page, 'register_device')).length;
+  await page.evaluate(async () => {
+    const m = await import('/src/lib/push.ts');
+    m.initPushZoneWatch();
+    // Same zone: nothing to do.
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await page.waitForTimeout(300);
+  expect((await rpcs(page, 'register_device')).length).toBe(before);
+  await page.evaluate(async () => {
+    const m = await import('/src/lib/push.ts');
+    m.pushPlugin.timeZone = () => 'Europe/London';
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect.poll(() => lastRegistration(page)).toMatchObject({ p_time_zone: 'Europe/London' });
+  await ctx.close();
+});
+
+test('no system banner while the app is open: the in-app badge and chime cover it', () => {
+  const config = readFileSync(new URL('../capacitor.config.ts', import.meta.url), 'utf8');
+  expect(config).toMatch(/PushNotifications:\s*\{\s*(\/\/[^\n]*\n\s*)*presentationOptions:\s*\[\]/);
+});
+
 test('Arabic and dark: the sheet and the row read in Arabic', async ({ browser }) => {
   const { page, ctx, errs } = await open(browser, { lang: 'ar', dark: true, phone: { permission: 'prompt', answer: 'granted' } });
-  await go(page, 'notifications');
+  await go(page, 'main');
+  await page.evaluate(async () => (await import('/src/store/pushAsk.ts')).offerPush());
   const sheet = page.locator('.sheet-panel');
   await expect(sheet).toContainText('هل تريد تلقي الإشعارات على هاتفك؟');
   await expect(sheet.getByRole('button', { name: 'تفعيل' })).toBeVisible();
@@ -262,6 +347,23 @@ test('signing out takes the phone off the account before the session ends', asyn
   await ctx.close();
 });
 
+test('signed out, nothing offers it: the demo has no account to register the phone to', async ({ browser }) => {
+  const { page, ctx, errs } = await open(browser, { phone: { permission: 'prompt', answer: 'granted' } });
+  // Signed out as session.ts's listener leaves it (the fake fires no auth event).
+  await page.evaluate(async () => {
+    await (await import('/src/lib/auth.ts')).signOut();
+    (await import('/src/store/appStore.ts')).useAppStore.getState().setSession(null);
+  });
+  await page.evaluate(async () => (await import('/src/store/pushAsk.ts')).offerPush());
+  await page.waitForTimeout(400);
+  // Welcome has a sheet of its own (closed); PushAsk's is the one to look for.
+  await expect(page.getByText('Get notifications on your phone?')).toHaveCount(0);
+  expect((await push(page)).asked).toBe(0);
+  expect(await rpcs(page, 'register_device')).toEqual([]);
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
 test('a tapped banner opens what it is about', async ({ browser }) => {
   const { page, ctx } = await open(browser);
   const targets = await page.evaluate(async () => {
@@ -270,16 +372,22 @@ test('a tapped banner opens what it is about', async ({ browser }) => {
       coachMessage: pushTarget({ kind: 'message', client_id: 'c1' }, 'coach'),
       coachTask: pushTarget({ kind: 'task-completed', client_id: 'c1' }, 'coach'),
       coachRequest: pushTarget({ kind: 'request-received' }, 'coach'),
+      coachMoved: pushTarget({ kind: 'session-moved', client_id: 'c1' }, 'coach'),
       memberMessage: pushTarget({ kind: 'message', client_id: 'c1' }, 'client'),
       memberAnswer: pushTarget({ kind: 'request-accepted' }, 'client'),
+      memberCancelled: pushTarget({ kind: 'session-cancelled', client_id: 'c1' }, 'client'),
+      memberOther: pushTarget({ kind: 'something-new' }, 'client'),
     };
   });
   expect(targets).toEqual({
     coachMessage: { screen: 'messages', params: { clientId: 'c1' } },
     coachTask: { screen: 'clientDetail', params: { clientId: 'c1' } },
     coachRequest: { screen: 'notifications', params: {} },
+    coachMoved: { screen: 'schedule', params: {} },
     memberMessage: { screen: 'coachMessages', params: {} },
-    memberAnswer: { screen: 'clientNotifications', params: {} },
+    memberAnswer: { screen: 'clientSchedule', params: {} },
+    memberCancelled: { screen: 'clientSchedule', params: {} },
+    memberOther: { screen: 'clientNotifications', params: {} },
   });
   await page.evaluate(async () => {
     (await import('/src/lib/push.ts')).initPushTaps();

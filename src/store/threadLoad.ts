@@ -9,6 +9,7 @@ import {
   type Message,
   type MessageRole,
 } from '../lib/mockStore';
+import { offerPush } from './pushAsk';
 import { fetchThread, markThreadRead, sendThreadMessage, setThreadBlock, subscribeToThread, type BlockState } from '../lib/messageData';
 import { useRemoteLoad } from './remoteLoad';
 
@@ -108,6 +109,8 @@ export function useThread(clientId: string, role: MessageRole, remote: boolean):
     }
     // Realtime may have delivered it already; byId keeps one copy.
     append(result.data);
+    // A conversation under way: would they like replies on their phone?
+    offerPush();
     return true;
   }
 
