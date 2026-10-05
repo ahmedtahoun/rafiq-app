@@ -1,4 +1,5 @@
-import { PolicyPage, POLICY_SECTION_COUNT } from '../components/PolicyPage';
+import { PolicyPage } from '../components/PolicyPage';
+import { POLICY_SECTION_COUNT } from '../components/policySections';
 
 // The member-facing privacy policy, over the same shared PolicyPage body
 // the coach-side pair already uses.

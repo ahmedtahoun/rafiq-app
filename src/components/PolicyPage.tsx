@@ -1,55 +1,9 @@
 import type { ReactNode } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT, type MessageKey } from '../lib/i18n';
+import { SECTION_NUMBERS, type SectionNumber, type SectionPrefix, type ValidSectionCount } from './policySections';
 import { ChevronIcon } from '../components/icons';
 import './PolicyPage.css';
-
-/** The four policy documents this page renders. Naming them as a union
-    rather than taking any `string` lets the compiler expand
-    `${prefix}${n}Heading` into real keys and check every one of them. */
-type SectionPrefix = 'privacySection' | 'termsSection' | 'clientPrivacySection' | 'clientTermsSection';
-
-const SECTION_NUMBERS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
-type SectionNumber = (typeof SECTION_NUMBERS)[number];
-
-/** The section counts one document may claim: every number whose heading
-    *and* body key exist for that document's own prefix.
-
-    This used to be a single `SectionNumber` shared by all four documents,
-    which coupled them — the keys are checked by expanding
-    `${prefix}${n}Heading`, so a seventh privacy section demanded a
-    seventh terms section too, and the only way round it was to park extra
-    copy in `footer`. Keyed on the prefix, the privacy policies can run to
-    ten sections while the terms stay at six, and every key is still
-    checked at the call site. */
-type ValidSectionCount<P extends SectionPrefix> = {
-  [N in SectionNumber]: `${P}${N}Heading` extends MessageKey
-    ? `${P}${N}Body` extends MessageKey
-      ? N
-      : never
-    : never;
-}[SectionNumber];
-
-/** How many numbered sections each document has.
-
-    One source of truth, because this fact was copied five times and a
-    four-section change to the privacy policies broke three specs at once:
-    the four screens pass it to `PolicyPage`, `tests/copy-and-i18n.spec.js`
-    and `tests/misc.spec.js` assert against it, and
-    `tests/public-site.spec.js` uses it to check the published pages.
-    `scripts/build-site.mjs` keeps its own copy — it runs outside the
-    browser — but `public-site.spec.js` compares published text against the
-    app's copy, so a generator that fell behind this map fails there.
-
-    `satisfies` checks each count against its own document, so a number
-    whose keys do not exist is a compile error here rather than a missing
-    heading at runtime. */
-export const POLICY_SECTION_COUNT = {
-  privacySection: 10,
-  clientPrivacySection: 10,
-  termsSection: 6,
-  clientTermsSection: 6,
-} as const satisfies { [P in SectionPrefix]: ValidSectionCount<P> };
 
 interface PolicyPageProps<P extends SectionPrefix> {
   titleKey: MessageKey;

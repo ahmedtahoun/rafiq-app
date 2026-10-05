@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { IGNORED_CONSOLE } from './helpers.js';
+import { IGNORED_CONSOLE, POLICY_SECTIONS } from './helpers.js';
 
 
 async function open(browser, { screen = 'clientNotifications', lang = 'en', dark = false, seed = null } = {}) {
@@ -183,7 +183,7 @@ test('Policy screens', async ({ browser }) => {
   expect.soft(String(await screenOf(page)), 'screen is clientPrivacyPolicy').toBe('clientPrivacyPolicy');
   expect.soft(String(errs.length), 'no console/page errors').toBe('0');
   expect.soft(String(await txt(page, '.policy-page-title')), 'title').toBe('Privacy Policy');
-  const sections = await page.evaluate(async () => (await import('/src/components/PolicyPage.tsx')).POLICY_SECTION_COUNT.clientPrivacySection);
+  const sections = POLICY_SECTIONS.clientPrivacySection;
   expect.soft(String(await n(page, '.policy-page-section')), `${sections} sections`).toBe(String(sections));
   const body = await page.evaluate(() => document.querySelector('.policy-page-body').innerText);
   // The design's copy claimed messages go through WhatsApp. They don't.

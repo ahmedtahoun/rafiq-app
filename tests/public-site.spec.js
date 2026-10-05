@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { POLICY_SECTIONS } from './helpers.js';
 
 /**
  * The public site (site/public, built by `npm run build:site`, hosted on
@@ -21,9 +22,12 @@ const DOCS = {
   terms: ['termsSection', 'clientTermsSection'],
 };
 const UPDATED = { privacySection: 'privacyUpdated', clientPrivacySection: 'clientPrivacyUpdated', termsSection: 'termsUpdated', clientTermsSection: 'clientTermsUpdated' };
-// Section counts come from the app's own POLICY_SECTION_COUNT, read inside
-// the page below. Hardcoding six here would have published the privacy
-// policies' four new sections without ever checking them.
+// Section counts come from POLICY_SECTIONS in helpers.js, passed into the
+// page below. Reading them from the app's own map instead would have made
+// this vacuous: the published pages are generated from the same copy, so a
+// section deleted from i18n.ts would shrink both sides at once. With a
+// stated number, a missing section makes translate() return the bare key
+// and the comparison against the published HTML fails.
 // The block after the numbered sections: "Coaching is not therapy" and the
 // crisis lines, on the Terms documents only. It can fall behind the app the
 // same way the numbered sections can, so it is checked the same way.
@@ -53,9 +57,8 @@ async function mainText(browser, file) {
 test('the published policies say exactly what the app says, in both languages', async ({ browser, page }) => {
   // The app's own copy, straight from i18n.ts through the dev server.
   await page.goto('/');
-  const expected = await page.evaluate(async ({ DOCS, UPDATED, NOT_THERAPY }) => {
+  const expected = await page.evaluate(async ({ DOCS, UPDATED, NOT_THERAPY, SECTION_COUNT }) => {
     const { translate } = await import('/src/lib/i18n.ts');
-    const { POLICY_SECTION_COUNT: SECTION_COUNT } = await import('/src/components/PolicyPage.tsx');
     const { CRISIS_RESOURCES } = await import('/src/lib/crisisResources.ts');
     const out = {};
     for (const lang of ['en', 'ar']) {
@@ -79,7 +82,7 @@ test('the published policies say exactly what the app says, in both languages', 
       }
     }
     return out;
-  }, { DOCS, UPDATED, NOT_THERAPY });
+  }, { DOCS, UPDATED, NOT_THERAPY, SECTION_COUNT: POLICY_SECTIONS });
 
   for (const [key, strings] of Object.entries(expected)) {
     const [lang, slug] = key.split('/');

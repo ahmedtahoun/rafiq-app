@@ -1,4 +1,5 @@
-import { PolicyPage, POLICY_SECTION_COUNT } from '../components/PolicyPage';
+import { PolicyPage } from '../components/PolicyPage';
+import { POLICY_SECTION_COUNT } from '../components/policySections';
 
 // 1:1 port of CoachPrivacyPolicy.dc.html — six heading/body sections over
 // the shared PolicyPage body.
