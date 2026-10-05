@@ -196,6 +196,10 @@ test('a failed cancel keeps the session and says so in the dialog', async ({ bro
 
 test('a session cancelled elsewhere says so, and the card catches up', async ({ browser }) => {
   const { page, ctx, errs } = await open(browser);
+  // The screen has to have shown the booking before it's cancelled behind
+  // its back — otherwise a slower first load reads the cancellation and
+  // there is nothing stale to catch up from.
+  await expect(card(page).getByRole('button', { name: 'Cancel' })).toBeVisible();
   await page.evaluate(() => {
     Object.assign(window.__fake.db.sessions.find((s) => s.id === 's-next'), { attendance: 'cancelled' });
   });

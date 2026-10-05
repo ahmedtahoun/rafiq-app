@@ -159,7 +159,9 @@ test('coach: the member\'s reply arrives live, once, and leaving unsubscribes', 
 
   await page.getByRole('button', { name: 'Back' }).click();
   await page.waitForTimeout(200);
-  expect(await page.evaluate(() => window.__fake.channels.length)).toBe(0);
+  // The thread's own channel closes. The app-wide one for the tab bar's
+  // unread badge (store/unread.ts, 'messages:mine') stays open on purpose.
+  expect(await page.evaluate(() => window.__fake.channels.map((c) => c.name).filter((n) => n !== 'messages:mine'))).toEqual([]);
   expect(errs).toEqual([]);
   await ctx.close();
 });

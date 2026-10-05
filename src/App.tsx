@@ -6,6 +6,8 @@ import { initSession } from './lib/session';
 import { initOAuthDeepLinks } from './lib/auth';
 import { initBackButton } from './lib/nativeBack';
 import { applySystemBarsStyle } from './lib/nativeSystemBars';
+import { isSupabaseConfigured } from './lib/supabase';
+import { startUnreadWatch } from './store/unread';
 
 /**
  * Every screen, split into its own chunk.
@@ -81,6 +83,8 @@ const ComingSoon = lazy(() => import('./screens/ComingSoon'));
 
 export default function App() {
   const { lang, dark, screen } = useAppStore();
+  const signedIn = useAppStore((s) => s.authStatus === 'signedIn');
+  const role = useAppStore((s) => s.role);
 
   // Picks up a session left by a provider redirect, and keeps the store in
   // step with it afterwards. Returns its own unsubscribe.
@@ -95,6 +99,13 @@ export default function App() {
   // the on-screen arrow uses, instead of Capacitor's default of exiting the
   // app from wherever it's pressed. A no-op on iOS and in a browser.
   useEffect(() => initBackButton(), []);
+
+  // Signed in: the unread badge on the tab bar, and the in-app sound for a
+  // new message (store/unread.ts). Restarts if the account or role changes.
+  useEffect(() => {
+    if (!signedIn || !role || !isSupabaseConfigured()) return;
+    return startUnreadWatch(role === 'coach' ? 'pro' : 'client');
+  }, [signedIn, role]);
 
   useEffect(() => {
     document.documentElement.lang = lang;
