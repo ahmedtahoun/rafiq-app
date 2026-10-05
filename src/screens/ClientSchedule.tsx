@@ -515,7 +515,7 @@ function LiveClientSchedule({ rel }: { rel: MemberRelationshipView | null }) {
   if (load.status === 'loading') return <LoadState status="loading" />;
   if (load.status === 'error') return <LoadState status="error" onRetry={load.retry} />;
 
-  const { upcoming, move, request, history, hours } = load.data;
+  const { upcoming, started, move, request, history, hours } = load.data;
   const coachName = rel.coach.name;
   // A booked session first; a request waiting on the coach otherwise.
   const shown = upcoming ?? request;
@@ -626,6 +626,24 @@ function LiveClientSchedule({ rel }: { rel: MemberRelationshipView | null }) {
     if (member.userId) void member.refresh(member.userId);
   }
 
+  // The call that is open now: about to start, or under way. `upcoming` is
+  // strictly in the future, so once a session begins it is `started` that
+  // keeps its Join, until 30 minutes after it ends (videoData.ts).
+  const live = [started, upcoming].find((x) => x && canOfferJoin(x.startWallMs, x.endWallMs, wallNowMs())) ?? null;
+  const joinButton = live && (
+    <button
+      type="button"
+      className="client-schedule-join"
+      onClick={() => nav({ screen: 'sessionRoom', params: { sessionId: live.sessionId, name: coachName } })}
+    >
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect x="2" y="6" width="15" height="12" rx="2.5" />
+        <path d="M22 8.5l-5 3.5 5 3.5v-7z" />
+      </svg>
+      {t('clientScheduleJoinSession')}
+    </button>
+  );
+
   return (
     <div className="phone-frame client-schedule-screen">
       <div className="client-schedule-hero" style={{ background: heroGrad }}>
@@ -654,19 +672,7 @@ function LiveClientSchedule({ rel }: { rel: MemberRelationshipView | null }) {
               </span>
             </button>
 
-            {upcoming && canOfferJoin(upcoming.startWallMs, upcoming.endWallMs, wallNowMs()) && (
-              <button
-                type="button"
-                className="client-schedule-join"
-                onClick={() => nav({ screen: 'sessionRoom', params: { sessionId: upcoming.sessionId, name: coachName } })}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <rect x="2" y="6" width="15" height="12" rx="2.5" />
-                  <path d="M22 8.5l-5 3.5 5 3.5v-7z" />
-                </svg>
-                {t('clientScheduleJoinSession')}
-              </button>
-            )}
+            {joinButton}
 
             {move && (
               <div className="client-schedule-move-note" role="status">
@@ -702,6 +708,7 @@ function LiveClientSchedule({ rel }: { rel: MemberRelationshipView | null }) {
             </span>
             <div className="client-schedule-empty-title">{t('clientScheduleNoUpcomingTitle')}</div>
             <div className="client-schedule-empty-sub">{t('clientScheduleNoUpcomingSub')}</div>
+            {joinButton}
           </div>
         )}
       </div>
