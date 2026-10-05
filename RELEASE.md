@@ -2,7 +2,8 @@
 
 How a build gets from `main` to TestFlight and Google Play. What has to
 exist *before* the first upload (store records, the icon, the privacy forms)
-is in `LAUNCH-CHECKLIST.md`; this file is the mechanics, in order.
+is in `LAUNCH-CHECKLIST.md`, and the order to do it all in is
+`LAUNCH-RUNBOOK.md`; this file is the mechanics.
 
 ## 1. Before every upload
 
