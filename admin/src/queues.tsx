@@ -1,5 +1,17 @@
 import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from 'react';
-import { ApiError, call, coachOf, type Deletion, type Profile, type Report, type Verification } from './api';
+import {
+  ApiError,
+  call,
+  coachOf,
+  payoutCoachOf,
+  PAYOUT_STATUSES,
+  type Deletion,
+  type Payout,
+  type PayoutStatus,
+  type Profile,
+  type Report,
+  type Verification,
+} from './api';
 
 /**
  * Every timestamp here is a real instant the server stamped
@@ -284,6 +296,141 @@ export function Lookup() {
           </div>
         </article>
       ))}
+    </>
+  );
+}
+
+/**
+ * Payouts — what Rafiq owes a coach, and moving it.
+ *
+ * Reading is the admin function's own `listPayouts`; create, send and
+ * sync are passed through to the `payouts` function, which owns the
+ * Paymob client and the claim that stops a double click paying twice.
+ * This view therefore never retries on its own: a failure is shown with
+ * the code the function returned, because "not_in_requested_state" and
+ * "paymob_not_configured" need different people to do different things.
+ *
+ * `destination` is already masked when it arrives. There is no unmasked
+ * form in this app to leak.
+ */
+export function Payouts() {
+  const [status, setStatus] = useState<PayoutStatus | ''>('');
+  const load = useCallback(
+    () => call<{ payouts: Payout[] }>(status ? { op: 'listPayouts', status } : { op: 'listPayouts' })
+      .then((r) => r.payouts),
+    [status],
+  );
+  const { rows, error, refresh, setError } = useQueue<Payout>(load);
+  const { busy, run } = useAction(refresh, setError);
+
+  const [coachId, setCoachId] = useState('');
+  const [amount, setAmount] = useState('');
+  const [comment, setComment] = useState('');
+
+  function create(e: FormEvent) {
+    e.preventDefault();
+    const value = Number(amount);
+    // Checked here as well as on the server so a typo is a message rather
+    // than a round trip; the server's check is the one that counts.
+    if (!Number.isFinite(value) || value <= 0) {
+      setError('Amount must be a number greater than zero.');
+      return;
+    }
+    run('create', {
+      op: 'createPayout',
+      coach_id: coachId.trim(),
+      amount: value,
+      ...(comment.trim() ? { comment: comment.trim() } : {}),
+    });
+    setAmount('');
+    setComment('');
+  }
+
+  return (
+    <>
+      <form className="row" onSubmit={create}>
+        <input
+          value={coachId}
+          onChange={(e) => setCoachId(e.target.value)}
+          placeholder="Coach id (uuid)"
+          aria-label="Coach id"
+          required
+        />
+        <input
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          placeholder="Amount"
+          aria-label="Amount"
+          inputMode="decimal"
+          required
+        />
+        <input
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="Comment (optional)"
+          aria-label="Comment"
+        />
+        <button type="submit" disabled={busy !== null}>
+          {busy === 'create' ? 'Creating…' : 'Create payout'}
+        </button>
+      </form>
+      {/* The coach's saved payout account decides where it goes: the
+          payouts function reads coach_payout_accounts and refuses with
+          coach_has_no_payout_account if there isn't one. Nothing here
+          asks for a destination, so nothing here can send money to one
+          that was typed in. */}
+      <p className="muted small">
+        Destination comes from the coach's saved payout account. A coach without one is refused.
+      </p>
+
+      <div className="row">
+        <label className="muted small" htmlFor="payout-status">Status</label>
+        <select
+          id="payout-status"
+          value={status}
+          onChange={(e) => setStatus(e.target.value as PayoutStatus | '')}
+        >
+          <option value="">All</option>
+          {PAYOUT_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+        </select>
+      </div>
+
+      <Queue rows={rows} error={error} empty="No payouts.">
+        {(rows ?? []).map((p) => {
+          const coach = payoutCoachOf(p);
+          return (
+            <article key={p.id} className="card">
+              <h3>{who(coach)}</h3>
+              <p className="muted small">
+                {p.amount} {p.currency} · {p.issuer} · <strong>{p.status}</strong>
+                {p.destination ? ` · ${p.destination.account_number ?? p.destination.msisdn ?? '—'}` : ''}
+              </p>
+              <p className="muted small">
+                Requested {instant(p.created_at)}
+                {p.sent_at ? ` · sent ${instant(p.sent_at)}` : ''}
+                {p.settled_at ? ` · settled ${instant(p.settled_at)}` : ''}
+              </p>
+              {p.comment ? <p>{p.comment}</p> : null}
+              {p.status_description ? <p className="muted small">{p.status_description}</p> : null}
+              <div className="actions">
+                {/* Only a payout still in 'requested' can be sent, and the
+                    server enforces that too — this just stops the button
+                    being offered for something already on its way. */}
+                {p.status === 'requested' ? (
+                  <button disabled={busy !== null} onClick={() => run(`send-${p.id}`, { op: 'sendPayout', payout_id: p.id })}>
+                    {busy === `send-${p.id}` ? 'Sending…' : 'Send'}
+                  </button>
+                ) : null}
+                {p.status === 'processing' || p.status === 'pending' || p.status === 'unknown' ? (
+                  <button disabled={busy !== null} onClick={() => run(`sync-${p.id}`, { op: 'syncPayout', payout_id: p.id })}>
+                    {busy === `sync-${p.id}` ? 'Syncing…' : 'Sync'}
+                  </button>
+                ) : null}
+              </div>
+            </article>
+          );
+        })}
+      </Queue>
     </>
   );
 }

@@ -12,6 +12,7 @@ import {
   getAccessToken,
   getBudget,
   inquireByReference,
+  maskDestination,
   validatePayout,
   type Destination,
   type DestinationSnapshot,
@@ -42,16 +43,6 @@ function config(): PayoutsConfig | null {
 }
 
 /** Last four characters only — responses go to a browser. */
-function mask(d: DestinationSnapshot): Record<string, string | null> {
-  const tail = (v?: string | null) => (v ? `••••${v.slice(-4)}` : null);
-  return {
-    msisdn: tail(d.msisdn),
-    bank_code: d.bank_code ?? null,
-    account_number: tail(d.account_number),
-    full_name: d.full_name,
-  };
-}
-
 const FINAL = new Set(['success', 'failed']);
 
 async function record(db: SupabaseClient, id: string, o: Outcome) {
@@ -114,7 +105,7 @@ Deno.serve(async (req) => {
         requested_by: auth.user.id,
       }).select('id, coach_id, amount, issuer, status, created_at').single();
       if (error) return reply(500, { error: 'insert_failed', detail: error.message });
-      return reply(201, { payout: { ...row, destination: mask(snapshot) } });
+      return reply(201, { payout: { ...row, destination: maskDestination(snapshot) } });
     }
 
     case 'send': {

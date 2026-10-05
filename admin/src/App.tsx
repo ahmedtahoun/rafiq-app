@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { configured, getSupabase } from './supabase';
-import { Deletions, Lookup, Reports, Verifications } from './queues';
+import { Deletions, Lookup, Payouts, Reports, Verifications } from './queues';
 
 const TABS = {
   reports: { label: 'Reports', view: Reports },
   verifications: { label: 'Verification', view: Verifications },
   deletions: { label: 'Deletions', view: Deletions },
+  payouts: { label: 'Payouts', view: Payouts },
   lookup: { label: 'User lookup', view: Lookup },
 } as const;
 
