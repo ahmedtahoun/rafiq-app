@@ -3,10 +3,12 @@ import { IGNORED_CONSOLE } from './helpers.js';
 import { installFakeSupabase, signIn, dbRows } from './fakeSupabase.js';
 
 /**
- * The free plan (0020): 3 active members, then Rafiq Pro. Signed in, the
- * plan is the coach's `subscriptions` row: no row is free, a Pro whose
- * renews_at has passed is free again. supabase/tests/24_free_tier.sql proves
- * the database refuses the 4th member; these check the screens say so first,
+ * The plans (0020, 0024): Free holds 3 active members, Rafiq Pro Plus
+ * (tier 'pro') 15, Rafiq Elite Pro (tier 'elite_pro') has no limit. Signed
+ * in, the plan is the coach's `subscriptions` row: no row is free, a paid
+ * tier whose renews_at has passed is free again.
+ * supabase/tests/24_free_tier.sql and 29_plan_tiers.sql prove the database
+ * refuses the member past the cap; these check the screens say so first,
  * and say it right in both languages.
  */
 
@@ -21,10 +23,12 @@ const client = (id, name, extra = {}) => ({
   created_at: '2026-09-01T00:00:00Z', ...extra,
 });
 
+const NAMES = ['Rana Adel', 'Omar Said', 'Hala Nabil', 'Karim Fawzy'];
+
 /** A coach with `active` active members and one archived, on `sub` (null: no row). */
 const tables = (active, sub = null) => ({
   clients: [
-    ...['Rana Adel', 'Omar Said', 'Hala Nabil', 'Karim Fawzy'].slice(0, active).map((n, i) => client(`c-${i}`, n)),
+    ...Array.from({ length: active }, (_, i) => client(`c-${i}`, NAMES[i] ?? `Member ${i + 1}`)),
     client('c-old', 'Old Member', { active: false }),
   ],
   client_private: [],
@@ -104,14 +108,15 @@ for (const [lang, dark] of [['en', false], ['ar', true]]) {
     expect(await currentScreen(page)).toBe('subscription');
     await expect(page.locator('.subscription-hero-sub')).toHaveText(lang === 'ar' ? 'أنت على الباقة المجانية — حتى 3 أعضاء نشطين.' : "You're on the Free plan — up to 3 active members.");
     // No self-serve downgrade or upgrade signed in: billing isn't built.
+    // Both paid plans are above Free, so both say "coming soon".
     await expect(page.locator('.subscription-downgrade-btn')).toHaveCount(0);
-    await expect(page.locator('.subscription-upgrade-soon')).toHaveCount(1);
+    await expect(page.locator('.subscription-upgrade-soon')).toHaveCount(2);
     expect(errs).toEqual([]);
     await ctx.close();
   });
 }
 
-test('Pro granted by hand: no limit, "Active", and how to change the plan', async ({ browser }) => {
+test('Pro Plus granted by hand: room below 15, "Active", and how to change the plan', async ({ browser }) => {
   const { page, ctx, errs } = await open(browser, { data: tables(4, { tier: 'pro', renews_at: null }) });
   await expect(page.locator('.clients-card')).toHaveCount(5);
   await expect(page.locator('.clients-cap-banner')).toHaveCount(0);
@@ -123,9 +128,13 @@ test('Pro granted by hand: no limit, "Active", and how to change the plan', asyn
   await expect(page.locator('.subscription-hero-sub')).toHaveText('Active');
   await expect(page.locator('.subscription-downgrade-btn')).toHaveCount(0);
   await expect(page.locator('.subscription-disclaimer')).toContainText('support@rafiqpro.com');
-  // What Pro offers is only what it does.
-  const pro = page.locator('.subscription-plan-card').nth(1);
+  // What Pro Plus offers is only what it does.
+  const pro = page.locator('.subscription-plan-card[data-tier="pro"]');
+  await expect(pro).toContainText('Up to 15 active members');
   await expect(pro).not.toContainText(/verified|featured|priority/i);
+  // Elite Pro is above it, so only that card says "coming soon".
+  await expect(page.locator('.subscription-upgrade-soon')).toHaveCount(1);
+  await expect(page.locator('.subscription-plan-card[data-tier="elite_pro"] .subscription-upgrade-soon')).toHaveCount(1);
   expect(errs).toEqual([]);
   await ctx.close();
 });
@@ -154,9 +163,78 @@ for (const lang of ['en', 'ar']) {
     await page.locator('.notifications-row').first().click();
     const sheet = page.locator('.notifications-sheet');
     await sheet.getByRole('button', { name: lang === 'ar' ? 'قبول' : 'Accept' }).click();
-    await expect(sheet).toContainText(lang === 'ar' ? 'باقتك المجانية تتسع لـ 3 أعضاء نشطين' : 'Your free plan holds 3 active members');
+    await expect(sheet).toContainText(lang === 'ar' ? 'باقتك تتسع لـ 3 من الأعضاء النشطين' : 'Your plan holds 3 active members');
     expect((await dbRows(page, 'session_requests')).find((r) => r.id === 'req-hana').status).toBe('pending');
     expect((await dbRows(page, 'clients')).filter((c) => c.active)).toHaveLength(3);
+    expect(errs).toEqual([]);
+    await ctx.close();
+  });
+}
+
+for (const [lang, dark] of [['en', false], ['ar', true]]) {
+  test(`Pro Plus and full at 15: its own banner, its own cap screen, and accepting says 15 (${lang})`, async ({ browser }) => {
+    const { page, ctx, errs } = await open(browser, { lang, dark, data: tables(15, { tier: 'pro', renews_at: null }) });
+    const banner = page.locator('.clients-cap-banner');
+    await expect(banner).toContainText('15/15');
+    await expect(banner).toContainText(lang === 'ar' ? 'رفيق إيليت برو' : 'Rafiq Elite Pro');
+
+    await go(page, 'addClient');
+    const cap = page.locator('.add-client-cap');
+    await expect(cap).toBeVisible();
+    await expect(page.locator('#acname')).toHaveCount(0);
+    await expect(cap).toContainText(lang === 'ar' ? 'باقة رفيق برو بلس ممتلئة' : 'Your Rafiq Pro Plus plan is full');
+    await expect(cap).toContainText(lang === 'ar' ? 'تتسع لـ 15 عضوًا نشطًا' : 'holds 15 active members');
+
+    await go(page, 'notifications');
+    await page.locator('.notifications-row').first().click();
+    const sheet = page.locator('.notifications-sheet');
+    await sheet.getByRole('button', { name: lang === 'ar' ? 'قبول' : 'Accept' }).click();
+    await expect(sheet).toContainText(lang === 'ar' ? 'باقتك تتسع لـ 15 من الأعضاء النشطين' : 'Your plan holds 15 active members');
+    expect((await dbRows(page, 'session_requests')).find((r) => r.id === 'req-hana').status).toBe('pending');
+    expect(errs).toEqual([]);
+    await ctx.close();
+  });
+}
+
+test('Elite Pro granted by hand: past 15, no banner, and nothing above it to sell', async ({ browser }) => {
+  const { page, ctx, errs } = await open(browser, { data: tables(16, { tier: 'elite_pro', renews_at: null }) });
+  await expect(page.locator('.clients-cap-banner')).toHaveCount(0);
+  await go(page, 'addClient');
+  await expect(page.locator('#acname')).toBeVisible();
+
+  await go(page, 'notifications');
+  await page.locator('.notifications-row').first().click();
+  await page.locator('.notifications-sheet').getByRole('button', { name: 'Accept' }).click();
+  await expect.poll(async () => (await dbRows(page, 'session_requests')).find((r) => r.id === 'req-hana').status).toBe('accepted');
+
+  await go(page, 'subscription');
+  await expect(page.locator('.subscription-hero-plan')).toHaveText('Rafiq Elite Pro');
+  await expect(page.locator('.subscription-plan-card[data-tier="elite_pro"] .subscription-plan-badge')).toHaveText('Current plan');
+  await expect(page.locator('.subscription-upgrade-soon')).toHaveCount(0);
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
+for (const lang of ['en', 'ar']) {
+  test(`the plans and their prices, and Elite Pro's unbuilt features say so (${lang})`, async ({ browser }) => {
+    const { page, ctx, errs } = await open(browser, { lang, data: tables(1), screen: 'subscription' });
+    const ar = lang === 'ar';
+    const pro = page.locator('.subscription-plan-card[data-tier="pro"]');
+    const elite = page.locator('.subscription-plan-card[data-tier="elite_pro"]');
+    await expect(page.locator('.subscription-plan-card')).toHaveCount(3);
+    await expect(pro).toContainText(ar ? 'رفيق برو بلس' : 'Rafiq Pro Plus');
+    await expect(pro.locator('.subscription-plan-price')).toHaveText(ar ? '450 جنيه / شهريًا' : '450 EGP / month');
+    await expect(pro.locator('.subscription-plan-yearly')).toContainText(ar ? '4,500 جنيه' : '4,500 EGP / year');
+    await expect(elite).toContainText(ar ? 'رفيق إيليت برو' : 'Rafiq Elite Pro');
+    await expect(elite.locator('.subscription-plan-price')).toHaveText(ar ? '900 جنيه / شهريًا' : '900 EGP / month');
+    await expect(elite.locator('.subscription-plan-yearly')).toContainText(ar ? '9,000 جنيه' : '9,000 EGP / year');
+    // Featured placement and the CSV export don't exist yet: each carries
+    // its own tag, and nothing else on the card does.
+    const soon = elite.locator('.subscription-plan-feature', { has: page.locator('.subscription-feature-soon') });
+    await expect(soon).toHaveCount(2);
+    await expect(soon.first()).toContainText(ar ? 'ظهور مميّز' : 'Featured placement in Discover');
+    await expect(soon.last()).toContainText('CSV');
+    await expect(pro.locator('.subscription-feature-soon')).toHaveCount(0);
     expect(errs).toEqual([]);
     await ctx.close();
   });

@@ -1765,7 +1765,9 @@ export type Database = {
         Args: { p_actor: string; p_client: string }
         Returns: string
       }
+      coach_member_cap: { Args: { p_coach: string }; Returns: number }
       coach_on_pro: { Args: { p_coach: string }; Returns: boolean }
+      coach_plan: { Args: { p_coach: string }; Returns: string }
       create_client_invite: { Args: { p_client: string }; Returns: Json }
       is_coach_of: { Args: { p_client: string }; Returns: boolean }
       is_member_of: { Args: { p_client: string }; Returns: boolean }
@@ -1866,7 +1868,7 @@ export type Database = {
       review_status: "pending" | "approved" | "rejected"
       session_mode: "online" | "in_person" | "both"
       session_type: "intro" | "short" | "standard"
-      subscription_tier: "free" | "pro"
+      subscription_tier: "free" | "pro" | "elite_pro"
       template_cadence: "Weekly" | "Bi-weekly" | "2x/week" | "3x/week"
       time_block_kind: "available" | "busy" | "pending" | "booked"
       verification_status: "unverified" | "pending" | "verified"
@@ -2065,7 +2067,7 @@ export const Constants = {
       review_status: ["pending", "approved", "rejected"],
       session_mode: ["online", "in_person", "both"],
       session_type: ["intro", "short", "standard"],
-      subscription_tier: ["free", "pro"],
+      subscription_tier: ["free", "pro", "elite_pro"],
       template_cadence: ["Weekly", "Bi-weekly", "2x/week", "3x/week"],
       time_block_kind: ["available", "busy", "pending", "booked"],
       verification_status: ["unverified", "pending", "verified"],

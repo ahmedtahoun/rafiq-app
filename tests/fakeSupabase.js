@@ -344,13 +344,15 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       if (blocks.some((b) => b.coach_id === userId && ['booked', 'busy'].includes(b.kind) && Date.parse(b.starts_at) < end && Date.parse(b.ends_at) > start)) {
         return refuse('23P01');
       }
-      // 0020: on the free plan, a 4th active member is refused, and the
-      // whole accept with it. 24_free_tier.sql proves the real trigger.
+      // 0024: past the plan's cap (free 3, Pro Plus 15, Elite Pro none) the
+      // member is refused, and the whole accept with it. 24_free_tier.sql
+      // and 29_plan_tiers.sql prove the real trigger.
       const sub = (db.subscriptions ?? []).find((x) => x.coach_id === userId);
-      const onPro = sub && sub.tier === 'pro' && (!sub.renews_at || Date.parse(sub.renews_at) > Date.now());
+      const paid = sub && ['pro', 'elite_pro'].includes(sub.tier) && (!sub.renews_at || Date.parse(sub.renews_at) > Date.now());
+      const cap = !paid ? 3 : sub.tier === 'pro' ? 15 : null;
       const existing = (db.clients ??= []).find((c) => c.coach_id === userId && c.member_id === r.member_id);
       const activeNow = db.clients.filter((c) => c.coach_id === userId && c.active).length;
-      if (!onPro && !(existing && existing.active) && activeNow >= 3) return refuse('53400');
+      if (cap !== null && !(existing && existing.active) && activeNow >= cap) return refuse('53400');
       r.status = 'accepted';
       r.responded_at = new Date().toISOString();
       const who = (db.profiles ??= []).find((p) => p.id === r.member_id) ?? {};

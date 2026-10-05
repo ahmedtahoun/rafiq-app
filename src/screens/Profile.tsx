@@ -20,7 +20,7 @@ import {
   requestProAccountDeletion,
   requestVerification,
 } from '../lib/mockStore';
-import { usePlan } from '../lib/planData';
+import { isPaid, usePlan } from '../lib/planData';
 import { MIN_REVIEWS_FOR_RATING } from '../lib/mockStore';
 import { fetchOwnCoachStats } from '../lib/coachStatsData';
 import { fetchInbox } from '../lib/messageData';
@@ -92,7 +92,7 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
   const verificationBadgeBg = verificationStatus === 'verified' ? 'var(--green-bg)' : verificationStatus === 'pending' ? 'var(--amber-bg)' : 'var(--line)';
 
   const plan = usePlan();
-  const pro = plan.status === 'ready' && plan.plan.tier === 'pro';
+  const pro = plan.status === 'ready' && isPaid(plan.plan);
   const subscriptionSub = pro ? t('profileSubscriptionSubPro') : t('profileSubscriptionSubFree');
   // No badge until the plan is known, rather than "Upgrade" flashing at a Pro.
   const subscriptionBadge = plan.status !== 'ready' ? null : pro ? t('profileSubscriptionBadgePro') : t('profileSubscriptionBadgeFree');

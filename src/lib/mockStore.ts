@@ -1269,8 +1269,11 @@ export function completeCoachSignup(fields: CoachSignupFields): CoachProfile {
 // feature gates; the write side (Subscription.dc.html itself) below.
 // ---------------------------------------------------------------------------
 
+/** 'pro' is Rafiq Pro Plus; 'elite_pro' is Rafiq Elite Pro (0024). */
+export type PlanTier = 'free' | 'pro' | 'elite_pro';
+
 export interface Subscription {
-  tier: 'free' | 'pro';
+  tier: PlanTier;
   renewsAtMs: number | null;
 }
 
@@ -1281,7 +1284,7 @@ export function getSubscription(): Subscription {
 // 1:1 port of store.js's setSubscriptionTier — a real renewal date on
 // upgrade, cleared on downgrade, same as the prototype's demo billing.
 export function setSubscriptionTier(tier: Subscription['tier']): Subscription {
-  const sub: Subscription = { tier, renewsAtMs: tier === 'pro' ? TODAY_MS + 30 * DAY_MS : null };
+  const sub: Subscription = { tier, renewsAtMs: tier === 'free' ? null : TODAY_MS + 30 * DAY_MS };
   writeLocal('subscription', sub);
   return sub;
 }

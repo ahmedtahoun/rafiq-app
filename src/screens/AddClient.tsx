@@ -9,7 +9,7 @@ import { TextField, TextAreaField } from '../components/TextField';
 import { PersonIcon } from '../components/icons';
 import { LoadState } from '../components/LoadState';
 import { useRoster, type RosterView } from '../store/rosterStore';
-import { FREE_MEMBER_CAP, atMemberCap, usePlan } from '../lib/planData';
+import { MEMBER_CAP, atMemberCap, usePlan, type Plan } from '../lib/planData';
 import './AddClient.css';
 
 const PLANS: { value: string; labelKey: MessageKey }[] = [
@@ -23,14 +23,15 @@ export default function AddClient() {
   if (roster.status === 'loading' || plan.status === 'loading') return <LoadState status="loading" />;
   if (roster.status === 'error') return <LoadState status="error" onRetry={roster.retry} showBack />;
   if (plan.status === 'error') return <LoadState status="error" onRetry={plan.retry} showBack />;
-  // The database refuses a 4th active member on the free plan (0020), so
+  // The database refuses the member past the plan's cap (0024), so
   // say so before the coach fills in a form that can't be saved.
-  if (atMemberCap(plan.plan, roster.clients.filter((c) => c.active).length)) return <AddClientCap />;
+  if (atMemberCap(plan.plan, roster.clients.filter((c) => c.active).length)) return <AddClientCap plan={plan.plan} />;
   return <AddClientView roster={roster} />;
 }
 
-function AddClientCap() {
+function AddClientCap({ plan }: { plan: Plan }) {
   const t = useT();
+  const onPro = plan.tier === 'pro';
   const nav = useAppStore((s) => s.nav);
   return (
     <div className="phone-frame add-client-screen">
@@ -41,8 +42,12 @@ function AddClientCap() {
         <span className="add-client-header-btn" aria-hidden="true" style={{ visibility: 'hidden' }}>{t('addClientSave')}</span>
       </div>
       <div className="add-client-cap" role="status">
-        <div className="add-client-cap-title">{t('addClientCapTitle')}</div>
-        <p className="add-client-cap-body">{t('addClientCapBody', { cap: FREE_MEMBER_CAP })}</p>
+        <div className="add-client-cap-title">{t(onPro ? 'addClientCapTitlePro' : 'addClientCapTitle')}</div>
+        <p className="add-client-cap-body">
+          {onPro
+            ? t('addClientCapBodyPro', { cap: MEMBER_CAP.pro ?? 0 })
+            : t('addClientCapBody', { cap: MEMBER_CAP.free ?? 0, proCap: MEMBER_CAP.pro ?? 0 })}
+        </p>
         <button type="button" className="add-client-cap-btn" onClick={() => nav('subscription')}>{t('addClientCapSeePlans')}</button>
       </div>
     </div>

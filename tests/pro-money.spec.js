@@ -219,13 +219,14 @@ test('Subscription: upgrading is coming soon, and grants nothing', async ({ brow
 
   expect.soft(await store(page, `(m) => m.getSubscription().tier`), 'starts free').toBe('free');
 
-  expect.soft(await page.locator('.subscription-upgrade-soon').count(), 'coming-soon block shown').toBe(1);
+  // One per paid plan above Free: Rafiq Pro Plus and Rafiq Elite Pro (0024).
+  expect.soft(await page.locator('.subscription-upgrade-soon').count(), 'coming-soon block shown').toBe(2);
   // innerText gives the rendered text, which the badge's text-transform uppercases.
-  expect.soft((await page.locator('.subscription-soon-badge').innerText()).toLowerCase(), '  badged').toBe('coming soon');
+  expect.soft((await page.locator('.subscription-soon-badge').first().innerText()).toLowerCase(), '  badged').toBe('coming soon');
   expect.soft(await page.locator('.subscription-upgrade-btn').count(), 'the upgrade button is gone').toBe(0);
 
   // Nothing on the screen offers to take the upgrade.
-  const upgrade = page.locator('button').filter({ hasText: /Upgrade|Go Pro|Rafiq Pro Plus/i });
+  const upgrade = page.locator('button').filter({ hasText: /Upgrade|Go Pro|Rafiq Pro Plus|Elite Pro/i });
   expect.soft(await upgrade.count(), 'no button offers to upgrade').toBe(0);
 
   const after = await store(page, `(m) => m.getSubscription()`);
