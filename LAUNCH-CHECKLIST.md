@@ -445,6 +445,18 @@ builds".
       first booking request, for example), not at first launch.
       Reference: ProCoach's ads (payment, booking and "workout crushed"
       banners) and an Arabic coach dashboard Ahmed shared, same date.
+      **Server half done (2026-10-05):** `0023` adds `device_tokens`
+      (written only through `register_device` / `unregister_device`, as
+      the caller; a phone moves to whoever signs in on it; ten per person)
+      and the missing "new request" notification (`request-received`).
+      The `push-send` Edge Function sends each pushed kind to the
+      recipient's phones in the phone's language and time zone, never a
+      message's text, and drops phones Apple or Google say are gone
+      (`supabase/functions/push-send/README.md`). *Ahmed:* the APNs key,
+      the Firebase project, the secrets, `db push`, deploy, and the
+      Database Webhook, all in that README. Left: the app half (the plugin,
+      registering, asking permission, the switches, the copy and privacy
+      forms) and the session reminder an hour before.
 - [x] 🔴 **Account deletion must actually happen.** The app files a request
       into `account_deletion_requests`; someone has to process it (§9), within
       a stated time. **Stated: within 30 days**, on the public deletion page.
