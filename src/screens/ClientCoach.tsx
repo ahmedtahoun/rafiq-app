@@ -1,22 +1,23 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT, dayKey, isolate, type MessageKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { darken } from '../lib/color';
 import { specialtyLabels } from '../lib/coachLabels';
-import {
-  MessageIcon, ScheduleIcon, CheckIcon, StarIcon, WarningIcon,
-  ChevronIcon,
-  
-} from '../components/icons';
+import { MessageIcon, ScheduleIcon, CheckIcon, StarIcon, WarningIcon } from '../components/icons';
 import { MemberTabBar } from '../components/TabBars';
 import { BottomSheet } from '../components/BottomSheet';
 import { LoadState } from '../components/LoadState';
 import { NoCoachYet } from '../components/NoCoachYet';
 import { bookSessionTarget, useMemberSpace, type MemberRelationshipView, type MemberSpaceView } from '../store/memberStore';
 import { fileProReport } from '../lib/adminQueues';
+import { fetchMemberSchedule, type MemberSchedule } from '../lib/memberScheduleData';
+import { canOfferJoin } from '../lib/videoData';
+import { wallNowMs } from '../lib/wallClock';
+import { useRemoteLoad } from '../store/remoteLoad';
+import { useUnread } from '../store/unread';
 import {
-  DEMO_MEMBER_CLIENT_ID, isSessionToday,
+  DEMO_MEMBER_CLIENT_ID,
   canInteract, reportPro, getStandingSlot,
   PACKAGE_DEFAULT_TOTAL, type ProReportReason,
 } from '../lib/mockStore';
@@ -96,7 +97,29 @@ function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { sta
   const nextSessionText = hasNextSession
     ? fmt.nextSession(nextSessionAtMs, todayMs)
     : t('clientCoachNoSession');
-  const sessionToday = hasNextSession && isSessionToday(nextSessionAtMs, todayMs);
+
+  // Signed in, the booked session itself (the read Sessions makes), for its
+  // video call. While it loads, or if it can't be read, the Sessions card
+  // still has the date from the member's own row; there is just no Join.
+  const schedule = useRemoteLoad<MemberSchedule>(
+    `memberSchedule:${rel.clientId}`,
+    remote && !!rel.coach.id,
+    () => fetchMemberSchedule(rel.clientId, rel.coach.id ?? ''),
+  );
+  // The join window opens and closes while the screen is open.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const h = setInterval(() => setTick((n) => n + 1), 30_000);
+    return () => clearInterval(h);
+  }, []);
+  // The one whose call is open now: about to start, or under way.
+  const nowWall = wallNowMs();
+  const joinable = remote && schedule.status === 'ready'
+    ? [schedule.data.started, schedule.data.upcoming].find((x) => x && canOfferJoin(x.startWallMs, x.endWallMs, nowWall)) ?? null
+    : null;
+
+  // The same count as the tab bar's badge (store/unread.ts); signed in only.
+  const unread = useUnread((s) => s.count);
 
   const pendingTasks = rel.tasks.filter((task) => !task.done).length;
   const tasksText = pendingTasks > 0
@@ -115,7 +138,6 @@ function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { sta
   const monthsTogether = joinedAtMs === null ? null : Math.max(1, Math.round((todayMs - joinedAtMs) / (30 * DAY_MS)));
 
   const rating = profile.rating;
-  const pkg = rel.pkg;
   const verified = profile.verified;
   // Blocking and suspension are the demo's until messaging moves (step 5).
   const interactive = remote ? true : canInteract(CLIENT_ID);
@@ -125,13 +147,16 @@ function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { sta
   const showUpgrade = !remote && plan !== 'Full Access';
   const fullAccessTotal = PACKAGE_DEFAULT_TOTAL['Full Access'] ?? 12;
 
-  const paymentStatus = client.paymentStatus;
-  const paymentLabel = paymentStatus === 'paid'
-    ? t('clientCoachPaymentPaid')
-    : paymentStatus === 'overdue' ? t('clientCoachPaymentOverdue') : t('clientCoachPaymentDue');
-  const paymentDetail = paymentStatus === 'paid' || !pkg
-    ? t('clientCoachPlanLine', { plan })
-    : t('clientCoachPlanRenews', { plan, date: fmt.date(pkg.expiresAtMs) });
+  // No payment status here: a member can't pay in the app yet, so "Payment
+  // due" would be a reminder with nothing to do about it. The coach still
+  // sees it on their side (ClientDetail, Home).
+
+  // Only the numbers that are real: no row of dashes for a new member.
+  const stats = [
+    ...(rating.hasEnoughReviews ? [{ key: 'reviews', value: String(rating.count), label: t('clientCoachStatReviews') }] : []),
+    ...(sessionsTogether > 0 ? [{ key: 'sessions', value: String(sessionsTogether), label: t('clientCoachStatSessions') }] : []),
+    ...(monthsTogether !== null ? [{ key: 'months', value: String(monthsTogether), label: t('clientCoachStatMonths') }] : []),
+  ];
 
   const AM = isAr ? 'صباحًا' : 'AM';
   const PM = isAr ? 'مساءً' : 'PM';
@@ -162,17 +187,8 @@ function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { sta
 
   return (
     <div className="phone-frame client-coach-screen">
+      {/* A tab root: no back arrow. My pros is on Profile. */}
       <div className="client-coach-hero" style={{ background: heroBackground }}>
-        <div className="client-coach-hero-top">
-          <button
-            type="button"
-            className="client-coach-hero-btn"
-            aria-label={t('clientCoachMyPros')}
-            onClick={() => nav('myCoaches')}
-          >
-            <ChevronIcon size={16} color="#FFFFFF" />
-          </button>
-        </div>
 
         <div className="client-coach-identity">
           {profile.avatarPhotoUrl ? (
@@ -192,30 +208,42 @@ function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { sta
           <div className="client-coach-title">{specialtyTitle(profile.title, t)}</div>
           {profile.cert && <div className="client-coach-cert">{profile.cert}</div>}
 
-          <div className="client-coach-rating">
-            {rating.hasEnoughReviews ? (
-              <>
-                <StarIcon size={12} color="#FFD166" />
-                <span>{rating.average.toFixed(1)}</span>
-                <span className="client-coach-rating-count">({rating.count})</span>
-              </>
-            ) : (
-              <span className="client-coach-rating-none">{t('clientCoachNotEnoughReviews')}</span>
-            )}
-          </div>
+          {rating.hasEnoughReviews && (
+            <div className="client-coach-rating">
+              <StarIcon size={12} color="#FFD166" />
+              <span>{rating.average.toFixed(1)}</span>
+              <span className="client-coach-rating-count">({rating.count})</span>
+            </div>
+          )}
         </div>
       </div>
 
       <div className="client-coach-scroll">
+        {joinable && (
+          <button
+            type="button"
+            className="client-coach-join"
+            onClick={() => nav({ screen: 'sessionRoom', params: { sessionId: joinable.sessionId, name: coachName } })}
+          >
+            {t('clientCoachJoinSession')}
+          </button>
+        )}
+
         <div className="client-coach-actions">
           <button
             type="button"
             className="client-coach-primary"
             disabled={!interactive}
+            aria-label={unread > 0 ? t('tabUnreadLabel', { label: t('clientCoachMessage'), count: unread }) : undefined}
             onClick={() => nav('coachMessages')}
           >
             <MessageIcon size={15} color="currentColor" />
             {t('clientCoachMessage')}
+            {unread > 0 && (
+              <span className="bottom-nav-badge client-coach-message-badge" aria-hidden="true">
+                {unread > 9 ? '9+' : unread}
+              </span>
+            )}
           </button>
           <button
             type="button"
@@ -235,12 +263,8 @@ function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { sta
             onClick={() => nav('clientSchedule')}
           >
             <div className="client-coach-quick-label">{t('clientCoachSessionsQuick')}</div>
-            <div className="client-coach-quick-value">
-              {sessionToday ? t('clientCoachLiveToday') : nextSessionText}
-            </div>
-            {!sessionToday && hasNextSession && (
-              <div className="client-coach-quick-hint">{t('clientCoachNextLabel')}</div>
-            )}
+            <div className="client-coach-quick-value">{nextSessionText}</div>
+            {hasNextSession && <div className="client-coach-quick-hint">{t('clientCoachNextLabel')}</div>}
           </button>
           <button
             type="button"
@@ -263,11 +287,6 @@ function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { sta
               <div className="client-coach-quick-value">{t('myProgramsSubtitle')}</div>
             </button>
           )}
-        </div>
-
-        <div className={`client-coach-payment client-coach-payment-${paymentStatus}`}>
-          <div className="client-coach-payment-label">{paymentLabel}</div>
-          <div className="client-coach-payment-detail">{paymentDetail}</div>
         </div>
 
         {standing && (
@@ -304,14 +323,11 @@ function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { sta
           <p className="client-coach-bio">{profile.bio ? <bdi>{profile.bio}</bdi> : t('clientCoachBioFallback')}</p>
         </section>
 
-        <div className="client-coach-stats">
-          <Stat
-            value={rating.hasEnoughReviews ? String(rating.count) : '—'}
-            label={t('clientCoachStatReviews')}
-          />
-          <Stat value={String(sessionsTogether)} label={t('clientCoachStatSessions')} />
-          <Stat value={monthsTogether === null ? '—' : String(monthsTogether)} label={t('clientCoachStatMonths')} />
-        </div>
+        {stats.length > 0 && (
+          <div className="client-coach-stats">
+            {stats.map((s) => <Stat key={s.key} value={s.value} label={s.label} />)}
+          </div>
+        )}
 
         <button
           type="button"
