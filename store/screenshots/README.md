@@ -4,16 +4,20 @@
 npm run screenshots
 ```
 
-One command. Every image both stores need, in English and Arabic, the
-same bytes on every run. Output lands in `out/` and is committed, so
-Ahmed can upload without running anything.
+One command. Every image both stores need, in English and Arabic.
+Output lands in `out/` and is committed, so Ahmed can upload without
+running anything.
+
+The run is **close to byte-reproducible, not quite**. See "How
+reproducible this actually is" below before you treat a changed PNG as a
+signal.
 
 ```
 out/
   en/iphone/01-coach-home.png …  14 × 1320×2868
   en/play/01-coach-home.png   …  14 × 1242×2208  + feature-graphic.png
-  ar/iphone/…                    12 of the 14, Arabic (13 and 14 are
-  ar/play/…                      English-only — see below)
+  ar/iphone/…                    14 × 1320×2868, Arabic
+  ar/play/…                      14 × 1242×2208, Arabic
   shared/play-icon-512.png       512×512
   shared/app-icon-1024.png       1024×1024
 ```
@@ -81,8 +85,8 @@ and Notifications are left out because Reem is still converting them.
 | 10 | Member Discover | How a member finds a coach |
 | 11 | Member Tasks | The between-sessions work the description leans on |
 | 12 | Member Sessions | Past and upcoming, with recaps |
-| 13 | Coach Preview Profile | What a coach's own page looks like to a member — **English only**, see below |
-| 14 | Member's coach page | The relationship once it exists — **English only**, see below |
+| 13 | Coach Preview Profile | What a coach's own page looks like to a member |
+| 14 | Member's coach page | The relationship once it exists |
 
 ### What 05 and 06 cost, and how to undo it
 
@@ -127,18 +131,23 @@ I first blamed the `<video>` for the non-determinism and that was wrong;
 it was the dot. With animations frozen the video track hashes the same
 every run.
 
-**13 and 14 are captured in English only.** `PreviewProfile` and
-`ClientCoach` print `coach_profiles.title` and the language list raw, so
-in Arabic they read "Life coaching" and "English" under an Arabic name —
-the same stored value Discover translates correctly. That is an app bug,
-filed as
-[#95](https://github.com/ahmedtahoun/rafiq-app/issues/95) and
-deliberately not fixed here (this PR may not touch `src/screens/`). Both
-are spares beyond Apple's 10 and Play's 8, so nothing is blocked; add the
-Arabic captures by deleting `langs: ['en']` from those two entries in
-`shots.mjs` once #95 lands.
+**13 and 14 are captured in Arabic too, since #118.** They were English
+only while `PreviewProfile` and `ClientCoach` printed
+`coach_profiles.title` and the language list raw, so in Arabic they read
+"Life coaching" and "English" under an Arabic name — the same stored value
+Discover translated correctly. That was [#95]
+(https://github.com/ahmedtahoun/rafiq-app/issues/95).
 
-## Proving "the same bytes every run"
+Both screens go through `coachLabels.ts` now. Verified before lifting the
+restriction rather than taken on trust: `tests/coach-labels.spec.js` pins
+the Arabic chips on `PreviewProfile` (`التدريب الحياتي`, `التدريب المهني`,
+and Arabic language names), and `ClientCoach` renders its title through
+the same helper at `ClientCoach.tsx:192`. The captures themselves were
+then read to confirm no English is left in them.
+
+That takes the set from 56 files to 60.
+
+## How reproducible this actually is
 
 It is a claim, so check it rather than trust it:
 
@@ -148,14 +157,35 @@ npm run screenshots && find store/screenshots/out -name '*.png' | sort | xargs s
 diff /tmp/a /tmp/b
 ```
 
-Three consecutive runs were identical across all 56 files when this was
-last changed. Two earlier breaks of that promise are worth knowing about,
-because both were invisible in a single run: the pulsing live dot above,
-and `02-coach-members`, which differed on about one run in three because
-an avatar had not finished decoding when the shutter fired. Waiting on
-`document.fonts.ready` covers text and `__screenSettled` covers the
-chunk; neither waits for an `<img>`, so the run now awaits
-`img.decode()` as well.
+**The honest answer, measured on 2026-10-05 over four runs of the 60-file
+set: three were byte-identical and one differed in a single file**
+(`02-coach-members`, by about 100 bytes in a 360 KB PNG — not a visible
+difference). On top of that, regenerating the set in a fresh container
+rewrote `04-coach-schedule` and `07-coach-messages` in all four
+language/size combinations, by a similar margin, with no app change
+between them.
+
+So: the content is deterministic — the clock is pinned, the data is
+seeded, animations are frozen — but the *encoding* is not quite, and it
+varies more across environments than within one. This README used to say
+"the same bytes on every run", which three consecutive clean runs had
+supported at the time. Four runs and a container change were enough to
+disprove it.
+
+**What that means in practice.** A changed PNG in `git status` after a
+regeneration is not by itself evidence of anything; look at the image.
+Treat a diff as real when it is large, when it is the same file every
+time, or when you can see it.
+
+Two earlier breaks were real and were fixed, both invisible in a single
+run: the pulsing live dot (above), and `02-coach-members`, which differed
+on about one run in three because an avatar had not finished decoding
+when the shutter fired. `document.fonts.ready` covers text and
+`__screenSettled` covers the chunk; neither waits for an `<img>`, so the
+run awaits `img.decode()` too. That took 02 from roughly one run in three
+to one in four here — better, and not solved. If it matters enough to
+chase, the remaining suspect is PNG encoding rather than page state,
+since the byte delta is far too small to be a missing avatar.
 
 ## What the images may show
 
