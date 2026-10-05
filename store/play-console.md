@@ -374,7 +374,7 @@ so this document can be filled in without opening the other two.
 
 | # | Question | What settles it |
 |---|---|---|
-| 6 | Does Paymob genuinely require `national_id`? | **The staging payout run (§3).** `paymobPayouts.ts:84` enforces 14 digits, but that encodes a belief, not evidence. If the answer is no, q5 disappears and `0009` gets simpler |
+| 6 | Does Paymob genuinely require `national_id`? | **`scripts/paymob-national-id-check.ts`** — one command against Paymob staging, two 1.00 EGP disbursements differing only in that field. `paymobPayouts.ts:84` enforces 14 digits, but that encodes a belief, not evidence. If the answer is no, q5 disappears and `0009` gets simpler |
 | 9 | Supabase log retention | Confirm on the plan actually bought (~a week on Pro). Recommendation: say it in the policy, **do not** declare it on this form — host logs are not what it asks about |
 | 2 | May a member see their coach's private notes? | Counsel. Assume yes; the exposure is that **coaches do not know**, which is a product change |
 | 7 | Law 151/2020 and the transfer to Ireland | Egyptian counsel, on whether a Data Protection Centre permit is required and obtainable |

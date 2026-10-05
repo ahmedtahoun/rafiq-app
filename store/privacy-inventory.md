@@ -224,6 +224,11 @@ Two things that are already right and should stay right:
 **Ahmed to confirm** (already on the checklist, §3): the staging payout run
 settles whether Paymob genuinely needs `national_id`. If it does not, stop
 collecting it — that removes the hardest row in this inventory.
+`scripts/paymob-national-id-check.ts` is that run reduced to one command:
+two 1.00 EGP disbursements through the real `buildDisburseBody`, identical
+except that the first omits the field. It needs the Paymob staging
+credentials in the environment, so only Ahmed can run it; it writes nothing
+to the database, and its header says how.
 
 ---
 
@@ -461,10 +466,12 @@ external fact or a lawyer and are marked **OPEN**.
    It is an identity document, not a form of payment, and Apple asks for
    the type that matches the data rather than its purpose. Google's
    "Other info" was already right.
-6. **OPEN (one call).** Whether Paymob genuinely requires `national_id`.
-   `_shared/paymobPayouts.ts:84` enforces 14 digits, which encodes a
-   belief rather than evidence; the staging payout run settles it. If
-   the answer is no, stop collecting it and question 5 disappears.
+6. **OPEN (one command).** Whether Paymob genuinely requires
+   `national_id`. `_shared/paymobPayouts.ts:84` enforces 14 digits, which
+   encodes a belief rather than evidence;
+   `scripts/paymob-national-id-check.ts` settles it against Paymob
+   staging. If the answer is no, stop collecting it and question 5
+   disappears.
 7. ~~Whether to self-host the fonts~~ — done (#75).
 8. **OPEN (counsel).** What Law 151/2020 requires for the transfer to
    `eu-west-1`. Shape: adequacy *or* explicit consent, plus a permit

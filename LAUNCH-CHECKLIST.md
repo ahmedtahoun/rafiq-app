@@ -78,16 +78,28 @@ as done below, when signed in; every other screen still reads and writes
       `favourite_coaches` rows, 0005, instead of `localStorage`, so they
       follow the member to another device).
 
-      Still on `mockStore` when signed in, and all that is left of this
-      item (Reem's queue):
+      The three that were left went on 4 October. Before ticking this,
+      the coach side needs what the member side has: a walk of every
+      coach screen signed in that fails on any demo read
+      (`tests/member-demo-identity.spec.js` is the pattern). ShareProfile
+      and Subscription still import `mockStore`; the walk will say whether
+      they read it signed in. Signed out, the demo still runs on it, by
+      the 3 Oct decision.
 
-      - **Home's package and follow-up alerts** — `src/screens/Main.tsx`.
-      - ~~**Profile stats**~~ — done (2026-10-04): reviews and rating
+      Done on 4 October:
+
+      - ~~**Home's package and follow-up alerts**~~ — done (2026-10-04, #122):
+        the coach's `packages` rows (expired, used up, expiring within a
+        week) and each member's latest attended session's `followed_up`,
+        which Remind sets (`fetchHomeAlerts` in `src/lib/rosterData.ts`).
+      - ~~**Profile stats**~~ — done (2026-10-04, #123): reviews and rating
         from the coach's `ratings`, members and completion from the
         roster, the Messages badge from the inbox, and the delete sheet's
         open items from 0012's own list (`src/lib/coachStatsData.ts`).
-      - **Earnings' totals** — `src/screens/Earnings.tsx` uses
-        `getEarningsSummary`.
+      - ~~**Earnings' totals**~~ — done (2026-10-04, #121): signed in, the
+        coach's own `payments` ledger (`src/lib/earningsData.ts`):
+        completed charges less refunds, pending on its own line, paid and
+        due over active members, with LoadState and a retry.
 - [x] 🔴 **Remove the demo identities.** 14 member screens hardcoded
       `const CLIENT_ID = 'sara'`, and the Pro side is the seeded
       `DEFAULT_PRO_ID = 'pro-yasmin'`. Both must come from the signed-in user.
@@ -228,7 +240,9 @@ The sources, read on 2026-10-01, and what they mean for the build are in
       secrets, deploy the function, add yourself to `admin_users`, and run a
       staging payout (README, "Testing on staging"). The staging run also
       settles whether Paymob really needs `national_id` — if it doesn't, stop
-      collecting it.
+      collecting it. `scripts/paymob-national-id-check.ts` is that one
+      question on its own: two 1.00 EGP disbursements, identical except the
+      first omits the field. Staging credentials only; writes nothing.
 - [x] 🟡 *Dev:* the coach's payout-account screen (Profile → Payout account,
       and a link from Earnings). Signed-in only; saved numbers show last 4.
 - [ ] 🟡 *Ahmed:* check `src/lib/paymobBanks.ts` against the bank codes table

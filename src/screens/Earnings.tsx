@@ -6,19 +6,34 @@ import { fetchOwnPayouts, type PayoutRecord, type PayoutStatus } from '../lib/pa
 import { useFormat } from '../lib/format';
 import { ChevronIcon, ArrowForwardIcon } from '../components/icons';
 import { darken } from '../lib/color';
-import { getClient, getEarningsSummary, type PaymentStatus } from '../lib/mockStore';
+import { getClient, getEarningsSummary, type Client, type EarningsSummary, type PaymentStatus } from '../lib/mockStore';
+import { fetchOwnLedgerTotals, summarizeEarnings } from '../lib/earningsData';
+import { LoadState } from '../components/LoadState';
+import { useRemoteLoad } from '../store/remoteLoad';
+import { useRoster } from '../store/rosterStore';
 import './Earnings.css';
 
 // 1:1 port of Earnings.dc.html — real aggregate of recorded payments across
-// the roster, with a per-member breakdown.
+// the roster, with a per-member breakdown. Signed in, the coach's own roster
+// and `payments` ledger (earningsData.ts); signed out, the demo's.
 export default function Earnings() {
+  const remote = useRemoteSession();
+  const roster = useRoster();
+  const ledger = useRemoteLoad('earnings_ledger', remote, fetchOwnLedgerTotals);
+
+  if (!remote) return <EarningsView summary={getEarningsSummary()} clientOf={getClient} remote={false} />;
+  if (roster.status === 'loading' || ledger.status === 'loading') return <LoadState status="loading" />;
+  if (roster.status === 'error') return <LoadState status="error" onRetry={roster.retry} showBack />;
+  if (ledger.status === 'error') return <LoadState status="error" onRetry={ledger.retry} showBack />;
+  return <EarningsView summary={summarizeEarnings(roster.clients, ledger.data)} clientOf={roster.client} remote />;
+}
+
+function EarningsView({ summary, clientOf, remote }: { summary: EarningsSummary; clientOf: (id: string) => Client | undefined; remote: boolean }) {
   const t = useT();
   const fmt = useFormat();
-  const remote = useRemoteSession();
   const back = useAppStore((s) => s.back);
   const nav = useAppStore((s) => s.nav);
 
-  const summary = getEarningsSummary();
   const totalReceivedLabel = fmt.money(summary.totalReceived);
   const paidPct = summary.totalClients > 0 ? Math.round((summary.paidCount / summary.totalClients) * 100) : 0;
   const paidCountLabel = `${summary.paidCount}/${summary.totalClients} ${t('earningsPaid')}`;
@@ -36,7 +51,7 @@ export default function Earnings() {
   const rows = [...summary.byClient]
     .sort((a, b) => b.total - a.total)
     .map((r) => {
-      const client = getClient(r.clientId);
+      const client = clientOf(r.clientId);
       const isPending = r.pending > 0;
       const statusDef = isPending ? { label: t('earningsStatusPending'), color: 'var(--amber)' } : statusDefs[client?.paymentStatus ?? 'due'];
       const clientColor = client?.avatarBg ?? 'var(--accent)';
@@ -96,7 +111,7 @@ export default function Earnings() {
                 <button key={r.clientId} type="button" className="earnings-row" onClick={() => nav({ screen: 'clientDetail', params: { clientId: r.clientId } })}>
                   <div className="earnings-avatar" style={{ background: r.avatarGrad }}>{r.initials}</div>
                   <div className="earnings-row-text">
-                    <div className="earnings-row-name">{r.name}</div>
+                    <div className="earnings-row-name"><bdi>{r.name}</bdi></div>
                     <div className="earnings-row-status" style={{ color: r.statusColor }}>{r.statusLabel}</div>
                     {r.hasPending && <div className="earnings-row-pending">{r.pendingLabel}</div>}
                   </div>
