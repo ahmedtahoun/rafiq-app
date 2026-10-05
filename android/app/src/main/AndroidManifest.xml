@@ -42,6 +42,17 @@
                 <data android:scheme="app.rafiq.coach" android:host="auth-callback" />
             </intent-filter>
 
+            <!-- A coach's public page, "Open in Rafiq Pro" on rafiqpro.com/c/<code>
+                 (site/coach-page.mjs): app.rafiqie.coach://c/<code>, handled by
+                 src/lib/coachLinks.ts. Its own filter, so the sign-in one above
+                 stays exactly as it was. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="app.rafiqie.coach" android:host="c" />
+            </intent-filter>
+
         </activity>
 
         <provider
