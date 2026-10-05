@@ -36,6 +36,13 @@ export type PushData = Record<string, string | undefined>;
 export const pushPlugin = {
   available: (): boolean => Capacitor.isNativePlatform() && Capacitor.isPluginAvailable('PushNotifications'),
   platform: (): string => Capacitor.getPlatform(),
+  /**
+   * Android only: whether this build has Firebase, i.e. whether
+   * android/app/google-services.json was there when the web assets were
+   * built (vite.config.ts). Without it the plugin's register() crashes the
+   * app, so supported() keeps Android off push entirely.
+   */
+  firebase: (): boolean => import.meta.env.VITE_ANDROID_PUSH === true,
   async checkPermission(): Promise<string> {
     return (await PushNotifications.checkPermissions()).receive;
   },
@@ -98,8 +105,13 @@ function normalise(p: string): PushPermission {
   return p === 'granted' ? 'granted' : p === 'denied' ? 'denied' : 'prompt';
 }
 
+/** A phone that can get banners: native, with the plugin, and on Android with Firebase. */
+function supported(): boolean {
+  return pushPlugin.available() && (pushPlugin.platform() !== 'android' || pushPlugin.firebase());
+}
+
 export async function pushPermission(): Promise<PushPermission> {
-  if (!pushPlugin.available()) return 'unsupported';
+  if (!supported()) return 'unsupported';
   try {
     return normalise(await pushPlugin.checkPermission());
   } catch {
@@ -202,7 +214,7 @@ async function syncOnce({ ask = false }: { ask?: boolean }): Promise<PushPermiss
 
 /** Before signing out: this phone stops getting that person's banners. */
 export async function stopPushDevice(): Promise<void> {
-  if (!pushPlugin.available()) return;
+  if (!supported()) return;
   const token = readKey(TOKEN_KEY);
   if (!token) return;
   await unregisterDevice(token);
@@ -235,7 +247,7 @@ export function pushTarget(data: PushData, role: 'coach' | 'client' | null): Nav
 
 /** App.tsx: open what a tapped banner is about. Returns the unsubscribe. */
 export function initPushTaps(): () => void {
-  if (!pushPlugin.available()) return () => {};
+  if (!supported()) return () => {};
   return pushPlugin.onTap((data) => {
     const { userId, role, nav } = useAppStore.getState();
     if (!userId) return;

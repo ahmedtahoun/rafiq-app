@@ -96,7 +96,8 @@ async function open(browser, { role = 'coach', lang = 'en', dark = false, phone 
       window.__push = { permission: p.permission, answer: p.answer, asked: 0, registered: 0, token: p.token ?? 'tok-1' };
       Object.assign(m.pushPlugin, {
         available: () => true,
-        platform: () => 'android',
+        platform: () => p.platform ?? 'android',
+        firebase: () => p.firebase ?? true,
         checkPermission: async () => window.__push.permission,
         requestPermission: async () => {
           window.__push.asked++;
@@ -410,4 +411,34 @@ test('in a browser: no phone row, no phone-only switches, the in-app wording, an
   expect((await dbCalls(page)).filter((c) => c.op === 'rpc' && /device/.test(c.fn))).toEqual([]);
   expect(errs).toEqual([]);
   await ctx.close();
+});
+
+test('Android without google-services.json: no push at all, so the plugin never reaches Firebase', async ({ browser }) => {
+  // The repo has no google-services.json, so the build's own flag says so.
+  const real = await open(browser, { phone: null });
+  expect(await real.page.evaluate(async () => (await import('/src/lib/push.ts')).pushPlugin.firebase())).toBe(false);
+  await real.ctx.close();
+
+  // Android 12 and earlier: permission is already granted without asking.
+  // Without Firebase the plugin's register() crashes the app, so nothing
+  // may call it: no registration at launch, no sheet, no phone row.
+  const { page, ctx, errs } = await open(browser, { phone: { permission: 'granted', answer: 'granted', firebase: false } });
+  await go(page, 'profile');
+  const card = page.locator('.profile-notif-card');
+  await expect(card.locator('.profile-notif-scope')).toHaveText('These control your in-app Notifications feed.');
+  await expect(card.locator('.push-phone-row')).toHaveCount(0);
+  await page.evaluate(async () => (await import('/src/store/pushAsk.ts')).offerPush());
+  await page.waitForTimeout(400);
+  await expect(page.getByText('Get notifications on your phone?')).toHaveCount(0);
+  await page.evaluate(async () => (await import('/src/lib/auth.ts')).signOut());
+  expect(await push(page)).toMatchObject({ asked: 0, registered: 0 });
+  expect((await dbCalls(page)).filter((c) => c.op === 'rpc' && /device/.test(c.fn))).toEqual([]);
+  expect(errs).toEqual([]);
+  await ctx.close();
+
+  // An iPhone needs no Firebase (push-send talks to APNs itself).
+  const ios = await open(browser, { phone: { permission: 'granted', answer: 'granted', firebase: false, platform: 'ios' } });
+  await expect.poll(() => lastRegistration(ios.page)).toMatchObject({ p_platform: 'ios', p_token: 'tok-1' });
+  expect(ios.errs).toEqual([]);
+  await ios.ctx.close();
 });
