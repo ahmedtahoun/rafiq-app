@@ -221,7 +221,8 @@ export async function stopPushDevice(): Promise<void> {
   writeKey(TOKEN_KEY, null);
 }
 
-const SESSION_KINDS = new Set(['session-moved', 'session-cancelled', 'request-accepted', 'request-declined']);
+// session-reminder (0025): the member's Schedule is where its Join is.
+const SESSION_KINDS = new Set(['session-moved', 'session-cancelled', 'session-reminder', 'request-accepted', 'request-declined']);
 
 /**
  * Where a tapped banner goes, for the signed-in role: the thread for a

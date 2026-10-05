@@ -374,9 +374,11 @@ test('a tapped banner opens what it is about', async ({ browser }) => {
       coachTask: pushTarget({ kind: 'task-completed', client_id: 'c1' }, 'coach'),
       coachRequest: pushTarget({ kind: 'request-received' }, 'coach'),
       coachMoved: pushTarget({ kind: 'session-moved', client_id: 'c1' }, 'coach'),
+      coachReminder: pushTarget({ kind: 'session-reminder', client_id: 'c1' }, 'coach'),
       memberMessage: pushTarget({ kind: 'message', client_id: 'c1' }, 'client'),
       memberAnswer: pushTarget({ kind: 'request-accepted' }, 'client'),
       memberCancelled: pushTarget({ kind: 'session-cancelled', client_id: 'c1' }, 'client'),
+      memberReminder: pushTarget({ kind: 'session-reminder', client_id: 'c1' }, 'client'),
       memberOther: pushTarget({ kind: 'something-new' }, 'client'),
     };
   });
@@ -385,9 +387,11 @@ test('a tapped banner opens what it is about', async ({ browser }) => {
     coachTask: { screen: 'clientDetail', params: { clientId: 'c1' } },
     coachRequest: { screen: 'notifications', params: {} },
     coachMoved: { screen: 'schedule', params: {} },
+    coachReminder: { screen: 'schedule', params: {} },
     memberMessage: { screen: 'coachMessages', params: {} },
     memberAnswer: { screen: 'clientSchedule', params: {} },
     memberCancelled: { screen: 'clientSchedule', params: {} },
+    memberReminder: { screen: 'clientSchedule', params: {} },
     memberOther: { screen: 'clientNotifications', params: {} },
   });
   await page.evaluate(async () => {

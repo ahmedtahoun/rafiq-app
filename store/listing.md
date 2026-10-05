@@ -39,12 +39,12 @@ a listing would normally say that this one must not:
 
 1. **Phone notifications only for what the app sends.** Since the push PRs
    the app sends banners for new requests, answers, moved and cancelled
-   sessions, messages and finished tasks, once someone turns them on — but
-   no reminder before a session yet (that needs a scheduled job). So
-   "Reminders" in the listing still has to read as something a user sees
-   in the app, never as a phone alert before a session. (The onboarding carousel's
-   `welcome2Subtext` still says "send reminders", which is on the edge —
-   worth a look, separately from this task.)
+   sessions, a reminder 45 to 60 minutes before each session (0025),
+   messages and finished tasks, once someone turns them on. So the listing
+   may say "a reminder before your session", but not let the reader pick
+   when, and not promise a reminder for payments or tasks. (The onboarding
+   carousel's `welcome2Subtext` still says "send reminders", which is on
+   the edge — worth a look, separately from this task.)
 2. **No in-app payment.** Booking sends the coach a request; nothing is
    charged. The Rafiq Pro Plus upgrade is a "Coming soon" state. The
    listing cannot promise paying in the app until §3 lands.
