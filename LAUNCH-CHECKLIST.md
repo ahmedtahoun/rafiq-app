@@ -50,7 +50,7 @@ locked down, 488 schema assertions in CI). The app uses it for the screens liste
 as done below, when signed in; every other screen still reads and writes
 `src/lib/mockStore.ts` / `src/lib/directory.ts` (localStorage on the phone).
 
-- [ ] 🔴 Replace each `mockStore` / `directory` function body with a Supabase
+- [x] 🔴 Replace each `mockStore` / `directory` function body with a Supabase
       query against the matching table — the tables mirror `mockStore`'s
       types, and `supabase/README.md` covers where the model differs.
       Suggested order: reports, verification and deletion requests (the admin
@@ -78,13 +78,19 @@ as done below, when signed in; every other screen still reads and writes
       `favourite_coaches` rows, 0005, instead of `localStorage`, so they
       follow the member to another device).
 
-      The three that were left went on 4 October. Before ticking this,
-      the coach side needs what the member side has: a walk of every
-      coach screen signed in that fails on any demo read
-      (`tests/member-demo-identity.spec.js` is the pattern). ShareProfile
-      and Subscription still import `mockStore`; the walk will say whether
-      they read it signed in. Signed out, the demo still runs on it, by
-      the 3 Oct decision.
+      The three that were left went on 4 October. The coach side now has
+      what the member side has (2026-10-05):
+      `tests/coach-demo-identity.spec.js` walks all 24 coach screens that
+      read the coach's data, signed in, and fails on any demo store read
+      or demo name. Its first run found two: Preview Profile and Share
+      Profile read the demo roster's ratings and member count. Both read
+      the coach's own now (Preview's reviews are `coach_reviews`, as the
+      coach page shows them). Subscription imports `mockStore` for its
+      signed-out cancel only. Three device keys are read signed in on
+      purpose and allowed by name: the notification switches, Home's
+      "Reminded" marks and a drafted reminder, all this phone's own.
+      Signed out, the demo still runs on `mockStore`, by the 3 Oct
+      decision.
 
       Done on 4 October:
 
