@@ -395,12 +395,14 @@ point-in-time backups, so a deletion does not purge data instantly — the
 deletion page's promise and the technical reality disagree for the
 length of the backup window. Wording for this is in §9.
 
-**10 — Age rating questionnaires.** Use the answers drafted here and in
-`store/play-console.md`: honest answers to each item, user interaction
-and personal-information exchange declared yes, target audience **18+**
-on both stores regardless of the rating that falls out. Expect roughly
-12+ on Apple and PEGI 3 with interactive-element notices on Google. The
-exact rating is an output, not a decision.
+**10 — Age rating questionnaires.** Google's is answered in
+`store/play-console.md` §3 and Apple's in `store/age-rating.md`. Honest
+answers to each item, user interaction and personal-information exchange
+declared yes, target audience **18+** on both stores regardless of the
+rating that falls out. Expect PEGI 3 with interactive-element notices on
+Google, and **13+ or higher** on Apple — not the 12+ this paragraph used
+to name, because Apple replaced its bands in 2026 and 12+ and 17+ no
+longer exist. The exact rating is an output, not a decision.
 
 ---
 

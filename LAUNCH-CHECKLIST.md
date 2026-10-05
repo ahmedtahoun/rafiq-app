@@ -570,7 +570,17 @@ Waits on the name decision (§1).
       read and nothing could set) and **timely action on reports** (§9),
       and terms users accept that forbid objectionable content.
 - [ ] 🟡 Age rating (Apple) and content rating questionnaire (Google); target
-      audience adults, not children.
+      audience adults, not children. Both are answered:
+      `store/age-rating.md` for Apple's (which it replaced in 2026 — the
+      bands are now 4+/9+/13+/16+/18+ and answering is mandatory), and
+      `store/play-console.md` §3–§4 for Google's. One decision is left in
+      each: whether Rafiq declares Apple's **Social Media** capability,
+      and the eligibility gap below.
+- [ ] 🟡 **The terms set no minimum age.** Play's target audience is
+      declared 18 and over, but `i18n.ts` has no eligibility clause in
+      either language. Apple requires the rating to be overridden upward
+      to match a EULA's minimum age, so the two have to agree before
+      submission — see `store/age-rating.md`.
 - [x] 🟡 "Coaching is not therapy or medical advice" in the terms and onboarding,
       with crisis resources for the wellness categories. Done: a last
       section on both Terms documents (and on the public terms page, which
