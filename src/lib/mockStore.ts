@@ -1911,9 +1911,14 @@ export function setNotificationPrefs(patch: Partial<NotificationPrefs>): Notific
 // ---------------------------------------------------------------------------
 // Coaching agreement (ClientProfile.dc.html) — the waiver/scope-of-practice
 // text a member reviews and signs, chosen by the coach's specialty
-// category. This body/title text is never translated in the design either
-// (its own AGREEMENT_TEXT sits outside translations(), English-only
-// regardless of `lang`), so it's ported the same way here.
+// category.
+//
+// The design's own AGREEMENT_TEXT sat outside translations(), English-only
+// regardless of `lang`, and this was ported the same way — so an Arabic
+// member was asked to agree to English. It carries i18n keys now, and the
+// screen renders them through t(). Of everything in the app, this is the
+// text least able to afford being unreadable: it is the only one a member
+// is asked to agree to.
 // ---------------------------------------------------------------------------
 
 type AgreementCategory = 'physical' | 'emotional' | 'general';
@@ -1921,19 +1926,12 @@ type AgreementCategory = 'physical' | 'emotional' | 'general';
 const PHYSICAL_SPECIALTIES = ['Free diving coaching', 'Scuba diving coaching', 'Fitness coaching', 'Yoga coaching'];
 const EMOTIONAL_SPECIALTIES = ['Relationship coaching', 'Breakup coaching', 'Parenting coaching', 'Stress & anxiety coaching'];
 
-const AGREEMENT_TEXT: Record<AgreementCategory, { title: string; body: string }> = {
-  physical: {
-    title: 'Assumption of Risk & Safety Waiver',
-    body: 'I confirm I am physically fit to take part in this activity and have disclosed any relevant medical conditions to my pro. I understand it carries inherent physical risk, and I release my pro from liability for injury except in cases of gross negligence. I agree to follow all safety instructions given during sessions.',
-  },
-  emotional: {
-    title: 'Coaching Agreement & Scope of Practice',
-    body: 'I understand coaching is not a substitute for therapy, medical care, or mental health treatment, and my pro does not diagnose or treat any condition. Sessions are confidential except where disclosure is required by law. I understand the cancellation policy and agree to communicate openly with my pro about my goals.',
-  },
-  general: {
-    title: 'Coaching Service Agreement',
-    body: 'I agree to attend scheduled sessions and give advance notice of any changes. I understand session packages are non-transferable, and my pro will keep our discussions confidential. This agreement can be updated at any time by mutual consent.',
-  },
+/** Typed so a renamed or missing key is a tsc error, rather than a waiver
+    that renders its own key name at the moment a member is asked to sign. */
+const AGREEMENT_KEYS: Record<AgreementCategory, { titleKey: MessageKey; bodyKey: MessageKey }> = {
+  physical: { titleKey: 'agreementPhysicalTitle', bodyKey: 'agreementPhysicalBody' },
+  emotional: { titleKey: 'agreementEmotionalTitle', bodyKey: 'agreementEmotionalBody' },
+  general: { titleKey: 'agreementGeneralTitle', bodyKey: 'agreementGeneralBody' },
 };
 
 function agreementCategory(specialty: string): AgreementCategory {
@@ -1944,14 +1942,13 @@ function agreementCategory(specialty: string): AgreementCategory {
 
 export interface AgreementInfo {
   category: AgreementCategory;
-  title: string;
-  body: string;
+  titleKey: MessageKey;
+  bodyKey: MessageKey;
 }
 
 export function getAgreementInfo(specialty: string): AgreementInfo {
   const category = agreementCategory(specialty);
-  const info = AGREEMENT_TEXT[category];
-  return { category, title: info.title, body: info.body };
+  return { category, ...AGREEMENT_KEYS[category] };
 }
 
 export type AgreementStatus = 'none' | 'sent' | 'signed';

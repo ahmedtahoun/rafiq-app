@@ -78,6 +78,87 @@ test('help centre describes the member form that actually exists', async ({ brow
   await ctx.close();
 });
 
+/**
+ * The coaching agreement — the waiver a member signs.
+ *
+ * It was English-only for every member, in both languages, because it was
+ * ported 1:1 from a prototype whose own AGREEMENT_TEXT sat outside
+ * translations(). A waiver nobody can read is worse than a cosmetic bug:
+ * it is the one text in the app a member is asked to agree to.
+ */
+const AGREEMENT_CATEGORIES = ['Physical', 'Emotional', 'General'];
+
+test('an Arabic member sees the coaching agreement in Arabic', async ({ browser }) => {
+  const { page, ctx, errs } = await open(browser, { screen: 'clientProfile', lang: 'ar' });
+  // The waiver sits behind a collapse, and the card itself only renders
+  // signed out — see the note on ClientProfile.tsx:298.
+  await page.locator('.client-profile-agreement-row').click();
+  await page.waitForTimeout(150);
+
+  const check = await page.evaluate(async (cats) => {
+    const { translate } = await import('/src/lib/i18n.ts');
+    const body = document.querySelector('.client-profile-agreement-body')?.textContent?.trim() ?? '';
+    return {
+      body,
+      isArabic: cats.map((c) => translate('ar', `agreement${c}Body`)).includes(body),
+      isEnglish: cats.map((c) => translate('en', `agreement${c}Body`)).includes(body),
+      hasLatin: /[A-Za-z]/.test(body),
+    };
+  }, AGREEMENT_CATEGORIES);
+
+  expect.soft(check.body, 'the agreement card renders its text').not.toBe('');
+  expect.soft(check.isEnglish, 'not the English waiver').toBe(false);
+  expect.soft(check.isArabic, 'one of the three Arabic waivers, verbatim').toBe(true);
+  expect.soft(check.hasLatin, 'no Latin letters left in the Arabic waiver').toBe(false);
+  expect.soft(errs, 'no page errors').toEqual([]);
+  await ctx.close();
+});
+
+test('every agreement category has its own written Arabic, and the right one is chosen', async ({ browser }) => {
+  const { page, ctx, errs } = await open(browser, { screen: 'clientProfile', lang: 'ar' });
+
+  const rows = await page.evaluate(async (cats) => {
+    const { translate } = await import('/src/lib/i18n.ts');
+    return cats.map((c) => [c, {
+      enTitle: translate('en', `agreement${c}Title`),
+      arTitle: translate('ar', `agreement${c}Title`),
+      enBody: translate('en', `agreement${c}Body`),
+      arBody: translate('ar', `agreement${c}Body`),
+    }]);
+  }, AGREEMENT_CATEGORIES);
+
+  for (const [c, v] of rows) {
+    expect.soft(v.arTitle, `${c}: an Arabic title, not the English one`).not.toBe(v.enTitle);
+    expect.soft(v.arBody, `${c}: an Arabic body, not the English one`).not.toBe(v.enBody);
+    expect.soft(/[A-Za-z]/.test(`${v.arTitle} ${v.arBody}`), `${c}: no Latin letters in the Arabic`).toBe(false);
+    // A placeholder or a bare key name would pass the checks above; a waiver
+    // is a paragraph.
+    expect.soft(v.arBody.length > 120, `${c}: the Arabic body is a real paragraph (${v.arBody.length} chars)`).toBe(true);
+  }
+
+  // The category comes from the coach's specialty, and the keys follow the
+  // category. A specialty in neither list falls back to the general waiver.
+  const mapped = await page.evaluate(async () => {
+    const { getAgreementInfo } = await import('/src/lib/mockStore.ts');
+    return {
+      diving: getAgreementInfo('Free diving coaching').category,
+      breakup: getAgreementInfo('Breakup coaching').category,
+      career: getAgreementInfo('Career coaching').category,
+      none: getAgreementInfo('').category,
+      info: getAgreementInfo('Yoga coaching'),
+    };
+  });
+  expect.soft(mapped.diving, 'a physical specialty takes the safety waiver').toBe('physical');
+  expect.soft(mapped.breakup, 'an emotional specialty takes the scope-of-practice agreement').toBe('emotional');
+  expect.soft(mapped.career, 'anything else takes the general agreement').toBe('general');
+  expect.soft(mapped.none, 'no specialty takes the general agreement').toBe('general');
+  expect.soft(mapped.info.titleKey, 'the info carries a key, not baked-in English').toBe('agreementPhysicalTitle');
+  expect.soft(mapped.info.bodyKey, 'the info carries a key, not baked-in English').toBe('agreementPhysicalBody');
+
+  expect.soft(errs, 'no page errors').toEqual([]);
+  await ctx.close();
+});
+
 test('both privacy policies say messaging is in-app', async ({ browser }) => {
   for (const screen of ['coachPrivacyPolicy', 'clientPrivacyPolicy']) {
     const { page, ctx } = await open(browser, { screen });
