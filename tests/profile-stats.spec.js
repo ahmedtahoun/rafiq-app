@@ -45,7 +45,7 @@ const message = (id, client_id, sender_role, created_at) => ({ id, client_id, se
 function calm() {
   return {
     ...coach,
-    client_private: [], tasks: [], packages: [], payments: [], message_reads: [],
+    client_private: [], tasks: [], packages: [], payments: [],
     clients: [
       client('c-rana', 'Hana Adel', { progress: 40 }),
       client('c-omar', 'Omar Said', { progress: 60 }),
