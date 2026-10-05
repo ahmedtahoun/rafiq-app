@@ -1051,10 +1051,15 @@ export interface ProNotificationPrefs {
   enabled: boolean;
   sessions: boolean;
   payments: boolean;
+  /** Phone notifications only (push.ts): the in-app feed has no message or task rows. */
+  messages: boolean;
+  tasks: boolean;
 }
 
 export function getProNotificationPrefs(): ProNotificationPrefs {
-  return readLocal('pro_notif_prefs', { enabled: true, sessions: true, payments: true });
+  // Spread over the defaults: prefs saved before messages and tasks existed
+  // read them as on.
+  return { enabled: true, sessions: true, payments: true, messages: true, tasks: true, ...readLocal<Partial<ProNotificationPrefs>>('pro_notif_prefs', {}) };
 }
 
 export function setProNotificationPrefs(patch: Partial<ProNotificationPrefs>): ProNotificationPrefs {

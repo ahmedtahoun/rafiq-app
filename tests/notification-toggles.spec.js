@@ -4,9 +4,9 @@ import { IGNORED_CONSOLE } from './helpers.js';
 /**
  * The notification toggles on both profile screens.
  *
- * The app has no push notifications — no @capacitor/push-notifications,
- * no APNs, no FCM — so a switch labelled "Session reminders" promised
- * something that never arrives. Worse, the coach's three switches were
+ * In a browser there are no phone notifications (a phone has them since
+ * the push PRs — tests/push-app.spec.js), so a switch labelled "Session
+ * reminders" promised something that never arrives. Worse, the coach's three switches were
  * pure local component state: nothing persisted them and nothing read
  * them, so they reset on navigation and changed nothing at all.
  *
@@ -61,7 +61,7 @@ test("the coach's notification switches persist and really filter the feed", asy
 
   const scope = await page.locator('.profile-notif-scope').innerText();
   expect.soft(/in-app/i.test(scope), 'says the feed is in-app').toBe(true);
-  expect.soft(/push notifications/i.test(scope), '  and that push is not sent').toBe(true);
+  expect.soft(/phone/i.test(scope), '  and promises nothing on the phone, in a browser').toBe(false);
 
   // Requests and payments are the only two kinds getProNotifications
   // produces, so there are exactly two switches under the master.
@@ -106,7 +106,7 @@ test("the member's notification card says the feed is in-app only", async ({ bro
 
   const scope = await page.locator('.client-profile-notif-scope').innerText();
   expect.soft(/in-app/i.test(scope), 'says the feed is in-app').toBe(true);
-  expect.soft(/push notifications/i.test(scope), '  and that push is not sent').toBe(true);
+  expect.soft(/phone/i.test(scope), '  and promises nothing on the phone, in a browser').toBe(false);
 
   const labels = (await page.locator('.client-profile-notif-sub-label').allInnerTexts()).join('|');
   expect.soft(/reminder/i.test(labels), 'no category calls itself a reminder').toBe(false);

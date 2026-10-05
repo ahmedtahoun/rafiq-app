@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { useAppStore, type Screen } from './store/appStore';
 import { LoadState } from './components/LoadState';
 import { isRtl } from './lib/i18n';
@@ -82,7 +83,7 @@ const ClientTermsOfService = lazy(() => import('./screens/ClientTermsOfService')
 const ComingSoon = lazy(() => import('./screens/ComingSoon'));
 
 export default function App() {
-  const { lang, dark, screen } = useAppStore();
+  const { lang, dark, screen, userId } = useAppStore();
   const signedIn = useAppStore((s) => s.authStatus === 'signedIn');
   const role = useAppStore((s) => s.role);
 
@@ -106,6 +107,29 @@ export default function App() {
     if (!signedIn || !role || !isSupabaseConfigured()) return;
     return startUnreadWatch(role === 'coach' ? 'pro' : 'client');
   }, [signedIn, role]);
+
+  // Phone notifications (push.ts): signed in, this phone's registration
+  // follows the person, the app's language and their role's switches. It
+  // never asks for permission here — only after explaining why. Loaded on
+  // demand, like the screens, so it adds nothing to startup.
+  useEffect(() => {
+    if (!userId) return;
+    void import('./lib/push').then((m) => m.syncPushDevice());
+  }, [userId, lang, role]);
+
+  // Native only: a tapped banner opens what it is about.
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    let stop = () => {};
+    let live = true;
+    void import('./lib/push').then((m) => {
+      if (live) stop = m.initPushTaps();
+    });
+    return () => {
+      live = false;
+      stop();
+    };
+  }, []);
 
   useEffect(() => {
     document.documentElement.lang = lang;

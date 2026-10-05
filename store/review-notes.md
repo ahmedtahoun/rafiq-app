@@ -236,8 +236,10 @@ App Store Connect → the version → **App Review Information**.
 > Coaching is not therapy or medical advice. This is stated in the terms
 > and during member onboarding, with crisis resources.
 >
-> There are no push notifications in this version. Notifications are shown
-> inside the app.
+> Push notifications are optional. The app asks only after explaining why
+> (after a member's first booking request, or when a coach opens
+> Notifications), never at launch, and Profile → Notifications turns them
+> on or off. Everything they say is also shown inside the app.
 
 ⚠️ Three lines in those notes depend on things that are still open. Check
 them before pasting:

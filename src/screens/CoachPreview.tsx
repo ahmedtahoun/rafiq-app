@@ -21,6 +21,8 @@ import { fetchCoachReviews, type CoachReview } from '../lib/reviewData';
 import { fetchOwnFavourites } from '../lib/favouriteData';
 import { useFavourites } from '../store/favourites';
 import { languageLabel } from '../lib/coachLabels';
+import { PushAsk } from '../components/PushAsk';
+import { usePushOffer } from '../store/pushHooks';
 import './CoachPreview.css';
 
 const OFFERING_TYPE_KEY: Record<CoachOffering['type'], MessageKey> = {
@@ -272,6 +274,8 @@ function CoachPreviewBody({ source }: { source: PreviewSource }) {
   const back = useAppStore((s) => s.back);
   const { money, instantDate } = useFormat();
   const { coach, offerings, weeks, nextAvailable } = source;
+  // After a request is sent: would they like the answer on their phone?
+  const push = usePushOffer();
 
   const [week, setWeek] = useState(nextAvailable?.week ?? 0);
   const [day, setDay] = useState(source.initialDay);
@@ -340,8 +344,10 @@ function CoachPreviewBody({ source }: { source: PreviewSource }) {
     setFailed(false);
     const sent = await source.request(selectedOffering, slot.wallMs, whenLabel);
     setSending(false);
-    if (sent === true) setConfirmed(true);
-    else setFailed(sent === 'blocked' ? 'blocked' : 'failed');
+    if (sent === true) {
+      setConfirmed(true);
+      push.offer();
+    } else setFailed(sent === 'blocked' ? 'blocked' : 'failed');
   }
 
   const heroGrad = `linear-gradient(135deg, ${coach.color} 0%, ${darken(coach.color, 40)} 100%)`;
@@ -394,6 +400,7 @@ function CoachPreviewBody({ source }: { source: PreviewSource }) {
             {t('coachPreviewDone')}
           </button>
         </div>
+        <PushAsk open={push.open} onClose={push.close} />
       </div>
     );
   }
