@@ -4,9 +4,13 @@
 npm run screenshots
 ```
 
-One command. Every image both stores need, in English and Arabic, the
-same bytes on every run. Output lands in `out/` and is committed, so
-Ahmed can upload without running anything.
+One command. Every image both stores need, in English and Arabic.
+Output lands in `out/` and is committed, so Ahmed can upload without
+running anything.
+
+The run is **close to byte-reproducible, not quite**. See "How
+reproducible this actually is" below before you treat a changed PNG as a
+signal.
 
 ```
 out/
@@ -143,7 +147,7 @@ then read to confirm no English is left in them.
 
 That takes the set from 56 files to 60.
 
-## Proving "the same bytes every run"
+## How reproducible this actually is
 
 It is a claim, so check it rather than trust it:
 
@@ -153,14 +157,35 @@ npm run screenshots && find store/screenshots/out -name '*.png' | sort | xargs s
 diff /tmp/a /tmp/b
 ```
 
-Three consecutive runs were identical across all 56 files when this was
-last changed. Two earlier breaks of that promise are worth knowing about,
-because both were invisible in a single run: the pulsing live dot above,
-and `02-coach-members`, which differed on about one run in three because
-an avatar had not finished decoding when the shutter fired. Waiting on
-`document.fonts.ready` covers text and `__screenSettled` covers the
-chunk; neither waits for an `<img>`, so the run now awaits
-`img.decode()` as well.
+**The honest answer, measured on 2026-10-05 over four runs of the 60-file
+set: three were byte-identical and one differed in a single file**
+(`02-coach-members`, by about 100 bytes in a 360 KB PNG — not a visible
+difference). On top of that, regenerating the set in a fresh container
+rewrote `04-coach-schedule` and `07-coach-messages` in all four
+language/size combinations, by a similar margin, with no app change
+between them.
+
+So: the content is deterministic — the clock is pinned, the data is
+seeded, animations are frozen — but the *encoding* is not quite, and it
+varies more across environments than within one. This README used to say
+"the same bytes on every run", which three consecutive clean runs had
+supported at the time. Four runs and a container change were enough to
+disprove it.
+
+**What that means in practice.** A changed PNG in `git status` after a
+regeneration is not by itself evidence of anything; look at the image.
+Treat a diff as real when it is large, when it is the same file every
+time, or when you can see it.
+
+Two earlier breaks were real and were fixed, both invisible in a single
+run: the pulsing live dot (above), and `02-coach-members`, which differed
+on about one run in three because an avatar had not finished decoding
+when the shutter fired. `document.fonts.ready` covers text and
+`__screenSettled` covers the chunk; neither waits for an `<img>`, so the
+run awaits `img.decode()` too. That took 02 from roughly one run in three
+to one in four here — better, and not solved. If it matters enough to
+chase, the remaining suspect is PNG encoding rather than page state,
+since the byte delta is far too small to be a missing avatar.
 
 ## What the images may show
 
