@@ -14,7 +14,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PGBIN="${PGBIN:-/usr/lib/postgresql/16/bin}"
 PGROOT="${PGROOT:-/var/tmp/rafiq-pgtest}"
-MIN_ASSERTIONS=663
+MIN_ASSERTIONS=679
 
 OUT=""
 OWN_CLUSTER=""
@@ -159,6 +159,9 @@ OUT="$(mktemp)"
   echo
   echo "=== PUBLIC COACH PAGE ==="
   psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/31_public_coach_page.sql"
+  echo
+  echo "=== FEATURED ELITE PRO ==="
+  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/32_featured_elite_pro.sql"
 } | grep -v '^$' | tee "$OUT"
 
 PASSED="$(grep -c '^PASS' "$OUT" || true)"
