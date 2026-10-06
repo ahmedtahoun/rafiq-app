@@ -468,8 +468,9 @@ builds".
       The coach's three switches were also pure local state that nothing
       read — they persist and really filter `getProNotifications()` now,
       and the "Member check-in alerts" row is gone because no such
-      notification exists. Push itself is still unbuilt; if it is built
-      later, reopen this.
+      notification exists. Push is built now (2026-10-05, next item): on
+      a phone the same cards say they control the feed and the phone's
+      notifications, and a browser still says in-app only.
 - [ ] 🟡 **Phone notifications (wanted, Ahmed 2026-10-01).** The kind
       ProCoach advertises: a banner on the lock screen, with the app's icon,
       the moment something happens. The ones Rafiq has events for:
@@ -506,9 +507,23 @@ builds".
       message's text, and drops phones Apple or Google say are gone
       (`supabase/functions/push-send/README.md`). *Ahmed:* the APNs key,
       the Firebase project, the secrets, `db push`, deploy, and the
-      Database Webhook, all in that README. Left: the app half (the plugin,
-      registering, asking permission, the switches, the copy and privacy
-      forms) and the session reminder an hour before.
+      Database Webhook, all in that README.
+      **App half done (2026-10-05):** `@capacitor/push-notifications`
+      (`src/lib/push.ts`). Signed in with permission given, the phone is
+      registered with the app's language, zone and switches, and again
+      when any of them changes; the master switch off or signing out
+      unregisters it. The app never asks at launch: `PushAsk` explains
+      first, on the first message sent or received or the first session
+      booked (a member's request, a coach's accept), once per phone, and
+      Profile's "Notifications on this phone" row is the way back. No
+      system banner while the app is open (`presentationOptions: []`):
+      the in-app badge and chime cover it (#128). The coach's card gained "New messages" and "Tasks
+      completed" (phone only). A tapped banner opens what it is about.
+      Copy, Help Center, both privacy policies (and the site), the privacy
+      inventory, the listing and the review notes say so. *Ahmed:* in
+      Xcode, the Push Notifications capability; `google-services.json` in
+      `android/app/`; then a test on two real phones in both languages.
+      Left: the session reminder an hour before (a scheduled job).
 - [x] 🔴 **Account deletion must actually happen.** The app files a request
       into `account_deletion_requests`; someone has to process it (§9), within
       a stated time. **Stated: within 30 days**, on the public deletion page.

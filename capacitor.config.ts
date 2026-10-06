@@ -17,7 +17,14 @@ import type { CapacitorConfig } from '@capacitor/cli';
 const config: CapacitorConfig = {
   appId: 'app.rafiqie.coach',
   appName: 'Rafiq Pro',
-  webDir: 'dist'
+  webDir: 'dist',
+  plugins: {
+    // Phone notifications (src/lib/push.ts): no system banner while the app
+    // is open — the in-app unread badge and chime cover that (#128).
+    PushNotifications: {
+      presentationOptions: [],
+    },
+  },
 };
 
 export default config;

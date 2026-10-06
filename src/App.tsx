@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect } from 'react';
+import { Capacitor } from '@capacitor/core';
 import { useAppStore, type Screen } from './store/appStore';
 import { LoadState } from './components/LoadState';
 import { isRtl } from './lib/i18n';
@@ -8,6 +9,7 @@ import { initBackButton } from './lib/nativeBack';
 import { applySystemBarsStyle } from './lib/nativeSystemBars';
 import { isSupabaseConfigured } from './lib/supabase';
 import { startUnreadWatch } from './store/unread';
+import { usePushAsk } from './store/pushAsk';
 
 /**
  * Every screen, split into its own chunk.
@@ -80,9 +82,11 @@ const ClientHelpCenter = lazy(() => import('./screens/ClientHelpCenter'));
 const ClientPrivacyPolicy = lazy(() => import('./screens/ClientPrivacyPolicy'));
 const ClientTermsOfService = lazy(() => import('./screens/ClientTermsOfService'));
 const ComingSoon = lazy(() => import('./screens/ComingSoon'));
+const PushAsk = lazy(() => import('./components/PushAsk'));
 
 export default function App() {
-  const { lang, dark, screen } = useAppStore();
+  const { lang, dark, screen, userId } = useAppStore();
+  const pushAskOpen = usePushAsk((s) => s.open);
   const signedIn = useAppStore((s) => s.authStatus === 'signedIn');
   const role = useAppStore((s) => s.role);
 
@@ -107,6 +111,36 @@ export default function App() {
     return startUnreadWatch(role === 'coach' ? 'pro' : 'client');
   }, [signedIn, role]);
 
+  // Phone notifications (push.ts): signed in, this phone's registration
+  // follows the person, the app's language and their role's switches. It
+  // never asks for permission here — only after explaining why. Loaded on
+  // demand, like the screens, so it adds nothing to startup.
+  useEffect(() => {
+    if (!userId) return;
+    void import('./lib/push').then((m) => m.syncPushDevice());
+  }, [userId, lang, role]);
+
+  // Native only: a tapped banner opens what it is about, and a phone back
+  // from another time zone is re-registered with it.
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    let stop = () => {};
+    let live = true;
+    void import('./lib/push').then((m) => {
+      if (!live) return;
+      const stopTaps = m.initPushTaps();
+      const stopZone = m.initPushZoneWatch();
+      stop = () => {
+        stopTaps();
+        stopZone();
+      };
+    });
+    return () => {
+      live = false;
+      stop();
+    };
+  }, []);
+
   useEffect(() => {
     document.documentElement.lang = lang;
     document.documentElement.dir = isRtl(lang) ? 'rtl' : 'ltr';
@@ -123,9 +157,19 @@ export default function App() {
     // second kind of loading screen. Only the first visit to a screen
     // suspends: after that its module is cached, and inside the native
     // shell every chunk is already on the device.
-    <Suspense fallback={<LoadState status="loading" />}>
-      {renderScreen(screen)}
-    </Suspense>
+    <>
+      <Suspense fallback={<LoadState status="loading" />}>
+        {renderScreen(screen)}
+      </Suspense>
+      {/* The phone-notifications sheet (store/pushAsk.ts), loaded only when
+          offered, and outside the screens' Suspense so loading it never
+          swaps the screen for a spinner. */}
+      {pushAskOpen && (
+        <Suspense fallback={null}>
+          <PushAsk />
+        </Suspense>
+      )}
+    </>
   );
 }
 

@@ -120,6 +120,13 @@ export async function signIn(credentials: Credentials): Promise<AuthResult<{ use
 
 export async function signOut(): Promise<AuthResult<null>> {
   if (!isSupabaseConfigured()) return NOT_CONFIGURED;
+  // This phone stops getting their banners first, while the session can
+  // still say whose phone it is (push.ts). Best effort, and never more than
+  // a few seconds: signing out must not wait on it.
+  await Promise.race([
+    import('./push').then((m) => m.stopPushDevice()).catch(() => undefined),
+    new Promise((resolve) => setTimeout(resolve, 3000)),
+  ]);
   const { error } = await getSupabase().auth.signOut();
   return error ? fail(error) : { ok: true, data: null };
 }
