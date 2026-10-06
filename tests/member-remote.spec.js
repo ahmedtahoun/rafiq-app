@@ -302,3 +302,51 @@ test('a session the coach cancelled, or one the member missed, is not counted as
   expect(errs).toEqual([]);
   await ctx.close();
 });
+
+/**
+ * Help Centre's "Message {coach}" row, which #155 found naming the demo
+ * coach. The screen is mostly static copy, which is why it sat outside the
+ * member walk and why the bug lasted: `getCoachProfile()` with no remote
+ * branch fell through to mockStore's own 'Yasmin El-Sayed'.
+ *
+ * Three states, because the fix is not only "read the right name": a screen
+ * someone may open *because* something is broken must not block on a
+ * network read or invent a pro they do not have.
+ */
+test('Help Centre names the member\'s real pro, or offers nobody', async ({ browser }) => {
+  const withCoach = await open(browser, { screen: 'clientHelpCenter' });
+  await expect(withCoach.page.locator('.client-help-contact')).toHaveText(/Dina Farouk/);
+  expect(await frame(withCoach.page).innerText()).not.toMatch(DEMO);
+  // The answers are the point of the screen; they render either way.
+  await expect(withCoach.page.locator('.client-help-item')).not.toHaveCount(0);
+  expect(withCoach.errs).toEqual([]);
+  await withCoach.ctx.close();
+
+  // No pro yet: no row at all, rather than "Message " or a placeholder name.
+  const noCoach = await open(browser, { screen: 'clientHelpCenter', tables: { profiles: [{ ...ownProfile }] } });
+  await expect(noCoach.page.locator('.client-help-contact')).toHaveCount(0);
+  await expect(noCoach.page.locator('.client-help-item')).not.toHaveCount(0);
+  expect(await frame(noCoach.page).innerText()).not.toMatch(DEMO);
+  expect(noCoach.errs).toEqual([]);
+  await noCoach.ctx.close();
+
+  // A failed read is the same: the answers stay, nobody is named, and the
+  // screen never covers itself in a LoadState.
+  const failed = await open(browser, { screen: 'clientHelpCenter', fail: ['clients'] });
+  await expect(failed.page.locator('.client-help-contact')).toHaveCount(0);
+  await expect(failed.page.locator('.client-help-item')).not.toHaveCount(0);
+  await expect(failed.page.locator('.load-state')).toHaveCount(0);
+  await failed.ctx.close();
+});
+
+test('Arabic: the pro\'s name in Help Centre is isolated, so bidi cannot move it', async ({ browser }) => {
+  const { page, ctx, errs } = await open(browser, { screen: 'clientHelpCenter', lang: 'ar' });
+  const row = page.locator('.client-help-contact');
+  await expect(row).toHaveText(/Dina Farouk/);
+  // isolate() wraps the value in U+2068/U+2069. Without them a Latin name
+  // inside Arabic copy reorders (CLAUDE.md), and no visual assertion here
+  // would catch it.
+  expect(await row.innerText()).toMatch(/\u2068Dina Farouk\u2069/);
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
