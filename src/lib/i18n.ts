@@ -527,6 +527,7 @@ const en = {
 
     // Earnings.dc.html
     earningsTitle: 'Earnings', earningsTotalReceived: 'Total received', earningsByMember: 'By member',
+    earningsExportCsv: 'Export CSV',
     earningsPaid: 'paid up', earningsDue: 'need payment', earningsNoMembers: 'No members yet',
     earningsStatusPaid: 'Paid up', earningsStatusDue: 'Payment due', earningsStatusOverdue: 'Payment overdue', earningsStatusPending: 'Payment pending',
     earningsPendingConfirmation: 'awaiting confirmation', earningsPendingSuffix: '+{amount} EGP pending',
@@ -1691,6 +1692,7 @@ const ar: Record<MessageKey, string> = {
 
     // Earnings.dc.html
     earningsTitle: 'الأرباح', earningsTotalReceived: 'إجمالي المستلم', earningsByMember: 'حسب العضو',
+    earningsExportCsv: 'تصدير CSV',
     earningsPaid: 'دفعوا', earningsDue: 'بحاجة للدفع', earningsNoMembers: 'لا يوجد أعضاء بعد',
     earningsStatusPaid: 'تم الدفع', earningsStatusDue: 'الدفع مستحق', earningsStatusOverdue: 'الدفع متأخر', earningsStatusPending: 'الدفع قيد الانتظار',
     earningsPendingConfirmation: 'بانتظار التأكيد', earningsPendingSuffix: '+{amount} جنيه قيد الانتظار',

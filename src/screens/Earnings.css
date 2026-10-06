@@ -320,3 +320,17 @@ h2.earnings-list-label {
   color: var(--ink-soft);
   margin-top: 1px;
 }
+
+/* "Export CSV" — Elite Pro only, so it is absent far more often than it is
+   present and must not leave a gap in the header when it is. Logical
+   properties, like the rest of the app: RTL mirrors it for free. */
+.earnings-export {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+  padding: 6px 10px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  white-space: nowrap;
+}
