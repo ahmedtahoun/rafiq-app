@@ -580,11 +580,18 @@ current sentence would be misled about something material.
 > | **Supabase** | A United States company; your data is stored on its servers in **Ireland** | The database and uploaded files — everything above |
 > | **Daily** | A United States company | Live video and audio during a session, for the length of the call. **Sessions are never recorded**, by you, your pro, or us |
 > | **Paymob** | **Egypt** | Payment and payout details when money moves |
-> | **Apple** and **Google** | United States companies | Sign-in (we see your name and email address from them) and, when we send them, push notifications |
+> | **Apple** and **Google** | United States companies | Sign-in: they tell us your name and email address, and nothing of yours goes to them |
+> | **Apple Push** and **Firebase Cloud Messaging** (Google) | United States companies | Only what is needed to put a notification on your phone, if you turned them on: a code identifying this phone, and the words of the banner itself — who something is from, when it is, a task's name. **Never the text of a message**, so a notification on a locked screen cannot show one |
 >
 > Because Supabase stores the data in Ireland, information about you leaves
 > Egypt and is held in the European Union. By using Rafiq Pro you agree to
 > that transfer.
+>
+> **Reminders.** Shortly before a session starts, Rafiq Pro sends you and
+> your pro a reminder. It is made from the session you already have with
+> each other — the time, and each other's name — and it goes out whether or
+> not either of you opens the app. If you have turned phone notifications
+> off it reaches you only inside the app.
 
 **العربية**
 
@@ -613,10 +620,16 @@ current sentence would be misled about something material.
 > | **Supabase** | شركة أمريكية، وبياناتك مخزنة على خوادمها في **أيرلندا** | قاعدة البيانات والملفات المرفوعة — كل ما سبق |
 > | **Daily** | شركة أمريكية | الفيديو والصوت المباشر أثناء الجلسة، لمدة المكالمة فقط. **ولا تُسجَّل الجلسات أبدًا**، لا منك ولا من محترفتك ولا منا |
 > | **Paymob** | **مصر** | بيانات الدفع والتحويل عند انتقال الأموال |
-> | **Apple** و**Google** | شركتان أمريكيتان | تسجيل الدخول (نرى منهما اسمك وبريدك الإلكتروني)، والتنبيهات عند إرسالها |
+> | **Apple** و**Google** | شركتان أمريكيتان | تسجيل الدخول: يبلغاننا باسمك وبريدك الإلكتروني، ولا يصل إليهما شيء من بياناتك |
+> | **Apple Push** و**Firebase Cloud Messaging** (جوجل) | شركتان أمريكيتان | ما يلزم لإظهار تنبيه على هاتفك فقط، إن كنتِ قد فعّلتِ التنبيهات: رمز يُعرّف هذا الهاتف، ونص التنبيه نفسه — ممن جاء، ومتى الموعد، واسم المهمة. **ولا يصل إليهما نص أي رسالة أبدًا**، حتى لا يُظهر تنبيهٌ على شاشة مقفلة رسالةً. |
 >
 > ولأن Supabase تخزّن البيانات في أيرلندا، فإن معلومات عنك تخرج من مصر
 > وتُحفظ في الاتحاد الأوروبي. وباستخدامك رفيق فإنك توافقين على هذا النقل.
+>
+> **التنبيهات قبل الجلسة.** قبل بدء الجلسة بوقت قصير، يرسل رفيق إليك وإلى
+> محترفتك تنبيهًا. وهو مبني على الجلسة القائمة بينكما — موعدها واسم كلٍّ
+> منكما — ويُرسل سواء فتحت أيٌّ منكما التطبيق أم لا. وإن كنتِ قد أوقفتِ
+> تنبيهات الهاتف، فلن يصلك إلا داخل التطبيق.
 
 **What the app actually does.** The admin tool reads `pro_reports`,
 `verification_requests`, `account_deletion_requests`, `payouts`,
