@@ -211,6 +211,8 @@ The suite runs RTL in a desktop browser. Phones add gestures.
       `APP_STORE_ID` is set** in `src/lib/support.ts` — if you see it
       before that, something is wrong; if you don't, that is correct.
 - [ ] Tapping a **notification** opens the right screen, not just the app.
+      Superseded by §13, which splits this into the cold-start and
+      foreground cases and says what to record.
 - [ ] A link to `https://rafiqpro.com/privacy/` from inside the app opens
       the real page (runbook §1).
 
@@ -224,6 +226,32 @@ The suite runs RTL in a desktop browser. Phones add gestures.
 - [ ] Install over a **previous build** rather than fresh, once you have
       two builds. Stored data from the older one must not crash the newer
       (`readLocal` does not validate shape — CLAUDE.md).
+
+## 13. This week's features — the checks only a phone can do
+
+A table rather than this file's usual checkboxes, because each of these
+needs a recorded result and not just a tick: most of them cannot be
+reproduced in a browser at all, and two are open questions rather than
+expected passes.
+
+| What to do | What should happen | What to record |
+|---|---|---|
+| **Fresh install, then open the app and look around** without sending a message or booking anything | **No OS permission prompt.** `push.ts` never asks at launch; the request follows the app's own explanation | Whether any prompt appeared, and on which screen. A prompt here is a bug |
+| **Send the first message** between two phones | The app's own sheet explains why first, *then* the OS prompt appears. Allow on one phone; choose **Not now** on the other | The order the two appeared in, and whether the sheet's wording read correctly in Arabic (it is `pushAskBodyCoach` / `pushAskBodyMember`) |
+| On the phone that chose **Not now**, go back and look for the prompt again | It is **never asked again**. Profile's "Notifications on this phone" row offers **Turn on** instead | That the row says Turn on, not that the prompt reappeared. Reviewers and testers both read this as broken; it is not |
+| With the app **fully closed** (swiped away, not backgrounded), have the other side send a message | A banner arrives. **Tapping it opens that thread**, not just the app | Which screen it opened, and how long the cold start took. §11's one-line version of this check is superseded by this row |
+| Same, with the app **open and in the foreground** | **No banner.** Whatever it would say is already on screen | Whether anything appeared anyway. This is platform default behaviour, not app code, so it is worth confirming rather than assuming |
+| Turn one category off in Profile, have the other side trigger that kind | Banners for that kind stop; other kinds still arrive. Turn it back on and they resume | Which categories you tested. For a coach, **messages and completed tasks are phone-only** — their switches do not appear at all without a phone |
+| Read a **message** banner on a **locked** screen | It names who the message is from and **never shows the message** | That no message text appeared. `pushSend.ts` enforces this; the lock screen is where it matters |
+| ⏳ **A session reminder** — only after pg_cron is switched on (#154): book a session 45–60 minutes out, leave both phones alone | One banner each, in each phone's own language and time zone | Whether both arrived, how close to the session, and in which language. **Skip entirely until pg_cron is on**, rather than recording a failure |
+| ⏳ **Export CSV** on Earnings, as an Elite Pro coach (#162) | A file is saved, and opens in a spreadsheet app with the Arabic member name intact | **Whether anything was saved at all.** This is #162's open question: iOS WKWebView has historically ignored the `download` attribute and Android's WebView wants a `DownloadListener`. If it fails, the fix is `@capacitor/filesystem` + `@capacitor/share` |
+| ⏳ **Add to calendar** (`.ics`) from a coach's page or a booking | The event opens in the phone's calendar | The same answer as the row above — **these two share one mechanism**, so one result covers three buttons. If the CSV saves and the `.ics` does not, say so: that would mean the media type matters |
+| **Open `app.rafiqie.coach://c/<code>`** — from Notes, or a QR, not from inside the app | The app opens on that coach's page | Whether it opened the app, the right screen, or nothing. ⏳ Needs #160 for a code to exist, and the deep link is not wired on main |
+
+**Two of these cannot pass yet, and that is the point of listing them:**
+the reminder needs pg_cron on the live project, and the deep link needs
+#160. Recording "not testable, because X" against a row is a result; a
+blank row is not.
 
 ---
 
