@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 
 /**
- * `store/LEGAL-DRAFTS.md` is fourteen clauses counsel will mark up, and its
+ * `store/LEGAL-DRAFTS.md` is fifteen clauses counsel will mark up, and its
  * value is that every factual claim in it is true of the app today. Two of
  * those claims can rot silently, so they are checked here:
  *
@@ -87,9 +87,9 @@ test('every placeholder in a clause is a fact the table asks Ahmed for', () => {
 
 test('no clause went out unmarked, and nothing went live', () => {
   const headings = doc.match(/^## \d+ · /gm) ?? [];
-  expect(headings.length, 'fourteen numbered clauses').toBe(14);
+  expect(headings.length, 'fifteen numbered clauses').toBe(15);
   // Each one has to carry the word, because "Proposed" is the whole
   // standing of this file.
   const proposed = doc.match(/^## \d+ · .*\*\*Proposed/gm) ?? [];
-  expect(proposed.length, 'every clause heading says Proposed').toBe(14);
+  expect(proposed.length, 'every clause heading says Proposed').toBe(15);
 });
