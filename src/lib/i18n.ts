@@ -692,6 +692,10 @@ const en = {
     helpCenterA5: 'Archiving moves them out of your active roster, but their history and progress are kept. You can reactivate them anytime.',
     helpCenterQ6: 'Is my data backed up?',
     helpCenterA6: 'Yes, everything is saved to your account automatically as soon as you make a change.',
+    helpCenterQ7: 'How do video sessions work?',
+    helpCenterA7: 'Any booked session can be held on video, inside Rafiq Pro — there is no link to send and nothing for your member to install. The Join button on the session opens ten minutes before the start time, for both of you. Sessions are never recorded: Rafiq Pro will not open a call at all if recording has been switched on, so there is no copy of a session anywhere.',
+    helpCenterQ8: 'Where do I see new messages?',
+    helpCenterA8: 'A red count sits on the Messages tab whenever a member has written to you, and a short sound plays as the message arrives — while the app is open and your notifications are on (Profile \u2192 Preferences). Opening the thread clears its share of the count.',
 
     // CoachPrivacyPolicy.dc.html — ported, Arabic included.
     privacyTitle: 'Privacy Policy',
@@ -1115,6 +1119,10 @@ const en = {
     clientHelpA5: 'Yes — use the Discover tab to browse other pros by specialty and book an intro session anytime.',
     clientHelpQ6: 'Is my information private?',
     clientHelpA6: 'Yes, your progress and messages are only visible to you and your pro. See Privacy Policy in your Profile for details.',
+    clientHelpQ7: 'How do video sessions work?',
+    clientHelpA7: 'Your session happens on video inside Rafiq Pro — no link to find, no other app to install. The Join button opens ten minutes before the start time, for you and your pro. Sessions are never recorded: Rafiq Pro will not open a call at all if recording has been switched on, so there is no copy of your session anywhere.',
+    clientHelpQ8: 'Where do I see new messages?',
+    clientHelpA8: 'A red count sits on the Your Pro tab whenever your pro has written to you, and a short sound plays as the message arrives — while the app is open and your Messages notifications are on (Profile \u2192 Preferences). Opening the conversation clears the count.',
 
     clientPrivacyTitle: 'Privacy Policy', clientPrivacyUpdated: 'Last updated: October 2025',
     clientPrivacySection1Heading: 'What we collect',
@@ -1827,6 +1835,10 @@ const ar: Record<MessageKey, string> = {
     helpCenterA5: 'الأرشفة تنقله خارج قائمتك النشطة، لكن سجله وتقدمه يبقيان محفوظين. يمكنك إعادة تنشيطه في أي وقت.',
     helpCenterQ6: 'هل بياناتي محفوظة احتياطيًا؟',
     helpCenterA6: 'نعم، يتم حفظ كل شيء في حسابك تلقائيًا بمجرد إجراء أي تغيير.',
+    helpCenterQ7: 'كيف تعمل جلسات الفيديو؟',
+    helpCenterA7: 'يمكن عقد أي جلسة محجوزة بالفيديو داخل رفيق — لا رابط ترسله ولا تطبيق يثبّته عضوك. ويفتح زر الانضمام في الجلسة قبل موعدها بعشر دقائق لكليكما. والجلسات لا تُسجَّل أبدًا: لا يفتح رفيق المكالمة من الأصل إذا كان التسجيل مُفعَّلًا، فلا توجد نسخة من أي جلسة في أي مكان.',
+    helpCenterQ8: 'أين أرى الرسائل الجديدة؟',
+    helpCenterA8: 'يظهر عدّاد أحمر على تبويب «الرسائل» كلما راسلك عضو، ويصدر صوت قصير عند وصول الرسالة — ما دام التطبيق مفتوحًا وإشعاراتك مُفعّلة (الملف الشخصي ← التفضيلات). وفتح المحادثة يُزيل نصيبها من العدّاد.',
 
     // CoachPrivacyPolicy.dc.html — ported 1:1.
     privacyTitle: 'سياسة الخصوصية',
@@ -2231,6 +2243,10 @@ const ar: Record<MessageKey, string> = {
     clientHelpA5: 'نعم — استخدمي تبويب اكتشف لتصفح محترفين آخرين حسب التخصص وحجز جلسة تعريفية في أي وقت.',
     clientHelpQ6: 'هل معلوماتي خاصة؟',
     clientHelpA6: 'نعم، تقدمك ورسائلك مرئية فقط لك ولمحترفتك. راجعي سياسة الخصوصية في ملفك الشخصي لمزيد من التفاصيل.',
+    clientHelpQ7: 'كيف تعمل جلسات الفيديو؟',
+    clientHelpA7: 'جلستك تجري بالفيديو داخل رفيق — لا رابط تبحثين عنه ولا تطبيق آخر تثبّتينه. ويفتح زر الانضمام قبل موعد الجلسة بعشر دقائق، لكِ ولمحترفتك. والجلسات لا تُسجَّل أبدًا: لا يفتح رفيق المكالمة من الأصل إذا كان التسجيل مُفعَّلًا، فلا توجد نسخة من جلستك في أي مكان.',
+    clientHelpQ8: 'أين أرى الرسائل الجديدة؟',
+    clientHelpA8: 'يظهر عدّاد أحمر على تبويب «محترفك» كلما راسلتك محترفتك، ويصدر صوت قصير عند وصول الرسالة — ما دام التطبيق مفتوحًا وإشعارات الرسائل مُفعّلة (الملف الشخصي ← التفضيلات). وفتح المحادثة يُزيل العدّاد.',
 
     clientPrivacyTitle: 'سياسة الخصوصية', clientPrivacyUpdated: 'آخر تحديث: أكتوبر 2025',
     clientPrivacySection1Heading: 'ما الذي نجمعه',

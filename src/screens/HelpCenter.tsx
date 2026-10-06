@@ -6,7 +6,7 @@ import './HelpCenter.css';
 
 // Const tuple, not a count, so `helpCenterQ${n}` resolves to real i18n
 // keys the compiler can check rather than `helpCenterQ${number}`.
-const FAQ_IDS = [1, 2, 3, 4, 5, 6] as const;
+const FAQ_IDS = [1, 2, 3, 4, 5, 6, 7, 8] as const;
 
 // 1:1 port of HelpCenter.dc.html — an accordion of pro-facing FAQs, with
 // the first one open by default as the design has it.
