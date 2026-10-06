@@ -151,16 +151,19 @@ as done below, when signed in; every other screen still reads and writes
       longer show the demo's sample goal signed in:
       tests/member-demo-identity.spec.js walks the member screens signed in
       and fails on any demo store read or demo name. Done (2026-10-04, #109):
-      the walk covers 15 member screens — Home, My Pro, Profile, Edit
+      the walk covers 18 member screens — Home, My Pro, Profile, Edit
       profile, Messages, Tasks, My Pros, Sessions, Discover, Notifications,
-      My programs, Program detail, Rate coach, Booking and the coach page —
-      and waits for each lazily loaded screen rather than a fixed delay.
-      **It is not every member screen, and the gap cost something:** Help
-      Centre is outside that list, and it reads the demo coach's name
-      signed in, so a real member is offered "Message Yasmin El-Sayed"
-      (#155). The coach walk's list is all 24 of its screens; this one is
-      15, and Help Centre is not among them. Breaking any one of them back
-      to the demo fails it. Since #112 it allows no device key that isn't the
+      My programs, Program detail, Rate coach, Booking, the coach page,
+      Help Centre, Onboarding and Claim invite — every member screen in the
+      `Screen` union but the policy pages, Coming soon, the session room
+      and ClientAuth, each excluded for a stated reason in the PR that
+      audited it. It waits for each lazily loaded screen rather than a
+      fixed delay. **Help Centre was the sixteenth, and it was added the
+      hard way:** it sat outside the list and read the demo coach's name
+      signed in, so a real member was offered "Message Yasmin El-Sayed"
+      (#155, fixed in #159, which put the screen on the walk). A screen
+      off the list is a screen nothing checks, which is the lesson rather
+      than the bug. Breaking any one of them back to the demo fails it. Since #112 it allows no device key that isn't the
       member's own: saved coaches are `favourite_coaches` rows now.
       The coach half is done too (#124's walk, closed by #126): every coach
       screen signed in, no demo read left (`KNOWN_DEMO_READS` is empty).
@@ -197,8 +200,10 @@ as done below, when signed in; every other screen still reads and writes
       Profile (#126). The two walks (`tests/member-demo-identity.spec.js`,
       `tests/coach-demo-identity.spec.js`) open the screens on each walk's
       own list and require each to settle on real content, not a spinner or
-      an error — 24 coach screens, and 15 member ones, which is every
-      member screen but Help Centre (#155).
+      an error — 24 coach screens, and 18 member ones: #159 added Help
+      Centre (#155), and the audit that followed added Onboarding and Claim
+      invite and made the member walk name the offending screen rather than
+      only the key it read.
       Discover now distinguishes an empty directory ("No pros yet") from a
       search that matched nothing — it will be empty until real pros sign
       up, and the search-failed wording read like a broken screen.
