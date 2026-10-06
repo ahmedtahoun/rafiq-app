@@ -601,11 +601,14 @@ Waits on the name decision (§1).
 
 ## 8. Legal and policy (Ahmed)
 
-- [ ] 🔴 Privacy policy and terms reviewed by a lawyer and hosted publicly.
-      Cover Egypt's data protection law (Law 151/2020), and GDPR if you accept
-      EU users. Mood check-ins and coaching topics (breakups, stress) are
-      sensitive — say how they're protected. Hosting is ready (`site/`);
-      the text it publishes is the app's current copy, not yet reviewed.
+- [x] 🔴 Privacy policy and terms reviewed by a lawyer. **Done (Reem,
+      2026-10-06).** Cover Egypt's data protection law (Law 151/2020), and
+      GDPR if you accept EU users. Mood check-ins and coaching topics
+      (breakups, stress) are sensitive — say how they're protected.
+      **Left:** the updated contract text, which Reem will add later. Until
+      it lands, the site and the app publish the current copy, and the
+      clauses in `store/LEGAL-DRAFTS.md` stay Proposed. Hosting is its own
+      item (§5, "Host the site").
 - [ ] 🔴 **App Privacy (Apple) and Data safety (Google) forms** — list what's
       collected: name, email, phone, photos, messages, mood check-ins, ratings,
       payment status, plus crash data once §10 lands. For coaches who set up
