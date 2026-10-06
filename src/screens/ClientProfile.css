@@ -288,6 +288,50 @@ html[dir='rtl'] .client-profile-name {
   font-weight: 700;
 }
 
+.client-profile-agreement-sign:disabled {
+  opacity: 0.45;
+}
+
+/* The explicit "I agree" step: an unticked box before the button. */
+.client-profile-agreement-confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.client-profile-agreement-confirm input {
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  flex-shrink: 0;
+  accent-color: var(--accent);
+}
+
+.client-profile-agreement-failed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px;
+  font-size: 12.5px;
+  color: var(--ink);
+}
+
+.client-profile-agreement-failed button {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.client-profile-agreement-error {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--red);
+}
+
 .client-profile-section {
   display: flex;
   flex-direction: column;

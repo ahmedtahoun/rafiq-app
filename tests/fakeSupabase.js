@@ -22,7 +22,7 @@
 
 const KEYS = {
   profiles: 'id', coach_profiles: 'profile_id', member_profiles: 'profile_id', coach_payout_accounts: 'coach_id',
-  client_private: 'client_id', packages: 'client_id',
+  client_private: 'client_id', packages: 'client_id', agreements: 'client_id',
 };
 
 // A 1×1 PNG, so a signed photo URL renders without a network request.
@@ -82,6 +82,7 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       const DEFAULTS = {
         offerings: { active: true, currency: 'EGP', created_at: new Date().toISOString() },
         templates: { created_at: new Date().toISOString() },
+        agreements: { status: 'sent', sent_at: new Date().toISOString(), signed_at: null, lang: null },
       };
       const row = { ...DEFAULTS[q.table], ...q.values };
       if (!(key in row)) row[key] = `${q.table}-${rows.length + 1}`;
@@ -200,6 +201,21 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
     // only, then the record, the session cancelled, the block freed, a
     // credit for a late cancel (never a free intro), and the next session.
     // 17_member_cancel_session.sql proves the real one.
+    // 0028: the member signs the agreement their coach sent, once; the
+    // database fills the time and the signer.
+    function signAgreement(args) {
+      const client = (db.clients ??= []).find((c) => c.id === args.p_client && c.member_id === userId);
+      if (!client) return refuse('42501');
+      const row = (db.agreements ??= []).find((r) => r.client_id === args.p_client && r.status === 'sent');
+      if (!row) return refuse('P0002');
+      if (!['physical', 'emotional', 'general'].includes(args.p_category) || !/^[0-9a-f]{64}$/i.test(args.p_text_sha256) || !['en', 'ar'].includes(args.p_lang)) return refuse('23514');
+      Object.assign(row, {
+        status: 'signed', signed_at: new Date().toISOString(), signed_by: userId,
+        category: args.p_category, text_sha256: args.p_text_sha256.toLowerCase(), lang: args.p_lang,
+      });
+      return { data: row.signed_at, error: null };
+    }
+
     function memberCancel(args) {
       const x = (db.sessions ??= []).find((r) => r.id === args.p_session);
       const client = x && (db.clients ??= []).find((c) => c.id === x.client_id && c.member_id === userId);
@@ -309,6 +325,7 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       if (fn === 'mark_attendance') return markAttendance(args);
       if (fn.endsWith('_client_invite')) return clientInvite(fn, args);
       if (fn === 'member_cancel_session') return memberCancel(args);
+      if (fn === 'sign_agreement') return signAgreement(args);
       // 0023: this phone, as the signed-in person. A token moves to whoever
       // registers it last.
       if (fn === 'register_device') {

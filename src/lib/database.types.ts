@@ -99,24 +99,36 @@ export type Database = {
       }
       agreements: {
         Row: {
+          category: string | null
           client_id: string
+          lang: string | null
           sent_at: string
           signed_at: string | null
+          signed_by: string | null
           status: Database["public"]["Enums"]["agreement_status"]
+          text_sha256: string | null
           updated_at: string
         }
         Insert: {
+          category?: string | null
           client_id: string
+          lang?: string | null
           sent_at?: string
           signed_at?: string | null
+          signed_by?: string | null
           status?: Database["public"]["Enums"]["agreement_status"]
+          text_sha256?: string | null
           updated_at?: string
         }
         Update: {
+          category?: string | null
           client_id?: string
+          lang?: string | null
           sent_at?: string
           signed_at?: string | null
+          signed_by?: string | null
           status?: Database["public"]["Enums"]["agreement_status"]
+          text_sha256?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1856,6 +1868,15 @@ export type Database = {
       set_relationship_block: {
         Args: { p_blocked: boolean; p_client: string }
         Returns: Json
+      }
+      sign_agreement: {
+        Args: {
+          p_category: string
+          p_client: string
+          p_lang: string
+          p_text_sha256: string
+        }
+        Returns: string
       }
       unregister_device: { Args: { p_token: string }; Returns: undefined }
     }

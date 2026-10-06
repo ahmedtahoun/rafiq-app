@@ -64,7 +64,7 @@ users.
 | 11 | Health data consent | **A new screen at member signup** — not a document, and not part of accepting the terms | **No.** Copy and a sketch only, as asked |
 | 12 | "Verified" badge | Both Terms, and the coach Privacy policy | **Partly**, and less than people will assume. See the clause |
 | 13 | Changes to the terms | Both Terms, §6 *Changes* (replaces it) | **No.** There is no in-app announcement mechanism |
-| 14 | Physical coaching agreement | `AGREEMENT_TEXT`, `src/lib/mockStore.ts` | **Not reachable.** No signed-in member is shown the agreement — issue #143 |
+| 14 | Physical coaching agreement | `AGREEMENT_TEXT`, `src/lib/mockStore.ts` | **Built, once 0028 is pushed** (issue #143): the coach sends it, the member signs. Nothing signed before that |
 | 15 | A coach's public page | Coach Privacy policy | **Built, not reachable.** The page and the switch exist (0026, #160), but rafiqpro.com isn't hosted yet, so the app offers no link |
 
 ---
@@ -950,10 +950,15 @@ hindrance in an Egyptian court? And is a duty to disclose enforceable
 against a member, or does it need something more than an acknowledgement
 to have effect?
 
-**And read it knowing nobody has signed it.** The agreement card renders
-only behind `!remote` (`ClientProfile.tsx:298`), which is the signed-out
-demo, and nothing in `src/`, `admin/` or `supabase/functions/` reads or
-writes the `agreements` table that 0005 created for it. Issue #143.
+**And read it knowing nobody has signed it yet.** Until 0028 (issue
+#143) the card rendered only for the signed-out demo. With 0028 pushed,
+the coach sends the agreement from the member's page and the member signs
+it on their Profile: an unticked "I have read this agreement and I agree
+to it", then "Sign agreement". **Proposed — the lawyer may add to this:**
+the signature records which agreement (physical, emotional, general), the
+SHA-256 of the exact title and body shown, the language shown, the
+member's account, the relationship and the database's time. Nothing has
+been signed for real before that.
 
 ---
 

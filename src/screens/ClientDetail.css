@@ -882,3 +882,50 @@
   font-weight: 600;
   line-height: 1.5;
 }
+
+/* The coaching agreement with this member (0028): not sent, sent, signed. */
+.client-detail-agreement {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.client-detail-agreement-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.client-detail-agreement-line {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.client-detail-agreement-line.is-signed {
+  color: var(--green);
+  font-weight: 700;
+}
+
+.client-detail-agreement-action {
+  align-self: flex-start;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 16px;
+  background: var(--accent);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.client-detail-agreement-action:disabled {
+  opacity: 0.55;
+}
+
+.client-detail-agreement-error {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--red);
+}
