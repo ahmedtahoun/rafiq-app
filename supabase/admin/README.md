@@ -115,9 +115,10 @@ Undo with `unlisted = false`. To see who is unlisted:
 
 ## Coach plans (Rafiq Pro)
 
-The free plan holds 3 active members (`0020`). Until In-App Purchase and
-Play Billing are built, a coach who pays by Paymob link (the founding-coach
-offer) is put on Pro here. The app cannot change its own plan: only this
+Three plans (`0024`): Free holds 3 active members, **Rafiq Pro Plus**
+(tier `'pro'`) 15, **Rafiq Elite Pro** (tier `'elite_pro'`) no limit. Until
+In-App Purchase and Play Billing are built, a coach who pays by Paymob link
+(the founding-coach offer) is put on a paid tier here. The app cannot change its own plan: only this
 dashboard, and later the billing webhook, writes `subscriptions`.
 
 Save as **Coach plans**:
@@ -131,21 +132,24 @@ left join public.subscriptions s on s.coach_id = cp.profile_id
 order by p.full_name;
 ```
 
-To put a coach on Pro (replace the email, and the date they paid up to):
+To put a coach on a paid tier (replace the email, the tier — `'pro'` for
+Pro Plus, `'elite_pro'` for Elite Pro — and the date they paid up to):
 
 ```sql
 insert into public.subscriptions (coach_id, tier, renews_at)
 select id, 'pro', '2026-11-01 00:00+02' from public.profiles where email = 'coach@example.com'
-on conflict (coach_id) do update set tier = 'pro', renews_at = excluded.renews_at;
+on conflict (coach_id) do update set tier = excluded.tier, renews_at = excluded.renews_at;
 ```
 
-`renews_at` is when Pro ends unless they pay again. After it passes, the coach
-is on the free plan: they keep every member they have, but can't add a
-4th active one until they renew or archive down to 2. Use `null` for Pro with
-no end date, for example a coach you have agreed a free year with, and
-remember to set a date later.
+`renews_at` is when the plan ends unless they pay again. After it passes, the
+coach is on the free plan: they keep every member they have, but can't add
+another until they renew or archive down below the cap. The same goes for
+moving an Elite Pro coach with 20 members down to Pro Plus: nobody is
+removed, the next one is refused. Use `null` for a plan with no end date,
+for example a coach you have agreed a free year with, and remember to set a
+date later.
 
-To take a coach off Pro now: `update public.subscriptions set tier = 'free',
+To take a coach off a paid tier now: `update public.subscriptions set tier = 'free',
 renews_at = null where coach_id = '…';`
 
 ## Review accounts

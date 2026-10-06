@@ -24,7 +24,7 @@ import { BottomSheet } from '../components/BottomSheet';
 import { LoadState } from '../components/LoadState';
 import { useRoster, type RosterView } from '../store/rosterStore';
 import { getClientDetailHref, isTaskOverdue, type Client } from '../lib/mockStore';
-import { FREE_MEMBER_CAP, atMemberCap, usePlan } from '../lib/planData';
+import { MEMBER_CAP, atMemberCap, usePlan } from '../lib/planData';
 import './Clients.css';
 
 type StatusFilter = 'all' | 'active' | 'needs' | 'payment' | 'task' | 'inactive';
@@ -169,7 +169,9 @@ function ClientsView({ roster }: { roster: Extract<RosterView, { status: 'ready'
           onClick={() => nav('subscription')}
         >
           <CheckCircleIcon size={17} color="var(--accent)" />
-          <span>{t('clientsCapBanner', { active: statActive, cap: FREE_MEMBER_CAP })}</span>
+          <span>{plan.plan.tier === 'pro'
+            ? t('clientsCapBannerPro', { active: statActive, cap: MEMBER_CAP.pro ?? 0 })
+            : t('clientsCapBanner', { active: statActive, cap: MEMBER_CAP.free ?? 0 })}</span>
           <ArrowForwardIcon size={14} color="var(--accent)" />
         </button>
       )}

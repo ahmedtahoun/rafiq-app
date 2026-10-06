@@ -252,10 +252,23 @@ The sources, read on 2026-10-01, and what they mean for the build are in
       featured placement or priority support. *Ahmed:* the Pro price on the
       plans screen still says 450 EGP; change it once the pricing test
       settles 300 or 500.
-- [ ] 🔴 *Dev:* Rafiq Pro through In-App Purchase + Play Billing (RevenueCat
-      handles both stores and receipt validation). Tier changes arrive from its
-      webhook as `service_role` — the app has no write access to
-      `subscriptions`, by design.
+- [x] 🔴 **The plans (decided, Ahmed, 2026-10-05).** Free holds 3 active
+      members; **Rafiq Pro Plus** (tier `'pro'`) holds 15, at 450 EGP a month
+      or 4,500 a year; **Rafiq Elite Pro** (tier `'elite_pro'`) has no limit,
+      at 900 EGP a month or 9,000 a year, plus featured placement in
+      Discover and an earnings export (CSV). The paid tiers ship in the
+      **first update after launch**, not at launch: until then the
+      Subscription screen shows all three with "Coming soon", and a paid
+      tier is granted by hand (`supabase/admin/README.md`). `0024` makes the
+      database enforce each cap; `29_plan_tiers.sql` proves it.
+- [ ] 🟡 *Dev:* Pro Plus and Elite Pro through In-App Purchase + Play
+      Billing (RevenueCat handles both stores and receipt validation), in
+      the first update. Tier changes arrive from its webhook as
+      `service_role` — the app has no write access to `subscriptions`, by
+      design. Four products, each a monthly and a yearly: *Ahmed* creates
+      them in App Store Connect and Play Console. Featured placement and the
+      CSV export are built with it; the Elite Pro card tags both "Coming
+      soon" until then.
 - [ ] 🔴 *Dev:* Paymob for 1:1 sessions, server-side. The payment result is
       written to `payments` by a webhook / edge function as `service_role`.
       No Paymob secret key in the app, ever.

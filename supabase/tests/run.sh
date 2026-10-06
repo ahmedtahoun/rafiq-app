@@ -14,7 +14,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PGBIN="${PGBIN:-/usr/lib/postgresql/16/bin}"
 PGROOT="${PGROOT:-/var/tmp/rafiq-pgtest}"
-MIN_ASSERTIONS=627
+MIN_ASSERTIONS=641
 
 OUT=""
 OWN_CLUSTER=""
@@ -153,6 +153,9 @@ OUT="$(mktemp)"
   echo
   echo "=== PUSH DEVICES ==="
   psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/28_push_devices.sql"
+  echo
+  echo "=== PLAN TIERS ==="
+  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/29_plan_tiers.sql"
 } | grep -v '^$' | tee "$OUT"
 
 PASSED="$(grep -c '^PASS' "$OUT" || true)"

@@ -7,7 +7,7 @@ import { darken } from '../lib/color';
 import { BottomSheet } from '../components/BottomSheet';
 import { LoadState } from '../components/LoadState';
 import { logSubscriptionCancelFeedback, setSubscriptionTier, type CancelReason } from '../lib/mockStore';
-import { usePlan, type Plan } from '../lib/planData';
+import { usePlan, type Plan, type PlanTier } from '../lib/planData';
 import { SUPPORT_EMAIL } from '../lib/support';
 import './Subscription.css';
 
@@ -21,6 +21,36 @@ const CANCEL_REASONS: { key: CancelReason; labelKey: MessageKey }[] = [
 
 type Stage = 'plans' | 'survey' | 'confirmed';
 
+// The three plans, lowest first (0024). Prices are the store products'
+// (LAUNCH-CHECKLIST §3); the caps are planData's MEMBER_CAP, which the
+// database enforces.
+// `soon` marks a feature that isn't built yet: the card may not claim it
+// as if it were (CLAUDE.md, "Do not let copy claim something the app does
+// not do").
+const PLANS: { tier: PlanTier; nameKey: MessageKey; priceKey: MessageKey; yearlyKey: MessageKey | null; featureKeys: MessageKey[]; soon?: MessageKey[] }[] = [
+  {
+    tier: 'free', nameKey: 'subscriptionFreeName', priceKey: 'subscriptionFreePrice', yearlyKey: null,
+    featureKeys: ['subscriptionFreeFeature1', 'subscriptionFreeFeature2', 'subscriptionFreeFeature3', 'subscriptionFreeFeature4', 'subscriptionFreeFeature5'],
+  },
+  {
+    tier: 'pro', nameKey: 'subscriptionProName', priceKey: 'subscriptionProPrice', yearlyKey: 'subscriptionProYearly',
+    featureKeys: ['subscriptionProFeature1', 'subscriptionProFeature2'],
+  },
+  {
+    tier: 'elite_pro', nameKey: 'subscriptionEliteName', priceKey: 'subscriptionElitePrice', yearlyKey: 'subscriptionEliteYearly',
+    featureKeys: ['subscriptionEliteFeature1', 'subscriptionEliteFeature2', 'subscriptionEliteFeature3', 'subscriptionEliteFeature4'],
+    soon: ['subscriptionEliteFeature3', 'subscriptionEliteFeature4'],
+  },
+];
+
+const PLAN_LABEL: Record<PlanTier, MessageKey> = {
+  free: 'subscriptionPlanLabelFree',
+  pro: 'subscriptionPlanLabelPro',
+  elite_pro: 'subscriptionPlanLabelElite',
+};
+
+const rank = (tier: PlanTier) => PLANS.findIndex((p) => p.tier === tier);
+
 // Upgrading is the one direction that needs money to change hands, and a
 // coach subscription is a digital subscription: on iOS it has to go through
 // In-App Purchase, on Android through Play Billing (LAUNCH-CHECKLIST.md §3).
@@ -28,8 +58,8 @@ type Stage = 'plans' | 'survey' | 'confirmed';
 // tier to 'pro' for free, which is what it used to do.
 //
 // Signed in, the plan is the coach's subscriptions row (planData.ts), which
-// only service_role writes: there is no self-serve downgrade, so a Pro is
-// pointed at support instead. The downgrade survey is the demo's.
+// only service_role writes: there is no self-serve downgrade, so a paid
+// coach is pointed at support instead. The downgrade survey is the demo's.
 export default function Subscription() {
   const plan = usePlan();
   if (plan.status === 'loading') return <LoadState status="loading" />;
@@ -37,8 +67,8 @@ export default function Subscription() {
   return <SubscriptionView plan={plan.plan} remote={plan.remote} />;
 }
 
-// 1:1 port of Subscription.dc.html — Rafiq Pro plan picker with a mandatory
-// exit survey before a downgrade actually takes effect.
+// Subscription.dc.html's plan picker, with a third plan since 0024, and its
+// mandatory exit survey before a downgrade actually takes effect.
 function SubscriptionView({ plan, remote }: { plan: Plan; remote: boolean }) {
   const t = useT();
   const fmt = useFormat();
@@ -51,16 +81,13 @@ function SubscriptionView({ plan, remote }: { plan: Plan; remote: boolean }) {
   // The demo's downgrade below changes the stored tier; this screen shows it
   // without waiting for the plan to be read again.
   const [tier, setTier] = useState(plan.tier);
-  const isPro = tier === 'pro';
+  const isPaid = tier !== 'free';
 
-  const currentPlanName = isPro ? t('subscriptionPlanLabelPro') : t('subscriptionPlanLabelFree');
+  const currentPlanName = t(PLAN_LABEL[tier]);
   // A real renewal is an instant Supabase stored; the demo's is a date on
   // the fixed calendar (CLAUDE.md, "Two kinds of time").
   const renewsOn = plan.renewsAt === null ? null : remote ? fmt.instantDate(plan.renewsAt) : fmt.date(Date.parse(plan.renewsAt));
-  const currentPlanSub = !isPro ? t('subscriptionFreeSub') : renewsOn ? t('subscriptionRenewsOn', { date: renewsOn }) : t('subscriptionProNoEnd');
-
-  const freeFeatures = [t('subscriptionFreeFeature1'), t('subscriptionFreeFeature2'), t('subscriptionFreeFeature3'), t('subscriptionFreeFeature4'), t('subscriptionFreeFeature5')];
-  const proFeatures = [t('subscriptionProFeature1'), t('subscriptionProFeature2')];
+  const currentPlanSub = !isPaid ? t('subscriptionFreeSub') : renewsOn ? t('subscriptionRenewsOn', { date: renewsOn }) : t('subscriptionProNoEnd');
 
   function submitCancelSurvey() {
     if (!cancelReason) return;
@@ -106,62 +133,59 @@ function SubscriptionView({ plan, remote }: { plan: Plan; remote: boolean }) {
       <div className="subscription-body">
         <div className="subscription-hero" style={{ background: `linear-gradient(135deg, var(--accent) 0%, ${darken('#B75C3D', 40)} 100%)` }}>
           <div className="subscription-hero-top">
-            {isPro && <CheckIcon size={18} color="#FFFFFF" />}
+            {isPaid && <CheckIcon size={18} color="#FFFFFF" />}
             <div className="subscription-hero-plan">{currentPlanName}</div>
           </div>
           <div className="subscription-hero-sub">{currentPlanSub}</div>
         </div>
 
         <div className="subscription-plans">
-          <div className={`subscription-plan-card${!isPro ? ' is-current' : ''}`}>
-            <div className="subscription-plan-top">
-              <div className="subscription-plan-name">{t('subscriptionFreeName')}</div>
-              {!isPro && <div className="subscription-plan-badge">{t('subscriptionCurrentPlan')}</div>}
-            </div>
-            <div className="subscription-plan-price">{t('subscriptionFreePrice')}</div>
-            <div className="subscription-plan-features">
-              {freeFeatures.map((f) => (
-                <div key={f} className="subscription-plan-feature">
-                  <CheckIcon size={15} color="var(--green)" />
-                  <span>{f}</span>
+          {PLANS.map((p) => {
+            const current = p.tier === tier;
+            const paidCard = p.tier !== 'free';
+            const color = paidCard ? 'var(--accent)' : 'var(--green)';
+            return (
+              <div key={p.tier} className={`subscription-plan-card${current ? ' is-current' : ''}`} data-tier={p.tier}>
+                <div className="subscription-plan-top">
+                  {paidCard ? (
+                    <div className="subscription-plan-name-row">
+                      <CheckIcon size={17} color="var(--accent)" />
+                      <div className="subscription-plan-name">{t(p.nameKey)}</div>
+                    </div>
+                  ) : (
+                    <div className="subscription-plan-name">{t(p.nameKey)}</div>
+                  )}
+                  {current && <div className="subscription-plan-badge">{t('subscriptionCurrentPlan')}</div>}
                 </div>
-              ))}
-            </div>
-            {isPro && !remote && (
-              <button type="button" className="subscription-downgrade-btn" onClick={() => setStage('survey')}>
-                {t('subscriptionDowngrade')}
-              </button>
-            )}
-          </div>
-
-          <div className={`subscription-plan-card${isPro ? ' is-current' : ''}`}>
-            <div className="subscription-plan-top">
-              <div className="subscription-plan-name-row">
-                <CheckIcon size={17} color="var(--accent)" />
-                <div className="subscription-plan-name">{t('subscriptionProName')}</div>
-              </div>
-              {isPro && <div className="subscription-plan-badge">{t('subscriptionCurrentPlan')}</div>}
-            </div>
-            <div className="subscription-plan-price">{t('subscriptionProPrice')}</div>
-            <div className="subscription-plan-features">
-              {proFeatures.map((f) => (
-                <div key={f} className="subscription-plan-feature">
-                  <CheckIcon size={15} color="var(--accent)" />
-                  <span>{f}</span>
+                <div className="subscription-plan-price">{t(p.priceKey)}</div>
+                {p.yearlyKey && <div className="subscription-plan-yearly">{t(p.yearlyKey)}</div>}
+                <div className="subscription-plan-features">
+                  {p.featureKeys.map((k) => (
+                    <div key={k} className="subscription-plan-feature">
+                      <CheckIcon size={15} color={color} />
+                      <span>{t(k)}</span>
+                      {p.soon?.includes(k) && <span className="subscription-feature-soon">{t('comingSoonBadge')}</span>}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            {!isPro && (
-              <div className="subscription-upgrade-soon">
-                <span className="subscription-soon-badge">{t('comingSoonBadge')}</span>
-                <span className="subscription-soon-note">{t('subscriptionUpgradeSoonNote')}</span>
+                {p.tier === 'free' && isPaid && !remote && (
+                  <button type="button" className="subscription-downgrade-btn" onClick={() => setStage('survey')}>
+                    {t('subscriptionDowngrade')}
+                  </button>
+                )}
+                {rank(p.tier) > rank(tier) && (
+                  <div className="subscription-upgrade-soon">
+                    <span className="subscription-soon-badge">{t('comingSoonBadge')}</span>
+                    <span className="subscription-soon-note">{t('subscriptionUpgradeSoonNote')}</span>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            );
+          })}
         </div>
 
         <div className="subscription-disclaimer">
-          {remote && isPro ? t('subscriptionManageNote', { email: isolate(SUPPORT_EMAIL) }) : t('subscriptionDisclaimer')}
+          {remote && isPaid ? t('subscriptionManageNote', { email: isolate(SUPPORT_EMAIL) }) : t('subscriptionDisclaimer')}
         </div>
       </div>
 

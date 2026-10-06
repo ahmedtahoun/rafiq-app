@@ -21,7 +21,7 @@ import {
   markNotificationRead,
   type ProNotification,
 } from '../lib/mockStore';
-import { FREE_MEMBER_CAP } from '../lib/planData';
+import { FREE_MEMBER_CAP, MEMBER_CAP, usePlan } from '../lib/planData';
 import './Notifications.css';
 
 const REQUEST_AVATAR = '#B75C3D';
@@ -40,6 +40,9 @@ export default function Notifications() {
   const lang = useAppStore((s) => s.lang);
   const remote = useRemoteSession();
   const incoming = useRemoteLoad('incoming_requests', remote, fetchIncomingRequests);
+  // Only for the number in "Your plan holds N": the database decides.
+  const plan = usePlan();
+  const memberCap = (plan.status === 'ready' ? MEMBER_CAP[plan.plan.tier] : null) ?? FREE_MEMBER_CAP;
 
   // mockStore is plain functions over localStorage, so marking read has to
   // be followed by a re-read; the counter is what triggers it.
@@ -230,7 +233,7 @@ export default function Notifications() {
             )}
             {sheetError && (
               <div className="notifications-sheet-error" role="alert">
-                {t(sheetError, { name: isolate(openRequest.memberName), cap: FREE_MEMBER_CAP })}
+                {t(sheetError, { name: isolate(openRequest.memberName), cap: memberCap })}
               </div>
             )}
             <div className="notifications-sheet-actions">
