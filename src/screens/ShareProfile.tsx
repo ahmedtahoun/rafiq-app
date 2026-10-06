@@ -4,13 +4,13 @@ import { Capacitor } from '@capacitor/core';
 import { useOwnCoachProfile, type OwnProfileView } from '../store/ownProfileStore';
 import { LoadState } from '../components/LoadState';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { isolate, useT } from '../lib/i18n';
 import { specialtyLabels } from '../lib/coachLabels';
 import { darken } from '../lib/color';
 import { CheckIcon, ChevronIcon, ClientsIcon, EyeIcon, ShareIcon, StarIcon } from '../components/icons';
 import { getClients, getProAggregateRating, MIN_REVIEWS_FOR_RATING } from '../lib/mockStore';
 import { fetchOwnCoachStats } from '../lib/coachStatsData';
-import { fetchOwnPublicPage, publicPageAddress, publicPageUrl, setPublicPage, type PublicPage } from '../lib/publicPageData';
+import { fetchOwnPublicPage, PUBLIC_SITE, publicPageAddress, publicPageUrl, publicSite, setPublicPage, type PublicPage } from '../lib/publicPageData';
 import { useRemoteSession } from '../lib/remoteSession';
 import { useRemoteLoad } from '../store/remoteLoad';
 import { useRoster } from '../store/rosterStore';
@@ -25,7 +25,8 @@ const ACCENT = '#B75C3D';
  * Off by default. The switch says exactly what the page shows and to whom
  * before it is on; turning it on makes the link (kept after, so it never
  * changes), and only then are Copy, Share and View offered. The page
- * itself is site/coach-page.mjs.
+ * itself is site/coach-page.mjs. Until rafiqpro.com is hosted
+ * (publicSite.live()), no link is offered at all: it would open nothing.
  *
  * Signed in, the member count and rating are the coach's own (the roster
  * and coachStatsData.ts). Signed out, the demo's card shows with the switch
@@ -83,7 +84,8 @@ function ShareProfileView({ own, activeCount, rating, page, onPageChange }: {
   const primarySpecialty = specialtyLabels(profile.title || 'Life coaching', t)[0];
   const ratingLabel = rating.hasEnoughReviews ? rating.average.toFixed(1) : '—';
   const on = page?.on === true;
-  const code = on ? page?.code ?? null : null;
+  const live = publicSite.live();
+  const code = on && live ? page?.code ?? null : null;
 
   async function toggle() {
     if (!page || busy) return;
@@ -183,7 +185,8 @@ function ShareProfileView({ own, activeCount, rating, page, onPageChange }: {
           <p className="share-profile-public-body">{t('sharePublicBody')}</p>
           {failed && <p className="share-profile-public-error" role="alert">{t('sharePublicError')}</p>}
           {!page && <p className="share-profile-public-note">{t('sharePublicSignedOut')}</p>}
-          {page && !code && <p className="share-profile-public-note">{t('sharePublicOff')}</p>}
+          {page && !live && <p className="share-profile-public-note">{t(on ? 'sharePublicNotLiveOn' : 'sharePublicNotLiveOff', { site: isolate(PUBLIC_SITE) })}</p>}
+          {page && live && !on && <p className="share-profile-public-note">{t('sharePublicOff')}</p>}
           {code && (
             <>
               <div className="share-profile-link-row">

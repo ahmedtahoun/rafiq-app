@@ -19,6 +19,18 @@ const NOT_SIGNED_IN = { ok: false, code: 'not_signed_in', message: 'No signed-in
 const unknown = (error: { message: string }) => ({ ok: false, code: 'unknown', message: error.message }) as const;
 
 export const PUBLIC_SITE = 'rafiqpro.com';
+
+/**
+ * Whether rafiqpro.com is hosted yet. Until it is, a link would open
+ * nothing, so Share Profile offers none: the switch still works, and says
+ * the page is available once the site is live. Turn this on in the change
+ * that goes with hosting the site (LAUNCH-CHECKLIST), and update the test
+ * that pins it off. Behind an object so tests can stand in for either, as
+ * push.ts's pushPlugin is.
+ */
+export const publicSite = {
+  live: (): boolean => false,
+};
 /** 0026's codes: six characters with no 0/o or 1/l/i. */
 const CODE = /^[abcdefghjkmnpqrstuvwxyz23456789]{6}$/;
 

@@ -31,11 +31,21 @@ const memberTables = () => ({
 });
 
 const COPY = {
-  en: { title: 'Public page', off: 'Turn it on to get a link you can send to anyone.', share: 'Share link', view: 'View page' },
-  ar: { title: 'الصفحة العامة', off: 'فعّلها لتحصل على رابط ترسله لمن تريد.', share: 'مشاركة الرابط', view: 'عرض الصفحة' },
+  en: {
+    title: 'Public page', off: 'Turn it on to get a link you can send to anyone.', share: 'Share link', view: 'View page',
+    notLiveOff: 'Available once rafiqpro.com is live. You can turn it on now, and your link will show here then.',
+    notLiveOn: 'On. Your page opens once rafiqpro.com is live, and your link will show here then.',
+  },
+  ar: {
+    title: 'الصفحة العامة', off: 'فعّلها لتحصل على رابط ترسله لمن تريد.', share: 'مشاركة الرابط', view: 'عرض الصفحة',
+    notLiveOff: 'متاحة بعد إطلاق موقع rafiqpro.com. يمكنك تفعيلها الآن، وسيظهر رابطك هنا حينها.',
+    notLiveOn: 'مفعّلة. تُفتح صفحتك بعد إطلاق موقع rafiqpro.com، وسيظهر رابطك هنا حينها.',
+  },
 };
 
-async function open(browser, { role = 'coach', lang = 'en', dark = false, data, signedIn = true, uid, platform } = {}) {
+// `live`: whether rafiqpro.com is hosted (publicSite.live()). Most tests are
+// about the page once it is; the app ships with it off until then.
+async function open(browser, { role = 'coach', lang = 'en', dark = false, data, signedIn = true, uid, platform, live = true } = {}) {
   const ctx = await browser.newContext({ viewport: { width: 420, height: 900 } });
   const page = await ctx.newPage();
   const errs = [];
@@ -59,6 +69,7 @@ async function open(browser, { role = 'coach', lang = 'en', dark = false, data, 
     await installFakeSupabase(page, { userId: who, tables: data ?? coachTables() });
     await signIn(page, who);
   }
+  await page.evaluate(async (v) => { (await import('/src/lib/publicPageData.ts')).publicSite.live = () => v; }, live);
   return { page, ctx, errs };
 }
 
@@ -99,6 +110,32 @@ for (const lang of ['en', 'ar']) {
     });
   }
 }
+
+for (const lang of ['en', 'ar']) {
+  test(`until rafiqpro.com is live, the switch works but no link is offered (${lang})`, async ({ browser }) => {
+    const { page, ctx, errs } = await open(browser, { lang, live: false });
+    await go(page, 'shareProfile');
+    const sw = page.getByRole('switch', { name: COPY[lang].title });
+    await expect(page.locator('.share-profile-public-note')).toHaveText(COPY[lang].notLiveOff.replace('rafiqpro.com', '\u2068rafiqpro.com\u2069'));
+    await sw.click();
+    await expect(sw).toHaveAttribute('aria-checked', 'true');
+    expect(await rpcs(page, 'set_public_page')).toEqual([{ p_on: true }]);
+    await expect(page.locator('.share-profile-public-note')).toHaveText(COPY[lang].notLiveOn.replace('rafiqpro.com', '\u2068rafiqpro.com\u2069'));
+    // Nothing that would hand out a link that opens nothing.
+    await expect(page.locator('.share-profile-link, .share-profile-copy')).toHaveCount(0);
+    await expect(page.getByRole('button', { name: COPY[lang].share })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: COPY[lang].view })).toHaveCount(0);
+    await expect(page.locator('.share-profile-public')).not.toContainText('/c/');
+    expect(errs).toEqual([]);
+    await ctx.close();
+  });
+}
+
+test('the app ships with the site not live yet', async ({ page }) => {
+  // Turn this around in the change that goes with hosting rafiqpro.com.
+  await page.goto('/');
+  expect(await page.evaluate(async () => (await import('/src/lib/publicPageData.ts')).publicSite.live())).toBe(false);
+});
 
 test('off again hides the link; on again shows the same one', async ({ browser }) => {
   const { page, ctx } = await open(browser, { data: coachTables({ on: true, code: 'k7m2qx' }) });
