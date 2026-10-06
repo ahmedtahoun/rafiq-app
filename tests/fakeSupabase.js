@@ -328,6 +328,18 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       if (fn.endsWith('_client_invite')) return clientInvite(fn, args);
       if (fn === 'member_cancel_session') return memberCancel(args);
       if (fn === 'set_public_page' || fn === 'public_coach_page') return publicPage(fn, args);
+      // 0023: this phone, as the signed-in person. A token moves to whoever
+      // registers it last.
+      if (fn === 'register_device') {
+        const rows = (db.device_tokens ??= []);
+        const row = { token: args.p_token, user_id: userId, platform: args.p_platform, lang: args.p_lang, time_zone: args.p_time_zone, muted: [...args.p_muted] };
+        db.device_tokens = [...rows.filter((r) => r.token !== args.p_token), row];
+        return { data: null, error: null };
+      }
+      if (fn === 'unregister_device') {
+        db.device_tokens = (db.device_tokens ??= []).filter((r) => !(r.token === args.p_token && r.user_id === userId));
+        return { data: null, error: null };
+      }
       if (fn !== 'accept_session_request') return refuse('42883');
       const r = (db.session_requests ??= []).find((x) => x.id === args.p_request && x.coach_id === userId);
       if (!r) return refuse('P0002');

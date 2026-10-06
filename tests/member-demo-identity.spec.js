@@ -102,23 +102,43 @@ const SCREENS = [
   // list is what let that ship, so a screen that reads the member's data
   // belongs on it even when the screen is mostly static copy.
   'clientHelpCenter',
+  // The rest of the member side, from the audit of the Screen union against
+  // this list. Neither imports mockStore today, which is the point: the
+  // walk is what keeps that true, and #155 is what a screen off the list
+  // costs. ClientOnboarding reads and writes the member's own
+  // member_profiles row; ClaimInvite looks up an invite by code.
+  'clientOnboarding',
+  'claimInvite',
 ];
+
+// Since #112 saved coaches are favourite_coaches rows: no device key that
+// isn't the member's own is allowed.
+const ALLOWED = /^(rafiq_(role|lang|dark|notif_prefs)|rafiq_member_relationship_member-1|rafiq_message_draft_rel-a|sb-.+)$/;
+
+/** The keys this screen asked for, and the recorder emptied for the next. */
+const keysOf = (page) => page.evaluate(() => {
+  const keys = [...new Set(window.__keysRead)];
+  window.__keysRead = [];
+  return keys;
+});
 
 test('signed in, no member screen reads or shows the demo member', async ({ browser }) => {
   const { page, ctx, errs } = await open(browser);
+  // Per screen, like the coach walk: this used to collect every key read
+  // across the whole walk and assert once at the end, which named the key
+  // but never the screen that read it — a finding you then had to bisect.
+  // Proven by mutation: a demo read added to ClientOnboarding reported
+  // `rafiq_coach_profile` and nothing about where it came from.
+  const offenders = {};
   for (const target of SCREENS) {
     await go(page, target);
     await expect(page.locator('.load-state'), nameOf(target)).toHaveCount(0);
     await expect(page.locator('.phone-frame'), nameOf(target)).toHaveCount(1);
     await expect(frame(page), nameOf(target)).not.toContainText(DEMO);
+    const demoKeys = (await keysOf(page)).filter((k) => !ALLOWED.test(k));
+    if (demoKeys.length) offenders[nameOf(target)] = demoKeys;
   }
-  // Only the member's own and the device's: never a demo store, keyed by
-  // the demo member or by anything else.
-  const read = [...new Set(await page.evaluate(() => window.__keysRead))];
-  // Since #112 saved coaches are favourite_coaches rows: no device key
-  // that isn't the member's own is allowed.
-  const allowed = /^(rafiq_(role|lang|dark|notif_prefs)|rafiq_member_relationship_member-1|rafiq_message_draft_rel-a|sb-.+)$/;
-  expect(read.filter((k) => !allowed.test(k))).toEqual([]);
+  expect(offenders).toEqual({});
   expect(errs).toEqual([]);
   await ctx.close();
 });
