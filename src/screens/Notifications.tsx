@@ -22,6 +22,7 @@ import {
   type ProNotification,
 } from '../lib/mockStore';
 import { FREE_MEMBER_CAP, MEMBER_CAP, usePlan } from '../lib/planData';
+import { offerPush } from '../store/pushAsk';
 import './Notifications.css';
 
 const REQUEST_AVATAR = '#B75C3D';
@@ -97,6 +98,8 @@ export default function Notifications() {
       // store's to show, so it re-reads.
       const roster = useRosterStore.getState();
       if (roster.userId) void roster.refresh(roster.userId);
+      // A session booked: would they like the next requests on their phone?
+      offerPush();
       return;
     }
     if (result.code === 'gone') settle(r, t('notificationsRequestGone'));

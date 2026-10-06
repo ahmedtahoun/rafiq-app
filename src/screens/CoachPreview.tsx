@@ -21,6 +21,7 @@ import { fetchCoachReviews, type CoachReview } from '../lib/reviewData';
 import { fetchOwnFavourites } from '../lib/favouriteData';
 import { useFavourites } from '../store/favourites';
 import { languageLabel } from '../lib/coachLabels';
+import { offerPush } from '../store/pushAsk';
 import './CoachPreview.css';
 
 const OFFERING_TYPE_KEY: Record<CoachOffering['type'], MessageKey> = {
@@ -340,8 +341,11 @@ function CoachPreviewBody({ source }: { source: PreviewSource }) {
     setFailed(false);
     const sent = await source.request(selectedOffering, slot.wallMs, whenLabel);
     setSending(false);
-    if (sent === true) setConfirmed(true);
-    else setFailed(sent === 'blocked' ? 'blocked' : 'failed');
+    if (sent === true) {
+      setConfirmed(true);
+      // A session asked for: would they like the answer on their phone?
+      offerPush();
+    } else setFailed(sent === 'blocked' ? 'blocked' : 'failed');
   }
 
   const heroGrad = `linear-gradient(135deg, ${coach.color} 0%, ${darken(coach.color, 40)} 100%)`;

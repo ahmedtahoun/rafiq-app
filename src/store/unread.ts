@@ -18,6 +18,7 @@ import { create } from 'zustand';
 import { fetchUnreadTotal, subscribeToMyMessages } from '../lib/messageData';
 import { getNotificationPrefs, getProNotificationPrefs, type MessageRole } from '../lib/mockStore';
 import { useAppStore } from './appStore';
+import { offerPush } from './pushAsk';
 
 export const useUnread = create<{ count: number }>(() => ({ count: 0 }));
 
@@ -81,6 +82,8 @@ export function startUnreadWatch(role: MessageRole): () => void {
     void refresh();
     const fromOther = role === 'pro' ? m.senderRole === 'client' : m.senderRole === 'pro';
     if (fromOther && !viewing(role, m.clientId) && soundOn(role)) playChime();
+    // A message from the other side: would they like the next on their phone?
+    if (fromOther) offerPush();
   });
   const unsubscribeNav = useAppStore.subscribe((s, prev) => {
     if (s.screen !== prev.screen) void refresh();

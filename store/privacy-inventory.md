@@ -267,14 +267,19 @@ to the database, and its header says how.
 | Favourited coaches | `favourite_coaches` | Other Data | App activity → Other actions |
 | In-app notification feed | `notifications` (`kind`, `payload`, `read_at`) | Other Data | App activity → App interactions |
 | Notification preferences | `notification_prefs` | Other Data | App activity → Other actions |
+| This phone's push address, the app's language on it, its time zone, and the kinds switched off there — only once the person turns phone notifications on | `device_tokens` (0023) | Identifiers → Device ID (**Ahmed to confirm**: Apple doesn't name push tokens; most apps declare them here, linked to the user) | Device or other IDs (**Ahmed to confirm**: same reasoning) |
 
 None of this is a device calendar: the app asks for no calendar
 permission, reads no `EKEventStore` and writes no events. Google's Calendar
 category does **not** apply.
 
-`notifications` is an in-app feed, not push. There is no APNs key, no
-Firebase project and no push plugin, so there is no push token to declare —
-today. That changes the moment push is built.
+`notifications` is the in-app feed, and since 0023 also what phone
+notifications are sent from: the `push-send` function turns a new row into
+a banner through Apple (APNs) or Google (Firebase Cloud Messaging), only to
+the phones in `device_tokens`. A phone is only there after its owner turned
+notifications on (the app never asks at launch), it moves to whoever signs
+in on it, and signing out removes it. A message banner never carries the
+message text. The token is declared in the row above.
 
 ---
 
@@ -391,6 +396,7 @@ to send.
 | **Apple** (Sign in with Apple) | Same, and the email may be a private relay address | Sign-in |
 | **Paymob** | A coach's name, national ID, wallet or bank account number, and the amount | Sending a coach their payout. Nothing about members reaches Paymob today |
 | **Sentry** | Nothing today. Once a DSN is set: crash reports, as broken down in §10 | Knowing the app crashed, and where |
+| **Apple** (APNs) and **Google** (Firebase Cloud Messaging) | The phone's push token and each banner's title and line: a name, a time, a task's title — never a message's text | Delivering phone notifications to people who turned them on (`supabase/functions/push-send`) |
 | **Daily** (video sessions) | The live audio and video of a 1:1 session while it happens, each person's display name, and connection diagnostics from Daily's own library (`@daily-co/daily-js` reports its errors to Daily) | Running the call. **Nothing is recorded or stored**: rooms never set `enable_recording`, nobody is an owner, and the `session-video` function refuses a Daily domain that records (`supabase/functions/_shared/sessionVideo.ts`) |
 
 Google Fonts used to be on this list: `index.html` fetched Lora and Cairo

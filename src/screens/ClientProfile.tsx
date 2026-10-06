@@ -24,6 +24,9 @@ import {
   type ActiveObligations,
 } from '../lib/mockStore';
 import { MemberTabBar } from '../components/TabBars';
+import { PushPhoneRow } from '../components/PushAsk';
+import { usePushPermission } from '../store/pushHooks';
+import { syncPushDevice } from '../lib/push';
 import './ClientProfile.css';
 
 // The coaching agreement and demo account deletion are the demo member's,
@@ -110,6 +113,8 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
 
   const notifPrefs = getNotificationPrefs();
   const notif = notifPrefs.enabled;
+  const push = usePushPermission();
+  const phone = push.state !== null && push.state !== 'unsupported';
 
   // Signed in, what a coach would still owe this member: unused, unexpired
   // sessions and a booked one. (Disputes join when SessionRoom moves.)
@@ -140,13 +145,17 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
     refresh();
   }
 
+  // The phone's banners follow the switches too (push.ts); a no-op in a
+  // browser.
   function toggleNotif() {
     setNotificationPrefs({ enabled: !notif });
     refresh();
+    void syncPushDevice();
   }
   function toggleNotifType(key: NotifTypeKey) {
     setNotificationPrefs({ [key]: notifPrefs[key] === false });
     refresh();
+    void syncPushDevice();
   }
 
   async function logOut() {
@@ -376,7 +385,7 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
                 <span className="client-profile-switch-thumb" />
               </button>
             </div>
-            <div className="client-profile-notif-scope">{t('notifInAppOnly')}</div>
+            <div className="client-profile-notif-scope">{t(phone ? 'notifScopePhone' : 'notifInAppOnly')}</div>
             {notif &&
               notifTypeDefs.map((nt) => (
                 <div className="client-profile-notif-sub-row" key={nt.key}>
@@ -390,6 +399,7 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
                   </button>
                 </div>
               ))}
+            {notif && <PushPhoneRow state={push.state} onTurnOn={push.turnOn} className="client-profile-push-row" />}
           </div>
         </div>
 

@@ -37,13 +37,14 @@ wasted space.
 Written against what the app does today, not what it will do. Four things
 a listing would normally say that this one must not:
 
-1. **No push notifications.** There is no `@capacitor/push-notifications`,
-   no APNs key and no Firebase project. The app has an in-app notification
-   feed and the Profile toggles say so. "Reminders" in the listing has to
-   read as something a user sees when they open the app, never as
-   something the phone buzzes about. (The onboarding carousel's
-   `welcome2Subtext` still says "send reminders", which is on the edge —
-   worth a look, separately from this task.)
+1. **Phone notifications only for what the app sends.** Since the push PRs
+   the app sends banners for new requests, answers, moved and cancelled
+   sessions, a reminder 45 to 60 minutes before each session (0025),
+   messages and finished tasks, once someone turns them on. So the listing
+   may say "a reminder before your session", but not let the reader pick
+   when, and not promise a reminder for payments or tasks. (The onboarding
+   carousel's `welcome2Subtext` still says "send reminders", which is on
+   the edge — worth a look, separately from this task.)
 2. **No in-app payment.** Booking sends the coach a request; nothing is
    charged. The Rafiq Pro Plus upgrade is a "Coming soon" state. The
    listing cannot promise paying in the app until §3 lands.
@@ -217,8 +218,9 @@ WHAT IT DOES NOT DO
 Coaching is not therapy or medical advice. Rafiq Pro is for coaching
 relationships; if you need clinical care, please see a professional.
 
-Rafiq Pro does not send push notifications. Everything it has to tell you
-is waiting in the app when you open it.
+Turn on notifications and Rafiq Pro tells you on your phone when a member
+asks for a session, answers, or sends a message — in English or Arabic.
+Everything is also waiting in the app when you open it.
 
 Sessions are never recorded. Rafiq Pro will not open a call at all if
 recording has been switched on, so there is no copy of your session to
@@ -377,8 +379,8 @@ no medical advice.
 التدريب ليس علاجًا نفسيًا ولا استشارة طبية. رفيق للعلاقات التدريبية؛ وإن
 كنت تحتاج رعاية إكلينيكية فالرجاء مراجعة مختص.
 
-رفيق لا يرسل إشعارات فورية. كل ما يريد إخبارك به ينتظرك داخل التطبيق حين
-تفتحه.
+فعّل الإشعارات وسيخبرك رفيق على هاتفك عندما يطلب عضو جلسة أو يرد أو يرسل
+رسالة — بالعربية أو الإنجليزية. وكل شيء ينتظرك أيضًا داخل التطبيق حين تفتحه.
 
 الجلسات لا تُسجَّل أبدًا. ولا يفتح رفيق المكالمة من الأصل إذا كان التسجيل
 مُفعَّلًا، فلا توجد نسخة من جلستك تُحفظ أو تُفقد أو تُسلَّم لأحد.

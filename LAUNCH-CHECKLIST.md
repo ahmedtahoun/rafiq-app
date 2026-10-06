@@ -151,12 +151,19 @@ as done below, when signed in; every other screen still reads and writes
       longer show the demo's sample goal signed in:
       tests/member-demo-identity.spec.js walks the member screens signed in
       and fails on any demo store read or demo name. Done (2026-10-04, #109):
-      the walk covers every member screen that reads the member's data —
-      Home, My Pro, Profile, Edit profile, Messages, Tasks, My Pros,
-      Sessions, Discover, Notifications, My programs, Program detail, Rate
-      coach, Booking and the coach page — and waits for each lazily loaded
-      screen rather than a fixed delay. Breaking any one of them back to the
-      demo fails it. Since #112 it allows no device key that isn't the
+      the walk covers 18 member screens — Home, My Pro, Profile, Edit
+      profile, Messages, Tasks, My Pros, Sessions, Discover, Notifications,
+      My programs, Program detail, Rate coach, Booking, the coach page,
+      Help Centre, Onboarding and Claim invite — every member screen in the
+      `Screen` union but the policy pages, Coming soon, the session room
+      and ClientAuth, each excluded for a stated reason in the PR that
+      audited it. It waits for each lazily loaded screen rather than a
+      fixed delay. **Help Centre was the sixteenth, and it was added the
+      hard way:** it sat outside the list and read the demo coach's name
+      signed in, so a real member was offered "Message Yasmin El-Sayed"
+      (#155, fixed in #159, which put the screen on the walk). A screen
+      off the list is a screen nothing checks, which is the lesson rather
+      than the bug. Breaking any one of them back to the demo fails it. Since #112 it allows no device key that isn't the
       member's own: saved coaches are `favourite_coaches` rows now.
       The coach half is done too (#124's walk, closed by #126): every coach
       screen signed in, no demo read left (`KNOWN_DEMO_READS` is empty).
@@ -191,9 +198,12 @@ as done below, when signed in; every other screen still reads and writes
       demo data as a fallback). §2's last screens went with them: Earnings
       (#121), Home's alerts (#122), Profile (#123), and Preview and Share
       Profile (#126). The two walks (`tests/member-demo-identity.spec.js`,
-      `tests/coach-demo-identity.spec.js`) open every screen that reads
-      the signed-in user's data and require each to settle on real
-      content, not a spinner or an error.
+      `tests/coach-demo-identity.spec.js`) open the screens on each walk's
+      own list and require each to settle on real content, not a spinner or
+      an error — 24 coach screens, and 18 member ones: #159 added Help
+      Centre (#155), and the audit that followed added Onboarding and Claim
+      invite and made the member walk name the offending screen rather than
+      only the key it read.
       Discover now distinguishes an empty directory ("No pros yet") from a
       search that matched nothing — it will be empty until real pros sign
       up, and the search-failed wording read like a broken screen.
@@ -294,7 +304,16 @@ The sources, read on 2026-10-01, and what they mean for the build are in
 - [ ] 🟡 *Ahmed:* check `src/lib/paymobBanks.ts` against the bank codes table
       in Paymob's Instant Cashin docs — it was written without access to them.
 - [x] 🟡 *Dev:* payout history on Earnings (signed-in only; newest first).
-- [ ] 🟡 *Dev:* an admin screen to create, send and sync payouts (§9).
+- [x] 🟡 *Dev:* an admin screen to create, send and sync payouts (§9).
+      Done (2026-10-05, #149): the admin app lists payouts newest first
+      with a status filter, and Create, Send and Sync all go through the
+      existing `payouts` function rather than a second copy of it, so
+      0009's rule that a payout record never carries a national ID, and the
+      issuer and destination checks, hold for an admin too. Destinations are
+      masked in every response. One thing no test here can prove: the
+      PostgREST embed joining a payout to its coach through
+      `coach_profiles` resolves only against the real project, because the
+      fake models tables, not PostgREST's query grammar.
 - [ ] 🔴 *Ahmed:* production Paymob Payouts credentials — new ones, never the
       staging set, and shared through a password manager, not email.
 
@@ -449,8 +468,9 @@ builds".
       The coach's three switches were also pure local state that nothing
       read — they persist and really filter `getProNotifications()` now,
       and the "Member check-in alerts" row is gone because no such
-      notification exists. Push itself is still unbuilt; if it is built
-      later, reopen this.
+      notification exists. Push is built now (2026-10-05, next item): on
+      a phone the same cards say they control the feed and the phone's
+      notifications, and a browser still says in-app only.
 - [ ] 🟡 **Phone notifications (wanted, Ahmed 2026-10-01).** The kind
       ProCoach advertises: a banner on the lock screen, with the app's icon,
       the moment something happens. The ones Rafiq has events for:
@@ -487,11 +507,24 @@ builds".
       message's text, and drops phones Apple or Google say are gone
       (`supabase/functions/push-send/README.md`). *Ahmed:* the APNs key,
       the Firebase project, the secrets, `db push`, deploy, and the
-      Database Webhook, all in that README. The session reminder is 0025
-      (both sides, 45 to 60 minutes before; *Ahmed:* `db push` and the
-      `pg_cron` schedule, README step 6). Left: the app half (the plugin,
-      registering, asking permission, the switches, the copy and privacy
-      forms).
+      Database Webhook, all in that README.
+      **App half done (2026-10-05):** `@capacitor/push-notifications`
+      (`src/lib/push.ts`). Signed in with permission given, the phone is
+      registered with the app's language, zone and switches, and again
+      when any of them changes; the master switch off or signing out
+      unregisters it. The app never asks at launch: `PushAsk` explains
+      first, on the first message sent or received or the first session
+      booked (a member's request, a coach's accept), once per phone, and
+      Profile's "Notifications on this phone" row is the way back. No
+      system banner while the app is open (`presentationOptions: []`):
+      the in-app badge and chime cover it (#128). The coach's card gained "New messages" and "Tasks
+      completed" (phone only). A tapped banner opens what it is about.
+      Copy, Help Center, both privacy policies (and the site), the privacy
+      inventory, the listing and the review notes say so. *Ahmed:* in
+      Xcode, the Push Notifications capability; `google-services.json` in
+      `android/app/`; then a test on two real phones in both languages.
+      The session reminder is 0025 (both sides, 45 to 60 minutes before;
+      *Ahmed:* `db push` and the `pg_cron` schedule, README step 6).
 - [x] 🔴 **Account deletion must actually happen.** The app files a request
       into `account_deletion_requests`; someone has to process it (§9), within
       a stated time. **Stated: within 30 days**, on the public deletion page.

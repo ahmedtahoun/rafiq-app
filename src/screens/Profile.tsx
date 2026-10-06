@@ -26,6 +26,9 @@ import { fetchOwnCoachStats } from '../lib/coachStatsData';
 import { fetchInbox } from '../lib/messageData';
 import { useRemoteLoad } from '../store/remoteLoad';
 import { useRoster } from '../store/rosterStore';
+import { PushPhoneRow } from '../components/PushAsk';
+import { usePushPermission } from '../store/pushHooks';
+import { syncPushDevice } from '../lib/push';
 import './Profile.css';
 
 // Matches tokens.css's --accent — darken() needs a literal hex, not the
@@ -34,7 +37,7 @@ const ACCENT_HEX = '#B75C3D';
 
 // No 'checkins': ProNotificationKind has no check-in notification, so the
 // row the design gave it controlled nothing. See ProNotificationPrefs.
-const NOTIF_TYPE_KEYS = ['sessions', 'payments'] as const;
+const NOTIF_TYPE_KEYS = ['sessions', 'payments', 'messages', 'tasks'] as const;
 type NotifTypeKey = (typeof NOTIF_TYPE_KEYS)[number];
 
 // 1:1 port of Profile.dc.html — the coach's account hub. Notification
@@ -92,6 +95,7 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
   const verificationBadgeBg = verificationStatus === 'verified' ? 'var(--green-bg)' : verificationStatus === 'pending' ? 'var(--amber-bg)' : 'var(--line)';
 
   const plan = usePlan();
+  const push = usePushPermission();
   const pro = plan.status === 'ready' && isPaid(plan.plan);
   const subscriptionSub = pro ? t('profileSubscriptionSubPro') : t('profileSubscriptionSubFree');
   // No badge until the plan is known, rather than "Upgrade" flashing at a Pro.
@@ -191,6 +195,8 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
   function toggleNotifType(key: NotifTypeKey) {
     setProNotificationPrefs({ [key]: notifPrefs[key] === false });
     refresh();
+    // The phone's banners follow the switches (push.ts); a no-op in a browser.
+    void syncPushDevice();
   }
 
   // Mirrors Auth.tsx's own fallback: with no Supabase project wired up,
@@ -243,9 +249,19 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
   const notifPrefs = getProNotificationPrefs();
   const notif = notifPrefs.enabled;
 
+  // Messages and tasks reach the coach only as phone notifications (the
+  // in-app feed has no rows for them), so their switches show only where
+  // there is a phone to notify.
+  const phone = push.state !== null && push.state !== 'unsupported';
   const notifTypeDefs: { key: NotifTypeKey; label: string }[] = [
     { key: 'sessions', label: t('profileNotifSessions') },
     { key: 'payments', label: t('profileNotifPayments') },
+    ...(phone
+      ? [
+          { key: 'messages' as const, label: t('profileNotifMessages') },
+          { key: 'tasks' as const, label: t('profileNotifTasks') },
+        ]
+      : []),
   ];
 
 
@@ -493,12 +509,16 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
               <button
                 type="button"
                 className={`profile-switch${notif ? ' is-on' : ''}`}
-                onClick={() => { setProNotificationPrefs({ enabled: !notif }); refresh(); }}
+                onClick={() => {
+                  setProNotificationPrefs({ enabled: !notif });
+                  refresh();
+                  void syncPushDevice();
+                }}
               >
                 <span className="profile-switch-thumb" />
               </button>
             </div>
-            <div className="profile-notif-scope">{t('notifInAppOnly')}</div>
+            <div className="profile-notif-scope">{t(phone ? 'notifScopePhone' : 'notifInAppOnly')}</div>
             {notif &&
               notifTypeDefs.map((nt) => (
                 <div className="profile-notif-sub-row" key={nt.key}>
@@ -508,6 +528,7 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
                   </button>
                 </div>
               ))}
+            {notif && <PushPhoneRow state={push.state} onTurnOn={push.turnOn} className="profile-push-row" />}
           </div>
         </div>
 
