@@ -47,8 +47,6 @@ async function show(page, result, path = '/c/k7m2qx') {
   await page.goto(`${ORIGIN}${path}`);
 }
 
-const visibleText = (page) => page.locator('main').innerText();
-
 for (const dark of [false, true]) {
   test(`English${dark ? ', dark' : ''}: the coach's own page, from the database`, async ({ page }) => {
     if (dark) await page.emulateMedia({ colorScheme: 'dark' });
