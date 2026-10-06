@@ -123,6 +123,20 @@ begin
 end;
 $$;
 
+-- And the directory, as a signed-in member reads it: count/average.
+create or replace function pg_temp.dir_rating(c text) returns text
+language plpgsql as $$
+declare r text;
+begin
+  set local role authenticated;
+  perform set_config('request.jwt.claim.sub', '32323232-0000-0000-0000-000000000001', true);
+  select coalesce(d.rating_count::text, 'null') || '/' || coalesce(d.rating_avg::text, 'null')
+    into r from public.coach_directory d where d.coach_id = c::uuid;
+  reset role;
+  return r;
+end;
+$$;
+
 update public.coach_profiles set public_page = true, public_code = 'kq32ab' where profile_id = :coachF;
 insert into public.clients (id, coach_id, full_name, active) values
   ('32323232-1111-0000-0000-000000000001', :coachF, 'Rater One', true),
@@ -136,13 +150,19 @@ insert into public.ratings (client_id, coach_id, session_id, rating) values
   ('32323232-1111-0000-0000-000000000001', :coachF, '32323232-2222-0000-0000-000000000001', 2);
 select pg_temp.expect('one rating: the public page gives no score',
   pg_temp.public_rating('kq32ab'), 'null/null/truetrue');
+select pg_temp.expect('...nor the directory: the count, no average',
+  pg_temp.dir_rating(:coachF), '1/null');
 insert into public.ratings (client_id, coach_id, session_id, rating) values
   ('32323232-1111-0000-0000-000000000002', :coachF, '32323232-2222-0000-0000-000000000002', 4);
 select pg_temp.expect('...two: still none, and no count',
   pg_temp.public_rating('kq32ab'), 'null/null/truetrue');
+select pg_temp.expect('...the directory at two: still no average',
+  pg_temp.dir_rating(:coachF), '2/null');
 insert into public.ratings (client_id, coach_id, session_id, rating) values
   ('32323232-1111-0000-0000-000000000003', :coachF, '32323232-2222-0000-0000-000000000003', 5);
 select pg_temp.expect('...three: the count and the average',
   pg_temp.public_rating('kq32ab'), '3/3.67/truetrue');
+select pg_temp.expect('...the directory at three: the average too',
+  pg_temp.dir_rating(:coachF), '3/3.67');
 select pg_temp.expect('...and still anyone may call it',
   has_function_privilege('anon', 'public.public_coach_page(text)', 'execute')::text, 'true');

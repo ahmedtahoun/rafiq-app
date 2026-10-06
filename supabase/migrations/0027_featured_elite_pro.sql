@@ -1,5 +1,6 @@
--- 0027: Rafiq Elite Pro's featured placement in Discover, and the public
--- page's rating kept back below three ratings.
+-- 0027: Rafiq Elite Pro's featured placement in Discover, and a coach's
+-- average rating kept back below three ratings, in the directory and on the
+-- public page.
 --
 -- A coach on an active Elite Pro plan is featured: Discover lists featured
 -- coaches first and labels them (src/lib/directory.ts, Discover.tsx), as it
@@ -22,8 +23,15 @@
 -- ships, a tier is granted by hand (supabase/admin/README.md), and the
 -- Elite Pro card keeps its "Coming soon" tag on this feature.
 --
+-- The directory's rating, too: below MIN_REVIEWS_FOR_RATING (3,
+-- src/lib/mockStore.ts) rating_avg is null. With one rating, that average
+-- is one member's own score, and any signed-in member could read it here,
+-- though no screen shows it. rating_count stays: a count says nothing about
+-- anyone's score, and the coach's page shows it ("2 reviews").
+--
 -- Same columns, same order: `create or replace` keeps 0022's body and the
--- view's grants, and changes only how `featured` is worked out.
+-- view's grants, and changes only how `featured` and `rating_avg` are
+-- worked out.
 
 create or replace view public.coach_directory with (security_barrier) as
 select
@@ -49,7 +57,7 @@ select
   (select min(o.price) from public.offerings o
     where o.coach_id = cp.profile_id and o.active and o.price > 0) as from_price,
   r.rating_count,
-  r.rating_avg
+  case when r.rating_count >= 3 then r.rating_avg end as rating_avg
 from public.coach_profiles cp
 join public.profiles p on p.id = cp.profile_id
 left join lateral (
