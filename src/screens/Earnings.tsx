@@ -8,6 +8,8 @@ import { ChevronIcon, ArrowForwardIcon } from '../components/icons';
 import { darken } from '../lib/color';
 import { getClient, getEarningsSummary, type Client, type EarningsSummary, type PaymentStatus } from '../lib/mockStore';
 import { fetchOwnLedgerTotals, summarizeEarnings } from '../lib/earningsData';
+import { fetchOwnPaymentRows, toCsv, csvHref, csvFilename } from '../lib/earningsExport';
+import { usePlan } from '../lib/planData';
 import { LoadState } from '../components/LoadState';
 import { useRemoteLoad } from '../store/remoteLoad';
 import { useRoster } from '../store/rosterStore';
@@ -26,6 +28,44 @@ export default function Earnings() {
   if (roster.status === 'error') return <LoadState status="error" onRetry={roster.retry} showBack />;
   if (ledger.status === 'error') return <LoadState status="error" onRetry={ledger.retry} showBack />;
   return <EarningsView summary={summarizeEarnings(roster.clients, ledger.data)} clientOf={roster.client} remote />;
+}
+
+/**
+ * "Export CSV", a Rafiq Elite Pro feature.
+ *
+ * Its own component for two reasons: its hooks then run in a fixed order
+ * whatever the plan is, and it can decide to render nothing without the
+ * screen waiting on it. Earnings is the screen a coach opens to see what
+ * they are owed, so a plan or ledger read that has not landed must not
+ * hold that up — the button simply appears when it can.
+ *
+ * Signed in only. Signed out there is no real ledger to export, and the
+ * demo's subscription tier is not a plan anybody bought.
+ */
+function EarningsExport({ clientOf, remote }: { clientOf: (id: string) => Client | undefined; remote: boolean }) {
+  const t = useT();
+  const fmt = useFormat();
+  const plan = usePlan();
+  // Once per mount, not per render: Date.now() in a render body is impure
+  // (oxlint react/purity), and a filename that changed between renders
+  // would be its own small bug.
+  const [exportedAtMs] = useState(() => Date.now());
+  const isElite = remote && plan.status === 'ready' && plan.plan.tier === 'elite_pro';
+  const rows = useRemoteLoad('earnings_rows', isElite, fetchOwnPaymentRows);
+
+  if (!isElite || rows.status !== 'ready') return null;
+
+  const nameOf = (clientId: string) => clientOf(clientId)?.name ?? '';
+  const csv = toCsv(rows.data, nameOf, fmt.instantDate);
+  return (
+    <a
+      className="earnings-export"
+      href={csvHref(csv)}
+      download={csvFilename(exportedAtMs)}
+    >
+      {t('earningsExportCsv')}
+    </a>
+  );
 }
 
 function EarningsView({ summary, clientOf, remote }: { summary: EarningsSummary; clientOf: (id: string) => Client | undefined; remote: boolean }) {
@@ -77,6 +117,7 @@ function EarningsView({ summary, clientOf, remote }: { summary: EarningsSummary;
           </button>
           <div className="earnings-title">{t('earningsTitle')}</div>
         </div>
+        <EarningsExport clientOf={clientOf} remote={remote} />
       </div>
 
       <div className="earnings-body">

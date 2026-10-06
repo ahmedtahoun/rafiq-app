@@ -248,3 +248,133 @@ p {
   border-radius: 999px;
   padding: 5px 10px;
 }
+
+/* The public coach page, rafiqpro.com/c/<code> (site/coach-page.mjs). */
+.coach-hero {
+  text-align: center;
+  padding-block: 12px 4px;
+}
+
+.coach-avatar {
+  width: 88px;
+  height: 88px;
+  margin-inline: auto;
+  border-radius: 28px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 700;
+}
+
+.coach-name {
+  margin-block: 14px 4px;
+}
+
+.coach-verified {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--bg);
+  font-size: 15px;
+  vertical-align: middle;
+}
+
+.coach-title,
+.coach-price {
+  color: var(--ink-soft);
+  margin-block: 0 4px;
+}
+
+.coach-price {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.coach-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-block: 24px 8px;
+}
+
+.coach-stats div,
+.coach-facts div {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.coach-stats div {
+  text-align: center;
+}
+
+.coach-stats dt,
+.coach-facts dt {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.coach-stats dd,
+.coach-facts dd {
+  margin: 2px 0 0;
+  font-weight: 700;
+}
+
+.coach-facts {
+  display: grid;
+  gap: 10px;
+  margin-block: 24px;
+}
+
+.coach-book {
+  margin-block-start: 32px;
+  padding: 18px;
+  border-radius: 18px;
+  background: var(--bg-top);
+  border: 1px solid var(--line);
+}
+
+.coach-book h2 {
+  margin-block-start: 0;
+}
+
+.coach-open {
+  display: block;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: var(--accent);
+  color: var(--bg);
+  text-align: center;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.coach-stores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.coach-stores a {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  text-align: center;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.coach-soon {
+  color: var(--ink-soft);
+  font-size: 14px;
+  margin: 0;
+}
