@@ -25,10 +25,12 @@
 -- own kinds, src/lib/notificationData.ts; the coach's reads requests), and
 -- Home and Your Pro already show the next session.
 --
--- The schedule: pg_cron, if the project has it enabled when this runs. If
--- not, enable it (Dashboard → Database → Extensions → pg_cron) and run the
--- `cron.schedule` line at the bottom once; supabase/functions/push-send's
--- README has the step.
+-- The schedule: pg_cron, if the project has it enabled when this runs.
+-- Where it isn't (the live project, today), nothing is scheduled and
+-- nothing fails: no reminders go out, and everything else works as before.
+-- After enabling it (Dashboard → Database → Extensions → pg_cron), run
+-- `select public.schedule_session_reminders();` once in the SQL editor;
+-- supabase/functions/push-send's README has the step.
 
 alter type public.notification_kind add value if not exists 'session-reminder';
 
@@ -83,12 +85,30 @@ $$;
 
 revoke execute on function public.queue_session_reminders(timestamptz) from public, anon, authenticated;
 
--- Every five minutes, where pg_cron is enabled. cron.schedule with an
--- existing job name replaces that job, so running this again is harmless.
+-- Every five minutes, where pg_cron is enabled; true if it scheduled the
+-- job, false if pg_cron isn't there. It looks for pg_cron's own
+-- cron.schedule() rather than the extension's name, so it is safe to run
+-- either way. cron.schedule with an existing job name replaces that job,
+-- so running it again is harmless. Not for the app: it runs as whoever
+-- calls it, here the migration, later Ahmed in the SQL editor.
+create or replace function public.schedule_session_reminders()
+returns boolean
+language plpgsql
+set search_path = public
+as $$
+begin
+  if to_regprocedure('cron.schedule(text, text, text)') is null then
+    return false;
+  end if;
+  perform cron.schedule('session-reminders', '*/5 * * * *', 'select public.queue_session_reminders()');
+  return true;
+end;
+$$;
+
+revoke execute on function public.schedule_session_reminders() from public, anon, authenticated;
+
 do $$
 begin
-  if exists (select 1 from pg_extension where extname = 'pg_cron') then
-    perform cron.schedule('session-reminders', '*/5 * * * *', 'select public.queue_session_reminders()');
-  end if;
+  perform public.schedule_session_reminders();
 end;
 $$;

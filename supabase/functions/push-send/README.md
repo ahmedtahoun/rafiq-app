@@ -57,8 +57,10 @@ function's secrets.
    above sends it. `db push` schedules the job itself if `pg_cron` is
    already enabled. Check under Dashboard → Integrations → Cron for a job
    named `session-reminders`. If it isn't there, enable `pg_cron`
-   (Dashboard → Database → Extensions) and run once in the SQL editor:
-   `select cron.schedule('session-reminders', '*/5 * * * *', 'select public.queue_session_reminders()');`
+   (Dashboard → Database → Extensions → pg_cron) and run once in the SQL
+   editor: `select public.schedule_session_reminders();` It answers
+   `true` once the job is scheduled. Until then no reminders go out, and
+   nothing else is affected.
 
 Either platform can go first: without Apple's keys, iPhones are skipped and
 Android phones still get their banners, and the other way round.

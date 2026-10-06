@@ -129,3 +129,22 @@ select pg_temp.expect('...or reads what it sent',
 reset role;
 select pg_temp.expect('...signed out either',
   has_function_privilege('anon', 'public.queue_session_reminders(timestamptz)', 'execute')::text, 'false');
+
+-- The schedule (pg_cron) -------------------------------------------------------------------
+-- Without pg_cron, as on the live project today: nothing is scheduled and nothing fails.
+select pg_temp.expect('without pg_cron, nothing is scheduled',
+  public.schedule_session_reminders()::text, 'false');
+-- With it: a stand-in for pg_cron's cron.schedule(), recording what it is asked.
+create schema cron;
+create table cron.asked (job_name text, schedule text, command text);
+create function cron.schedule(job_name text, schedule text, command text) returns bigint
+language sql as $$ insert into cron.asked values (job_name, schedule, command); select 1::bigint; $$;
+select pg_temp.expect('with pg_cron, the job is scheduled',
+  public.schedule_session_reminders()::text, 'true');
+select pg_temp.expect('...by name, every five minutes',
+  (select string_agg(job_name || ' ' || schedule, ',') from cron.asked), 'session-reminders */5 * * * *');
+select pg_temp.expect('...running the reminder job',
+  (select string_agg(command, ',') from cron.asked), 'select public.queue_session_reminders()');
+drop schema cron cascade;
+select pg_temp.expect('the app cannot schedule it',
+  has_function_privilege('authenticated', 'public.schedule_session_reminders()', 'execute')::text, 'false');
