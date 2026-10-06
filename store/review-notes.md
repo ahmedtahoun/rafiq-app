@@ -61,7 +61,7 @@ Written against the app on 2026-09-30. Labels are quoted from
       minutes before a session starts (`JOIN_EARLY_MS`). Step 17 makes one,
       and it has to be made on the day.
 
-      **Its hours decide when you can do step 17 at all.** The script seeds
+      **Its hours decide when you can do step 18 at all.** The script seeds
       availability 10:00–18:00 Cairo on Saturday–Wednesday. Outside that
       the coach has no free slot for the member to book into, so plan the
       run-through for a Sat–Wed daytime or widen the hours on Availability
@@ -82,37 +82,56 @@ before moving on. Stop and file a bug at the first step that isn't.
    the permission prompt).
 3. Add one offering with a price, and the weekly hours.
 4. **New Member** → save a member with a name → open them →
-   **Invite them** → copy the code. Keep the code for step 9.
+   **Invite them** → copy the code. Keep the code for step 10.
 5. Add a task to that member (**New Task**) and a session on the Schedule.
 6. Close the app completely and reopen it: still signed in, everything
    still there.
 
+7. **Profile → Your plan.** Three cards: Free (3 active members),
+   Rafiq Pro Plus (450 EGP/month or 4,500/year, 15 members) and Rafiq
+   Elite Pro (900/month or 9,000/year, unlimited). **Nothing here is
+   purchasable in this version** and nothing should look as though it
+   ought to be:
+
+   - every card above the current plan carries a **Coming soon** badge and
+     the line *"Upgrading opens once billing goes live in the app"*;
+   - there is **no buy, subscribe or restore button** anywhere on the
+     screen, and no price is tappable;
+   - two Elite Pro features carry their own **Coming soon** badge, because
+     they are not built either.
+
+   This is the screen most likely to be read as a broken purchase, so §3's
+   notes say so in as many words. If a reviewer can tap anything that
+   looks like a purchase, that is a bug worth stopping for — the build
+   contains no in-app purchase products at all, so a tap could only lead
+   somewhere wrong.
+
 ### Member (review member account, on the other phone)
 
-7. Fresh install → **Continue with Google** → **"I'm a Member"** →
+8. Fresh install → **Continue with Google** → **"I'm a Member"** →
    onboarding: pick a focus, and **the "Coaching is not therapy" notice
    and the crisis list open** from the foot of the form.
-8. Home shows the no-coach state → **I have an invite code**.
-9. Enter the code from step 4, typed in lower case with a space in it (it
+9. Home shows the no-coach state → **I have an invite code**.
+10. Enter the code from step 4, typed in lower case with a space in it (it
    has to be accepted) → **Join {coach}?** → join.
-10. The task and the session from step 5 are there, with the right day and
+11. The task and the session from step 5 are there, with the right day and
     time. Times in Cairo are the easy thing to get wrong: a 6 PM session
     must say 6 PM.
-11. Tick the task → on the coach's phone the member's record shows it done.
-12. Discover → the coach from step 2 is listed → their page → request a
+12. Tick the task → on the coach's phone the member's record shows it done.
+13. Discover → the coach from step 2 is listed → their page → request a
     session at a free time → **Request sent!**
 
     The coach is unlisted (§1) and still appears here, which is correct
     rather than a leak: `coach_directory` returns an unlisted coach to
-    the coach themselves and to anyone on their roster, and step 9 put
+    the coach themselves and to anyone on their roster, and step 10 put
     this member on it. Signed in as any *other* member, this coach is not
     in Discover at all — worth confirming once from a throwaway account,
     since it is the whole point of unlisting them.
-13. Coach: Notifications → **Accept**. Member: the session appears, and so
+14. Coach: Notifications → **Accept**. Member: the session appears, and so
     does the notification.
-14. **Message** the coach → it appears on the coach's phone without a
+15. **Message** the coach → it appears on the coach's phone without a
     refresh → reply → it appears on the member's.
-15. **The unread badge and the chime** (#128). With the coach's phone on a
+16. **The unread badge and the chime** (#128). With the coach's phone on a
     screen that is *not* the thread — Home will do — send a message from
     the member. The coach's phone **plays a sound** and the **Messages**
     tab shows a count. Open the thread: the count clears. Then the other
@@ -123,8 +142,8 @@ before moving on. Stop and file a bug at the first step that isn't.
     sound if notifications are off (the coach's main switch, the member's
     Messages switch — Profile → Preferences). A banner with the app
     **closed** is a phone notification and is not in this version.
-16. Member: ask to move the session → coach accepts → both see the new time.
-17. **A video session, both ends.** Nothing seeded is joinable — see §1 —
+17. Member: ask to move the session → coach accepts → both see the new time.
+18. **A video session, both ends.** Nothing seeded is joinable — see §1 —
     so make one:
 
     - Coach: **Schedule** → add a booked session starting in the next few
@@ -144,16 +163,16 @@ before moving on. Stop and file a bug at the first step that isn't.
     switched on (`recording_enabled_on_domain` / `recording_enabled_on_room`,
     `src/lib/videoData.ts`). It is the guard working, not a bug — fix it in
     the Daily dashboard, not in the app.
-18. Coach: mark a past session attended. Member: **Rate Session** → the
+19. Coach: mark a past session attended. Member: **Rate Session** → the
     review shows on the coach's page signed with first name and last
     initial, never a full name.
-19. Member: **Report a problem** on the coach → **Report submitted**. It
+20. Member: **Report a problem** on the coach → **Report submitted**. It
     appears in the open-reports query (`supabase/admin/README.md`).
-20. Member: **Block** in the thread → neither side can send; unblock →
+21. Member: **Block** in the thread → neither side can send; unblock →
     both can.
-21. Airplane mode on either phone → an error with a retry, never a blank
+22. Airplane mode on either phone → an error with a retry, never a blank
     screen or demo data → back online → retry works.
-22. Android: the hardware back button walks back through screens and only
+23. Android: the hardware back button walks back through screens and only
     leaves the app from a tab root.
 
 > ### ⏳ Push notifications — not yet, add when #135/#137 land
@@ -175,7 +194,7 @@ before moving on. Stop and file a bug at the first step that isn't.
 
 ### Deletion (on a third, throwaway account, not the review accounts)
 
-23. Sign up a throwaway member, link it to the review coach, then
+24. Sign up a throwaway member, link it to the review coach, then
     **Delete Account** → confirm → the request shows in pending deletions →
     process it (`account-deletion` function) → the login is gone, and the
     coach's record keeps the sessions without the name.
@@ -212,8 +231,15 @@ App Store Connect → the version → **App Review Information**.
 >
 > Payments: coaching sessions are person-to-person live services
 > (guideline 3.1.3(d)). No payment is taken in the app in this version:
-> booking sends a request the coach accepts, and the coach subscription
-> shows "Coming soon". There are no in-app purchases in this version.
+> booking sends a request the coach accepts. **There are no in-app
+> purchase products in this build at all.**
+>
+> The coach's Profile → Your plan screen lists three plans — a free one and
+> two paid — with their prices, so a coach can see what is coming. Every
+> plan above the current one is marked "Coming soon", and there is no buy,
+> subscribe or restore control anywhere on that screen: billing is planned
+> for the first update after this one. Nothing on the screen is tappable as
+> a purchase.
 >
 > User-generated content (guideline 1.2): members can report a coach from
 > the coach's page ("Report a problem"), and either side can block the
@@ -241,9 +267,11 @@ App Store Connect → the version → **App Review Information**.
 
 ⚠️ Three lines in those notes depend on things that are still open. Check
 them before pasting:
-- "No payment is taken": only true while the payments model
-  (LAUNCH-CHECKLIST §3) is undecided. If Paymob for sessions or In-App
-  Purchase ships first, rewrite that paragraph.
+- "No payment is taken" and "no in-app purchase products in this build":
+  true while billing is unbuilt. Both become false the moment the products
+  in `store/subscriptions.md` are created and a build ships with the
+  purchase flow — and then step 7 of §2 changes too. If Paymob for sessions
+  ships first, rewrite that paragraph.
 - "Reports are reviewed": the response time isn't stated yet
   (LAUNCH-CHECKLIST §9).
 - "There are no push notifications in this version": true today, and false
