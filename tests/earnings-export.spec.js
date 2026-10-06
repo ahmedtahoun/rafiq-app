@@ -141,6 +141,31 @@ test('the CSV is exactly the ledger, escaped, in the device zone', async ({ brow
   await ctx.close();
 });
 
+test('a member name that starts a formula is exported as text', async ({ browser }) => {
+  // A member picks their own name. Opened in Excel or Sheets, a field that
+  // starts with =, +, -, @ runs as a formula, so the export must not hand
+  // the coach a spreadsheet with a member's formula in it.
+  const data = tables(ELITE);
+  data.clients.push(
+    client('c-eq', '=HYPERLINK("http://x.test","click")'),
+    client('c-plus', '+1 trick'),
+    client('c-at', '@SUM(1,1)'),
+  );
+  data.payments = [
+    { id: 'q-1', client_id: 'c-eq', kind: 'charge', amount: '100.00', currency: 'EGP', state: 'completed', method: 'Cash', note: null, refund_of: null, paid_at: '2026-10-03T09:00:00Z', created_at: '2026-10-03T09:00:00Z' },
+    { id: 'q-2', client_id: 'c-plus', kind: 'charge', amount: '100.00', currency: 'EGP', state: 'completed', method: 'Cash', note: null, refund_of: null, paid_at: '2026-10-02T09:00:00Z', created_at: '2026-10-02T09:00:00Z' },
+    { id: 'q-3', client_id: 'c-at', kind: 'charge', amount: '100.00', currency: 'EGP', state: 'completed', method: 'Cash', note: null, refund_of: null, paid_at: '2026-10-01T09:00:00Z', created_at: '2026-10-01T09:00:00Z' },
+  ];
+  const { page, ctx, errs } = await open(browser, { data });
+  const rows = (await exportedCsv(page)).split('\n').slice(1, 4);
+  expect(rows[0]).toBe('"Oct 3, 2026","\'=HYPERLINK(""http://x.test"",""click"")",charge,100.00,EGP,completed,Cash');
+  expect(rows[1]).toBe('"Oct 2, 2026",\'+1 trick,charge,100.00,EGP,completed,Cash');
+  // Its comma quotes it too, with the ' inside the quotes.
+  expect(rows[2]).toBe('"Oct 1, 2026","\'@SUM(1,1)",charge,100.00,EGP,completed,Cash');
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
+
 test('Arabic: the button is Arabic and the file still parses', async ({ browser }) => {
   const { page, ctx, errs } = await open(browser, { lang: 'ar', data: tables(ELITE) });
   await expect(page.locator('.earnings-export')).toHaveText('تصدير CSV');

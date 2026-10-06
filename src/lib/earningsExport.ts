@@ -68,9 +68,18 @@ export async function fetchOwnPaymentRows(): Promise<EarningsResult<PaymentRow[]
 
 /** RFC 4180: a field containing a comma, a quote or a newline is quoted,
     and its own quotes are doubled. A member named "Ali, Jr." would
-    otherwise shift every column after it by one. */
+    otherwise shift every column after it by one.
+
+    And no field may start a formula. A member chooses their own name, and
+    one that starts with =, +, -, @ (or a tab or carriage return) is run
+    as a formula when the coach opens the file in Excel or Sheets: a
+    "name" like =HYPERLINK(...) becomes a link in the coach's spreadsheet
+    (OWASP, "CSV Injection"). A leading ' makes it text. Amounts never
+    start with a sign here (a refund is named by `kind`), so no number is
+    touched. */
 function field(value: string): string {
-  return /[",\n\r]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+  return /[",\n\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
 }
 
 export const CSV_HEADER = ['date', 'member', 'kind', 'amount', 'currency', 'state', 'method'];
