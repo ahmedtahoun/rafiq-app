@@ -2,7 +2,8 @@
 --
 -- LAUNCH-CHECKLIST §6, "A public coach page, then Share again": a page on
 -- the open web a coach can send people to, at rafiqpro.com/c/<code>
--- (site/functions/c/[code].js renders it). Decided (2026-10-05):
+-- (site/functions/c/[code].js renders it). Proposed, for Ahmed to confirm
+-- in #156:
 -- - Opt in. Off by default; the coach turns it on in the app. Nobody is put
 --   on the open web without choosing it.
 -- - A short random code per coach, made the first time they turn it on and

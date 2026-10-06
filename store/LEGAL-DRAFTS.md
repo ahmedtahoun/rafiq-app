@@ -1,6 +1,6 @@
 # Draft clauses, for lawyer review
 
-Fourteen clauses counsel can mark up instead of draft. Each is **Proposed**
+Fifteen clauses counsel can mark up instead of draft. Each is **Proposed**
 — written against what the code does today, in English and Arabic, with
 every undecided fact left as a visible placeholder.
 
@@ -65,6 +65,7 @@ users.
 | 12 | "Verified" badge | Both Terms, and the coach Privacy policy | **Partly**, and less than people will assume. See the clause |
 | 13 | Changes to the terms | Both Terms, §6 *Changes* (replaces it) | **No.** There is no in-app announcement mechanism |
 | 14 | Physical coaching agreement | `AGREEMENT_TEXT`, `src/lib/mockStore.ts` | **Not reachable.** No signed-in member is shown the agreement — issue #143 |
+| 15 | A coach's public page | Coach Privacy policy | **Built, not reachable.** The page and the switch exist (0026, #160), but rafiqpro.com isn't hosted yet, so the app offers no link |
 
 ---
 
@@ -953,6 +954,56 @@ to have effect?
 only behind `!remote` (`ClientProfile.tsx:298`), which is the signed-out
 demo, and nothing in `src/`, `admin/` or `supabase/functions/` reads or
 writes the `agreements` table that 0005 created for it. Issue #143.
+
+---
+
+## 15 · A coach's public page — **Proposed**
+
+> **Goes into:** the Coach Privacy policy, after what members can see
+> of a coach. Added with #156 (0026) and #160 (the switch in the app).
+
+**English**
+
+> **Your public page, if you turn it on.** You can turn on a public page
+> in the app (Profile → Share). It stays off until you do. Anyone with
+> its link can then see your name, title, bio, languages, years of
+> experience, how you meet members, your credentials, whether your
+> account is verified, your lowest price and your rating. It never shows
+> your email, your phone number, your photo or anything about your
+> members. We ask search engines not to list it. You can turn it off in
+> the app at any time, and the page stops showing within a minute.
+> Turning it on again uses the same link.
+
+**العربية**
+
+> **صفحتك العامة، إذا فعّلتها.** يمكنك تفعيل صفحة عامة من التطبيق
+> (الملف الشخصي ← مشاركة)، وتبقى متوقفة حتى تفعّلها. وعندها يستطيع أي
+> شخص لديه رابطها أن يرى اسمك ومسمّاك المهني ونبذتك ولغاتك وسنوات
+> خبرتك وطريقة لقائك بالأعضاء وشهاداتك وما إذا كان حسابك موثَّقًا وأقل
+> أسعارك وتقييمك. ولا تُظهر أبدًا بريدك الإلكتروني أو رقم هاتفك أو صورتك
+> أو أي شيء عن أعضائك. ونطلب من محركات البحث ألّا تُدرجها. ويمكنك إيقافها
+> من التطبيق في أي وقت، فتتوقف الصفحة عن الظهور خلال دقيقة. وإذا فعّلتها
+> مجددًا فستستخدم الرابط نفسه.
+
+**What the app actually does**, exactly: the page shows what
+`public_coach_page()` (0026) returns and nothing else: `full_name`,
+`title`, `bio`, `languages`, `experience_years`, `session_mode`,
+`certifications`, `verified`, the lowest active offering's price, and
+the rating count and average. It answers only while `public_page` is on,
+and never for an unlisted coach (0022) or an account that isn't active.
+The page is sent with `noindex` and cached for at most 60 seconds, which
+is why the clause says "within a minute" and not "immediately". No photo:
+the avatars bucket stays signed-in only.
+
+**Not live yet.** The page needs rafiqpro.com to be hosted. Until then
+the app offers no link, so this clause describes nothing a coach can do
+today, and it should go into the policy in the same release that hosts
+the site.
+
+**Note for counsel.** Whether a coach's opt-in in the app is consent
+enough to publish their name and prices on the open web, or whether the
+Coach Terms also need a line letting us publish what they choose to
+show.
 
 ---
 
