@@ -27,6 +27,7 @@ import { MemberTabBar } from '../components/TabBars';
 import { PushPhoneRow } from '../components/PushAsk';
 import { usePushPermission } from '../store/pushHooks';
 import { syncPushDevice } from '../lib/push';
+import { DownloadMyData } from '../components/DownloadMyData';
 import './ClientProfile.css';
 
 // The coaching agreement and demo account deletion are the demo member's,
@@ -434,6 +435,9 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
             <ArrowForwardIcon size={14} color="var(--ink-soft)" />
           </button>
         </div>
+
+        {/* Signed in only: signed out there is no account to export. */}
+        {remote && <DownloadMyData />}
 
         <button type="button" className="client-profile-logout" onClick={logOut}>
           {t('profileLogOut')}
