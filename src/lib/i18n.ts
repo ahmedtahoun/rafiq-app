@@ -714,6 +714,12 @@ const en = {
     helpCenterA7: 'Any booked session can be held on video, inside Rafiq Pro — there is no link to send and nothing for your member to install. The Join button on the session opens ten minutes before the start time, for both of you. Sessions are never recorded: Rafiq Pro will not open a call at all if recording has been switched on, so there is no copy of a session anywhere.',
     helpCenterQ8: 'Where do I see new messages?',
     helpCenterA8: 'A red count sits on the Messages tab whenever a member has written to you, and a short sound plays as the message arrives — while the app is open and your notifications are on (Profile \u2192 Preferences). Opening the thread clears its share of the count.',
+    helpCenterQ9: 'Will I get notifications on my phone?',
+    helpCenterA9: "Once you turn them on. Rafiq never asks the moment you open it: the request comes the first time it would be any use \u2014 your first message, or your first booked session \u2014 or whenever you tap Turn on, on the \u201cNotifications on this phone\u201d row in your profile. You are asked once, and \"Not now\" is remembered too; after that it is your phone's own settings. Nothing arrives while you are using the app, because whatever it would say is already on the screen in front of you. The switches under Notifications decide what reaches the phone \u2014 and two of them, new messages and completed tasks, are phone-only: there are no rows for them in your in-app feed.",
+    helpCenterQ10: 'Will I be reminded before a session?',
+    helpCenterA10: 'Yes \u2014 both of you, in the hour before it starts, as long as notifications are on. One reminder per session: if you move the session, the reminder follows it to the new time, and a session you have already logged is not reminded at all. A walk-in member without their own account has no phone to reach, so only you are reminded.',
+    helpCenterQ11: 'What is my public page?',
+    helpCenterA11: "A page on the open web you can send to someone who is not on Rafiq yet \u2014 a link you can put in a message or a bio. It is off until you turn it on from Share, and nobody is put on the web without choosing it. It shows your name, your title, your bio, your languages, your experience, how you meet, your credentials, whether you are verified, your lowest price, how many reviews you have, and your rating once you have three of them. It never shows your email, your phone number, anything about your members, or what a review said \u2014 and no photo. Turning it off takes it down; turning it back on keeps the same link.",
 
     // CoachPrivacyPolicy.dc.html — ported, Arabic included.
     privacyTitle: 'Privacy Policy',
@@ -1141,6 +1147,10 @@ const en = {
     clientHelpA7: 'Your session happens on video inside Rafiq Pro — no link to find, no other app to install. The Join button opens ten minutes before the start time, for you and your pro. Sessions are never recorded: Rafiq Pro will not open a call at all if recording has been switched on, so there is no copy of your session anywhere.',
     clientHelpQ8: 'Where do I see new messages?',
     clientHelpA8: 'A red count sits on the Your Pro tab whenever your pro has written to you, and a short sound plays as the message arrives — while the app is open and your Messages notifications are on (Profile \u2192 Preferences). Opening the conversation clears the count.',
+    clientHelpQ9: 'Will I get notifications on my phone?',
+    clientHelpA9: "Once you turn them on. Rafiq never asks the moment you open it: the request comes the first time it would be any use \u2014 your first message, or your first booked session \u2014 or whenever you tap Turn on, on the \u201cNotifications on this phone\u201d row in your profile. You are asked once, and \"Not now\" is remembered too; after that it is your phone's own settings. Nothing arrives while you are using the app, because whatever it would say is already on the screen in front of you. The switches under Notifications decide what reaches the phone: session updates, overdue tasks, and messages from your pro.",
+    clientHelpQ10: 'Will I be reminded before a session?',
+    clientHelpA10: 'Yes \u2014 you and your pro both, in the hour before it starts, as long as notifications are on. One reminder per session: if the session moves, the reminder follows it to the new time, and a session already finished with is not reminded.',
 
     clientPrivacyTitle: 'Privacy Policy', clientPrivacyUpdated: 'Last updated: October 2025',
     clientPrivacySection1Heading: 'What we collect',
@@ -1875,6 +1885,12 @@ const ar: Record<MessageKey, string> = {
     helpCenterA7: 'يمكن عقد أي جلسة محجوزة بالفيديو داخل رفيق — لا رابط ترسله ولا تطبيق يثبّته عضوك. ويفتح زر الانضمام في الجلسة قبل موعدها بعشر دقائق لكليكما. والجلسات لا تُسجَّل أبدًا: لا يفتح رفيق المكالمة من الأصل إذا كان التسجيل مُفعَّلًا، فلا توجد نسخة من أي جلسة في أي مكان.',
     helpCenterQ8: 'أين أرى الرسائل الجديدة؟',
     helpCenterA8: 'يظهر عدّاد أحمر على تبويب «الرسائل» كلما راسلك عضو، ويصدر صوت قصير عند وصول الرسالة — ما دام التطبيق مفتوحًا وإشعاراتك مُفعّلة (الملف الشخصي ← التفضيلات). وفتح المحادثة يُزيل نصيبها من العدّاد.',
+    helpCenterQ9: 'هل تصلني الإشعارات على هاتفي؟',
+    helpCenterA9: 'نعم، بعد أن تفعّلها. ولا يسألك رفيق لحظة فتحه: يأتي الطلب أول مرة يكون للإشعارات فيها فائدة فعلية — أول رسالة، أو أول جلسة محجوزة — أو حين تضغط «تفعيل» في صف «الإشعارات على هذا الهاتف» في ملفك الشخصي. ويُسأل مرة واحدة، و«ليس الآن» محفوظة أيضًا؛ وبعدها يكون الأمر في إعدادات هاتفك نفسه. ولا يصلك شيء وأنت تستخدم التطبيق، لأن ما كان سيُقال لك ظاهر أمامك على الشاشة. والمفاتيح أسفل «الإشعارات» تحدد ما يصل إلى الهاتف — واثنان منها، الرسائل الجديدة والمهام المكتملة، لا يصلان إلا إلى الهاتف: فليس لهما صفوف في قائمة الإشعارات داخل التطبيق.',
+    helpCenterQ10: 'هل يصلني تنبيه قبل الجلسة؟',
+    helpCenterA10: 'نعم — لكليكما، في الساعة التي تسبق موعد البداية، ما دامت الإشعارات مفعّلة. وتنبيه واحد لكل جلسة: فإن نقلت الجلسة تبعها التنبيه إلى موعدها الجديد، والجلسة التي سجّلت نتيجتها بالفعل لا تنبيه لها. والعضو الذي أضفته دون حساب خاص به لا هاتف يُنبَّه عليه، فيصل التنبيه إليك وحدك.',
+    helpCenterQ11: 'ما هي صفحتي العامة؟',
+    helpCenterA11: 'صفحة على الويب المفتوح ترسلها إلى من ليس على رفيق بعد — رابط تضعه في رسالة أو في نبذتك. وهي متوقفة حتى تفعّلها من «مشاركة»، ولا يُنشر أحد على الويب دون أن يختار ذلك. تعرض اسمك وعنوانك المهني ونبذتك ولغاتك وخبرتك وطريقة لقائك والشهادات وما إذا كنت موثّقًا، وأقل أسعارك، وعدد التقييمات التي لديك، ومتوسط تقييمك بعد أن تصل إلى ثلاثة. ولا تعرض أبدًا بريدك الإلكتروني ولا رقم هاتفك ولا شيئًا عن أعضائك ولا نص أي تقييم — ولا صورة. وإيقافها يُنزلها، وإعادة تفعيلها تُبقي الرابط نفسه.',
 
     // CoachPrivacyPolicy.dc.html — ported 1:1.
     privacyTitle: 'سياسة الخصوصية',
@@ -2283,6 +2299,10 @@ const ar: Record<MessageKey, string> = {
     clientHelpA7: 'جلستك تجري بالفيديو داخل رفيق — لا رابط تبحثين عنه ولا تطبيق آخر تثبّتينه. ويفتح زر الانضمام قبل موعد الجلسة بعشر دقائق، لكِ ولمحترفتك. والجلسات لا تُسجَّل أبدًا: لا يفتح رفيق المكالمة من الأصل إذا كان التسجيل مُفعَّلًا، فلا توجد نسخة من جلستك في أي مكان.',
     clientHelpQ8: 'أين أرى الرسائل الجديدة؟',
     clientHelpA8: 'يظهر عدّاد أحمر على تبويب «محترفك» كلما راسلتك محترفتك، ويصدر صوت قصير عند وصول الرسالة — ما دام التطبيق مفتوحًا وإشعارات الرسائل مُفعّلة (الملف الشخصي ← التفضيلات). وفتح المحادثة يُزيل العدّاد.',
+    clientHelpQ9: 'هل تصلني الإشعارات على هاتفي؟',
+    clientHelpA9: 'نعم، بعد أن تفعّليها. ولا يسألك رفيق لحظة فتحه: يأتي الطلب أول مرة تكون للإشعارات فيها فائدة فعلية — أول رسالة، أو أول جلسة محجوزة — أو حين تضغطين «تفعيل» في صف «الإشعارات على هذا الهاتف» في ملفك الشخصي. ويُسأل مرة واحدة، و«ليس الآن» محفوظة أيضًا؛ وبعدها يكون الأمر في إعدادات هاتفك نفسه. ولا يصلك شيء وأنتِ تستخدمين التطبيق، لأن ما كان سيُقال لك ظاهر أمامك على الشاشة. والمفاتيح أسفل «الإشعارات» تحدد ما يصل إلى الهاتف: مستجدات الجلسات، والمهام المتأخرة، ورسائل محترفتك.',
+    clientHelpQ10: 'هل يصلني تنبيه قبل الجلسة؟',
+    clientHelpA10: 'نعم — لكِ ولمحترفتك، في الساعة التي تسبق موعد البداية، ما دامت الإشعارات مفعّلة. وتنبيه واحد لكل جلسة: فإن تغيّر موعد الجلسة تبعها التنبيه إلى الموعد الجديد، والجلسة التي انتهى أمرها لا تنبيه لها.',
 
     clientPrivacyTitle: 'سياسة الخصوصية', clientPrivacyUpdated: 'آخر تحديث: أكتوبر 2025',
     clientPrivacySection1Heading: 'ما الذي نجمعه',
