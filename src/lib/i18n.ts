@@ -1634,7 +1634,7 @@ const ar: Record<MessageKey, string> = {
     agreementConfirm: 'قرأتُ هذا الاتفاق وأوافق عليه.',
     agreementSign: 'توقيع الاتفاق',
     agreementSignedOn: 'وُقّع في {date}',
-    agreementSignFailed: 'تعذّر توقيع الاتفاق. تحقّقي من اتصالك وحاولي مرة أخرى.',
+    agreementSignFailed: 'تعذّر توقيع الاتفاق. يُرجى التحقق من الاتصال والمحاولة مرة أخرى.',
     agreementLoadFailed: 'تعذّر تحميل اتفاقك.',
     clientDetailAgreementTitle: 'اتفاق التدريب',
     clientDetailAgreementNone: 'لم يُرسَل إلى {name} بعد. القراءة والتوقيع داخل التطبيق.',
