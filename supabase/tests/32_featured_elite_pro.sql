@@ -106,3 +106,43 @@ select pg_temp.expect('Elite Pro doesn''t list an unlisted coach', pg_temp.featu
 reset role;
 select pg_temp.expect('signed out, still no directory',
   has_table_privilege('anon', 'public.coach_directory', 'select')::text, 'false');
+
+-- The public page's rating (0026's public_coach_page, replaced here) -------------------------
+-- Signed out, anyone with the code reads the page. Below three ratings its
+-- average would be one or two members' own scores, so it says nothing.
+create or replace function pg_temp.public_rating(code text) returns text
+language plpgsql as $$
+declare r text;
+begin
+  set local role anon;
+  select coalesce(j->>'rating_count', 'null') || '/' || coalesce(j->>'rating_avg', 'null')
+    || '/' || (j ? 'rating_count')::text || (j ? 'rating_avg')::text
+    into r from public.public_coach_page(code) j;
+  reset role;
+  return r;
+end;
+$$;
+
+update public.coach_profiles set public_page = true, public_code = 'kq32ab' where profile_id = :coachF;
+insert into public.clients (id, coach_id, full_name, active) values
+  ('32323232-1111-0000-0000-000000000001', :coachF, 'Rater One', true),
+  ('32323232-1111-0000-0000-000000000002', :coachF, 'Rater Two', true),
+  ('32323232-1111-0000-0000-000000000003', :coachF, 'Rater Three', true);
+insert into public.sessions (id, client_id, scheduled_at) values
+  ('32323232-2222-0000-0000-000000000001', '32323232-1111-0000-0000-000000000001', now() - interval '3 days'),
+  ('32323232-2222-0000-0000-000000000002', '32323232-1111-0000-0000-000000000002', now() - interval '2 days'),
+  ('32323232-2222-0000-0000-000000000003', '32323232-1111-0000-0000-000000000003', now() - interval '1 day');
+insert into public.ratings (client_id, coach_id, session_id, rating) values
+  ('32323232-1111-0000-0000-000000000001', :coachF, '32323232-2222-0000-0000-000000000001', 2);
+select pg_temp.expect('one rating: the public page gives no score',
+  pg_temp.public_rating('kq32ab'), 'null/null/truetrue');
+insert into public.ratings (client_id, coach_id, session_id, rating) values
+  ('32323232-1111-0000-0000-000000000002', :coachF, '32323232-2222-0000-0000-000000000002', 4);
+select pg_temp.expect('...two: still none, and no count',
+  pg_temp.public_rating('kq32ab'), 'null/null/truetrue');
+insert into public.ratings (client_id, coach_id, session_id, rating) values
+  ('32323232-1111-0000-0000-000000000003', :coachF, '32323232-2222-0000-0000-000000000003', 5);
+select pg_temp.expect('...three: the count and the average',
+  pg_temp.public_rating('kq32ab'), '3/3.67/truetrue');
+select pg_temp.expect('...and still anyone may call it',
+  has_function_privilege('anon', 'public.public_coach_page(text)', 'execute')::text, 'true');
