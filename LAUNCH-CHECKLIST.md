@@ -48,11 +48,15 @@ calendar time no matter how fast the code moves:
       The coach picks the payout schedule: every week, or every three days
       for 2% more (17% in all). Still open: the advisor questions in §3.
 - [ ] 🔴 **Company / legal entity** that owns the developer accounts and
-      receives store payouts. **It exists (Ahmed, 2026-10-07): وير تو سبوت,
-      commercial register 101557, السوالم قبلي، إيتاي البارود.** Its name,
-      number and address are in `store/LEGAL-DRAFTS.md` clause 1. Left: the
-      Latin spelling and legal form for the English texts, its D-U-N-S
-      number, and moving the developer accounts to it (below). **Proposed as 🔴 rather than 🟡**: an
+      receives store payouts. **It exists (Ahmed, 2026-10-07): Where To Spot
+      (وير تو سبوت), a sole proprietorship, commercial register 101557 at the
+      Damanhour office, السوالم قبلي، إيتاي البارود.** It is named in
+      `store/LEGAL-DRAFTS.md` clause 1. **Apple:** Apple enrols sole
+      proprietors as individuals, so the personal team `55BRQ92599` is the
+      right one and the question below about a new organization team falls
+      away. **Google Play:** check whether Play will verify this sole
+      proprietorship as an organization (it needs a D-U-N-S number); if
+      not, the account stays personal. **Proposed as 🔴 rather than 🟡**: an
       organization Play account (proposed, §5) is verified against this
       entity and its D-U-N-S number, so nothing on the Play side would
       start until it exists. On a personal account it stays 🟡. (The App Store Paid Apps agreement is not

@@ -28,12 +28,12 @@ was invented**: where a fact is not decided, the placeholder stays.
 
 | Placeholder | What it needs | Who decides |
 |---|---|---|
-| `[ENTITY NAME]` | **Given (Ahmed, 2026-10-07): وير تو سبوت.** Still needed: the Latin spelling exactly as Ahmed wants it in the English texts, and the entity's legal form (a company, or a sole proprietorship — clause 1 says "a company") | Ahmed |
-| `[ADDRESS]` | **Given (Ahmed, 2026-10-07): السوالم قبلي، إيتاي البارود.** The governorate (البحيرة) is added below; the English transliteration is ours. Still needed: the full address as it stands on the commercial register extract, if it is more precise than this | Ahmed |
-| `[REGISTRATION NO.]` | **Given (Ahmed, 2026-10-07): 101557.** Still needed: which commercial register office it is held at, which Egyptian register numbers are stated with; the tax card number if counsel wants it | Ahmed |
+| `[ENTITY NAME]` | **Given (Ahmed, 2026-10-07): Where To Spot (وير تو سبوت), a sole proprietorship (منشأة فردية)**, from the commercial register extract | Ahmed |
+| `[ADDRESS]` | **Given (Ahmed, 2026-10-07): السوالم قبلي، إيتاي البارود**, Beheira. The English transliteration is ours | Ahmed |
+| `[REGISTRATION NO.]` | **Given (Ahmed, 2026-10-07): 101557, Damanhour commercial register office** (مكتب سجل تجاري دمنهور), from the extract. The tax card number if counsel wants it stated | Ahmed |
 | `[COMMISSION]` | **Decided (Ahmed, 2026-10-07): 15%** of the session price; **17%** for a coach who chooses payouts every three days (below) | Ahmed |
 | `[PAYOUT SCHEDULE]` | **Decided (Ahmed, 2026-10-07): the coach chooses** — every week, or every three days for 2% more commission | Ahmed |
-| `[PAYOUT MINIMUM]` | Whether a minimum balance applies before a payout runs, or none | Ahmed |
+| `[PAYOUT MINIMUM]` | **Decided (Ahmed, 2026-10-07): none** | Ahmed |
 | `[DPO NAME]` / `[DPO EMAIL]` | Whoever answers privacy requests. Law 151/2020's data protection officer requirement is a question for counsel — whether Rafiq needs one at this size is clause 1's note | Counsel, then Ahmed |
 | `[24 hours]` | The review time Rafiq commits to for a report. Written as a bracket because it is a promise, not a guess — Apple reads it as one | Ahmed |
 | `[30 days]` | The response time for a privacy request. Counsel should confirm whether Law 151/2020 sets a shorter one | Counsel |
@@ -76,11 +76,11 @@ users.
 
 **English**
 
-> Rafiq Pro is operated by **[ENTITY NAME — Latin spelling of وير تو سبوت]**,
-> a company registered in the Arab Republic of Egypt under commercial
-> register number **101557**, with its registered office at **El Sawalem
-> Qibli, Itay El Barud, Beheira Governorate, Egypt**. In
-> these Terms, "Rafiq Pro", "we" and "us" mean that company.
+> Rafiq Pro is operated by **Where To Spot**, a sole proprietorship
+> registered in the Arab Republic of Egypt at the Damanhour commercial
+> register office under number **101557**, with its main place of business
+> at **El Sawalem Qibli, Itay El Barud, Beheira Governorate, Egypt**. In
+> these Terms, "Rafiq Pro", "we" and "us" mean that business.
 >
 > These Terms, and any dispute about them or about your use of Rafiq Pro,
 > are governed by the laws of the Arab Republic of Egypt. The courts of
@@ -97,10 +97,10 @@ users.
 
 **العربية**
 
-> يُشغّل تطبيق رفيق شركة **وير تو سبوت**، وهي شركة مسجلة في جمهورية مصر
-> العربية بالسجل التجاري رقم **101557**، ومقرها المسجل في **السوالم قبلي،
-> إيتاي البارود، محافظة البحيرة**. وتعني كلمة «رفيق» وضمير المتكلم الجمع في هذه الشروط تلك
-> الشركة.
+> يُشغّل تطبيق رفيق **وير تو سبوت**، وهي منشأة فردية مقيدة في جمهورية مصر
+> العربية بالسجل التجاري رقم **101557** بمكتب سجل تجاري دمنهور، ومحلها
+> الرئيسي في **السوالم قبلي، إيتاي البارود، محافظة البحيرة**. وتعني كلمة
+> «رفيق» وضمير المتكلم الجمع في هذه الشروط تلك المنشأة.
 >
 > تخضع هذه الشروط، وأي نزاع بشأنها أو بشأن استخدامك للتطبيق، لقوانين
 > جمهورية مصر العربية، وتختص بها محاكم **[COURT]**.
@@ -119,6 +119,14 @@ And is the pre-action step above enforceable as drafted, or does it need to
 be either removed or made a formal condition precedent? The placeholder
 stays until the first is answered — we would rather name nobody than name
 the wrong role.
+
+**A third, since 2026-10-07: the operator is a sole proprietorship**
+(منشأة فردية, "أفراد محل رئيسي" on the register extract), not a company. As
+we understand it, a sole proprietorship has no legal personality of its
+own: the proprietor is the contracting party, the data controller, and
+personally liable. Must the Terms and the Privacy policies name the
+proprietor as well as the trade name, and does anything in Law 151/2020's
+licensing or registration change because the controller is an individual?
 
 ---
 
@@ -259,7 +267,8 @@ The section being replaced says the opposite of the decided model:
 > **Payouts.** You choose how often we pay you: **every week**, or **every
 > three days** for an extra **2%** commission — 17% of the session price in
 > all — on what is paid out on that schedule. We pay to the payout account
-> you set in Profile → Payout account. **[PAYOUT MINIMUM]** Rafiq Pro does not
+> you set in Profile → Payout account. There is no minimum: whatever is
+> due is paid on your schedule, however small. Rafiq Pro does not
 > hold a balance for you: a payout is a transfer of money already collected
 > for your completed sessions, not a wallet.
 >
@@ -290,7 +299,8 @@ The section being replaced says the opposite of the decided model:
 > **التحويلات.** تختار بنفسك موعد تحويل مستحقاتك: **كل أسبوع**، أو **كل
 > ثلاثة أيام** مقابل عمولة إضافية قدرها **2%** — أي 17% من قيمة الجلسة
 > إجمالًا — على ما يُحوَّل وفق هذا الموعد. ونحوّلها إلى حساب القبض الذي
-> تحدده في: الملف الشخصي ← حساب القبض. **[PAYOUT MINIMUM]** ولا يحتفظ رفيق
+> تحدده في: الملف الشخصي ← حساب القبض. ولا حد أدنى للتحويل: يُحوَّل كل ما
+> يستحق لك في موعده مهما صغر. ولا يحتفظ رفيق
 > برصيد لك: فالتحويل نقل لمبالغ تم تحصيلها فعلًا عن جلسات أتممتها، وليس
 > محفظة.
 >
