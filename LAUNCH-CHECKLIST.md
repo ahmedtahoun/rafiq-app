@@ -714,17 +714,6 @@ only Rafiq can resolve (as `service_role`). Nothing works them yet.
       not typecheck `admin/`.
 - [ ] 🟡 A written response time for reports and deletions — and meet it.
       Deletions: 30 days (public deletion page). Reports: not stated yet.
-      **Proposed, for Ahmed to decide:** acknowledge a report within 48
-      hours, and resolve it within 7 days, both counted from when it is
-      filed. Apple asks for "timely action" without naming a number, so the
-      number is ours to choose and then keep. The reasoning behind these
-      two: the queue is one person's for now, so the promise has to survive
-      a week when that person is travelling — 7 days does, 48 hours is
-      short enough to mean something on a report about another person's
-      behaviour, and neither requires an evening. Nothing says this to a
-      user until Ahmed agrees it; it would then go in the terms, where
-      reporting is already described, and in `store/review-notes.md` so a
-      reviewer can see the commitment.
 
 ## 10. Monitoring and performance (Dev)
 
