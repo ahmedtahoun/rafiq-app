@@ -162,15 +162,17 @@ test('ClientHelpCenter', async ({ browser }) => {
   expect.soft(String(errs.length), 'no console/page errors').toBe('0');
   expect.soft(String(await txt(page, '.client-help-title')), 'title').toBe('Get Help');
   // Typed here, not read from the screen's own list: counting FAQ_IDS
-  // against itself can't notice a question dropped from it. Ten since
-  // phone notifications and session reminders shipped, and the new ones by
-  // name.
-  expect.soft(String(await n(page, '.client-help-question')), '10 questions').toBe('10');
+  // against itself can't notice a question dropped from it. Twelve since
+  // phone notifications, session reminders, signing the agreement and the
+  // data export shipped, and the new ones by name.
+  expect.soft(String(await n(page, '.client-help-question')), '12 questions').toBe('12');
   const questions = await page.locator('.client-help-question').allInnerTexts();
   expect.soft(questions.some((q) => q.includes('How do video sessions work?')), 'the video question').toBe(true);
   expect.soft(questions.some((q) => q.includes('Where do I see new messages?')), 'the messages question').toBe(true);
   expect.soft(questions.some((q) => q.includes('notifications on my phone')), 'the push question').toBe(true);
   expect.soft(questions.some((q) => q.includes('reminded before a session')), 'the reminder question').toBe(true);
+  expect.soft(questions.some((q) => q.includes('sign my coaching agreement')), 'the agreement question').toBe(true);
+  expect.soft(questions.some((q) => q.includes('copy of my data')), 'the data-export question').toBe(true);
   // The public page is a coach's own, so the member side must not offer to
   // explain one. Asserted here rather than on the coach screen, where it
   // would only restate the line above.
