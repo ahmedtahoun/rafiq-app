@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { IGNORED_CONSOLE, installScreenSettle } from './helpers.js';
-import { installFakeSupabase, signIn, dbCalls } from './fakeSupabase.js';
+import { installFakeSupabase, signIn, dbCalls, MAX_ROWS } from './fakeSupabase.js';
 
 /**
  * Profile → Privacy → "Download my data" (DownloadMyData.tsx,
@@ -60,7 +60,7 @@ const tables = () => ({
   ],
 });
 
-async function open(browser, { lang = 'en', dark = false, signedIn = true, fail = [] } = {}) {
+async function open(browser, { lang = 'en', dark = false, signedIn = true, fail = [], data = tables() } = {}) {
   const ctx = await browser.newContext({ viewport: { width: 420, height: 900 }, acceptDownloads: true });
   const page = await ctx.newPage();
   await page.clock.setFixedTime(NOW);
@@ -79,7 +79,7 @@ async function open(browser, { lang = 'en', dark = false, signedIn = true, fail 
   }, [lang, dark]);
   await page.reload();
   if (signedIn) {
-    await installFakeSupabase(page, { userId: MEMBER, tables: tables(), fail });
+    await installFakeSupabase(page, { userId: MEMBER, tables: data, fail });
     await signIn(page, MEMBER);
   }
   await page.evaluate(async () => (await import('/src/store/appStore.ts')).useAppStore.getState().nav('clientProfile'));
@@ -127,6 +127,30 @@ for (const [lang, dark] of [['en', false], ['ar', true]]) {
     await ctx.close();
   });
 }
+
+test('a long conversation comes out whole, past the API\'s row limit', async ({ browser }) => {
+  // The fake returns at most MAX_ROWS rows to one request, as the real API
+  // does with supabase/config.toml's max_rows, and says nothing about it.
+  expect((await readFile('supabase/config.toml', 'utf8')).match(/^max_rows = (\d+)$/m)?.[1]).toBe(String(MAX_ROWS));
+  const data = tables();
+  const many = (n, row) => Array.from({ length: n }, (_, i) => row(String(i).padStart(4, '0')));
+  data.messages.push(...many(1500, (i) => ({ id: `msg-${i}`, client_id: 'rel-a', sender_role: 'coach', sender_id: COACH, body: `Message ${i}`, created_at: '2026-10-04T09:00:00Z' })));
+  data.notifications.push(...many(1200, (i) => ({ id: `n-${i}`, recipient_id: MEMBER, kind: 'message', read: true, created_at: '2026-10-04T09:00:00Z' })));
+  const { page, ctx, errs } = await open(browser, { data });
+
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: /Download my data/ }).click()]);
+  const out = JSON.parse(await readFile(await download.path(), 'utf8'));
+  const ids = out.relationships[0].messages.map((m) => m.id);
+  expect([ids.length, new Set(ids).size]).toEqual([1501, 1501]);
+  expect(ids).toContain('msg-1499');
+  expect(out.notifications).toHaveLength(1201);
+  // A page at a time, in the key's order, until a page comes back short.
+  // (Only the export's: Profile reads messages for its own reasons too.)
+  const reads = (await dbCalls(page)).filter((c) => c.table === 'messages' && c.op === 'select' && c.columns === '*');
+  expect(reads.map((c) => [c.order, c.range])).toEqual([[['id', true], [0, 999]], [['id', true], [1000, 1999]]]);
+  expect(errs).toEqual([]);
+  await ctx.close();
+});
 
 test('a read that fails says so and hands over nothing', async ({ browser }) => {
   const { page, ctx } = await open(browser);

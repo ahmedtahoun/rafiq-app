@@ -13,6 +13,11 @@
  * gathers. A table that fails to read fails the export, rather than
  * handing over a file that silently leaves part of it out.
  *
+ * For the same reason every list is read a page at a time (readAll): the
+ * API returns at most max_rows rows to one request (supabase/config.toml)
+ * and doesn't say when it stopped, so one read of a long conversation would
+ * quietly lose everything past the first thousand messages.
+ *
  * Same result shape as the other *Data.ts files.
  */
 import { getSupabase, isSupabaseConfigured } from './supabase';
@@ -53,18 +58,40 @@ export interface MemberExport {
   notifications: Row[];
 }
 
-/** Per relationship, the table and the key it hangs on. */
-const PER_RELATIONSHIP = {
-  tasks: 'tasks',
-  sessions: 'sessions',
-  check_ins: 'mood_checkins',
-  messages: 'messages',
-  reviews: 'ratings',
-  agreement: 'agreements',
-  packages: 'packages',
-  payments: 'payments',
-  programs: 'enrollments',
-} as const;
+/**
+ * One page: supabase/config.toml's max_rows. It must not be more than that,
+ * or a full page would come back looking short and the read would stop.
+ */
+export const EXPORT_PAGE = 1000;
+
+/**
+ * Every row of one list, a page at a time until a page comes back short,
+ * or null if any page fails. Each caller orders its pages by the table's
+ * primary key, so no row is skipped or read twice between them.
+ */
+async function readAll(page: (from: number, to: number) => PromiseLike<{ data: unknown[] | null; error: unknown }>): Promise<Row[] | null> {
+  const rows: Row[] = [];
+  for (let from = 0; ; from += EXPORT_PAGE) {
+    const { data, error } = await page(from, from + EXPORT_PAGE - 1);
+    if (error) return null;
+    const got = (data ?? []) as Row[];
+    rows.push(...got);
+    if (got.length < EXPORT_PAGE) return rows;
+  }
+}
+
+/** Per relationship: each table, and its primary key. */
+const PER_RELATIONSHIP = [
+  ['tasks', ['id']],
+  ['sessions', ['id']],
+  ['mood_checkins', ['id']],
+  ['messages', ['id']],
+  ['ratings', ['id']],
+  ['agreements', ['client_id']],
+  ['packages', ['client_id']],
+  ['payments', ['id']],
+  ['enrollments', ['client_id', 'offering_id']],
+] as const;
 
 export async function fetchMemberExport(nowIso: string = new Date().toISOString()): Promise<ExportResult<MemberExport>> {
   if (!isSupabaseConfigured()) return NOT_CONFIGURED;
@@ -73,25 +100,27 @@ export async function fetchMemberExport(nowIso: string = new Date().toISOString(
   const uid = user.user?.id;
   if (!uid) return NOT_SIGNED_IN;
 
-  const [profile, goals, clients, requests, favourites, notifications] = await Promise.all([
+  const [profile, goals, rels, requests, favourites, notifications] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', uid).maybeSingle(),
     supabase.from('member_profiles').select('*').eq('profile_id', uid).maybeSingle(),
-    supabase.from('clients').select('*').eq('member_id', uid),
-    supabase.from('session_requests').select('*').eq('member_id', uid),
-    supabase.from('favourite_coaches').select('*').eq('member_id', uid),
-    supabase.from('notifications').select('*').eq('recipient_id', uid),
+    readAll((from, to) => supabase.from('clients').select('*').eq('member_id', uid).order('id').range(from, to)),
+    readAll((from, to) => supabase.from('session_requests').select('*').eq('member_id', uid).order('id').range(from, to)),
+    readAll((from, to) => supabase.from('favourite_coaches').select('*').eq('member_id', uid).order('coach_id').range(from, to)),
+    readAll((from, to) => supabase.from('notifications').select('*').eq('recipient_id', uid).order('id').range(from, to)),
   ]);
-  if (profile.error || goals.error || clients.error || requests.error || favourites.error || notifications.error) return FAILED;
+  if (profile.error || goals.error || !rels || !requests || !favourites || !notifications) return FAILED;
 
-  const rels = (clients.data ?? []) as Row[];
   const ids = rels.map((r) => String(r.id));
   const byTable: Record<string, Row[]> = {};
   if (ids.length > 0) {
-    const tables = Object.values(PER_RELATIONSHIP);
-    const reads = await Promise.all(tables.map((t) => supabase.from(t).select('*').in('client_id', ids)));
-    for (const [i, r] of reads.entries()) {
-      if (r.error) return FAILED;
-      byTable[tables[i]] = (r.data ?? []) as Row[];
+    const reads = await Promise.all(PER_RELATIONSHIP.map(([table, key]) => readAll((from, to) => {
+      let q = supabase.from(table).select('*').in('client_id', ids);
+      for (const col of key) q = q.order(col);
+      return q.range(from, to);
+    })));
+    for (const [i, rows] of reads.entries()) {
+      if (!rows) return FAILED;
+      byTable[PER_RELATIONSHIP[i][0]] = rows;
     }
   }
   const of = (table: string, clientId: string) => (byTable[table] ?? []).filter((r) => r.client_id === clientId);
@@ -119,9 +148,9 @@ export async function fetchMemberExport(nowIso: string = new Date().toISOString(
           programs: of('enrollments', id),
         };
       }),
-      session_requests: (requests.data ?? []) as Row[],
-      favourite_coaches: (favourites.data ?? []) as Row[],
-      notifications: (notifications.data ?? []) as Row[],
+      session_requests: requests,
+      favourite_coaches: favourites,
+      notifications,
     },
   };
 }
