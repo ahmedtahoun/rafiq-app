@@ -105,10 +105,22 @@ select pg_temp.expect('...not the coach',
   pg_temp.as_user(:coachC, format('update public.agreements set lang = ''en'' where client_id = %L returning 1', :clientS)), 'DENIED(42501)');
 select pg_temp.expect('...and the coach can''t delete it',
   pg_temp.as_user(:coachC, format('delete from public.agreements where client_id = %L returning 1', :clientS)), 'DENIED(42501)');
+select pg_temp.expect('...nor delete the relationship it''s signed in',
+  pg_temp.as_user(:coachC, format('delete from public.clients where id = %L returning 1', :clientS)), 'DENIED(42501)');
+select pg_temp.expect('...though one with nothing signed still goes',
+  pg_temp.as_user(:coachC, format('delete from public.clients where id = %L returning 1', :clientW)), '1');
 reset role;
+select pg_temp.expect('...and the signature is all still there',
+  pg_temp.record(:clientS), 'signed|emotional|ar|true|9f86d081|true');
 
 -- The table holds it too, not only the function ----------------------------------------------
 select pg_temp.expect('signed without the evidence is refused',
   pg_temp.as_user(:coachC, format('update public.agreements set text_sha256 = null where client_id = %L returning 1', :clientS)), 'DENIED(23514)');
 select pg_temp.expect('signed out, no one signs',
   has_function_privilege('anon', 'public.sign_agreement(uuid, text, text, text)', 'execute')::text, 'false');
+
+-- The app's role only: the service side can still remove it.
+set role service_role;
+select pg_temp.expect('service_role can still delete the relationship',
+  pg_temp.as_user(:coachC, format('delete from public.clients where id = %L returning 1', :clientS)), '1');
+reset role;

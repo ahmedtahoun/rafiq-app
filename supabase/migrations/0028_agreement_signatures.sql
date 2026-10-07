@@ -27,7 +27,11 @@
 --     the coach update it, which meant a coach could mark it signed;
 --   * the member signs only through sign_agreement(), which fills every
 --     field above at once, from the server's side where it can;
---   * once signed, nobody changes it from the app.
+--   * once signed, nobody changes it from the app, and nobody deletes it
+--     from the app either: agreements.client_id is ON DELETE CASCADE (0005),
+--     so deleting the relationship would take the signature with it. A
+--     coach's delete of a relationship with a signed agreement is refused
+--     (clients_keep_signature, at the end).
 
 alter table public.agreements
   add column category    text check (category in ('physical', 'emotional', 'general')),
@@ -92,3 +96,34 @@ $$;
 
 revoke execute on function public.sign_agreement(uuid, text, text, text) from public, anon;
 grant execute on function public.sign_agreement(uuid, text, text, text) to authenticated;
+
+-- A signature outlives the coach's wish to remove the relationship. 0001's
+-- clients_delete_own lets the coach delete a clients row, and 0005 cascades
+-- that to its agreement, so without this a coach could destroy a member's
+-- signature by deleting them. Refused for the app's role only: account
+-- deletion (0012, security definer, which never deletes a clients row
+-- anyway) and service_role run as other roles and still work. How long a
+-- signature is kept once the relationship ends is the lawyer's question.
+--
+-- Not security definer, so current_user is the caller's role. The check on
+-- agreements runs under RLS, and the coach the delete policy lets through
+-- can see this relationship's agreement (agreements_select).
+create or replace function public.clients_keep_signature()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if current_user = 'authenticated'
+     and exists (select 1 from public.agreements a where a.client_id = old.id and a.status = 'signed') then
+    raise exception 'this relationship has a signed agreement' using errcode = '42501';
+  end if;
+  return old;
+end;
+$$;
+
+revoke execute on function public.clients_keep_signature() from public, anon, authenticated;
+
+create trigger clients_keep_signature
+  before delete on public.clients
+  for each row execute function public.clients_keep_signature();

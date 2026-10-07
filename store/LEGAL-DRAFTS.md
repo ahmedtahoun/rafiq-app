@@ -957,8 +957,11 @@ it on their Profile: an unticked "I have read this agreement and I agree
 to it", then "Sign agreement". **Proposed — the lawyer may add to this:**
 the signature records which agreement (physical, emotional, general), the
 SHA-256 of the exact title and body shown, the language shown, the
-member's account, the relationship and the database's time. Nothing has
-been signed for real before that.
+member's account, the relationship and the database's time. Once signed,
+nobody changes or deletes it from the app, and the coach can't delete the
+relationship it was signed in either, since that would take the signature
+with it. How long a signature is kept after the relationship ends is a
+question for counsel. Nothing has been signed for real before that.
 
 ---
 
