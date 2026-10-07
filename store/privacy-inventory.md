@@ -276,8 +276,14 @@ category does **not** apply.
 
 A signature is evidence, which is why 0028 records more than a tick.
 `text_sha256` hashes the title and body the member was actually shown, so
-the wording they agreed to can be shown later without keeping a second
-copy of it, and `lang` says which of the two languages that was.
+the row commits them to one exact wording rather than to "the agreement",
+and `lang` says which of the two languages that was. The hash only pins
+the words while the words are still kept somewhere: edit the copy in
+`i18n.ts` and every older signature points at a hash nothing matches any
+more. That is what `store/agreement-versions.md` is for (#176) — it
+archives each version's full text beside its hash, and a test fails until
+a changed one is archived. A signature does not record which version it
+was; the hash is unique, so the archive supplies that.
 `signed_by` is a plain `uuid` rather than a reference to `profiles`,
 deliberately: the record is meant to outlive the account it names. Nothing
 in the app changes or deletes a signed row — `update` and `delete` are
