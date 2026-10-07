@@ -28,19 +28,48 @@ was invented**: where a fact is not decided, the placeholder stays.
 
 | Placeholder | What it needs | Who decides |
 |---|---|---|
-| `[ENTITY NAME]` | The registered name of the legal entity that owns the app and the developer accounts. Checklist §1, still open, and now the first blocker on the Play side | Ahmed |
-| `[ADDRESS]` | That entity's registered address | Ahmed |
-| `[REGISTRATION NO.]` | Its commercial register number, and tax card number if counsel wants it stated | Ahmed |
-| `[COMMISSION]` | Rafiq's cut of a paid session, as a percentage. Checklist §3 lists it as open ("coach payouts and Rafiq's commission, if any") | Ahmed |
-| `[PAYOUT SCHEDULE]` | How often coaches are paid out — weekly, fortnightly, on request | Ahmed |
-| `[PAYOUT MINIMUM]` | Whether a minimum balance applies before a payout runs, or none | Ahmed |
-| `[DPO NAME]` / `[DPO EMAIL]` | Whoever answers privacy requests. Law 151/2020's data protection officer requirement is a question for counsel — whether Rafiq needs one at this size is clause 1's note | Counsel, then Ahmed |
-| `[24 hours]` | The review time Rafiq commits to for a report. Written as a bracket because it is a promise, not a guess — Apple reads it as one | Ahmed |
-| `[30 days]` | The response time for a privacy request. Counsel should confirm whether Law 151/2020 sets a shorter one | Counsel |
-| `[BREACH WINDOW]` | How long Rafiq has to tell people about a breach, and whether the regulator is told first | Counsel |
-| `[REFUND WINDOW]` | The cut-off for a refund on a paid session — clause 6 proposes aligning it to the 12-hour cancellation rule already in the member terms | Ahmed |
-| `[COURT]` | Which Egyptian court, or whether arbitration | Counsel |
-| `[DELETION SLA]` | How long after a deletion request the data is actually gone, including backups. Issue #132 is open on this | Ahmed |
+| `[ENTITY NAME]` | **Given (Ahmed, 2026-10-07): Where To Spot (وير تو سبوت), a sole proprietorship (منشأة فردية)**, from the commercial register extract | Ahmed |
+| `[ADDRESS]` | **Given (Ahmed, 2026-10-07): السوالم قبلي، إيتاي البارود**, Beheira. The English transliteration is ours | Ahmed |
+| `[REGISTRATION NO.]` | **Given (Ahmed, 2026-10-07): 101557, Damanhour commercial register office** (مكتب سجل تجاري دمنهور), from the extract. The tax card number if counsel wants it stated | Ahmed |
+| `[COMMISSION]` | **Decided (Ahmed, 2026-10-07): 15%** of the session price; **17%** for a coach who chooses payouts every three days (below) | Ahmed |
+| `[PAYOUT SCHEDULE]` | **Decided (Ahmed, 2026-10-07): the coach chooses** — every week, or every three days for 2% more commission | Ahmed |
+| `[PAYOUT MINIMUM]` | **Decided (Ahmed, 2026-10-07): none** | Ahmed |
+| `[DPO NAME]` / `[DPO EMAIL]` | **Answered from the law (2026-10-07): no separate officer.** Law 151/2020 art. 8 obliges only a *legal person* (شخص اعتباري) to appoint and register a data protection officer; for a natural-person controller, "الشخص الطبيعي المتحكم أو المعالج هو المسئول". Where To Spot is a sole proprietorship, so the proprietor is personally responsible and the clause names support@rafiqpro.com. Counsel to confirm | Law, then counsel |
+| `[24 hours]` | **Decided (Ahmed, 2026-10-07): 24 hours.** The review time Rafiq commits to for a report; Apple reads it as a promise | Ahmed |
+| `[30 days]` | **Privacy requests: answered from the law (2026-10-07): six working days.** Law 151/2020 art. 32 (ستة أيام عمل من تاريخ تقديمه); art. 10(3) adds that silence for that long counts as a refusal. Clause 8 now says so. The other `[30 days]` (clause 1's settlement window, clause 6's refund timing) are ours, not the law's, and stay for counsel | Law |
+| `[BREACH WINDOW]` | **Answered from the law (2026-10-07):** the Personal Data Protection Centre within 72 hours of learning of a breach, and every affected person within three working days of that report, in all cases (art. 7). Clause 8 now says so | Law |
+| `[REFUND WINDOW]` | **Decided (Ahmed, 2026-10-07): 12 hours**, the same as the cancellation rule already in the member terms | Ahmed |
+| `[COURT]` | **Proposed from the law (2026-10-07): "the competent Egyptian courts", no named seat.** A member's dispute under the Consumer Protection Law (181/2018) belongs to the Economic Courts by statute (Law 120/2008 art. 6(15)), and a clause cannot move it. Counsel may still want a seat for coach disputes | Counsel |
+| `[DELETION SLA]` | **Decided (Ahmed, 2026-10-07): 30 days**, as the public deletion page already says. Backups: **none from Supabase**: Ahmed chose the free plan (2026-10-07), which has no backups. Ahmed keeps his own instead: weekly, encrypted, deleted after 28 days (`scripts/backup-db.sh`), so a copy can last up to four weeks after deletion. Issue #132 | Ahmed |
+
+## What the law says — research, 2026-10-07
+
+Found by reading the statutes and published law-firm summaries, to give
+counsel answers to confirm rather than questions to research. **Not legal
+advice.** Each line names its source.
+
+| Question | What we found | Source |
+|---|---|---|
+| **Deadline** | The executive regulations (Ministerial Decree 816/2025) were issued on 1 November 2025, which starts the law's one-year grace period: **full compliance by 1 November 2026** | Baker McKenzie, Jan 2026; RecordingLaw, reviewed Sep 2026 |
+| **Who is responsible** | Only a legal person must appoint and register a data protection officer. **A natural-person controller is personally responsible** for applying the law (art. 8). Where To Spot is a sole proprietorship | Law 151/2020 art. 8 |
+| **Licence to process** | Every controller needs a licence or permit from the Personal Data Protection Centre (art. 4, item 10). A licence is for legal persons; **a natural person gets a permit**, for up to a year, renewable. Fees are waived up to 100,000 records | Law art. 1 (definitions), art. 4; RecordingLaw; Baker McKenzie |
+| **Health data** | Mental or physical health data is sensitive. Processing it needs **a licence from the Centre**, whether the controller is a natural or legal person, **plus the member's written and explicit consent** (art. 12). Our mood check-ins and coaching focus fall here | Law art. 1, art. 12; Chambers 2026 |
+| **Data in Ireland** | A transfer abroad needs protection at least equal to Egyptian law's **and a licence or permit from the Centre** (art. 14). The regulations also require the data subject's consent to the transfer. The Centre has published no list of adequate countries | Law art. 14–16; Baker McKenzie; RecordingLaw |
+| **The Centre's portal** | As of 10 September 2026, the Centre had not opened its online applications. Check again before launch | RecordingLaw |
+| **Privacy requests** | Answer within **six working days** (art. 32) | Law art. 32 |
+| **Breaches** | The Centre within **72 hours**; each affected person within **three working days** of that report, in all cases (art. 7) | Law art. 7 |
+| **Penalties** | Criminal, tried by the Economic Courts. Sensitive data or a transfer without a licence: up to EGP 5 million and imprisonment | RecordingLaw; Law 151/2020 penalties chapter |
+| **Courts** | Disputes under the Consumer Protection Law go to the Economic Courts, exclusively (Law 120/2008 art. 6, item 15), so the terms say "the competent Egyptian courts" | Law 120/2008 art. 6 |
+| **Financial records** | Keep books, records and invoices for **five years after the tax period** (six where evasion is suspected). Our five-year proposal matches | Law 206/2020 (Unified Tax Procedures), per Andersen's translation |
+| **Injury release** | "ويقع باطلا كل شرط يقضى بالإعفاء من المسئولية المترتبة على العمل غير المشروع" — **void**. Clause 14's release has to become an acknowledgement of risk | Civil Code art. 217(3) |
+
+**What this means before launch.** As we read it, the proprietor needs
+three things from the Centre: a permit to process, a licence for the health
+data, and a permit for the transfer to Ireland. Members also need to give
+written, explicit consent to the health data (clause 11) and to the
+transfer. Counsel: is that reading right; can the proprietor apply as a
+natural person; and can we lawfully launch before the Centre's portal
+opens?
 
 ## Where each clause goes, and whether the thing it describes exists yet
 
@@ -76,14 +105,15 @@ users.
 
 **English**
 
-> Rafiq Pro is operated by **[ENTITY NAME]**, a company registered in the
-> Arab Republic of Egypt under commercial register number
-> **[REGISTRATION NO.]**, with its registered office at **[ADDRESS]**. In
-> these Terms, "Rafiq Pro", "we" and "us" mean that company.
+> Rafiq Pro is operated by **Where To Spot**, a sole proprietorship
+> registered in the Arab Republic of Egypt at the Damanhour commercial
+> register office under number **101557**, with its main place of business
+> at **El Sawalem Qibli, Itay El Barud, Beheira Governorate, Egypt**. In
+> these Terms, "Rafiq Pro", "we" and "us" mean that business.
 >
 > These Terms, and any dispute about them or about your use of Rafiq Pro,
-> are governed by the laws of the Arab Republic of Egypt. The courts of
-> **[COURT]** have jurisdiction.
+> are governed by the laws of the Arab Republic of Egypt, and the
+> competent Egyptian courts have jurisdiction.
 >
 > Before going to court, write to us at support@rafiqpro.com and we will
 > try to settle the matter with you directly within [30 days]. Nothing in
@@ -91,26 +121,29 @@ users.
 > protection law.
 >
 > For anything about your personal data — a copy of it, a correction, a
-> deletion, or a complaint — write to **support@rafiqpro.com**, or to our
-> data protection officer, **[DPO NAME]**, at **[DPO EMAIL]**.
+> deletion, or a complaint — write to **support@rafiqpro.com**. As the
+> operator of a sole proprietorship, its owner is personally responsible
+> for protecting your personal data under Law No. 151 of 2020, and reads
+> what you send there.
 
 **العربية**
 
-> يُشغّل تطبيق رفيق شركة **[ENTITY NAME]**، وهي شركة مسجلة في جمهورية مصر
-> العربية بالسجل التجاري رقم **[REGISTRATION NO.]**، ومقرها المسجل في
-> **[ADDRESS]**. وتعني كلمة «رفيق» وضمير المتكلم الجمع في هذه الشروط تلك
-> الشركة.
+> يُشغّل تطبيق رفيق **وير تو سبوت**، وهي منشأة فردية مقيدة في جمهورية مصر
+> العربية بالسجل التجاري رقم **101557** بمكتب سجل تجاري دمنهور، ومحلها
+> الرئيسي في **السوالم قبلي، إيتاي البارود، محافظة البحيرة**. وتعني كلمة
+> «رفيق» وضمير المتكلم الجمع في هذه الشروط تلك المنشأة.
 >
 > تخضع هذه الشروط، وأي نزاع بشأنها أو بشأن استخدامك للتطبيق، لقوانين
-> جمهورية مصر العربية، وتختص بها محاكم **[COURT]**.
+> جمهورية مصر العربية، وتختص بها المحاكم المصرية المختصة.
 >
 > وقبل اللجوء إلى القضاء، راسلنا على support@rafiqpro.com وسنسعى إلى تسوية
 > الأمر معك مباشرة خلال [30 days]. ولا يسقط هذا البند أي حق مقرر لك بموجب
 > قانون حماية المستهلك المصري.
 >
 > ولأي أمر يتعلق ببياناتك الشخصية — الحصول على نسخة منها أو تصحيحها أو
-> محوها أو تقديم شكوى — راسلنا على **support@rafiqpro.com**، أو راسل مسؤول
-> حماية البيانات **[DPO NAME]** على **[DPO EMAIL]**.
+> محوها أو تقديم شكوى — راسلنا على **support@rafiqpro.com**. ولأن رفيق
+> منشأة فردية، فصاحبها هو المسؤول شخصيًا عن حماية بياناتك الشخصية وفقًا
+> للقانون رقم 151 لسنة 2020، وهو من يقرأ ما ترسله إلى هذا العنوان.
 
 **Note for counsel.** Two questions. Does Law 151/2020 oblige an entity
 this size to appoint a data protection officer, or is naming one optional?
@@ -118,6 +151,14 @@ And is the pre-action step above enforceable as drafted, or does it need to
 be either removed or made a formal condition precedent? The placeholder
 stays until the first is answered — we would rather name nobody than name
 the wrong role.
+
+**A third, since 2026-10-07: the operator is a sole proprietorship**
+(منشأة فردية, "أفراد محل رئيسي" on the register extract), not a company. As
+we understand it, a sole proprietorship has no legal personality of its
+own: the proprietor is the contracting party, the data controller, and
+personally liable. Must the Terms and the Privacy policies name the
+proprietor as well as the trade name, and does anything in Law 151/2020's
+licensing or registration change because the controller is an individual?
 
 ---
 
@@ -162,7 +203,7 @@ and a guardian route would need its own consent flow nobody has built.
 >
 > **Reporting.** Either side of a coaching relationship can report the
 > other from the app. Tell us what happened and we will look at it within
-> [24 hours] of the report reaching us.
+> 24 hours of the report reaching us.
 >
 > **Blocking.** Either side can also block the other. A block stops new
 > messages immediately. Only the person who set a block can lift it — a
@@ -184,7 +225,7 @@ and a guardian route would need its own consent flow nobody has built.
 > صريحًا أو مخالفًا للقانون، إلى أي شخص.
 >
 > **الإبلاغ.** يمكن لكل طرف في علاقة التدريب أن يبلّغ عن الطرف الآخر من
-> داخل التطبيق. أخبرنا بما حدث وسننظر في الأمر خلال [24 hours] من وصول
+> داخل التطبيق. أخبرنا بما حدث وسننظر في الأمر خلال 24 ساعة من وصول
 > البلاغ إلينا.
 >
 > **الحجب.** ويمكن لكل طرف أيضًا حجب الآخر، ويمنع الحجب الرسائل الجديدة
@@ -207,7 +248,7 @@ status (`open`, `actioned`, `dismissed`) with a resolution note. Blocking
 write that would clear the other side's — the clause's last sentence is
 enforced by the database, not by a promise.
 
-**The [24 hours] is a commitment, not a description.** Nothing measures it
+**The 24 hours is a commitment, not a description.** Nothing measures it
 today, and no one is rostered to answer reports. Checklist §9 lists "a
 written response time for reports and deletions — and meet it" as open.
 Pick a number Rafiq can hold on a bad week, not a good one.
@@ -252,11 +293,14 @@ The section being replaced says the opposite of the decided model:
 
 > **How members pay, and how you get paid.** When a member books and pays
 > for a session in Rafiq Pro, the payment is taken by our payment provider,
-> Paymob. Rafiq Pro keeps a commission of **[COMMISSION]** of the session
-> price and pays you the rest.
+> Paymob. Rafiq Pro keeps a commission of **15%** of the session price
+> and pays you the rest.
 >
-> **Payouts.** We pay out **[PAYOUT SCHEDULE]**, to the payout account you
-> set in Profile → Payout account. **[PAYOUT MINIMUM]** Rafiq Pro does not
+> **Payouts.** You choose how often we pay you: **every week**, or **every
+> three days** for an extra **2%** commission — 17% of the session price in
+> all — on what is paid out on that schedule. We pay to the payout account
+> you set in Profile → Payout account. There is no minimum: whatever is
+> due is paid on your schedule, however small. Rafiq Pro does not
 > hold a balance for you: a payout is a transfer of money already collected
 > for your completed sessions, not a wallet.
 >
@@ -282,10 +326,13 @@ The section being replaced says the opposite of the decided model:
 
 > **كيف يدفع الأعضاء، وكيف تُقبض مستحقاتك.** عندما يحجز عضو جلسة ويدفع
 > قيمتها داخل رفيق، يتولى تحصيل المبلغ مزود خدمات الدفع «بيموب»، ويحتفظ
-> رفيق بعمولة قدرها **[COMMISSION]** من قيمة الجلسة ويحوّل إليك الباقي.
+> رفيق بعمولة قدرها **15%** من قيمة الجلسة ويحوّل إليك الباقي.
 >
-> **التحويلات.** نحوّل مستحقاتك **[PAYOUT SCHEDULE]** إلى حساب القبض الذي
-> تحدده في: الملف الشخصي ← حساب القبض. **[PAYOUT MINIMUM]** ولا يحتفظ رفيق
+> **التحويلات.** تختار بنفسك موعد تحويل مستحقاتك: **كل أسبوع**، أو **كل
+> ثلاثة أيام** مقابل عمولة إضافية قدرها **2%** — أي 17% من قيمة الجلسة
+> إجمالًا — على ما يُحوَّل وفق هذا الموعد. ونحوّلها إلى حساب القبض الذي
+> تحدده في: الملف الشخصي ← حساب القبض. ولا حد أدنى للتحويل: يُحوَّل كل ما
+> يستحق لك في موعده مهما صغر. ولا يحتفظ رفيق
 > برصيد لك: فالتحويل نقل لمبالغ تم تحصيلها فعلًا عن جلسات أتممتها، وليس
 > محفظة.
 >
@@ -317,7 +364,9 @@ broken that.
 
 **The collection half does not exist.** No money moves through the app
 today: booking sends the coach a request, and payments are recorded
-offline. `[COMMISSION]` has never been decided (checklist §3). So this
+offline. The commission was decided on 2026-10-07 (15%, or 17% on the
+three-day schedule), but **nothing in the app offers the choice of
+schedule yet**, and the payouts function applies no commission. So this
 clause is text for the version that charges, and counsel should know it
 reviews a model rather than a practice.
 
@@ -356,7 +405,7 @@ beside it:
 > for, report it from the app and we will refund you.
 >
 > **If something went wrong with the session itself.** Tell us within
-> [REFUND WINDOW] of the session and we will look at it and decide, and we
+> 12 hours of the session and we will look at it and decide, and we
 > will tell you why.
 >
 > Refunds go back the way the money came in, and usually reach you within
@@ -374,7 +423,7 @@ beside it:
 > ذلك. وإذا لم يحضر محترفك جلسة دفعت قيمتها، فأبلغنا من التطبيق وسنرد لك
 > المبلغ.
 >
-> **وإذا وقع خلل في الجلسة نفسها.** أخبرنا خلال [REFUND WINDOW] من موعد
+> **وإذا وقع خلل في الجلسة نفسها.** أخبرنا خلال 12 ساعة من موعد
 > الجلسة، وسننظر في الأمر ونقرر، وسنبيّن لك سبب قرارنا.
 >
 > ويُرد المبلغ بالطريقة التي دفعت بها، ويصلك عادة خلال **[30 days]**، مع
@@ -487,14 +536,15 @@ if so, can Rafiq satisfy it when it does not control the billing?
 > | **Delete it** | Profile → Delete account. Or request it at https://rafiqpro.com/delete-account/ |
 > | **Object to a use of it** | Write to support@rafiqpro.com and say which use |
 > | **Withdraw a consent you gave** | Write to support@rafiqpro.com. Withdrawing the health-data consent (see the signup consent notice) stops the mood check-ins and the coaching-focus features and deletes what they have collected |
-> | **Be told about a breach** | We will tell you, in the app and by email, if your personal data is involved in a breach that puts you at risk, within [BREACH WINDOW] of us learning of it |
+> | **Be told about a breach** | If your personal data is involved in a breach, we report it to the Personal Data Protection Centre within 72 hours of learning of it, and tell you, in the app and by email, within three working days of that report: what happened and what we have done about it |
 >
-> We answer a request within **[30 days]**. If we need longer we will tell
-> you why before that runs out. If we refuse a request we will tell you the
-> reason and how to complain.
+> We answer a request within **six working days** of receiving it, as the
+> law requires. If we refuse a request we will tell you the reason and how
+> to complain to the Personal Data Protection Centre.
 >
-> Deleting your account does not delete it from our backups immediately.
-> Backups are kept for [DELETION SLA] and then rotate out.
+> We delete your account within 30 days of your request. A copy can stay
+> in our encrypted backups for up to four weeks after that, until they are
+> deleted.
 
 **العربية**
 
@@ -508,13 +558,14 @@ if so, can Rafiq satisfy it when it does not control the billing?
 > | **المحو** | الملف الشخصي ← حذف الحساب، أو اطلبه من https://rafiqpro.com/delete-account/ |
 > | **الاعتراض على استخدام** | راسلنا على support@rafiqpro.com موضحًا الاستخدام المعترض عليه |
 > | **سحب موافقة سبق أن منحتها** | راسلنا على support@rafiqpro.com. وسحب الموافقة على البيانات الصحية (انظر إشعار الموافقة عند التسجيل) يوقف تسجيل الحالة المزاجية وخصائص مجال التدريب، ويمحو ما جُمع منها |
-> | **إبلاغك عند وقوع اختراق** | سنبلغك، في التطبيق وبالبريد الإلكتروني، إذا كانت بياناتك الشخصية ضمن اختراق يعرّضك لخطر، خلال [BREACH WINDOW] من علمنا به |
+> | **إبلاغك عند وقوع اختراق** | إذا كانت بياناتك الشخصية ضمن خرق، نبلغ مركز حماية البيانات الشخصية خلال 72 ساعة من علمنا به، ونخطرك في التطبيق وبالبريد الإلكتروني خلال ثلاثة أيام عمل من ذلك الإبلاغ: بما حدث وبما اتخذناه من إجراءات |
 >
-> ونرد على الطلب خلال **[30 days]**، وإذا احتجنا وقتًا أطول فسنبيّن لك
-> السبب قبل انتهاء المدة. وإذا رفضنا طلبًا فسنوضح سببه وكيف تتقدم بشكوى.
+> ونرد على الطلب خلال **ستة أيام عمل** من تاريخ وصوله إلينا، كما يقضي
+> القانون. وإذا رفضنا طلبًا فسنوضح سببه وكيف تتقدم بشكوى إلى مركز حماية
+> البيانات الشخصية.
 >
-> وحذف حسابك لا يمحوه من نسخنا الاحتياطية فورًا، إذ تُحفظ تلك النسخ
-> [DELETION SLA] ثم تُستبدل.
+> ونحذف حسابك خلال 30 يومًا من طلبك. وقد تبقى نسخة منه في نسخنا
+> الاحتياطية المشفّرة مدة أقصاها أربعة أسابيع بعد ذلك، إلى أن تُحذف.
 
 **What the app actually does.** Deletion is real and asynchronous: the app
 files a request (0012), an Edge Function anonymises the profile and bans
@@ -522,13 +573,14 @@ the login, and the account leaves `coach_directory` immediately. The other
 five rights have no mechanism — they are answered by a person reading
 `support@rafiqpro.com`, which **does not exist yet** (checklist §5).
 
-**Note for counsel.** The `[BREACH WINDOW]` is left open because we will
-not guess a statutory deadline. Please give us the Law 151/2020 figure, and
-say whether the regulator must be told before the person is. Two more:
-does Law 151/2020 set a response deadline shorter than 30 days, and is the
-backup paragraph an adequate way to qualify a deletion promise, or must the
-deletion page say it too? (Issue #132 is open on exactly that wording, and
-the page currently says nothing about backups.)
+**Note for counsel.** Filled from the law's text on 2026-10-07; please
+confirm. The breach timing is art. 7 (the Centre within 72 hours; the
+person within three working days of that report, in all cases — so the
+"puts you at risk" qualifier the earlier draft had is gone). The six
+working days is art. 32. Backups: Supabase's free plan keeps none, so
+Ahmed keeps his own (weekly, encrypted, on his computer in Egypt, deleted
+after 28 days: `scripts/backup-db.sh`). Is "up to four weeks" an adequate
+way to qualify the deletion promise (issue #132)?
 
 ---
 

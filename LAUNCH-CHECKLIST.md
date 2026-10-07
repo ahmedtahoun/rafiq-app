@@ -44,9 +44,19 @@ calendar time no matter how fast the code moves:
       and there is **no stored balance or wallet**: a coach's "to be paid
       out" is a record of what Rafiq owes, not money parked in Rafiq.
       Coaches can still be paid to a bank account or a mobile wallet.
-      Still open: the commission, and the advisor questions in §3.
+      **Commission decided (Ahmed, 2026-10-07): 15%** of the session price.
+      The coach picks the payout schedule: every week, or every three days
+      for 2% more (17% in all). Still open: the advisor questions in §3.
 - [ ] 🔴 **Company / legal entity** that owns the developer accounts and
-      receives store payouts. **Proposed as 🔴 rather than 🟡**: an
+      receives store payouts. **It exists (Ahmed, 2026-10-07): Where To Spot
+      (وير تو سبوت), a sole proprietorship, commercial register 101557 at the
+      Damanhour office, السوالم قبلي، إيتاي البارود.** It is named in
+      `store/LEGAL-DRAFTS.md` clause 1. **Apple:** Apple enrols sole
+      proprietors as individuals, so the personal team `55BRQ92599` is the
+      right one and the question below about a new organization team falls
+      away. **Google Play:** check whether Play will verify this sole
+      proprietorship as an organization (it needs a D-U-N-S number); if
+      not, the account stays personal. **Proposed as 🔴 rather than 🟡**: an
       organization Play account (proposed, §5) is verified against this
       entity and its D-U-N-S number, so nothing on the Play side would
       start until it exists. On a personal account it stays 🟡. (The App Store Paid Apps agreement is not
@@ -288,7 +298,14 @@ The sources, read on 2026-10-01, and what they mean for the build are in
       upgrades are a "Coming soon" state instead of a button that charged
       nothing and then granted the plan. The card-payment copy is gone from
       both languages, and a test guards it from coming back.
-- [ ] 🟡 *Ahmed:* coach payouts and Rafiq's commission, if any.
+- [x] 🟡 *Ahmed:* coach payouts and Rafiq's commission. **Decided
+      (2026-10-07):** 15% of the session price; the coach picks payouts
+      every week or every three days, the faster one at 17%.
+- [ ] 🟡 *Dev:* the payout schedule choice. Profile → Payout account lets
+      the coach pick weekly or every three days, stored on the server, and
+      the commission each payout keeps follows it (15% or 17%). Waits on
+      Paymob checkout: until members pay in the app there is nothing to
+      take a commission from.
 - [x] 🟡 *Dev:* payouts backend — Paymob Payouts client, admin-only
       `payouts` Edge Function, `coach_payout_accounts` / `payouts` /
       `admin_users` tables (`0007`). See `supabase/functions/payouts/README.md`.
@@ -392,9 +409,22 @@ builds".
 
 ## 5. Accounts and console setup (Ahmed)
 
-- [ ] 🔴 **Supabase:** upgrade to a paid plan before launch — free projects
-      pause after a week without activity and have no point-in-time backups.
-      Turn backups on and set the Site URL.
+- [ ] 🟡 **Supabase: launching on the free plan (decided, Ahmed,
+      2026-10-07).** What that means, from supabase.com/pricing that day:
+      * **No backups from Supabase, so Ahmed keeps his own:**
+        `npm run backup-db` **every week** (supabase/README.md, "Backups").
+        It saves the database encrypted on his computer and deletes copies
+        older than 28 days. The deletion page and LEGAL-DRAFTS clause 8 say
+        "up to four weeks", which stays true only while it runs weekly.
+        The photo files are not in it.
+      * **Paused after 1 week with no activity.** The app then stops
+        working until someone restores it in the Dashboard. Mostly a risk
+        while testing, before there are users.
+      * **Limits:** 500 MB database, 1 GB file storage (photos), 5 GB
+        egress a month, 50,000 monthly active users, 200 realtime
+        connections, 1 day of logs. Upgrade when one of these gets close,
+        or as soon as real members depend on the data.
+      * Still to do on any plan: set the Site URL.
 - [ ] 🔴 **Google Cloud OAuth consent screen:** move from "Testing" to
       **"In production"** (Testing limits sign-in to listed test users and
       expires their sessions after 7 days). Add app name, logo, privacy policy
@@ -700,7 +730,11 @@ only Rafiq can resolve (as `service_role`). Nothing works them yet.
       function, and `tsconfig.app.json` is `include: ["src"]`, so CI does
       not typecheck `admin/`.
 - [ ] 🟡 A written response time for reports and deletions — and meet it.
-      Deletions: 30 days (public deletion page). Reports: not stated yet.
+      **Decided (Ahmed, 2026-10-07):** reports looked at within **24 hours**;
+      accounts deleted within **30 days** (public deletion page). Both are
+      in `store/LEGAL-DRAFTS.md`.
+      Left: someone checks the admin reports queue every day, weekends
+      included. Nothing alerts anyone to a new report yet.
 
 ## 10. Monitoring and performance (Dev)
 
