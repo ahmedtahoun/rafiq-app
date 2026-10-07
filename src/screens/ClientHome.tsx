@@ -59,7 +59,7 @@ function ClientHomeView({ space }: { space: Extract<MemberSpaceView, { status: '
   const coachName = rel?.coach.name ?? '';
   const coachInitials = coachName.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2);
   const coachGrad = `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 35)} 100%)`;
-  const heroGrad = `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 40)} 100%)`;
+  const heroGrad = 'var(--hero-grad)';
 
   const progress = client?.progress ?? 0;
   const ringOffset = RING_CIRC * (1 - progress / 100);

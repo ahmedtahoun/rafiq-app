@@ -6,7 +6,7 @@
 
 .main-hero {
   flex-shrink: 0;
-  background: linear-gradient(135deg, var(--accent) 0%, #7A3D26 100%);
+  background: var(--hero-grad);
   border-radius: 0 0 28px 28px;
   padding: 20px 24px 0;
   box-shadow: 0 18px 32px -18px var(--accent-glow);

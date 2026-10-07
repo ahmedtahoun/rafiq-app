@@ -316,7 +316,7 @@
   height: 22px;
   border-radius: 50%;
   background: var(--green);
-  border: 2.5px solid var(--surface);
+  border: 2.5px solid var(--surface-solid);
   display: flex;
   align-items: center;
   justify-content: center;
