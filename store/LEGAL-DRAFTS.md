@@ -35,12 +35,12 @@ was invented**: where a fact is not decided, the placeholder stays.
 | `[PAYOUT SCHEDULE]` | **Decided (Ahmed, 2026-10-07): the coach chooses** — every week, or every three days for 2% more commission | Ahmed |
 | `[PAYOUT MINIMUM]` | **Decided (Ahmed, 2026-10-07): none** | Ahmed |
 | `[DPO NAME]` / `[DPO EMAIL]` | Whoever answers privacy requests. Law 151/2020's data protection officer requirement is a question for counsel — whether Rafiq needs one at this size is clause 1's note | Counsel, then Ahmed |
-| `[24 hours]` | The review time Rafiq commits to for a report. Written as a bracket because it is a promise, not a guess — Apple reads it as one | Ahmed |
+| `[24 hours]` | **Decided (Ahmed, 2026-10-07): 24 hours.** The review time Rafiq commits to for a report; Apple reads it as a promise | Ahmed |
 | `[30 days]` | The response time for a privacy request. Counsel should confirm whether Law 151/2020 sets a shorter one | Counsel |
 | `[BREACH WINDOW]` | How long Rafiq has to tell people about a breach, and whether the regulator is told first | Counsel |
-| `[REFUND WINDOW]` | The cut-off for a refund on a paid session — clause 6 proposes aligning it to the 12-hour cancellation rule already in the member terms | Ahmed |
+| `[REFUND WINDOW]` | **Decided (Ahmed, 2026-10-07): 12 hours**, the same as the cancellation rule already in the member terms | Ahmed |
 | `[COURT]` | Which Egyptian court, or whether arbitration | Counsel |
-| `[DELETION SLA]` | How long after a deletion request the data is actually gone, including backups. Issue #132 is open on this | Ahmed |
+| `[DELETION SLA]` | **Decided (Ahmed, 2026-10-07): 30 days**, as the public deletion page already says. Backups: up to 7 days more, Supabase's retention on the paid plan; if the plan or point-in-time recovery changes that, this changes with it. Issue #132 | Ahmed |
 
 ## Where each clause goes, and whether the thing it describes exists yet
 
@@ -171,7 +171,7 @@ and a guardian route would need its own consent flow nobody has built.
 >
 > **Reporting.** Either side of a coaching relationship can report the
 > other from the app. Tell us what happened and we will look at it within
-> [24 hours] of the report reaching us.
+> 24 hours of the report reaching us.
 >
 > **Blocking.** Either side can also block the other. A block stops new
 > messages immediately. Only the person who set a block can lift it — a
@@ -193,7 +193,7 @@ and a guardian route would need its own consent flow nobody has built.
 > صريحًا أو مخالفًا للقانون، إلى أي شخص.
 >
 > **الإبلاغ.** يمكن لكل طرف في علاقة التدريب أن يبلّغ عن الطرف الآخر من
-> داخل التطبيق. أخبرنا بما حدث وسننظر في الأمر خلال [24 hours] من وصول
+> داخل التطبيق. أخبرنا بما حدث وسننظر في الأمر خلال 24 ساعة من وصول
 > البلاغ إلينا.
 >
 > **الحجب.** ويمكن لكل طرف أيضًا حجب الآخر، ويمنع الحجب الرسائل الجديدة
@@ -216,7 +216,7 @@ status (`open`, `actioned`, `dismissed`) with a resolution note. Blocking
 write that would clear the other side's — the clause's last sentence is
 enforced by the database, not by a promise.
 
-**The [24 hours] is a commitment, not a description.** Nothing measures it
+**The 24 hours is a commitment, not a description.** Nothing measures it
 today, and no one is rostered to answer reports. Checklist §9 lists "a
 written response time for reports and deletions — and meet it" as open.
 Pick a number Rafiq can hold on a bad week, not a good one.
@@ -373,7 +373,7 @@ beside it:
 > for, report it from the app and we will refund you.
 >
 > **If something went wrong with the session itself.** Tell us within
-> [REFUND WINDOW] of the session and we will look at it and decide, and we
+> 12 hours of the session and we will look at it and decide, and we
 > will tell you why.
 >
 > Refunds go back the way the money came in, and usually reach you within
@@ -391,7 +391,7 @@ beside it:
 > ذلك. وإذا لم يحضر محترفك جلسة دفعت قيمتها، فأبلغنا من التطبيق وسنرد لك
 > المبلغ.
 >
-> **وإذا وقع خلل في الجلسة نفسها.** أخبرنا خلال [REFUND WINDOW] من موعد
+> **وإذا وقع خلل في الجلسة نفسها.** أخبرنا خلال 12 ساعة من موعد
 > الجلسة، وسننظر في الأمر ونقرر، وسنبيّن لك سبب قرارنا.
 >
 > ويُرد المبلغ بالطريقة التي دفعت بها، ويصلك عادة خلال **[30 days]**، مع
@@ -510,8 +510,9 @@ if so, can Rafiq satisfy it when it does not control the billing?
 > you why before that runs out. If we refuse a request we will tell you the
 > reason and how to complain.
 >
-> Deleting your account does not delete it from our backups immediately.
-> Backups are kept for [DELETION SLA] and then rotate out.
+> We delete your account within 30 days of your request. A copy can stay
+> in our encrypted backups for up to 7 days after that, until they are
+> replaced.
 
 **العربية**
 
@@ -530,8 +531,8 @@ if so, can Rafiq satisfy it when it does not control the billing?
 > ونرد على الطلب خلال **[30 days]**، وإذا احتجنا وقتًا أطول فسنبيّن لك
 > السبب قبل انتهاء المدة. وإذا رفضنا طلبًا فسنوضح سببه وكيف تتقدم بشكوى.
 >
-> وحذف حسابك لا يمحوه من نسخنا الاحتياطية فورًا، إذ تُحفظ تلك النسخ
-> [DELETION SLA] ثم تُستبدل.
+> ونحذف حسابك خلال 30 يومًا من طلبك. وقد تبقى نسخة منه في نسخنا
+> الاحتياطية المشفّرة مدة أقصاها 7 أيام بعد ذلك، إلى أن تُستبدل.
 
 **What the app actually does.** Deletion is real and asynchronous: the app
 files a request (0012), an Edge Function anonymises the profile and bans

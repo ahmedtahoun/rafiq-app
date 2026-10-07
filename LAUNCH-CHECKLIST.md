@@ -717,7 +717,11 @@ only Rafiq can resolve (as `service_role`). Nothing works them yet.
       function, and `tsconfig.app.json` is `include: ["src"]`, so CI does
       not typecheck `admin/`.
 - [ ] 🟡 A written response time for reports and deletions — and meet it.
-      Deletions: 30 days (public deletion page). Reports: not stated yet.
+      **Decided (Ahmed, 2026-10-07):** reports looked at within **24 hours**;
+      accounts deleted within **30 days** (public deletion page), out of
+      backups up to 7 days later. Both are in `store/LEGAL-DRAFTS.md`.
+      Left: someone checks the admin reports queue every day, weekends
+      included. Nothing alerts anyone to a new report yet.
 
 ## 10. Monitoring and performance (Dev)
 
