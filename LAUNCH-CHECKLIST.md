@@ -462,9 +462,12 @@ builds".
       opt-in, at `rafiqpro.com/c/<code>`, EN + AR, no photo yet
       (`site/README.md`, "The public coach page"). *Ahmed:* `db push`, and
       the Pages root directory and environment variables when the site is
-      hosted (README steps 2–3). Left: the app half (the switch in Profile,
-      Share around the real link, the Share button back, and the app
-      opening on `app.rafiqie.coach://c/<code>`).
+      hosted (README steps 2–3). **The app half is #160:** the switch in
+      Profile, Share rebuilt around the real link, the Share button back,
+      and the app opening on `app.rafiqie.coach://c/<code>`. Left once that
+      merges: hosting the site (§5, "Host the site"). Until it is hosted the
+      link is correct but answers nothing, which is why the app and the Help
+      Centre both say the page goes live with the site.
 - [x] 🔴 **Push notifications, or honest toggles.** Profile screens offer
       "Session reminders", "Task reminders" and "Payment reminders", but the
       app has no push notifications (no `@capacitor/push-notifications`, no
@@ -483,7 +486,7 @@ builds".
       the moment something happens. The ones Rafiq has events for:
       | Banner | Who gets it | Event today |
       |---|---|---|
-      | New booking: "Hana asked for Tue 10:00 AM" | coach | `session_requests` insert. **No notification row yet**: 0002's trigger is on the old `time_blocks` request. Needs a trigger. |
+      | New booking: "Hana asked for Tue 10:00 AM" | coach | `session_requests` insert → `request-received`, from `0023`'s `session_requests_notify_new` trigger. |
       | Booking confirmed / moved / cancelled | member | 0011's trigger on `sessions` (`session-moved`), plus accept and cancel |
       | Task done: "Omar finished Evening walk" | coach | 0002 `task-completed` |
       | New message | both | 0002 `message` |
@@ -665,7 +668,17 @@ Waits on the name decision (§1).
       dead, and `emergency` needs a decision (112 or 123) before it needs
       a dial.
 - [ ] 🟡 Coaching Service Agreement text (`AGREEMENT_TEXT` in `mockStore.ts`)
-      reviewed.
+      reviewed. **Signing it is built** (`0028`, #170): the coach sends it,
+      the member reads it in their own language and signs behind a ticked
+      box rather than one tap, and the row then holds the agreement's
+      category, a SHA-256 of the exact text shown, the language, the
+      member's own account and the server's clock — so what was agreed can
+      be shown word for word later. Nothing in the app changes or deletes a
+      signed row, and deleting a relationship that holds one is refused.
+      **The text itself is still unreviewed**, which is what this row is:
+      a signature is only as good as what it is a signature to. How long a
+      signature is kept after the relationship ends is one of the questions
+      put to counsel (#140).
 
 ## 9. Admin panel (Dev)
 
