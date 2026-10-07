@@ -411,10 +411,12 @@ builds".
 
 - [ ] 🟡 **Supabase: launching on the free plan (decided, Ahmed,
       2026-10-07).** What that means, from supabase.com/pricing that day:
-      * **No backups.** If the database is lost, so is everything in it.
-        Proposed: Ahmed keeps his own (`npx supabase db dump --linked`,
-        weekly, encrypted, a fixed number kept). If he does, the deletion
-        page and LEGAL-DRAFTS clause 8 must say how long a copy lasts.
+      * **No backups from Supabase, so Ahmed keeps his own:**
+        `npm run backup-db` **every week** (supabase/README.md, "Backups").
+        It saves the database encrypted on his computer and deletes copies
+        older than 28 days. The deletion page and LEGAL-DRAFTS clause 8 say
+        "up to four weeks", which stays true only while it runs weekly.
+        The photo files are not in it.
       * **Paused after 1 week with no activity.** The app then stops
         working until someone restores it in the Dashboard. Mostly a risk
         while testing, before there are users.

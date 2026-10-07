@@ -45,3 +45,7 @@ playwright/.cache/
 
 # Deno writes this when checking/testing supabase/functions locally
 deno.lock
+
+# Database backups (scripts/backup-db.sh) belong outside the repo; never commit one
+*.tar.gz.enc
+rafiq-db-*/
