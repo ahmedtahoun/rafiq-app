@@ -27,6 +27,14 @@
   --shadow-soft: 0 2px 8px rgba(36, 31, 24, 0.06);
   --nav-shadow: 0 12px 28px -8px rgba(36, 31, 24, 0.22);
 
+  /* The glowing header card (coach Home, member Home, Your pro). A palette
+     (palettes.css) turns it into a nebula; without one it is the original
+     terracotta gradient. */
+  --hero-grad: linear-gradient(135deg, var(--accent) 0%, #8F3415 100%);
+  /* Frosted glass, for the surfaces a palette makes translucent. None here:
+     the original look's surfaces are opaque. */
+  --glass-blur: none;
+
   --font-display-en: 'Lora', Georgia, serif;
   --font-display-ar: 'Cairo', sans-serif;
   --font-body-en: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;

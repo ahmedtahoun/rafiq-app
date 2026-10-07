@@ -146,6 +146,17 @@ export default function App() {
     document.documentElement.dir = isRtl(lang) ? 'rtl' : 'ltr';
   }, [lang]);
 
+  // Redesign Phase 0: a palette is previewed by storing rafiq_palette
+  // ('warm' or 'deep'). Nothing sets it in the app until Ahmed picks one.
+  useEffect(() => {
+    try {
+      const palette = JSON.parse(localStorage.getItem('rafiq_palette') ?? 'null');
+      if (palette === 'warm' || palette === 'deep') document.documentElement.dataset.palette = palette;
+    } catch {
+      // No palette: the original look.
+    }
+  }, []);
+
   useEffect(() => {
     document.documentElement.dataset.theme = dark ? 'dark' : 'light';
     // The status bar's icons follow the app's theme, not the phone's.
