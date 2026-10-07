@@ -34,13 +34,42 @@ was invented**: where a fact is not decided, the placeholder stays.
 | `[COMMISSION]` | **Decided (Ahmed, 2026-10-07): 15%** of the session price; **17%** for a coach who chooses payouts every three days (below) | Ahmed |
 | `[PAYOUT SCHEDULE]` | **Decided (Ahmed, 2026-10-07): the coach chooses** — every week, or every three days for 2% more commission | Ahmed |
 | `[PAYOUT MINIMUM]` | **Decided (Ahmed, 2026-10-07): none** | Ahmed |
-| `[DPO NAME]` / `[DPO EMAIL]` | Whoever answers privacy requests. Law 151/2020's data protection officer requirement is a question for counsel — whether Rafiq needs one at this size is clause 1's note | Counsel, then Ahmed |
+| `[DPO NAME]` / `[DPO EMAIL]` | **Answered from the law (2026-10-07): no separate officer.** Law 151/2020 art. 8 obliges only a *legal person* (شخص اعتباري) to appoint and register a data protection officer; for a natural-person controller, "الشخص الطبيعي المتحكم أو المعالج هو المسئول". Where To Spot is a sole proprietorship, so the proprietor is personally responsible and the clause names support@rafiqpro.com. Counsel to confirm | Law, then counsel |
 | `[24 hours]` | **Decided (Ahmed, 2026-10-07): 24 hours.** The review time Rafiq commits to for a report; Apple reads it as a promise | Ahmed |
-| `[30 days]` | The response time for a privacy request. Counsel should confirm whether Law 151/2020 sets a shorter one | Counsel |
-| `[BREACH WINDOW]` | How long Rafiq has to tell people about a breach, and whether the regulator is told first | Counsel |
+| `[30 days]` | **Privacy requests: answered from the law (2026-10-07): six working days.** Law 151/2020 art. 32 (ستة أيام عمل من تاريخ تقديمه); art. 10(3) adds that silence for that long counts as a refusal. Clause 8 now says so. The other `[30 days]` (clause 1's settlement window, clause 6's refund timing) are ours, not the law's, and stay for counsel | Law |
+| `[BREACH WINDOW]` | **Answered from the law (2026-10-07):** the Personal Data Protection Centre within 72 hours of learning of a breach, and every affected person within three working days of that report, in all cases (art. 7). Clause 8 now says so | Law |
 | `[REFUND WINDOW]` | **Decided (Ahmed, 2026-10-07): 12 hours**, the same as the cancellation rule already in the member terms | Ahmed |
-| `[COURT]` | Which Egyptian court, or whether arbitration | Counsel |
+| `[COURT]` | **Proposed from the law (2026-10-07): "the competent Egyptian courts", no named seat.** A member's dispute under the Consumer Protection Law (181/2018) belongs to the Economic Courts by statute (Law 120/2008 art. 6(15)), and a clause cannot move it. Counsel may still want a seat for coach disputes | Counsel |
 | `[DELETION SLA]` | **Decided (Ahmed, 2026-10-07): 30 days**, as the public deletion page already says. Backups: up to 7 days more, Supabase's retention on the paid plan; if the plan or point-in-time recovery changes that, this changes with it. Issue #132 | Ahmed |
+
+## What the law says — research, 2026-10-07
+
+Found by reading the statutes and published law-firm summaries, to give
+counsel answers to confirm rather than questions to research. **Not legal
+advice.** Each line names its source.
+
+| Question | What we found | Source |
+|---|---|---|
+| **Deadline** | The executive regulations (Ministerial Decree 816/2025) were issued on 1 November 2025, which starts the law's one-year grace period: **full compliance by 1 November 2026** | Baker McKenzie, Jan 2026; RecordingLaw, reviewed Sep 2026 |
+| **Who is responsible** | Only a legal person must appoint and register a data protection officer. **A natural-person controller is personally responsible** for applying the law (art. 8). Where To Spot is a sole proprietorship | Law 151/2020 art. 8 |
+| **Licence to process** | Every controller needs a licence or permit from the Personal Data Protection Centre (art. 4, item 10). A licence is for legal persons; **a natural person gets a permit**, for up to a year, renewable. Fees are waived up to 100,000 records | Law art. 1 (definitions), art. 4; RecordingLaw; Baker McKenzie |
+| **Health data** | Mental or physical health data is sensitive. Processing it needs **a licence from the Centre**, whether the controller is a natural or legal person, **plus the member's written and explicit consent** (art. 12). Our mood check-ins and coaching focus fall here | Law art. 1, art. 12; Chambers 2026 |
+| **Data in Ireland** | A transfer abroad needs protection at least equal to Egyptian law's **and a licence or permit from the Centre** (art. 14). The regulations also require the data subject's consent to the transfer. The Centre has published no list of adequate countries | Law art. 14–16; Baker McKenzie; RecordingLaw |
+| **The Centre's portal** | As of 10 September 2026, the Centre had not opened its online applications. Check again before launch | RecordingLaw |
+| **Privacy requests** | Answer within **six working days** (art. 32) | Law art. 32 |
+| **Breaches** | The Centre within **72 hours**; each affected person within **three working days** of that report, in all cases (art. 7) | Law art. 7 |
+| **Penalties** | Criminal, tried by the Economic Courts. Sensitive data or a transfer without a licence: up to EGP 5 million and imprisonment | RecordingLaw; Law 151/2020 penalties chapter |
+| **Courts** | Disputes under the Consumer Protection Law go to the Economic Courts, exclusively (Law 120/2008 art. 6, item 15), so the terms say "the competent Egyptian courts" | Law 120/2008 art. 6 |
+| **Financial records** | Keep books, records and invoices for **five years after the tax period** (six where evasion is suspected). Our five-year proposal matches | Law 206/2020 (Unified Tax Procedures), per Andersen's translation |
+| **Injury release** | "ويقع باطلا كل شرط يقضى بالإعفاء من المسئولية المترتبة على العمل غير المشروع" — **void**. Clause 14's release has to become an acknowledgement of risk | Civil Code art. 217(3) |
+
+**What this means before launch.** As we read it, the proprietor needs
+three things from the Centre: a permit to process, a licence for the health
+data, and a permit for the transfer to Ireland. Members also need to give
+written, explicit consent to the health data (clause 11) and to the
+transfer. Counsel: is that reading right; can the proprietor apply as a
+natural person; and can we lawfully launch before the Centre's portal
+opens?
 
 ## Where each clause goes, and whether the thing it describes exists yet
 
@@ -83,8 +112,8 @@ users.
 > these Terms, "Rafiq Pro", "we" and "us" mean that business.
 >
 > These Terms, and any dispute about them or about your use of Rafiq Pro,
-> are governed by the laws of the Arab Republic of Egypt. The courts of
-> **[COURT]** have jurisdiction.
+> are governed by the laws of the Arab Republic of Egypt, and the
+> competent Egyptian courts have jurisdiction.
 >
 > Before going to court, write to us at support@rafiqpro.com and we will
 > try to settle the matter with you directly within [30 days]. Nothing in
@@ -92,8 +121,10 @@ users.
 > protection law.
 >
 > For anything about your personal data — a copy of it, a correction, a
-> deletion, or a complaint — write to **support@rafiqpro.com**, or to our
-> data protection officer, **[DPO NAME]**, at **[DPO EMAIL]**.
+> deletion, or a complaint — write to **support@rafiqpro.com**. As the
+> operator of a sole proprietorship, its owner is personally responsible
+> for protecting your personal data under Law No. 151 of 2020, and reads
+> what you send there.
 
 **العربية**
 
@@ -103,15 +134,16 @@ users.
 > «رفيق» وضمير المتكلم الجمع في هذه الشروط تلك المنشأة.
 >
 > تخضع هذه الشروط، وأي نزاع بشأنها أو بشأن استخدامك للتطبيق، لقوانين
-> جمهورية مصر العربية، وتختص بها محاكم **[COURT]**.
+> جمهورية مصر العربية، وتختص بها المحاكم المصرية المختصة.
 >
 > وقبل اللجوء إلى القضاء، راسلنا على support@rafiqpro.com وسنسعى إلى تسوية
 > الأمر معك مباشرة خلال [30 days]. ولا يسقط هذا البند أي حق مقرر لك بموجب
 > قانون حماية المستهلك المصري.
 >
 > ولأي أمر يتعلق ببياناتك الشخصية — الحصول على نسخة منها أو تصحيحها أو
-> محوها أو تقديم شكوى — راسلنا على **support@rafiqpro.com**، أو راسل مسؤول
-> حماية البيانات **[DPO NAME]** على **[DPO EMAIL]**.
+> محوها أو تقديم شكوى — راسلنا على **support@rafiqpro.com**. ولأن رفيق
+> منشأة فردية، فصاحبها هو المسؤول شخصيًا عن حماية بياناتك الشخصية وفقًا
+> للقانون رقم 151 لسنة 2020، وهو من يقرأ ما ترسله إلى هذا العنوان.
 
 **Note for counsel.** Two questions. Does Law 151/2020 oblige an entity
 this size to appoint a data protection officer, or is naming one optional?
@@ -504,11 +536,11 @@ if so, can Rafiq satisfy it when it does not control the billing?
 > | **Delete it** | Profile → Delete account. Or request it at https://rafiqpro.com/delete-account/ |
 > | **Object to a use of it** | Write to support@rafiqpro.com and say which use |
 > | **Withdraw a consent you gave** | Write to support@rafiqpro.com. Withdrawing the health-data consent (see the signup consent notice) stops the mood check-ins and the coaching-focus features and deletes what they have collected |
-> | **Be told about a breach** | We will tell you, in the app and by email, if your personal data is involved in a breach that puts you at risk, within [BREACH WINDOW] of us learning of it |
+> | **Be told about a breach** | If your personal data is involved in a breach, we report it to the Personal Data Protection Centre within 72 hours of learning of it, and tell you, in the app and by email, within three working days of that report: what happened and what we have done about it |
 >
-> We answer a request within **[30 days]**. If we need longer we will tell
-> you why before that runs out. If we refuse a request we will tell you the
-> reason and how to complain.
+> We answer a request within **six working days** of receiving it, as the
+> law requires. If we refuse a request we will tell you the reason and how
+> to complain to the Personal Data Protection Centre.
 >
 > We delete your account within 30 days of your request. A copy can stay
 > in our encrypted backups for up to 7 days after that, until they are
@@ -526,10 +558,11 @@ if so, can Rafiq satisfy it when it does not control the billing?
 > | **المحو** | الملف الشخصي ← حذف الحساب، أو اطلبه من https://rafiqpro.com/delete-account/ |
 > | **الاعتراض على استخدام** | راسلنا على support@rafiqpro.com موضحًا الاستخدام المعترض عليه |
 > | **سحب موافقة سبق أن منحتها** | راسلنا على support@rafiqpro.com. وسحب الموافقة على البيانات الصحية (انظر إشعار الموافقة عند التسجيل) يوقف تسجيل الحالة المزاجية وخصائص مجال التدريب، ويمحو ما جُمع منها |
-> | **إبلاغك عند وقوع اختراق** | سنبلغك، في التطبيق وبالبريد الإلكتروني، إذا كانت بياناتك الشخصية ضمن اختراق يعرّضك لخطر، خلال [BREACH WINDOW] من علمنا به |
+> | **إبلاغك عند وقوع اختراق** | إذا كانت بياناتك الشخصية ضمن خرق، نبلغ مركز حماية البيانات الشخصية خلال 72 ساعة من علمنا به، ونخطرك في التطبيق وبالبريد الإلكتروني خلال ثلاثة أيام عمل من ذلك الإبلاغ: بما حدث وبما اتخذناه من إجراءات |
 >
-> ونرد على الطلب خلال **[30 days]**، وإذا احتجنا وقتًا أطول فسنبيّن لك
-> السبب قبل انتهاء المدة. وإذا رفضنا طلبًا فسنوضح سببه وكيف تتقدم بشكوى.
+> ونرد على الطلب خلال **ستة أيام عمل** من تاريخ وصوله إلينا، كما يقضي
+> القانون. وإذا رفضنا طلبًا فسنوضح سببه وكيف تتقدم بشكوى إلى مركز حماية
+> البيانات الشخصية.
 >
 > ونحذف حسابك خلال 30 يومًا من طلبك. وقد تبقى نسخة منه في نسخنا
 > الاحتياطية المشفّرة مدة أقصاها 7 أيام بعد ذلك، إلى أن تُستبدل.
@@ -540,13 +573,13 @@ the login, and the account leaves `coach_directory` immediately. The other
 five rights have no mechanism — they are answered by a person reading
 `support@rafiqpro.com`, which **does not exist yet** (checklist §5).
 
-**Note for counsel.** The `[BREACH WINDOW]` is left open because we will
-not guess a statutory deadline. Please give us the Law 151/2020 figure, and
-say whether the regulator must be told before the person is. Two more:
-does Law 151/2020 set a response deadline shorter than 30 days, and is the
-backup paragraph an adequate way to qualify a deletion promise, or must the
-deletion page say it too? (Issue #132 is open on exactly that wording, and
-the page currently says nothing about backups.)
+**Note for counsel.** Filled from the law's text on 2026-10-07; please
+confirm. The breach timing is art. 7 (the Centre within 72 hours; the
+person within three working days of that report, in all cases — so the
+"puts you at risk" qualifier the earlier draft had is gone). The six
+working days is art. 32. Is the backup paragraph an adequate way to
+qualify the deletion promise? The deletion page now says the same, up to
+7 days in backups after the 30 (issue #132).
 
 ---
 
