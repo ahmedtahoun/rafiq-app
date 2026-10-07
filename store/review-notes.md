@@ -210,17 +210,33 @@ before moving on. Stop and file a bug at the first step that isn't.
     the rating, and must show **no email, no phone, nothing about members,
     no review text and no photo**. Turning it off must make the same URL
     say "not available", not 404 with a different message.
+27. **Sign the coaching agreement** (#170). Coach: open the review member
+    → **Send agreement**. Member: Profile → the agreement card reads
+    **"Awaiting your review"** → open it, read it, tick **"I have read
+    this agreement and I agree to it"** → **Sign agreement**. The button
+    must be dead until the box is ticked — a reviewer who can sign with
+    one tap has found a bug. Coach: the member's page then reads
+    **"Signed ‹date›, in English"**, or **in Arabic** if the member's app
+    was in Arabic. Worth doing this one in Arabic: the language is part of
+    what the signature records, and it is the only step where a reviewer
+    can see that. Neither side can change or undo it afterwards, which is
+    correct and not a missing feature.
 
 ### Deletion (on a third, throwaway account, not the review accounts)
 
-27. Sign up a throwaway member, link it to the review coach, then
+28. Sign up a throwaway member, link it to the review coach, then
     **Delete Account** → confirm → the request shows in pending deletions →
     process it (`account-deletion` function) → the login is gone, and the
     coach's record keeps the sessions without the name.
 
 Anything that fails blocks the submission. When it all passes, run **Reset
 review accounts** once more: the run-through blocked, reported and added
-things, and the reviewers should start from the clean set.
+things, and the reviewers should start from the clean set. A signed
+agreement does not stand in its way — the reset deletes the coach's roster
+rows from the SQL editor, as the dashboard's own role, and `agreements`
+cascades from them; the guard that stops a *coach* deleting a relationship
+with a signature only applies to the app's `authenticated` role
+(`supabase/admin/review-accounts.sql`, 0028).
 
 ---
 

@@ -260,7 +260,8 @@ to the database, and its header says how.
 | A member's preferred recurring slot | `standing_slots` | Other Data | App activity → Other actions |
 | Session requests to a coach a member has no relationship with | `session_requests` | Other Data | App activity → Other actions |
 | Cancellations — who, when, how long before, reason | `cancellations` | Other Data | App activity → Other user-generated content |
-| Coaching service agreement, sent and signed | `agreements` | Other Data | App activity → Other actions |
+| Coaching service agreement, sent and signed | `agreements` (`status`, `sent_at`, `signed_at`) | Other Data | App activity → Other actions |
+| What a signature records: which agreement (`category`), a SHA-256 of the exact text the member was shown (`text_sha256`), the language it was shown in (`lang`), the member's own account (`signed_by`) and the server's clock (`signed_at`) | `agreements` (0028) | Other Data | App activity → Other actions |
 | Programme enrolment and progress | `enrollments` | Other Data | App activity → Other actions |
 | Task templates a coach saves | `templates` | User Content → Other User Content | App activity → Other user-generated content |
 | What a coach sells | `offerings` | Other Data | App activity → Other actions |
@@ -272,6 +273,25 @@ to the database, and its header says how.
 None of this is a device calendar: the app asks for no calendar
 permission, reads no `EKEventStore` and writes no events. Google's Calendar
 category does **not** apply.
+
+A signature is evidence, which is why 0028 records more than a tick.
+`text_sha256` hashes the title and body the member was actually shown, so
+the wording they agreed to can be shown later without keeping a second
+copy of it, and `lang` says which of the two languages that was.
+`signed_by` is a plain `uuid` rather than a reference to `profiles`,
+deliberately: the record is meant to outlive the account it names. Nothing
+in the app changes or deletes a signed row — `update` and `delete` are
+revoked from `authenticated` — and a coach's attempt to delete a
+relationship holding one is refused.
+
+It therefore survives a member's account deletion: 0012 blanks the roster
+row rather than deleting it (`update public.clients set full_name = ''` …),
+so the agreement, its hash and its language remain, with `signed_by` still
+naming a login that no longer exists. **Whether it should, and for how
+long, is a question for the lawyer** — the brief asks it as "Is a tap
+adequate evidence of signature?" (#140), and `store/LEGAL-DRAFTS.md`
+clause 14 describes the record. No table in the schema has a retention
+period (§12).
 
 `notifications` is the in-app feed, and since 0023 also what phone
 notifications are sent from: the `push-send` function turns a new row into
@@ -440,6 +460,21 @@ other.
 - Payout records, as the financial record — never including the national
   ID (0009).
 - Star ratings, without their comments.
+- A signed coaching agreement, with its category, text hash, language
+  and the uuid that signed it. §7 says why this is deliberate; how long
+  it may be kept is unanswered.
+
+⚠️ **The public page does not name everything in that list.**
+`deleteKeptBody` in `site/copy.mjs` says only that the other side "keeps
+their own record of the sessions and payments they had together", and
+payouts are covered as a financial record. **Star ratings and now a signed
+agreement are kept and unmentioned** — the agreement carrying the member's
+own signature and a hash of what they signed. So the "they agree today"
+line above holds for what is *deleted* and not for all of what is *kept*.
+Closing it is a copy change on a page Google Play requires, which is the
+same shape as #132 (the page is silent about backups too) and wants the
+same answer from the lawyer. Noted here rather than edited: this file
+records what is true, and the page's wording is not this PR's to choose.
 
 **A coach is locked rather than deleted** whenever anything has to outlive
 them: any roster row, or any payout. Deleting that login would cascade
@@ -453,6 +488,23 @@ dispute, unused session credits or an unsettled payout is outstanding
 
 **Timing: within 30 days**, stated on the public page. Someone has to
 actually meet it — checklist §9.
+
+**The member's own copy (right of access).** Profile → Privacy →
+"Download my data" hands a member one JSON file (`memberExport.ts`, #171):
+their profile and goals; per relationship, the roster row with its tasks,
+sessions, mood check-ins, messages, ratings, agreement, packages, payments
+and enrolments; and their session requests, favourite coaches and
+notifications. Whole rows, not what a screen happens to show of them.
+
+Two things let that be described so plainly. It is read **as the member**,
+through the same RLS as every screen, so it cannot hold anything they
+could not already open — a coach's private notes (`client_private`) are
+unreadable to a member, so they are absent by construction rather than by
+being filtered out. And it is assembled **on the phone**: no server-side
+job, no file in storage, nothing queued, so it adds nothing to §11 and
+leaves nothing behind to delete. A table that fails to read fails the
+whole export, rather than handing over a file that quietly omits part of
+it.
 
 **Ahmed to confirm** — retention for everything *not* covered by a deletion
 request. No table in the schema has a retention period: a session from
