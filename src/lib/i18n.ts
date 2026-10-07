@@ -1151,6 +1151,10 @@ const en = {
     clientHelpA9: "Once you turn them on. Rafiq never asks the moment you open it: the request comes the first time it would be any use \u2014 your first message, or your first booked session \u2014 or whenever you tap Turn on, on the \u201cNotifications on this phone\u201d row in your profile. You are asked once, and \"Not now\" is remembered too; after that it is your phone's own settings. Nothing arrives while you are using the app, because whatever it would say is already on the screen in front of you. The switches under Notifications decide what reaches the phone: session updates, overdue tasks, and messages from your pro.",
     clientHelpQ10: 'Will I be reminded before a session?',
     clientHelpA10: 'Yes \u2014 you and your pro both, in the hour before it starts, as long as notifications are on. One reminder per session: if the session moves, the reminder follows it to the new time, and a session already finished with is not reminded.',
+    clientHelpQ11: 'How do I sign my coaching agreement?',
+    clientHelpA11: 'Your pro sends it, and it appears on your Profile as "Awaiting your review". Open it and read it in whichever language you are using Rafiq in \u2014 that is the language the signature is recorded in. Tick "I have read this agreement and I agree to it", then tap Sign agreement; the button stays off until the box is ticked, so signing is never one stray tap. Once it is signed the card shows the date, and the agreement cannot be changed afterwards \u2014 not by you and not by your pro. Your pro sees that you have signed it, and in which language.',
+    clientHelpQ12: 'Can I get a copy of my data?',
+    clientHelpA12: 'Yes \u2014 open your Profile, and under Privacy tap "Download my data". You get one file holding everything Rafiq keeps about you that you can see: your profile and goals, each pro you work with, and your tasks, sessions, check-ins, messages, ratings, packages, payments and programmes, along with your session requests, saved pros and notifications. Your pro\u2019s private notes about you are not in it \u2014 those are theirs, and you cannot read them anywhere in Rafiq either. The file is put together on your phone, from your own account.',
 
     clientPrivacyTitle: 'Privacy Policy', clientPrivacyUpdated: 'Last updated: October 2025',
     clientPrivacySection1Heading: 'What we collect',
@@ -2303,6 +2307,10 @@ const ar: Record<MessageKey, string> = {
     clientHelpA9: 'نعم، بعد أن تفعّليها. ولا يسألك رفيق لحظة فتحه: يأتي الطلب أول مرة تكون للإشعارات فيها فائدة فعلية — أول رسالة، أو أول جلسة محجوزة — أو حين تضغطين «تفعيل» في صف «الإشعارات على هذا الهاتف» في ملفك الشخصي. ويُسأل مرة واحدة، و«ليس الآن» محفوظة أيضًا؛ وبعدها يكون الأمر في إعدادات هاتفك نفسه. ولا يصلك شيء وأنتِ تستخدمين التطبيق، لأن ما كان سيُقال لك ظاهر أمامك على الشاشة. والمفاتيح أسفل «الإشعارات» تحدد ما يصل إلى الهاتف: مستجدات الجلسات، والمهام المتأخرة، ورسائل محترفتك.',
     clientHelpQ10: 'هل يصلني تنبيه قبل الجلسة؟',
     clientHelpA10: 'نعم — لكِ ولمحترفتك، في الساعة التي تسبق موعد البداية، ما دامت الإشعارات مفعّلة. وتنبيه واحد لكل جلسة: فإن تغيّر موعد الجلسة تبعها التنبيه إلى الموعد الجديد، والجلسة التي انتهى أمرها لا تنبيه لها.',
+    clientHelpQ11: 'كيف أوقّع اتفاق التدريب؟',
+    clientHelpA11: 'تُرسله لك محترفتك، فيظهر في ملفك الشخصي بعبارة «بانتظار موافقتك». افتحيه واقرأيه باللغة التي تستخدمين بها رفيق — وبهذه اللغة يُسجَّل توقيعك. ضعي علامة على «قرأتُ هذا الاتفاق وأوافق عليه»، ثم اضغطي «توقيع الاتفاق»؛ ويبقى الزر معطَّلًا حتى تضعي العلامة، فلا يكون التوقيع ضغطة عابرة. وبعد التوقيع يظهر تاريخه على البطاقة، ولا يمكن تعديل الاتفاق بعدها — لا منكِ ولا من محترفتك. وترى محترفتك أنكِ وقّعتِه، وبأي لغة.',
+    clientHelpQ12: 'هل يمكنني الحصول على نسخة من بياناتي؟',
+    clientHelpA12: 'نعم — افتحي ملفك الشخصي، ومن قسم «الخصوصية» اضغطي «تنزيل بياناتي». يصلك ملف واحد يحتوي كل ما يحتفظ به رفيق عنك ويمكنك الاطلاع عليه: ملفك وأهدافك، وكل محترفة تعملين معها، ومهامك وجلساتك وتسجيلات مزاجك ورسائلك وتقييماتك وباقاتك ومدفوعاتك وبرامجك، ومعها طلبات الجلسات والمحترفات المحفوظات والإشعارات. أما ملاحظات محترفتك الخاصة عنك فليست فيه — فهي ملكها، ولا يمكنك الاطلاع عليها في أي مكان في رفيق. ويُجهَّز الملف على هاتفك، من حسابك أنتِ.',
 
     clientPrivacyTitle: 'سياسة الخصوصية', clientPrivacyUpdated: 'آخر تحديث: أكتوبر 2025',
     clientPrivacySection1Heading: 'ما الذي نجمعه',

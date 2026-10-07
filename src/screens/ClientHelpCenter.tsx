@@ -8,7 +8,7 @@ import { useMemberSpace } from '../store/memberStore';
 import './ClientHelpCenter.css';
 
 // Ten FAQs, keyed so the copy lives in i18n like everything else.
-const FAQ_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
+const FAQ_IDS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 
 export default function ClientHelpCenter() {
   const t = useT();
