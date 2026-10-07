@@ -44,9 +44,15 @@ calendar time no matter how fast the code moves:
       and there is **no stored balance or wallet**: a coach's "to be paid
       out" is a record of what Rafiq owes, not money parked in Rafiq.
       Coaches can still be paid to a bank account or a mobile wallet.
-      Still open: the commission, and the advisor questions in §3.
+      **Commission decided (Ahmed, 2026-10-07): 15%** of the session price.
+      The coach picks the payout schedule: every week, or every three days
+      for 2% more (17% in all). Still open: the advisor questions in §3.
 - [ ] 🔴 **Company / legal entity** that owns the developer accounts and
-      receives store payouts. **Proposed as 🔴 rather than 🟡**: an
+      receives store payouts. **It exists (Ahmed, 2026-10-07): وير تو سبوت,
+      commercial register 101557, السوالم قبلي، إيتاي البارود.** Its name,
+      number and address are in `store/LEGAL-DRAFTS.md` clause 1. Left: the
+      Latin spelling and legal form for the English texts, its D-U-N-S
+      number, and moving the developer accounts to it (below). **Proposed as 🔴 rather than 🟡**: an
       organization Play account (proposed, §5) is verified against this
       entity and its D-U-N-S number, so nothing on the Play side would
       start until it exists. On a personal account it stays 🟡. (The App Store Paid Apps agreement is not
@@ -288,7 +294,14 @@ The sources, read on 2026-10-01, and what they mean for the build are in
       upgrades are a "Coming soon" state instead of a button that charged
       nothing and then granted the plan. The card-payment copy is gone from
       both languages, and a test guards it from coming back.
-- [ ] 🟡 *Ahmed:* coach payouts and Rafiq's commission, if any.
+- [x] 🟡 *Ahmed:* coach payouts and Rafiq's commission. **Decided
+      (2026-10-07):** 15% of the session price; the coach picks payouts
+      every week or every three days, the faster one at 17%.
+- [ ] 🟡 *Dev:* the payout schedule choice. Profile → Payout account lets
+      the coach pick weekly or every three days, stored on the server, and
+      the commission each payout keeps follows it (15% or 17%). Waits on
+      Paymob checkout: until members pay in the app there is nothing to
+      take a commission from.
 - [x] 🟡 *Dev:* payouts backend — Paymob Payouts client, admin-only
       `payouts` Edge Function, `coach_payout_accounts` / `payouts` /
       `admin_users` tables (`0007`). See `supabase/functions/payouts/README.md`.

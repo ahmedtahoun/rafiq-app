@@ -28,11 +28,11 @@ was invented**: where a fact is not decided, the placeholder stays.
 
 | Placeholder | What it needs | Who decides |
 |---|---|---|
-| `[ENTITY NAME]` | The registered name of the legal entity that owns the app and the developer accounts. Checklist §1, still open, and now the first blocker on the Play side | Ahmed |
-| `[ADDRESS]` | That entity's registered address | Ahmed |
-| `[REGISTRATION NO.]` | Its commercial register number, and tax card number if counsel wants it stated | Ahmed |
-| `[COMMISSION]` | Rafiq's cut of a paid session, as a percentage. Checklist §3 lists it as open ("coach payouts and Rafiq's commission, if any") | Ahmed |
-| `[PAYOUT SCHEDULE]` | How often coaches are paid out — weekly, fortnightly, on request | Ahmed |
+| `[ENTITY NAME]` | **Given (Ahmed, 2026-10-07): وير تو سبوت.** Still needed: the Latin spelling exactly as Ahmed wants it in the English texts, and the entity's legal form (a company, or a sole proprietorship — clause 1 says "a company") | Ahmed |
+| `[ADDRESS]` | **Given (Ahmed, 2026-10-07): السوالم قبلي، إيتاي البارود.** The governorate (البحيرة) is added below; the English transliteration is ours. Still needed: the full address as it stands on the commercial register extract, if it is more precise than this | Ahmed |
+| `[REGISTRATION NO.]` | **Given (Ahmed, 2026-10-07): 101557.** Still needed: which commercial register office it is held at, which Egyptian register numbers are stated with; the tax card number if counsel wants it | Ahmed |
+| `[COMMISSION]` | **Decided (Ahmed, 2026-10-07): 15%** of the session price; **17%** for a coach who chooses payouts every three days (below) | Ahmed |
+| `[PAYOUT SCHEDULE]` | **Decided (Ahmed, 2026-10-07): the coach chooses** — every week, or every three days for 2% more commission | Ahmed |
 | `[PAYOUT MINIMUM]` | Whether a minimum balance applies before a payout runs, or none | Ahmed |
 | `[DPO NAME]` / `[DPO EMAIL]` | Whoever answers privacy requests. Law 151/2020's data protection officer requirement is a question for counsel — whether Rafiq needs one at this size is clause 1's note | Counsel, then Ahmed |
 | `[24 hours]` | The review time Rafiq commits to for a report. Written as a bracket because it is a promise, not a guess — Apple reads it as one | Ahmed |
@@ -76,9 +76,10 @@ users.
 
 **English**
 
-> Rafiq Pro is operated by **[ENTITY NAME]**, a company registered in the
-> Arab Republic of Egypt under commercial register number
-> **[REGISTRATION NO.]**, with its registered office at **[ADDRESS]**. In
+> Rafiq Pro is operated by **[ENTITY NAME — Latin spelling of وير تو سبوت]**,
+> a company registered in the Arab Republic of Egypt under commercial
+> register number **101557**, with its registered office at **El Sawalem
+> Qibli, Itay El Barud, Beheira Governorate, Egypt**. In
 > these Terms, "Rafiq Pro", "we" and "us" mean that company.
 >
 > These Terms, and any dispute about them or about your use of Rafiq Pro,
@@ -96,9 +97,9 @@ users.
 
 **العربية**
 
-> يُشغّل تطبيق رفيق شركة **[ENTITY NAME]**، وهي شركة مسجلة في جمهورية مصر
-> العربية بالسجل التجاري رقم **[REGISTRATION NO.]**، ومقرها المسجل في
-> **[ADDRESS]**. وتعني كلمة «رفيق» وضمير المتكلم الجمع في هذه الشروط تلك
+> يُشغّل تطبيق رفيق شركة **وير تو سبوت**، وهي شركة مسجلة في جمهورية مصر
+> العربية بالسجل التجاري رقم **101557**، ومقرها المسجل في **السوالم قبلي،
+> إيتاي البارود، محافظة البحيرة**. وتعني كلمة «رفيق» وضمير المتكلم الجمع في هذه الشروط تلك
 > الشركة.
 >
 > تخضع هذه الشروط، وأي نزاع بشأنها أو بشأن استخدامك للتطبيق، لقوانين
@@ -252,11 +253,13 @@ The section being replaced says the opposite of the decided model:
 
 > **How members pay, and how you get paid.** When a member books and pays
 > for a session in Rafiq Pro, the payment is taken by our payment provider,
-> Paymob. Rafiq Pro keeps a commission of **[COMMISSION]** of the session
-> price and pays you the rest.
+> Paymob. Rafiq Pro keeps a commission of **15%** of the session price
+> and pays you the rest.
 >
-> **Payouts.** We pay out **[PAYOUT SCHEDULE]**, to the payout account you
-> set in Profile → Payout account. **[PAYOUT MINIMUM]** Rafiq Pro does not
+> **Payouts.** You choose how often we pay you: **every week**, or **every
+> three days** for an extra **2%** commission — 17% of the session price in
+> all — on what is paid out on that schedule. We pay to the payout account
+> you set in Profile → Payout account. **[PAYOUT MINIMUM]** Rafiq Pro does not
 > hold a balance for you: a payout is a transfer of money already collected
 > for your completed sessions, not a wallet.
 >
@@ -282,9 +285,11 @@ The section being replaced says the opposite of the decided model:
 
 > **كيف يدفع الأعضاء، وكيف تُقبض مستحقاتك.** عندما يحجز عضو جلسة ويدفع
 > قيمتها داخل رفيق، يتولى تحصيل المبلغ مزود خدمات الدفع «بيموب»، ويحتفظ
-> رفيق بعمولة قدرها **[COMMISSION]** من قيمة الجلسة ويحوّل إليك الباقي.
+> رفيق بعمولة قدرها **15%** من قيمة الجلسة ويحوّل إليك الباقي.
 >
-> **التحويلات.** نحوّل مستحقاتك **[PAYOUT SCHEDULE]** إلى حساب القبض الذي
+> **التحويلات.** تختار بنفسك موعد تحويل مستحقاتك: **كل أسبوع**، أو **كل
+> ثلاثة أيام** مقابل عمولة إضافية قدرها **2%** — أي 17% من قيمة الجلسة
+> إجمالًا — على ما يُحوَّل وفق هذا الموعد. ونحوّلها إلى حساب القبض الذي
 > تحدده في: الملف الشخصي ← حساب القبض. **[PAYOUT MINIMUM]** ولا يحتفظ رفيق
 > برصيد لك: فالتحويل نقل لمبالغ تم تحصيلها فعلًا عن جلسات أتممتها، وليس
 > محفظة.
@@ -317,7 +322,9 @@ broken that.
 
 **The collection half does not exist.** No money moves through the app
 today: booking sends the coach a request, and payments are recorded
-offline. `[COMMISSION]` has never been decided (checklist §3). So this
+offline. The commission was decided on 2026-10-07 (15%, or 17% on the
+three-day schedule), but **nothing in the app offers the choice of
+schedule yet**, and the payouts function applies no commission. So this
 clause is text for the version that charges, and counsel should know it
 reviews a model rather than a practice.
 
