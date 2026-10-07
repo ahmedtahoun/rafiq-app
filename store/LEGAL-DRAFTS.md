@@ -40,7 +40,7 @@ was invented**: where a fact is not decided, the placeholder stays.
 | `[BREACH WINDOW]` | **Answered from the law (2026-10-07):** the Personal Data Protection Centre within 72 hours of learning of a breach, and every affected person within three working days of that report, in all cases (art. 7). Clause 8 now says so | Law |
 | `[REFUND WINDOW]` | **Decided (Ahmed, 2026-10-07): 12 hours**, the same as the cancellation rule already in the member terms | Ahmed |
 | `[COURT]` | **Proposed from the law (2026-10-07): "the competent Egyptian courts", no named seat.** A member's dispute under the Consumer Protection Law (181/2018) belongs to the Economic Courts by statute (Law 120/2008 art. 6(15)), and a clause cannot move it. Counsel may still want a seat for coach disputes | Counsel |
-| `[DELETION SLA]` | **Decided (Ahmed, 2026-10-07): 30 days**, as the public deletion page already says. Backups: up to 7 days more, Supabase's retention on the paid plan; if the plan or point-in-time recovery changes that, this changes with it. Issue #132 | Ahmed |
+| `[DELETION SLA]` | **Decided (Ahmed, 2026-10-07): 30 days**, as the public deletion page already says. Backups: **none from Supabase**: Ahmed chose the free plan (2026-10-07), which has no backups. If Ahmed keeps backups of his own, the deletion page and clause 8 must say how long they last. Issue #132 | Ahmed |
 
 ## What the law says — research, 2026-10-07
 
@@ -542,9 +542,10 @@ if so, can Rafiq satisfy it when it does not control the billing?
 > law requires. If we refuse a request we will tell you the reason and how
 > to complain to the Personal Data Protection Centre.
 >
-> We delete your account within 30 days of your request. A copy can stay
-> in our encrypted backups for up to 7 days after that, until they are
-> replaced.
+> We delete your account within 30 days of your request.
+> **[BACKUPS: nothing while Rafiq is on Supabase's free plan, which keeps
+> no backups. If Ahmed keeps backups of his own, say here how long a copy
+> lasts in them.]**
 
 **العربية**
 
@@ -564,8 +565,8 @@ if so, can Rafiq satisfy it when it does not control the billing?
 > القانون. وإذا رفضنا طلبًا فسنوضح سببه وكيف تتقدم بشكوى إلى مركز حماية
 > البيانات الشخصية.
 >
-> ونحذف حسابك خلال 30 يومًا من طلبك. وقد تبقى نسخة منه في نسخنا
-> الاحتياطية المشفّرة مدة أقصاها 7 أيام بعد ذلك، إلى أن تُستبدل.
+> ونحذف حسابك خلال 30 يومًا من طلبك.
+> **[BACKUPS — see the English]**
 
 **What the app actually does.** Deletion is real and asynchronous: the app
 files a request (0012), an Edge Function anonymises the profile and bans
@@ -577,9 +578,9 @@ five rights have no mechanism — they are answered by a person reading
 confirm. The breach timing is art. 7 (the Centre within 72 hours; the
 person within three working days of that report, in all cases — so the
 "puts you at risk" qualifier the earlier draft had is gone). The six
-working days is art. 32. Is the backup paragraph an adequate way to
-qualify the deletion promise? The deletion page now says the same, up to
-7 days in backups after the 30 (issue #132).
+working days is art. 32. Backups depend on Ahmed's choice of plan:
+Supabase's free plan keeps none, so the deletion promise needs no
+qualifying today (issue #132).
 
 ---
 

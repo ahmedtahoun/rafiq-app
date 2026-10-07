@@ -409,9 +409,20 @@ builds".
 
 ## 5. Accounts and console setup (Ahmed)
 
-- [ ] 🔴 **Supabase:** upgrade to a paid plan before launch — free projects
-      pause after a week without activity and have no point-in-time backups.
-      Turn backups on and set the Site URL.
+- [ ] 🟡 **Supabase: launching on the free plan (decided, Ahmed,
+      2026-10-07).** What that means, from supabase.com/pricing that day:
+      * **No backups.** If the database is lost, so is everything in it.
+        Proposed: Ahmed keeps his own (`npx supabase db dump --linked`,
+        weekly, encrypted, a fixed number kept). If he does, the deletion
+        page and LEGAL-DRAFTS clause 8 must say how long a copy lasts.
+      * **Paused after 1 week with no activity.** The app then stops
+        working until someone restores it in the Dashboard. Mostly a risk
+        while testing, before there are users.
+      * **Limits:** 500 MB database, 1 GB file storage (photos), 5 GB
+        egress a month, 50,000 monthly active users, 200 realtime
+        connections, 1 day of logs. Upgrade when one of these gets close,
+        or as soon as real members depend on the data.
+      * Still to do on any plan: set the Site URL.
 - [ ] 🔴 **Google Cloud OAuth consent screen:** move from "Testing" to
       **"In production"** (Testing limits sign-in to listed test users and
       expires their sessions after 7 days). Add app name, logo, privacy policy
@@ -718,8 +729,8 @@ only Rafiq can resolve (as `service_role`). Nothing works them yet.
       not typecheck `admin/`.
 - [ ] 🟡 A written response time for reports and deletions — and meet it.
       **Decided (Ahmed, 2026-10-07):** reports looked at within **24 hours**;
-      accounts deleted within **30 days** (public deletion page), out of
-      backups up to 7 days later. Both are in `store/LEGAL-DRAFTS.md`.
+      accounts deleted within **30 days** (public deletion page). Both are
+      in `store/LEGAL-DRAFTS.md`.
       Left: someone checks the admin reports queue every day, weekends
       included. Nothing alerts anyone to a new report yet.
 
