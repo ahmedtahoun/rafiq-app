@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
-import { darken } from '../lib/color';
 import { ArrowForwardIcon, PencilIcon, EyeIcon, ShieldIcon, StarIcon, CloseIcon, WarningIcon, MessageIcon, PaymentIcon, ScheduleIcon, PersonIcon } from '../components/icons';
 import { CoachTabBar } from '../components/TabBars';
 import { signOut } from '../lib/auth';
@@ -31,9 +30,6 @@ import { usePushPermission } from '../store/pushHooks';
 import { syncPushDevice } from '../lib/push';
 import './Profile.css';
 
-// Matches tokens.css's --accent — darken() needs a literal hex, not the
-// CSS custom property, for the hero's gradient fallback (no cover photo).
-const ACCENT_HEX = '#B75C3D';
 
 // No 'checkins': ProNotificationKind has no check-in notification, so the
 // row the design gave it controlled nothing. See ProNotificationPrefs.
@@ -81,7 +77,7 @@ function ProfileView({ own }: { own: Extract<OwnProfileView, { status: 'ready' }
   const hasAvatarPhoto = !!profile.avatarPhotoUrl;
   const heroBackground = profile.coverPhotoUrl
     ? `linear-gradient(180deg, rgba(0,0,0,.45) 0%, rgba(0,0,0,.55) 55%, rgba(0,0,0,.68) 100%), url('${profile.coverPhotoUrl}') center/cover no-repeat`
-    : `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 45)} 100%)`;
+    : 'var(--hero-grad)';
   const specialtyChips = (profile.title || 'Life coaching').split(' · ').filter(Boolean);
   const hasBio = !!(profile.bio && profile.bio.trim());
 

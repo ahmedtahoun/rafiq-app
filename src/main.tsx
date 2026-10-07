@@ -14,6 +14,7 @@ import '@fontsource/cairo/500.css';
 import '@fontsource/cairo/600.css';
 import '@fontsource/cairo/700.css';
 import './theme/tokens.css';
+import './theme/glass.css';
 
 // Returns immediately, and without loading the SDK at all, when
 // VITE_SENTRY_DSN is unset. Not awaited: a crash reporter must never be on

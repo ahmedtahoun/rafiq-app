@@ -4,7 +4,6 @@ import { LoadState } from '../components/LoadState';
 import { useAppStore } from '../store/appStore';
 import { useT, isolate, type MessageKey } from '../lib/i18n';
 import { languageLabel, specialtyLabels } from '../lib/coachLabels';
-import { darken } from '../lib/color';
 import { useFormat } from '../lib/format';
 import { CheckIcon, ChevronIcon, ShieldIcon, StarIcon } from '../components/icons';
 import {
@@ -168,7 +167,7 @@ function PreviewProfileView({ own, offerings, rating: agg, activeCount, reviews,
   const selected = offerings.find((o) => o.id === selectedId) ?? null;
   const heroStyle = profile.coverPhotoUrl
     ? { backgroundImage: `linear-gradient(180deg, rgba(0,0,0,.45) 0%, rgba(0,0,0,.55) 55%, rgba(0,0,0,.68) 100%), url(${profile.coverPhotoUrl})` }
-    : { background: `linear-gradient(135deg, ${ACCENT} 0%, ${darken(ACCENT, 45)} 100%)` };
+    : { background: 'var(--hero-grad)' };
 
   function book() {
     if (!selectedId) return;

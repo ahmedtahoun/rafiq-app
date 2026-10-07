@@ -1,7 +1,6 @@
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
 import { useFormat } from '../lib/format';
-import { darken } from '../lib/color';
 import {
   ArrowForwardIcon, ProgramsIcon,
   
@@ -23,7 +22,6 @@ import './MyPrograms.css';
 // Signed out, the demo member's. Signed in, the member's own enrollments
 // with the coach they're viewing (SUPABASE-MIGRATION-PLAN.md step 6).
 const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
-const ACCENT_HEX = '#B75C3D';
 
 export default function MyPrograms() {
   const remote = useRemoteSession();
@@ -96,7 +94,7 @@ function ProgramsView(props: ViewProps) {
   const t = useT();
   const fmt = useFormat();
 
-  const heroGrad = `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 40)} 100%)`;
+  const heroGrad = 'var(--hero-grad)';
 
   const programs = props.noCoach ? [] : props.programs;
   // The same session on every row: see DemoMyPrograms.

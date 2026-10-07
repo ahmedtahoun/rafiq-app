@@ -107,7 +107,10 @@ export default function Welcome() {
     <div className="phone-frame">
       <div
         className="welcome-hero"
-        style={{ background: `linear-gradient(135deg, ${slide.accent} 0%, ${darken(slide.accent, 40)} 100%)` }}
+        style={{
+          // Each slide's own colour, as a glow in the nebula (tokens.css).
+          background: `var(--stars), radial-gradient(90% 75% at 12% 0%, ${slide.accent}F2, transparent 62%), radial-gradient(80% 80% at 100% 45%, rgba(196, 72, 104, 0.5), transparent 62%), linear-gradient(135deg, ${darken(slide.accent, 70)} 0%, #1E100C 100%)`,
+        }}
       >
         <div className="welcome-blob welcome-blob-a" />
         <div className="welcome-blob welcome-blob-b" />
