@@ -15,6 +15,7 @@ import { useMemberSpace, type MemberSpaceView } from '../store/memberStore';
 import {
   DEMO_MEMBER_CLIENT_ID,
   getAgreementInfo,
+  getAgreementInfoForTitle,
   getAgreement,
   setAgreementStatus,
   getNotificationPrefs,
@@ -27,12 +28,15 @@ import { MemberTabBar } from '../components/TabBars';
 import { PushPhoneRow } from '../components/PushAsk';
 import { usePushPermission } from '../store/pushHooks';
 import { syncPushDevice } from '../lib/push';
+import { AgreementCard } from '../components/AgreementCard';
+import { fetchAgreement, signAgreement } from '../lib/agreementData';
+import { useRemoteLoad } from '../store/remoteLoad';
 import { DownloadMyData } from '../components/DownloadMyData';
 import './ClientProfile.css';
 
-// The coaching agreement and demo account deletion are the demo member's,
-// signed out only: signed in, the agreement card is hidden (and its state
-// never read) and deletion files a real request.
+// Demo account deletion is the demo member's, signed out only: signed in,
+// deletion files a real request. The coaching agreement is the demo's
+// (mockStore) signed out, and the real one (agreements, 0028) signed in.
 const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
 const RING_R = 22;
 const RING_CIRC = 2 * Math.PI * RING_R;
@@ -63,7 +67,6 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
   const setDark = useAppStore((s) => s.setDark);
   const nav = useAppStore((s) => s.nav);
 
-  const [showAgreementExpand, setShowAgreementExpand] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   // Disables the Delete button while a real Supabase request is in
   // flight, and keeps the confirm sheet open with an inline error on
@@ -106,11 +109,8 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
   } as const;
   const paymentState = paymentStates[client?.paymentStatus ?? 'due'];
 
-  const agreementInfo = getAgreementInfo(client?.specialty ?? '');
-  const isAgreementSigned = !remote && getAgreement(CLIENT_ID).status === 'signed';
-  const agreementStatusLabel = isAgreementSigned ? t('clientProfileAgreementSigned') : t('clientProfileAgreementAwaiting');
-  const agreementColor = isAgreementSigned ? 'var(--green)' : 'var(--ink-soft)';
-  const agreementBg = isAgreementSigned ? 'var(--green-bg)' : 'var(--accent-soft)';
+  const demoAgreementInfo = getAgreementInfo(client?.specialty ?? '');
+  const demoAgreement = remote ? null : getAgreement(CLIENT_ID);
 
   const notifPrefs = getNotificationPrefs();
   const notif = notifPrefs.enabled;
@@ -141,9 +141,10 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
   const deleteBody = t('clientProfileDeleteBody', { coach: isolate(coachName) });
   const memberOf = rel ? t('clientProfileMemberOf', { coach: isolate(coachName) }) : '';
 
-  function signAgreement() {
+  async function signDemoAgreement(): Promise<boolean> {
     setAgreementStatus(CLIENT_ID, 'signed');
     refresh();
+    return true;
   }
 
   // The phone's banners follow the switches too (push.ts); a no-op in a
@@ -305,48 +306,15 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
         </>
         )}
 
-        {!remote && (
-        <div className="client-profile-agreement-card">
-          <button type="button" className="client-profile-agreement-row" onClick={() => setShowAgreementExpand((v) => !v)}>
-            <div className="client-profile-agreement-icon" style={{ background: agreementBg }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={agreementColor} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <path d="M14 2v6h6" />
-                <path d="M9 15l2 2 4-4" />
-              </svg>
-            </div>
-            <div className="client-profile-card-text">
-              <div className="client-profile-card-title">{t(agreementInfo.titleKey)}</div>
-              <div className="client-profile-agreement-status" style={{ color: agreementColor }}>
-                {agreementStatusLabel}
-              </div>
-            </div>
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="var(--ink-soft)"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ transform: `rotate(${showAgreementExpand ? '180deg' : '0deg'})`, transition: 'transform .15s', flexShrink: 0 }}
-            >
-              <path d="M6 9l6 6 6-6" />
-            </svg>
-          </button>
-          {showAgreementExpand && (
-            <div className="client-profile-agreement-expand">
-              <div className="client-profile-agreement-body">{t(agreementInfo.bodyKey)}</div>
-              {!isAgreementSigned && (
-                <button type="button" className="client-profile-agreement-sign" onClick={signAgreement}>
-                  {t('clientProfileIAgree')}
-                </button>
-              )}
-            </div>
-          )}
-        </div>
+        {demoAgreement && (
+          <AgreementCard
+            titleKey={demoAgreementInfo.titleKey}
+            bodyKey={demoAgreementInfo.bodyKey}
+            signedAtMs={demoAgreement.status === 'signed' ? demoAgreement.at ?? 0 : null}
+            onSign={signDemoAgreement}
+          />
         )}
+        {remote && client && <MemberAgreement clientId={client.id} coachTitle={coachSpecialty} />}
 
         <div className="client-profile-section">
           <div className="client-profile-section-label">{t('profilePreferences')}</div>
@@ -492,5 +460,49 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
       )}
       <MemberTabBar />
     </div>
+  );
+}
+
+/**
+ * The signed-in member's agreement with their current coach (0028): shown
+ * once the coach has sent it, in the app's language, for the coach's
+ * specialty. The signature records the exact text and language shown.
+ */
+function MemberAgreement({ clientId, coachTitle }: { clientId: string; coachTitle: string }) {
+  const t = useT();
+  const lang = useAppStore((s) => s.lang);
+  const load = useRemoteLoad(`agreement:${clientId}`, true, () => fetchAgreement(clientId));
+  if (load.status === 'loading') return null;
+  if (load.status === 'error') {
+    return (
+      <div className="client-profile-agreement-card client-profile-agreement-failed" role="alert">
+        <span>{t('agreementLoadFailed')}</span>
+        <button type="button" onClick={load.retry}>{t('retry')}</button>
+      </div>
+    );
+  }
+  const agreement = load.data;
+  if (agreement.status === 'none') return null;
+  const info = getAgreementInfoForTitle(coachTitle);
+  const ready = load;
+  async function sign(): Promise<boolean> {
+    const result = await signAgreement({
+      clientId,
+      category: info.category,
+      title: t(info.titleKey),
+      body: t(info.bodyKey),
+      lang: lang === 'ar' ? 'ar' : 'en',
+    });
+    if (!result.ok) return false;
+    ready.set(result.data);
+    return true;
+  }
+  return (
+    <AgreementCard
+      titleKey={info.titleKey}
+      bodyKey={info.bodyKey}
+      signedAtMs={agreement.status === 'signed' ? agreement.signedAtMs : null}
+      onSign={sign}
+    />
   );
 }

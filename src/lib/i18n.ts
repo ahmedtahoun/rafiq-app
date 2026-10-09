@@ -453,7 +453,7 @@ const en = {
 
     // ClientProfile.dc.html
     clientProfileTitle: 'Profile', clientProfileMemberOf: 'Member of {coach}', clientProfileEditProfile: 'Edit profile',
-    clientProfileIAgree: 'I Agree', clientProfileGoalProgress: 'Goal progress', clientProfileYourPro: 'Your pro',
+    clientProfileGoalProgress: 'Goal progress', clientProfileYourPro: 'Your pro',
     clientProfileSessionsQuick: 'Sessions', clientProfileTasksQuick: 'Tasks', clientProfileNoSessionLabel: 'None booked',
     clientProfileTasksPending: '{n} pending', clientProfileTasksDone: 'All done',
     clientProfilePaymentPaid: 'Payment up to date', clientProfilePaymentDue: 'Payment due', clientProfilePaymentOverdue: 'Payment overdue',
@@ -461,7 +461,21 @@ const en = {
     clientProfileNotifSession: 'Session updates', clientProfileNotifTask: 'Overdue tasks', clientProfileNotifMessages: 'Pro messages',
     clientProfileDeleteBody: "This removes your personal info from {coach}'s roster. {coach} keeps their own record of your sessions and payments, as they're entitled to. This can't be undone.",
     clientProfileObligationCredits: '{n} unused session credit(s)', clientProfileObligationSession: 'an upcoming session',
-    clientProfileAgreementAwaiting: 'Awaiting your review', clientProfileAgreementSigned: 'Agreed',
+    clientProfileAgreementAwaiting: 'Awaiting your review',
+    // Signing the coaching agreement (AgreementCard, issue #143), and its
+    // status on the coach's page for the member.
+    agreementConfirm: 'I have read this agreement and I agree to it.',
+    agreementSign: 'Sign agreement',
+    agreementSignedOn: 'Signed on {date}',
+    agreementSignFailed: "Couldn't sign the agreement. Check your connection and try again.",
+    agreementLoadFailed: "Couldn't load your agreement.",
+    clientDetailAgreementTitle: 'Coaching agreement',
+    clientDetailAgreementNone: "Not sent yet. {name} reads and signs it in the app.",
+    clientDetailAgreementSend: 'Send agreement',
+    clientDetailAgreementSent: 'Sent {date} · waiting for a signature',
+    clientDetailAgreementSignedEn: 'Signed {date}, in English',
+    clientDetailAgreementSignedAr: 'Signed {date}, in Arabic',
+    clientDetailAgreementLoadFailed: "Couldn't load the agreement.",
 
     // The coaching agreement — the waiver a member reviews and signs,
     // picked by their coach's specialty category (getAgreementInfo in
@@ -1620,7 +1634,7 @@ const ar: Record<MessageKey, string> = {
 
     // ClientProfile.dc.html
     clientProfileTitle: 'الملف الشخصي', clientProfileMemberOf: 'عضوة {coach}', clientProfileEditProfile: 'تعديل الملف',
-    clientProfileIAgree: 'أوافق', clientProfileGoalProgress: 'التقدم نحو الهدف', clientProfileYourPro: 'محترفتك',
+    clientProfileGoalProgress: 'التقدم نحو الهدف', clientProfileYourPro: 'محترفتك',
     clientProfileSessionsQuick: 'الجلسات', clientProfileTasksQuick: 'المهام', clientProfileNoSessionLabel: 'لا يوجد حجز',
     clientProfileTasksPending: '{n} معلقة', clientProfileTasksDone: 'كل شيء منجز',
     clientProfilePaymentPaid: 'الدفع محدث', clientProfilePaymentDue: 'الدفع مستحق', clientProfilePaymentOverdue: 'الدفع متأخر',
@@ -1628,7 +1642,19 @@ const ar: Record<MessageKey, string> = {
     clientProfileNotifSession: 'مستجدات الجلسات', clientProfileNotifTask: 'المهام المتأخرة', clientProfileNotifMessages: 'رسائل المحترفة',
     clientProfileDeleteBody: 'سيؤدي هذا إلى إزالة معلوماتك الشخصية من قائمة {coach}. تحتفظ {coach} بسجلها الخاص بجلساتك ومدفوعاتك، وهذا من حقها. لا يمكن التراجع عن هذا.',
     clientProfileObligationCredits: '{n} رصيد جلسات غير مستخدم', clientProfileObligationSession: 'جلسة قادمة',
-    clientProfileAgreementAwaiting: 'بانتظار موافقتك', clientProfileAgreementSigned: 'تم القبول',
+    clientProfileAgreementAwaiting: 'بانتظار موافقتك',
+    agreementConfirm: 'قرأتُ هذا الاتفاق وأوافق عليه.',
+    agreementSign: 'توقيع الاتفاق',
+    agreementSignedOn: 'وُقّع في {date}',
+    agreementSignFailed: 'تعذّر توقيع الاتفاق. يُرجى التحقق من الاتصال والمحاولة مرة أخرى.',
+    agreementLoadFailed: 'تعذّر تحميل اتفاقك.',
+    clientDetailAgreementTitle: 'اتفاق التدريب',
+    clientDetailAgreementNone: 'لم يُرسَل إلى {name} بعد. القراءة والتوقيع داخل التطبيق.',
+    clientDetailAgreementSend: 'إرسال الاتفاق',
+    clientDetailAgreementSent: 'أُرسل في {date} · بانتظار التوقيع',
+    clientDetailAgreementSignedEn: 'وُقّع في {date}، بالإنجليزية',
+    clientDetailAgreementSignedAr: 'وُقّع في {date}، بالعربية',
+    clientDetailAgreementLoadFailed: 'تعذّر تحميل الاتفاق.',
 
     // Written, not translated. Two deliberate choices, both flagged in
     // store/LAWYER-PACKAGE.md for counsel:
