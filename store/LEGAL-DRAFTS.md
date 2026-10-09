@@ -963,6 +963,12 @@ relationship it was signed in either, since that would take the signature
 with it. How long a signature is kept after the relationship ends is a
 question for counsel. Nothing has been signed for real before that.
 
+**Every version of the text is kept.** A signature stores the hash of the
+text, not the text, so every version a member can sign is archived word
+for word, with its hash, in `store/agreement-versions.md`. When counsel's
+revised agreement goes into the app, it is archived there as v2 and v1
+stays: a test fails until it is.
+
 ---
 
 ## 15 · A coach's public page — **Proposed**
