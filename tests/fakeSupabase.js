@@ -299,6 +299,24 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       return { data: { client_id: chk.c.id, coach_id: chk.c.coach_id }, error: null };
     }
 
+    // 0026: the coach's own switch, and the lookup anyone may make.
+    // window.__fake.publicCode is the code the "server" makes (default 'k7m2qx').
+    function publicPage(fn, args) {
+      const coaches = (db.coach_profiles ??= []);
+      if (fn === 'set_public_page') {
+        const me = coaches.find((c) => c.profile_id === userId);
+        if (!me) return refuse('42501');
+        if (args.p_on && !me.public_code) me.public_code = window.__fake.publicCode ?? 'k7m2qx';
+        me.public_page = args.p_on === true;
+        return { data: me.public_code ?? null, error: null };
+      }
+      const code = String(args.p_code ?? '').trim().toLowerCase();
+      const c = coaches.find((x) => x.public_code === code && x.public_page && !x.unlisted);
+      const p = c && (db.profiles ??= []).find((x) => x.id === c.profile_id);
+      if (!c || !p || (p.account_status && p.account_status !== 'active')) return { data: null, error: null };
+      return { data: { coach_id: c.profile_id, full_name: p.full_name, title: c.title ?? '' }, error: null };
+    }
+
     real.rpc = async (fn, args) => {
       log({ op: 'rpc', fn, args });
       // window.__fake.rpcDelay (ms) keeps a call in flight, for a test that
@@ -309,6 +327,7 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       if (fn === 'mark_attendance') return markAttendance(args);
       if (fn.endsWith('_client_invite')) return clientInvite(fn, args);
       if (fn === 'member_cancel_session') return memberCancel(args);
+      if (fn === 'set_public_page' || fn === 'public_coach_page') return publicPage(fn, args);
       // 0023: this phone, as the signed-in person. A token moves to whoever
       // registers it last.
       if (fn === 'register_device') {
