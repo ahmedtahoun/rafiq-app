@@ -425,6 +425,8 @@ export type Database = {
           featured: boolean
           languages: string[]
           profile_id: string
+          public_code: string | null
+          public_page: boolean
           session_mode: Database["public"]["Enums"]["session_mode"]
           signup_completed_at: string | null
           title: string
@@ -442,6 +444,8 @@ export type Database = {
           featured?: boolean
           languages?: string[]
           profile_id: string
+          public_code?: string | null
+          public_page?: boolean
           session_mode?: Database["public"]["Enums"]["session_mode"]
           signup_completed_at?: string | null
           title?: string
@@ -459,6 +463,8 @@ export type Database = {
           featured?: boolean
           languages?: string[]
           profile_id?: string
+          public_code?: string | null
+          public_page?: boolean
           session_mode?: Database["public"]["Enums"]["session_mode"]
           signup_completed_at?: string | null
           title?: string
@@ -1827,6 +1833,7 @@ export type Database = {
       normalize_invite_code: { Args: { p_code: string }; Returns: string }
       peek_client_invite: { Args: { p_code: string }; Returns: Json }
       process_account_deletion: { Args: { p_request: string }; Returns: Json }
+      public_coach_page: { Args: { p_code: string }; Returns: Json }
       push_notification: {
         Args: {
           p_client: string
@@ -1853,6 +1860,7 @@ export type Database = {
         Returns: undefined
       }
       revoke_client_invite: { Args: { p_client: string }; Returns: Json }
+      set_public_page: { Args: { p_on: boolean }; Returns: string }
       set_relationship_block: {
         Args: { p_blocked: boolean; p_client: string }
         Returns: Json

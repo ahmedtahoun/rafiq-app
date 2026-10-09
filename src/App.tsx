@@ -104,6 +104,26 @@ export default function App() {
   // app from wherever it's pressed. A no-op on iOS and in a browser.
   useEffect(() => initBackButton(), []);
 
+  // Native only: a coach's public page opened in the app
+  // (app.rafiqie.coach://c/<code>, lib/coachLinks.ts). A member who came
+  // from one signed out lands on that coach once they sign in. Loaded on
+  // demand, like push.ts, so the startup bundle and its module graph stay
+  // as they were.
+  useEffect(() => {
+    let stop = () => {};
+    let live = true;
+    void import('./lib/coachLinks').then((m) => {
+      if (live) stop = m.initCoachLinks();
+    });
+    return () => {
+      live = false;
+      stop();
+    };
+  }, []);
+  useEffect(() => {
+    if (signedIn && role === 'client') void import('./lib/coachLinks').then((m) => m.openPendingCoachLink());
+  }, [signedIn, role]);
+
   // Signed in: the unread badge on the tab bar, and the in-app sound for a
   // new message (store/unread.ts). Restarts if the account or role changes.
   useEffect(() => {

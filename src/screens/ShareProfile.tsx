@@ -1,136 +1,137 @@
 import { useState } from 'react';
+import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
 import { useOwnCoachProfile, type OwnProfileView } from '../store/ownProfileStore';
 import { LoadState } from '../components/LoadState';
 import { useAppStore } from '../store/appStore';
-import { useT } from '../lib/i18n';
+import { isolate, useT } from '../lib/i18n';
+import { specialtyLabels } from '../lib/coachLabels';
 import { darken } from '../lib/color';
 import { CheckIcon, ChevronIcon, ClientsIcon, EyeIcon, ShareIcon, StarIcon } from '../components/icons';
 import { getClients, getProAggregateRating, MIN_REVIEWS_FOR_RATING } from '../lib/mockStore';
 import { fetchOwnCoachStats } from '../lib/coachStatsData';
+import { fetchOwnPublicPage, PUBLIC_SITE, publicPageAddress, publicPageUrl, publicSite, setPublicPage, type PublicPage } from '../lib/publicPageData';
 import { useRemoteSession } from '../lib/remoteSession';
 import { useRemoteLoad } from '../store/remoteLoad';
 import { useRoster } from '../store/rosterStore';
 import './ShareProfile.css';
 
 const ACCENT = '#B75C3D';
-const QR_GRID = 21;
 
 /**
- * A stylized, deterministic pattern seeded from the Pro's own profile, so
- * two Pros render differently and it shifts when their details change.
+ * What a coach hands a prospective member: their card, and their public
+ * page (migration 0026, rafiqpro.com/c/<code>) if they turn it on here.
  *
- * It is a design mock, not a scannable code — rafiq.app/pro/… is not a live
- * page. Kept exactly as the design has it rather than pulling in a real QR
- * library, which would imply the link works.
+ * Off by default. The switch says exactly what the page shows and to whom
+ * before it is on; turning it on makes the link (kept after, so it never
+ * changes), and only then are Copy, Share and View offered. The page
+ * itself is site/coach-page.mjs. Until rafiqpro.com is hosted
+ * (publicSite.live()), no link is offered at all: it would open nothing.
+ *
+ * Signed in, the member count and rating are the coach's own (the roster
+ * and coachStatsData.ts). Signed out, the demo's card shows with the switch
+ * off and a note to sign in: there is no page to turn on.
  */
-function qrCells(seedSource: string): { x: number; y: number }[] {
-  let seed = 2166136261;
-  for (let i = 0; i < seedSource.length; i++) {
-    seed ^= seedSource.charCodeAt(i);
-    seed = Math.imul(seed, 16777619);
-  }
-  seed >>>= 0;
-  const random = () => {
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-
-  const finders: [number, number][] = [[0, 0], [QR_GRID - 7, 0], [0, QR_GRID - 7]];
-  const inFinder = (x: number, y: number) => finders.some(([fx, fy]) => x >= fx && x < fx + 7 && y >= fy && y < fy + 7);
-  const logoStart = Math.floor(QR_GRID / 2) - 2;
-  const inLogo = (x: number, y: number) => x >= logoStart && x < logoStart + 5 && y >= logoStart && y < logoStart + 5;
-
-  const cells: { x: number; y: number }[] = [];
-  finders.forEach(([fx, fy]) => {
-    for (let dy = 0; dy < 7; dy++) {
-      for (let dx = 0; dx < 7; dx++) {
-        const onRing = dx === 0 || dx === 6 || dy === 0 || dy === 6;
-        const onCore = dx >= 2 && dx <= 4 && dy >= 2 && dy <= 4;
-        if (onRing || onCore) cells.push({ x: fx + dx, y: fy + dy });
-      }
-    }
-  });
-  for (let y = 0; y < QR_GRID; y++) {
-    for (let x = 0; x < QR_GRID; x++) {
-      if (inFinder(x, y) || inLogo(x, y)) continue;
-      if (random() < 0.5) cells.push({ x, y });
-    }
-  }
-  return cells;
-}
-
-type ShareChannel = 'whatsapp' | 'messages' | 'email' | 'sms';
-const CHANNELS: ShareChannel[] = ['whatsapp', 'messages', 'email', 'sms'];
-
-// 1:1 port of ShareProfile.dc.html — the shareable card, link and QR mock a
-// coach hands to a prospective member.
-//
-// Signed in, the member count and rating are the coach's own (the roster
-// and coachStatsData.ts); signed out, the demo's. The screen is still off
-// the Profile menu until the public coach page exists (LAUNCH-CHECKLIST).
 export default function ShareProfile() {
   const own = useOwnCoachProfile();
   const remote = useRemoteSession();
   const roster = useRoster();
   const stats = useRemoteLoad('coach_stats', remote, () => fetchOwnCoachStats());
-  if (own.status === 'loading' || (remote && (stats.status === 'loading' || roster.status === 'loading'))) return <LoadState status="loading" />;
-  if (own.status === 'error') return <LoadState status="error" onRetry={own.retry} showBack />;
-  if (remote && stats.status === 'error') return <LoadState status="error" onRetry={stats.retry} showBack />;
-  if (remote && roster.status === 'error') return <LoadState status="error" onRetry={roster.retry} showBack />;
-  if (remote && stats.status === 'ready' && roster.status === 'ready') {
+  const page = useRemoteLoad('public_page', remote, () => fetchOwnPublicPage());
+  if (own.status === 'loading' || (remote && (stats.status === 'loading' || roster.status === 'loading' || page.status === 'loading'))) {
+    return <LoadState status="loading" />;
+  }
+  // One error screen, and its Try again retries every read that failed:
+  // the profile and the page come from the same row, so they fail together.
+  const retryAll = () => [own, stats, roster, page].forEach((l) => {
+    if (l.status === 'error') l.retry();
+  });
+  if (own.status === 'error') return <LoadState status="error" onRetry={retryAll} showBack />;
+  if (remote && (stats.status === 'error' || roster.status === 'error' || page.status === 'error')) {
+    return <LoadState status="error" onRetry={retryAll} showBack />;
+  }
+  if (remote && stats.status === 'ready' && roster.status === 'ready' && page.status === 'ready') {
     return (
       <ShareProfileView
         own={own}
         activeCount={roster.clients.filter((c) => c.active).length}
         rating={{ average: stats.data.ratingAvg, hasEnoughReviews: stats.data.ratingCount >= MIN_REVIEWS_FOR_RATING }}
+        page={page.data}
+        onPageChange={page.set}
       />
     );
   }
-  return <ShareProfileView own={own} activeCount={getClients().filter((c) => c.active).length} rating={getProAggregateRating()} />;
+  return <ShareProfileView own={own} activeCount={getClients().filter((c) => c.active).length} rating={getProAggregateRating()} page={null} />;
 }
 
-function ShareProfileView({ own, activeCount, rating }: {
+function ShareProfileView({ own, activeCount, rating, page, onPageChange }: {
   own: Extract<OwnProfileView, { status: 'ready' }>;
   activeCount: number;
   rating: { average: number; hasEnoughReviews: boolean };
+  /** null signed out: nothing to turn on. */
+  page: PublicPage | null;
+  onPageChange?: (page: PublicPage) => void;
 }) {
   const t = useT();
   const back = useAppStore((s) => s.back);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
   const [toast, setToast] = useState('');
 
   const profile = own.profile;
   const initials = profile.name.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2);
-  const primarySpecialty = (profile.title || 'Life coaching').split(' · ')[0];
-  const slug = profile.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-  const profileUrl = `rafiq.app/pro/${slug}`;
-
-  // The design hardcodes 4.9 stars and 142 views as demo values. The rating
-  // has a real seam, so it is read from it and shows a dash until there are
-  // enough reviews — the same treatment Profile gives it. Views have no
-  // source anywhere in the app, so they stay a dash rather than becoming a
-  // number a coach might show a prospective member.
+  // In the app's language (#95), as everywhere else a specialty shows.
+  const primarySpecialty = specialtyLabels(profile.title || 'Life coaching', t)[0];
   const ratingLabel = rating.hasEnoughReviews ? rating.average.toFixed(1) : '—';
-  const viewsLabel = '—';
+  const on = page?.on === true;
+  const live = publicSite.live();
+  const code = on && live ? page?.code ?? null : null;
 
-  const cells = qrCells([profile.name, profile.title, profile.cert, profile.bio, profileUrl].join('|'));
-
-  function share(channel: ShareChannel) {
-    setSheetOpen(false);
-    setToast(t('shareProfileOpening', { channel: t(`shareProfileChannel_${channel}`) }));
+  async function toggle() {
+    if (!page || busy) return;
+    setBusy(true);
+    setFailed(false);
+    const result = await setPublicPage(!page.on);
+    setBusy(false);
+    if (!result.ok) {
+      setFailed(true);
+      return;
+    }
+    // The code is kept when the page goes off, so keep showing the one we have.
+    onPageChange?.({ on: result.data.on, code: result.data.code ?? page.code });
   }
 
   async function copyLink() {
+    if (!code) return;
     try {
-      await navigator.clipboard.writeText(`https://${profileUrl}`);
+      await navigator.clipboard.writeText(publicPageUrl(code));
       setToast(t('shareProfileLinkCopied'));
     } catch {
       // Clipboard access is denied in some browsers and every insecure
       // origin; say so rather than claiming a copy that did not happen.
       setToast(t('shareProfileCopyFailed'));
     }
+  }
+
+  async function shareLink() {
+    if (!code) return;
+    const url = publicPageUrl(code);
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ title: profile.name, url });
+      } catch {
+        // Dismissed: nothing to say.
+      }
+      return;
+    }
+    await copyLink();
+  }
+
+  function viewPage() {
+    if (!code) return;
+    const url = publicPageUrl(code);
+    if (Capacitor.isNativePlatform()) void Browser.open({ url });
+    else window.open(url, '_blank', 'noopener');
   }
 
   return (
@@ -146,17 +147,8 @@ function ShareProfileView({ own, activeCount, rating }: {
 
       <div className="share-profile-body">
         <div className="share-profile-card">
-          <div className="share-profile-qr-wrap">
-            <svg className="share-profile-qr" width="136" height="136" viewBox="0 0 21 21" role="img" aria-label={t('shareProfileQrAlt')}>
-              {cells.map((c) => (
-                <rect key={`${c.x}-${c.y}`} x={c.x} y={c.y} width="1" height="1" rx="0.18" fill="var(--ink)" />
-              ))}
-              <rect x="8" y="8" width="5" height="5" rx="1" fill={ACCENT} />
-            </svg>
-          </div>
-
           <div className="share-profile-card-text">
-            <div className="share-profile-name">{profile.name}</div>
+            <div className="share-profile-name"><bdi>{profile.name}</bdi></div>
             <div className="share-profile-meta">
               <span className="share-profile-chip">{primarySpecialty}</span>
               <span className="share-profile-chip">
@@ -164,8 +156,7 @@ function ShareProfileView({ own, activeCount, rating }: {
                 <span>{ratingLabel}</span>
               </span>
             </div>
-            {profile.bio?.trim() && <p className="share-profile-bio">{profile.bio}</p>}
-            <div className="share-profile-scan-hint">{t('shareProfileScanHint')}</div>
+            {profile.bio?.trim() && <p className="share-profile-bio" dir="auto">{profile.bio}</p>}
           </div>
 
           <div className="share-profile-avatar-wrap">
@@ -176,13 +167,48 @@ function ShareProfileView({ own, activeCount, rating }: {
           </div>
         </div>
 
-        <div className="share-profile-link-row">
-          <span className="share-profile-link-icon"><ShareIcon size={14} color="var(--accent)" /></span>
-          <span className="share-profile-link">{profileUrl}</span>
-          <button type="button" className="share-profile-copy" aria-label={t('shareProfileCopyLink')} onClick={copyLink}>
-            <CopyGlyph />
-          </button>
-        </div>
+        <section className="share-profile-public" aria-labelledby="share-public-title">
+          <div className="share-profile-public-head">
+            <h2 id="share-public-title" className="share-profile-public-title">{t('sharePublicTitle')}</h2>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={on}
+              aria-labelledby="share-public-title"
+              className={`share-profile-switch${on ? ' is-on' : ''}`}
+              disabled={!page || busy}
+              onClick={toggle}
+            >
+              <span className="share-profile-switch-thumb" />
+            </button>
+          </div>
+          <p className="share-profile-public-body">{t('sharePublicBody')}</p>
+          {failed && <p className="share-profile-public-error" role="alert">{t('sharePublicError')}</p>}
+          {!page && <p className="share-profile-public-note">{t('sharePublicSignedOut')}</p>}
+          {page && !live && <p className="share-profile-public-note">{t(on ? 'sharePublicNotLiveOn' : 'sharePublicNotLiveOff', { site: isolate(PUBLIC_SITE) })}</p>}
+          {page && live && !on && <p className="share-profile-public-note">{t('sharePublicOff')}</p>}
+          {code && (
+            <>
+              <div className="share-profile-link-row">
+                <span className="share-profile-link-icon"><ShareIcon size={14} color="var(--accent)" /></span>
+                <span className="share-profile-link" dir="ltr">{publicPageAddress(code)}</span>
+                <button type="button" className="share-profile-copy" aria-label={t('shareProfileCopyLink')} onClick={copyLink}>
+                  <CopyGlyph />
+                </button>
+              </div>
+              <div className="share-profile-actions">
+                <button type="button" className="share-profile-primary" onClick={shareLink}>
+                  <ShareIcon size={16} color="#FFFFFF" />
+                  {t('sharePublicShare')}
+                </button>
+                <button type="button" className="share-profile-secondary" onClick={viewPage}>
+                  <EyeIcon size={15} />
+                  {t('sharePublicView')}
+                </button>
+              </div>
+            </>
+          )}
+        </section>
 
         <div className="share-profile-stats">
           <div className="share-profile-stat">
@@ -195,39 +221,8 @@ function ShareProfileView({ own, activeCount, rating }: {
             <div className="share-profile-stat-value">{activeCount}</div>
             <div className="share-profile-stat-label">{t('shareProfileMembers')}</div>
           </div>
-          <div className="share-profile-stat">
-            <EyeIcon size={15} color="var(--green)" />
-            <div className="share-profile-stat-value">{viewsLabel}</div>
-            <div className="share-profile-stat-label">{t('shareProfileViews')}</div>
-          </div>
-        </div>
-
-        <div className="share-profile-actions">
-          <button type="button" className="share-profile-primary" onClick={() => setSheetOpen(true)}>
-            <ShareIcon size={16} color="#FFFFFF" />
-            {t('shareProfileMoreOptions')}
-          </button>
-          <button type="button" className="share-profile-secondary" onClick={() => setToast(t('shareProfileContactSaved'))}>
-            <ClientsIcon size={15} />
-            {t('shareProfileSaveContact')}
-          </button>
         </div>
       </div>
-
-      {sheetOpen && (
-        <div className="share-profile-backdrop" onClick={() => setSheetOpen(false)}>
-          <div className="share-profile-sheet" onClick={(e) => e.stopPropagation()}>
-            <div className="share-profile-sheet-grip" />
-            <div className="share-profile-sheet-title">{t('shareProfileShareVia')}</div>
-            {CHANNELS.map((channel) => (
-              <button key={channel} type="button" className="share-profile-sheet-row" onClick={() => share(channel)}>
-                <span className="share-profile-sheet-icon"><ShareIcon size={17} color="var(--accent)" /></span>
-                <span>{t(`shareProfileChannel_${channel}`)}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {toast && (
         <div className="share-profile-toast" role="status" onClick={() => setToast('')}>

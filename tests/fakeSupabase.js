@@ -29,8 +29,12 @@ const KEYS = {
 export const TINY_PNG_DATA_URL =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 
-export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fail = [] } = {}) {
-  return page.evaluate(async ({ userId, tables, fail, KEYS, TINY_PNG_DATA_URL }) => {
+// supabase/config.toml's [api] max_rows: PostgREST returns at most this many
+// rows to one request, and says nothing when it stops there.
+export const MAX_ROWS = 1000;
+
+export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fail = [], maxRows = MAX_ROWS } = {}) {
+  return page.evaluate(async ({ userId, tables, fail, maxRows, KEYS, TINY_PNG_DATA_URL }) => {
     const { getSupabase } = await import('/src/lib/supabase.ts');
     const real = getSupabase();
 
@@ -46,7 +50,7 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
     const NETWORK = { message: 'network down', code: '08006' };
 
     function run(q) {
-      log({ table: q.table, op: q.op, values: q.values ?? null, filters: q.filters, ...(q.columns ? { columns: q.columns } : {}), ...(q.order ? { order: q.order } : {}), ...(q.limit != null ? { limit: q.limit } : {}) });
+      log({ table: q.table, op: q.op, values: q.values ?? null, filters: q.filters, ...(q.columns ? { columns: q.columns } : {}), ...(q.order ? { order: q.order } : {}), ...(q.orders?.length > 1 ? { orders: q.orders } : {}), ...(q.limit != null ? { limit: q.limit } : {}), ...(q.range ? { range: q.range } : {}) });
       if (failing(q.table) || failing(`${q.table}.${q.op}`)) return { data: null, error: NETWORK };
       const refused = window.__fake.refuse[`${q.table}.${q.op}`];
       if (refused) return { data: null, error: { message: `refused (${refused})`, code: refused } };
@@ -61,12 +65,14 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       const matches = rows.filter((r) => q.filters.every((f) => test(r, f)));
 
       if (q.op === 'select') {
-        if (q.order) {
-          const [col, asc] = q.order;
-          matches.sort((a, b) => (a[col] < b[col] ? -1 : a[col] > b[col] ? 1 : 0) * (asc ? 1 : -1));
+        if (q.orders?.length) {
+          const cmp = (a, b, [col, asc]) => (a[col] < b[col] ? -1 : a[col] > b[col] ? 1 : 0) * (asc ? 1 : -1);
+          matches.sort((a, b) => q.orders.reduce((d, o) => d || cmp(a, b, o), 0));
         }
-        const limited = q.limit != null ? matches.slice(0, q.limit) : matches;
-        return { data: q.single ? limited[0] ?? null : limited, error: null };
+        const ranged = q.range ? matches.slice(q.range[0], q.range[1] + 1) : matches;
+        const limited = q.limit != null ? ranged.slice(0, q.limit) : ranged;
+        const capped = limited.slice(0, maxRows);
+        return { data: q.single ? capped[0] ?? null : capped, error: null };
       }
       if (q.op === 'update') {
         for (const r of matches) Object.assign(r, q.values);
@@ -110,8 +116,10 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
         gte(col, val) { q.filters.push([col, val, 'gte']); return b; },
         lt(col, val) { q.filters.push([col, val, 'lt']); return b; },
         is(col, val) { q.filters.push([col, val, 'is']); return b; },
-        order(col, { ascending = true } = {}) { q.order = [col, ascending]; return b; },
+        // The first order() is what the log shows; each one after breaks ties.
+        order(col, { ascending = true } = {}) { q.order ??= [col, ascending]; (q.orders ??= []).push([col, ascending]); return b; },
         limit(n) { q.limit = n; return b; },
+        range(from, to) { q.range = [from, to]; return b; },
         maybeSingle() { q.single = true; return b; },
         single() { q.single = true; return b; },
         // window.__fake.held[table], a promise, keeps that table's reads
@@ -299,6 +307,24 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       return { data: { client_id: chk.c.id, coach_id: chk.c.coach_id }, error: null };
     }
 
+    // 0026: the coach's own switch, and the lookup anyone may make.
+    // window.__fake.publicCode is the code the "server" makes (default 'k7m2qx').
+    function publicPage(fn, args) {
+      const coaches = (db.coach_profiles ??= []);
+      if (fn === 'set_public_page') {
+        const me = coaches.find((c) => c.profile_id === userId);
+        if (!me) return refuse('42501');
+        if (args.p_on && !me.public_code) me.public_code = window.__fake.publicCode ?? 'k7m2qx';
+        me.public_page = args.p_on === true;
+        return { data: me.public_code ?? null, error: null };
+      }
+      const code = String(args.p_code ?? '').trim().toLowerCase();
+      const c = coaches.find((x) => x.public_code === code && x.public_page && !x.unlisted);
+      const p = c && (db.profiles ??= []).find((x) => x.id === c.profile_id);
+      if (!c || !p || (p.account_status && p.account_status !== 'active')) return { data: null, error: null };
+      return { data: { coach_id: c.profile_id, full_name: p.full_name, title: c.title ?? '' }, error: null };
+    }
+
     real.rpc = async (fn, args) => {
       log({ op: 'rpc', fn, args });
       // window.__fake.rpcDelay (ms) keeps a call in flight, for a test that
@@ -309,6 +335,7 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       if (fn === 'mark_attendance') return markAttendance(args);
       if (fn.endsWith('_client_invite')) return clientInvite(fn, args);
       if (fn === 'member_cancel_session') return memberCancel(args);
+      if (fn === 'set_public_page' || fn === 'public_coach_page') return publicPage(fn, args);
       // 0023: this phone, as the signed-in person. A token moves to whoever
       // registers it last.
       if (fn === 'register_device') {
@@ -445,7 +472,7 @@ export function installFakeSupabase(page, { userId = 'user-123', tables = {}, fa
       },
     };
     Object.defineProperty(real, 'functions', { value: functions, configurable: true });
-  }, { userId, tables, fail, KEYS, TINY_PNG_DATA_URL });
+  }, { userId, tables, fail, maxRows, KEYS, TINY_PNG_DATA_URL });
 }
 
 /** Marks the app signed in as `userId`, the way session.ts does after a

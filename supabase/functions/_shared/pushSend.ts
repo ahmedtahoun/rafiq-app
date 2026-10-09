@@ -78,6 +78,7 @@ export const PUSHED: Record<string, Category> = {
   'request-declined': 'sessions',
   'session-moved': 'sessions',
   'session-cancelled': 'sessions',
+  'session-reminder': 'sessions',
   message: 'messages',
   'task-completed': 'tasks',
 };
@@ -99,6 +100,7 @@ const COPY = {
     sessionMoved: (n: string) => `Your session with ${n} was moved`,
     nowWhen: (w: string) => `Now ${w}`,
     sessionCancelled: (n: string) => `Your session with ${n} was cancelled`,
+    sessionReminder: (n: string) => `Your session with ${n} starts soon`,
     message: (n: string) => `New message from ${n}`,
     taskDone: (n: string) => `${n} finished a task`,
     theCoach: 'the coach',
@@ -115,6 +117,7 @@ const COPY = {
     sessionMoved: (n: string) => `تم نقل جلستك مع ${n}`,
     nowWhen: (w: string) => `الموعد الجديد: ${w}`,
     sessionCancelled: (n: string) => `تم إلغاء جلستك مع ${n}`,
+    sessionReminder: (n: string) => `جلستك مع ${n} تبدأ قريبًا`,
     message: (n: string) => `رسالة جديدة من ${n}`,
     taskDone: (n: string) => `تم إنجاز مهمة من ${n}`,
     theCoach: 'المدرب',
@@ -175,6 +178,11 @@ export function bannerFor(input: BannerInput, lang: Lang, timeZone: string): Ban
       break;
     case 'session-cancelled':
       title = c.sessionCancelled(name);
+      body = when('scheduled_at');
+      break;
+    case 'session-reminder':
+      // 0025, 45 to 60 minutes before: the time itself, not "in an hour".
+      title = c.sessionReminder(name);
       body = when('scheduled_at');
       break;
     case 'message':
