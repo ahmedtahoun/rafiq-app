@@ -1,4 +1,5 @@
 import { PolicyPage } from '../components/PolicyPage';
+import { POLICY_SECTION_COUNT } from '../components/policySections';
 
 // The member-facing privacy policy, over the same shared PolicyPage body
 // the coach-side pair already uses.
@@ -16,7 +17,7 @@ export default function ClientPrivacyPolicy() {
       titleKey="clientPrivacyTitle"
       updatedKey="clientPrivacyUpdated"
       sectionPrefix="clientPrivacySection"
-      sectionCount={6}
+      sectionCount={POLICY_SECTION_COUNT.clientPrivacySection}
     />
   );
 }

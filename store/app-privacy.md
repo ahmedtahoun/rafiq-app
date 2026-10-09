@@ -408,10 +408,12 @@ longer exist. The exact rating is an output, not a decision.
 
 ## 9. Wording for the privacy policy
 
-Three of the answers above need the policy to say something it does not
-say today. The policy's text lives in `src/lib/i18n.ts`, which this
-change may not touch, so the English is below for whoever edits it —
-Arabic to be written alongside, not machine-translated.
+**Delivered (2026-10-05).** All three paragraphs below are now in both
+policies, in both languages, as sections 6, 7 and 8 — plus a fourth on
+notifications. `store/LAWYER-PACKAGE.md` lists every text counsel has to
+read and the questions that change them. What follows is kept as the
+record of what was drafted and why; the live wording is in
+`src/lib/i18n.ts`, and the published pages are generated from it.
 
 **Where the data is held** (question 7):
 
