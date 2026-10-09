@@ -1,4 +1,4 @@
-/* 1:1 port of ShareProfile.dc.html. */
+/* Ported from ShareProfile.dc.html; the QR mock and share sheet are gone, the public page section is new. */
 
 .share-profile-cover {
   position: absolute;
@@ -74,14 +74,7 @@
   flex-shrink: 0;
 }
 
-.share-profile-qr-wrap {
-  background: var(--surface);
-  border-radius: 18px;
-  padding: 10px;
-  box-shadow: var(--shadow-soft);
-}
 
-.share-profile-qr { display: block; }
 
 .share-profile-card-text {
   display: flex;
@@ -120,11 +113,6 @@
   margin: 0;
 }
 
-.share-profile-scan-hint {
-  font-size: 11px;
-  color: var(--ink-soft);
-  margin-top: 2px;
-}
 
 .share-profile-avatar-wrap {
   position: absolute;
@@ -266,63 +254,11 @@
   box-shadow: var(--shadow-soft);
 }
 
-.share-profile-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: flex;
-  align-items: flex-end;
-  z-index: 10;
-}
 
-.share-profile-sheet {
-  width: 100%;
-  background: var(--surface);
-  border-radius: 26px 26px 0 0;
-  padding: 10px 20px 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
 
-.share-profile-sheet-grip {
-  width: 38px;
-  height: 4px;
-  border-radius: 2px;
-  background: var(--line);
-  align-self: center;
-  margin-bottom: 10px;
-}
 
-.share-profile-sheet-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ink-soft);
-  padding: 4px 2px 8px;
-}
 
-.share-profile-sheet-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 4px;
-  font-size: 14.5px;
-  font-weight: 600;
-  color: var(--ink);
-  text-align: start;
-  min-height: 44px;
-}
 
-.share-profile-sheet-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 11px;
-  background: var(--accent-soft);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
 
 .share-profile-toast {
   position: absolute;
@@ -339,4 +275,81 @@
   font-weight: 600;
   box-shadow: var(--shadow);
   z-index: 20;
+}
+
+/* The public page (migration 0026): a switch, what it shows, and the link once on. */
+.share-profile-public {
+  background: var(--surface);
+  border-radius: 20px;
+  box-shadow: var(--shadow-soft);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.share-profile-public-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.share-profile-public-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.share-profile-public-body,
+.share-profile-public-note,
+.share-profile-public-error {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.share-profile-public-note {
+  font-weight: 600;
+}
+
+.share-profile-public-error {
+  color: var(--red);
+  font-weight: 600;
+}
+
+.share-profile-switch {
+  width: 46px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--line);
+  position: relative;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.share-profile-switch.is-on {
+  background: var(--accent);
+}
+
+.share-profile-switch:disabled {
+  opacity: 0.55;
+}
+
+.share-profile-switch-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #ffffff;
+  position: absolute;
+  top: 3px;
+  inset-inline-start: 3px;
+  transition: inset-inline-start 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+.share-profile-switch.is-on .share-profile-switch-thumb {
+  inset-inline-start: 23px;
 }
