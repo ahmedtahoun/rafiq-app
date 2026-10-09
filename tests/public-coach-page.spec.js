@@ -173,11 +173,13 @@ test('store links appear once they are set, and only real https ones', async ({ 
 });
 
 test('fewer than three reviews reads "New", as in the app; no price, bio or facts, no empty sections', async ({ page }) => {
+  // Below three, public_coach_page() gives no count and no average (0027):
+  // the page claims neither a score nor "0 reviews".
   const { result } = await handle({
-    coach: { ...COACH, rating_count: 2, rating_avg: 5, from_price: null, bio: '  ', languages: [], certifications: [], session_mode: null, experience_years: 0, verified: false },
+    coach: { ...COACH, rating_count: null, rating_avg: null, from_price: null, bio: '  ', languages: [], certifications: [], session_mode: null, experience_years: 0, verified: false },
   });
   await show(page, result);
-  await expect(page.locator('.coach-stats dd')).toHaveText(['New', '—', '2']);
+  await expect(page.locator('.coach-stats dd')).toHaveText(['New', '—', '—']);
   await expect(page.locator('.coach-price, .coach-facts, .coach-verified, main h2:text("About")')).toHaveCount(0);
 });
 

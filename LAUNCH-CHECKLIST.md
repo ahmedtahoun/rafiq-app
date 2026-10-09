@@ -276,9 +276,12 @@ The sources, read on 2026-10-01, and what they mean for the build are in
       the first update. Tier changes arrive from its webhook as
       `service_role` — the app has no write access to `subscriptions`, by
       design. Four products, each a monthly and a yearly: *Ahmed* creates
-      them in App Store Connect and Play Console. Featured placement and the
-      CSV export are built with it; the Elite Pro card tags both "Coming
-      soon" until then.
+      them in App Store Connect and Play Console. Both Elite Pro extras are
+      built: featured placement (`0027`, `32_featured_elite_pro.sql`), where
+      a coach on a current Elite Pro plan is listed first in Discover,
+      labelled, from the moment the plan is granted; and the earnings CSV
+      export (#162). The Elite Pro card tags both "Coming soon" until
+      billing ships, since nobody can buy Elite Pro before then.
 - [ ] 🔴 *Dev:* Paymob for 1:1 sessions, server-side. The payment result is
       written to `payments` by a webhook / edge function as `service_role`.
       No Paymob secret key in the app, ever.
