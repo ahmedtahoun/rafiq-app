@@ -31,6 +31,7 @@ import { syncPushDevice } from '../lib/push';
 import { AgreementCard } from '../components/AgreementCard';
 import { fetchAgreement, signAgreement } from '../lib/agreementData';
 import { useRemoteLoad } from '../store/remoteLoad';
+import { DownloadMyData } from '../components/DownloadMyData';
 import './ClientProfile.css';
 
 // Demo account deletion is the demo member's, signed out only: signed in,
@@ -402,6 +403,9 @@ function ClientProfileView({ space }: { space: Extract<MemberSpaceView, { status
             <ArrowForwardIcon size={14} color="var(--ink-soft)" />
           </button>
         </div>
+
+        {/* Signed in only: signed out there is no account to export. */}
+        {remote && <DownloadMyData />}
 
         <button type="button" className="client-profile-logout" onClick={logOut}>
           {t('profileLogOut')}

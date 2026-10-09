@@ -14,7 +14,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PGBIN="${PGBIN:-/usr/lib/postgresql/16/bin}"
 PGROOT="${PGROOT:-/var/tmp/rafiq-pgtest}"
-MIN_ASSERTIONS=690
+MIN_ASSERTIONS=737
 
 OUT=""
 OWN_CLUSTER=""
@@ -157,8 +157,14 @@ OUT="$(mktemp)"
   echo "=== PLAN TIERS ==="
   psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/29_plan_tiers.sql"
   echo
+  echo "=== SESSION REMINDERS ==="
+  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/30_session_reminders.sql"
+  echo
   echo "=== PUBLIC COACH PAGE ==="
   psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/31_public_coach_page.sql"
+  echo
+  echo "=== FEATURED ELITE PRO ==="
+  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/32_featured_elite_pro.sql"
   echo
   echo "=== AGREEMENT SIGNATURES ==="
   psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/33_agreement_signatures.sql"

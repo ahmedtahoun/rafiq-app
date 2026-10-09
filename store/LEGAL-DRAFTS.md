@@ -994,10 +994,12 @@ question for counsel. Nothing has been signed for real before that.
 > مجددًا فستستخدم الرابط نفسه.
 
 **What the app actually does**, exactly: the page shows what
-`public_coach_page()` (0026) returns and nothing else: `full_name`,
-`title`, `bio`, `languages`, `experience_years`, `session_mode`,
-`certifications`, `verified`, the lowest active offering's price, and
-the rating count and average. It answers only while `public_page` is on,
+`public_coach_page()` (0026, its rating as 0027 left it) returns and
+nothing else: `full_name`, `title`, `bio`, `languages`,
+`experience_years`, `session_mode`, `certifications`, `verified`, the
+lowest active offering's price, and the rating count and average **only
+from three ratings up**. Below three it returns neither, so no member's
+own score can be read off the page. It answers only while `public_page` is on,
 and never for an unlisted coach (0022) or an account that isn't active.
 The page is sent with `noindex` and cached for at most 60 seconds, which
 is why the clause says "within a minute" and not "immediately". No photo:

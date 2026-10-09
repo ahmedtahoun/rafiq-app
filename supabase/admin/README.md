@@ -149,6 +149,11 @@ removed, the next one is refused. Use `null` for a plan with no end date,
 for example a coach you have agreed a free year with, and remember to set a
 date later.
 
+While an Elite Pro plan is current, Discover lists that coach first with a
+"Featured" label (`0027`), and stops the moment `renews_at` passes. The
+`featured` column on `coach_profiles` (0005) still features a coach by hand,
+on any plan.
+
 To take a coach off a paid tier now: `update public.subscriptions set tier = 'free',
 renews_at = null where coach_id = '…';`
 
