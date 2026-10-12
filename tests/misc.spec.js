@@ -141,19 +141,40 @@ test('ClientNotifications', async ({ browser }) => {
 // ===========================================================================
 });
 
+test('HelpCenter (coach)', async ({ browser }) => {
+  const { page, errs } = await open(browser, { screen: 'helpCenter' });
+  expect.soft(String(await screenOf(page)), 'screen is helpCenter').toBe('helpCenter');
+  expect.soft(String(errs.length), 'no console/page errors').toBe('0');
+  // The coach side had no count at all until now, so a question dropped
+  // from its FAQ_IDS failed nothing — the same gap #146 closed on the
+  // member side. Typed, and the three new ones named.
+  expect.soft(String(await n(page, '.help-center-question')), '11 questions').toBe('11');
+  const qs = await page.locator('.help-center-question').allInnerTexts();
+  expect.soft(qs.some((q) => q.includes('notifications on my phone')), 'the push question').toBe(true);
+  expect.soft(qs.some((q) => q.includes('reminded before a session')), 'the reminder question').toBe(true);
+  expect.soft(qs.some((q) => q.includes('my public page')), 'the public page question').toBe(true);
+  await page.close();
+});
+
 test('ClientHelpCenter', async ({ browser }) => {
   const { page, errs } = await open(browser, { screen: 'clientHelpCenter' });
   expect.soft(String(await screenOf(page)), 'screen is clientHelpCenter').toBe('clientHelpCenter');
   expect.soft(String(errs.length), 'no console/page errors').toBe('0');
   expect.soft(String(await txt(page, '.client-help-title')), 'title').toBe('Get Help');
   // Typed here, not read from the screen's own list: counting FAQ_IDS
-  // against itself can't notice a question dropped from it. Eight since
-  // video sessions and the unread badge shipped, and the two new ones by
+  // against itself can't notice a question dropped from it. Ten since
+  // phone notifications and session reminders shipped, and the new ones by
   // name.
-  expect.soft(String(await n(page, '.client-help-question')), '8 questions').toBe('8');
+  expect.soft(String(await n(page, '.client-help-question')), '10 questions').toBe('10');
   const questions = await page.locator('.client-help-question').allInnerTexts();
   expect.soft(questions.some((q) => q.includes('How do video sessions work?')), 'the video question').toBe(true);
   expect.soft(questions.some((q) => q.includes('Where do I see new messages?')), 'the messages question').toBe(true);
+  expect.soft(questions.some((q) => q.includes('notifications on my phone')), 'the push question').toBe(true);
+  expect.soft(questions.some((q) => q.includes('reminded before a session')), 'the reminder question').toBe(true);
+  // The public page is a coach's own, so the member side must not offer to
+  // explain one. Asserted here rather than on the coach screen, where it
+  // would only restate the line above.
+  expect.soft(questions.some((q) => q.toLowerCase().includes('public page')), 'and no public-page question').toBe(false);
   expect.soft(String(await n(page, '.client-help-answer')), 'first answer open by default').toBe('1');
   expect.soft(String((await txt(page, '.client-help-answer')).includes('Sessions tab')), 'and it is the first').toBe('true');
   expect.soft(String(await page.locator('.client-help-question[aria-expanded="true"]').count()), 'aria-expanded tracks it').toBe('1');
