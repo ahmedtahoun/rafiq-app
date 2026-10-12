@@ -157,7 +157,7 @@ export default function Discover() {
   }
 
 
-  const heroGrad = `linear-gradient(135deg, ${ACCENT_HEX} 0%, ${darken(ACCENT_HEX, 45)} 100%)`;
+  const heroGrad = 'var(--hero-grad)';
 
   // A real coach with only free offerings has no price to show; the demo's all do.
   const priceLabel = (coach: DirectoryCoach) =>

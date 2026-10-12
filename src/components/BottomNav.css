@@ -62,7 +62,7 @@
   font-weight: 700;
   line-height: 17px;
   text-align: center;
-  box-shadow: 0 0 0 2px var(--surface);
+  box-shadow: 0 0 0 2px var(--surface-solid);
 }
 
 .bottom-nav-item-active .bottom-nav-icon {

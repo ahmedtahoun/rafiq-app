@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT, dayKey, type MessageKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
-import { darken } from '../lib/color';
 import {
   ArrowForwardIcon, CheckIcon, ScheduleIcon, WarningIcon,
   
@@ -41,7 +40,6 @@ const demoDayOfMonth = (i: number) => new Date(getMonthAnchorMs() + i * 86400000
 // never offer a time the booking screen wouldn't.
 const SLOT_STEP = 0.75;
 
-const ACCENT_HEX = '#B75C3D';
 
 const TYPE_LABEL_KEYS: Record<SessionType, MessageKey> = {
   intro: 'clientBookingTypeLabelIntro',
@@ -100,7 +98,7 @@ function DemoClientSchedule() {
 
   const client = getClient(CLIENT_ID);
   const coachName = getCoachProfile().name || 'Yasmin El-Sayed';
-  const heroGrad = `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 40)} 100%)`;
+  const heroGrad = 'var(--hero-grad)';
 
   const AM = isAr ? 'صباحًا' : 'AM';
   const PM = isAr ? 'مساءً' : 'PM';
@@ -481,7 +479,7 @@ function LiveClientSchedule({ rel }: { rel: MemberRelationshipView | null }) {
   const t = useT();
   const fmt = useFormat();
   const nav = useAppStore((s) => s.nav);
-  const heroGrad = `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 40)} 100%)`;
+  const heroGrad = 'var(--hero-grad)';
   const coachId = rel?.coach.id ?? null;
 
   const load = useRemoteLoad<MemberSchedule>(`member-schedule:${rel?.clientId ?? ''}`, !!rel && !!coachId, async () => {

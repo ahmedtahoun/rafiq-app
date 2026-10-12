@@ -1,0 +1,247 @@
+/* The structure of the warm nebula look; the colours are tokens.css.
+ *
+ * Kept in one file on purpose: these rules restyle classes that belong to
+ * many screens, and in one place they can be read, and changed, as one
+ * design rather than fifty. Each rule names exactly what it styles: no
+ * attribute-substring selectors that could catch a class nobody meant.
+ *
+ * Every selector here is prefixed with :root so it outranks the screen's
+ * own rule regardless of which stylesheet loads last (each screen's CSS
+ * arrives with its lazy chunk, after this file).
+ */
+
+/* --- The header: a floating nebula card -------------------------------- */
+
+/* Headers that used to be a block glued to the top edge float like the
+   references' business card. Their own rules keep the padding and content;
+   this only changes the shape and lifts them off the edges. */
+:root .main-hero,
+:root .schedule-hero,
+:root .clients-hero,
+:root .client-home-hero,
+:root .client-tasks-hero,
+:root .client-schedule-hero,
+:root .my-programs-hero,
+:root .discover-hero,
+:root .coach-preview-hero,
+:root .profile-hero,
+:root .client-coach-hero {
+  margin: 10px 12px 0;
+  border-radius: 28px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 22px 44px -22px var(--accent-glow);
+}
+
+/* Headers that were already cards: the same glass edge. */
+:root .client-detail-hero,
+:root .program-detail-hero,
+:root .subscription-hero,
+:root .preview-profile-hero,
+:root .share-profile-card {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 22px 44px -22px var(--accent-glow);
+}
+
+:root .main-hero { padding-inline: 18px; }
+
+/* Stat chips inside a header: an edge, no blur. */
+:root .main-stat,
+:root .clients-stat {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+
+/* Profile: the stats closed the header and the Preview/Edit bar straddled
+   its edge. On a floating card the edge would cut through the bar, so the
+   stats become their own glass panel and the bar sits under the card. */
+:root .profile-hero { padding-bottom: 18px; }
+:root .profile-stats-row {
+  padding-bottom: 15px;
+  border-radius: 20px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+:root .profile-quick-actions {
+  margin-top: 12px;
+  box-shadow: var(--shadow);
+}
+
+/* --- The main action: a glowing pill, lit from above -------------------- */
+
+:root .btn-primary,
+:root .add-client-cap-btn,
+:root .add-client-submit,
+:root .add-task-submit.is-enabled,
+:root .add-time-block-submit.is-enabled,
+:root .availability-edit-btn-accent,
+:root .claim-invite-primary,
+:root .client-booking-primary,
+:root .client-coach-primary,
+:root .client-coach-sheet-done,
+:root .client-detail-message-btn,
+:root .client-detail-record-btn,
+:root .client-detail-sheet-submit,
+:root .client-detail-invite-copy,
+:root .client-help-contact,
+:root .client-home-join-badge,
+:root .client-home-milestone-rate,
+:root .client-profile-agreement-sign,
+:root .clients-empty-add,
+:root .clients-filter-apply,
+:root .client-schedule-sheet-confirm,
+:root .coach-messages-send,
+:root .coach-preview-primary,
+:root .discover-filter-apply,
+:root .edit-profile-cert-add-btn,
+:root .error-boundary-action,
+:root .main-action-btn,
+:root .main-join-chip,
+:root .main-nudge-btn,
+:root .main-remind-btn,
+:root .my-programs-empty-cta,
+:root .no-coach-yet-cta,
+:root .notifications-sheet-btn.is-accent,
+:root .preview-profile-book,
+:root .program-detail-missing-cta,
+:root .push-phone-turn-on,
+:root .qa-fab,
+:root .rate-coach-submit,
+:root .schedule-sheet-btn-accent,
+:root .share-profile-copy,
+:root .share-profile-primary,
+:root .subscription-confirmed-done,
+:root .welcome-cta {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 78%, #FFFFFF) 0%, var(--accent) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 10px 26px -8px var(--accent-glow);
+}
+
+/* One's own message bubbles carry the same light. */
+:root .coach-messages-bubble-mine,
+:root .messages-row.is-mine .messages-bubble {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 82%, #FFFFFF) 0%, var(--accent) 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* --- Selected chips and tabs: the tinted lens ---------------------------- */
+
+:root .add-client-chip.is-selected,
+:root .add-task-chip.is-selected,
+:root .add-time-block-day-chip.is-selected,
+:root .availability-hour-chip.is-selected,
+:root .client-booking-slot-on,
+:root .client-booking-type-on,
+:root .client-detail-due-chip.is-selected,
+:root .client-detail-filter-chip.is-selected,
+:root .client-detail-method-chip.is-selected,
+:root .client-onboarding-chip.is-selected,
+:root .client-profile-lang-pill.is-active,
+:root .clients-chip.is-selected,
+:root .clients-chip-outline.is-selected,
+:root .client-schedule-day-on,
+:root .client-schedule-slot-on,
+:root .client-tasks-filter-on,
+:root .discover-chip-on,
+:root .edit-client-chip.is-selected,
+:root .edit-profile-chip.is-selected,
+:root .edit-profile-session-chip.is-selected,
+:root .offering-detail-chip.is-selected,
+:root .offering-detail-format-chip.is-selected,
+:root .onboarding-chip.is-selected,
+:root .payout-chip.is-selected,
+:root .profile-lang-pill.is-active,
+:root .schedule-day-chip.is-selected,
+:root .schedule-slot-chip.is-selected,
+:root .schedule-view-tab.is-active,
+:root .template-detail-chip.is-selected {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 6px 18px -8px var(--accent-glow);
+}
+
+/* The active tab sits in a tinted lens. */
+:root .bottom-nav-item-active .bottom-nav-icon {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 50%, transparent);
+}
+
+/* --- Glass ---------------------------------------------------------------- */
+
+/* No backdrop blur anywhere. Glass here is a translucent fill, an edge and
+   a highlight: over a static backdrop that reads as glass already, and a
+   blur makes an element a stacking context of its own, which lifted the
+   tab bar above sheets that set no z-index (it took their taps). It is
+   also what makes glass slow on Android. */
+
+/* "Tinted" glass: a highlighted card carries the nebula, not a flat fill. */
+:root .client-coach-upgrade {
+  background: var(--hero-grad);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+    0 16px 36px -18px var(--accent-glow);
+}
+
+/* Sheets are thick glass: nearly opaque, so the screen under them can't
+   bleed through their text. */
+:root .sheet-panel {
+  background: var(--surface-solid);
+  box-shadow: var(--nav-shadow);
+}
+
+/* The camera button sits on top of the photo, not the backdrop. */
+:root .edit-profile-avatar-edit-btn {
+  background: var(--surface-solid);
+}
+
+/* --- Motion ---------------------------------------------------------------- */
+
+/* Pressing a button: a quick spring down, and back. */
+button,
+a {
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
+    opacity var(--dur-base) var(--ease-out);
+}
+
+/* Ticking a task: the box pops, once. It also plays when a done task first
+   renders, which reads as the list settling in. */
+@keyframes rafiq-check-pop {
+  0% { transform: scale(0.7); }
+  55% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+:root .client-home-task-check.is-done,
+:root .client-detail-task-check.is-done,
+:root .client-tasks-box-done {
+  animation: rafiq-check-pop var(--dur-slow) var(--ease-spring);
+}
+
+/* Each screen fades in: opacity only, so nothing moves under a finger and
+   nothing a layout depends on changes size or place. */
+@keyframes rafiq-screen-in {
+  from { opacity: 0.35; }
+  to { opacity: 1; }
+}
+.phone-frame {
+  animation: rafiq-screen-in var(--dur-base) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phone-frame,
+  :root .client-home-task-check.is-done,
+  :root .client-detail-task-check.is-done,
+  :root .client-tasks-box-done {
+    animation: none;
+  }
+  button,
+  a {
+    transition: none;
+  }
+  button:active,
+  a:active {
+    transform: none;
+  }
+}

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useAppStore } from '../store/appStore';
 import { useT, dayKey, isolate, type MessageKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
-import { darken } from '../lib/color';
 import { specialtyLabels } from '../lib/coachLabels';
 import { MessageIcon, ScheduleIcon, CheckIcon, StarIcon, WarningIcon } from '../components/icons';
 import { MemberTabBar } from '../components/TabBars';
@@ -183,7 +182,7 @@ function ClientCoachView({ space, rel }: { space: Extract<MemberSpaceView, { sta
 
   const heroBackground = profile.coverPhotoUrl
     ? `linear-gradient(180deg, rgba(0,0,0,.45) 0%, rgba(0,0,0,.55) 55%, rgba(0,0,0,.68) 100%), url('${profile.coverPhotoUrl}') center/cover no-repeat`
-    : `linear-gradient(135deg, ${ACCENT_HEX} 0%, ${darken(ACCENT_HEX, 40)} 100%)`;
+    : 'var(--hero-grad)';
 
   return (
     <div className="phone-frame client-coach-screen">

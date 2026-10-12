@@ -1,18 +1,51 @@
-/* Design tokens ported 1:1 from the Rafiq Claude Artifact prototype
-   (every .dc.html screen's getTheme(dark) function used these exact
-   values) so the real app matches the approved design without redrawing
-   it from screenshots. */
+/* The warm nebula look (redesign, Ahmed picked it 2026-10-07): Rafiq's
+   terracotta, amber and rose as soft glows on a deep cocoa backdrop with
+   faint stars, translucent glass surfaces, and the header as a floating
+   nebula card. glass.css holds the structure that goes with it.
+
+   Every screen takes its colours from here, so these tokens are the look.
+   --shadow carries a hairline glass border as an inset ring, so every card
+   that casts a shadow gets the border without its size changing.
+
+   Contrast: --accent fills buttons under white text and also colours text,
+   so each theme's accent passes 4.5:1 against white. Text on glass is
+   --ink or --ink-soft. */
 
 :root {
-  --accent: #B75C3D;
-  --accent-glow: rgba(183, 92, 61, 0.4);
+  /* Stars: a few fixed points in tiles of different sizes, so the pattern
+     doesn't visibly repeat. Static: nothing here animates. */
+  --stars:
+    radial-gradient(1.3px 1.3px at 14% 22%, rgba(255, 255, 255, 0.85) 50%, transparent 52%) 0 0 / 230px 230px,
+    radial-gradient(1px 1px at 66% 46%, rgba(255, 255, 255, 0.55) 50%, transparent 52%) 0 0 / 230px 230px,
+    radial-gradient(1.5px 1.5px at 38% 80%, rgba(255, 255, 255, 0.7) 50%, transparent 52%) 0 0 / 290px 290px,
+    radial-gradient(1px 1px at 86% 12%, rgba(255, 255, 255, 0.5) 50%, transparent 52%) 0 0 / 190px 190px,
+    radial-gradient(1.1px 1.1px at 52% 6%, rgba(255, 255, 255, 0.6) 50%, transparent 52%) 0 0 / 330px 330px;
 
-  --bg-grad: linear-gradient(180deg, #FBF2EA 0px, #FAF9F5 280px);
-  --surface: #FFFFFF;
+  --accent: #B75C3D;
+  --accent-glow: rgba(183, 92, 61, 0.38);
+  --accent-soft: rgba(183, 92, 61, 0.13);
+
+  --bg-grad:
+    radial-gradient(70% 45% at 0% 0%, rgba(232, 150, 110, 0.38), transparent 70%),
+    radial-gradient(60% 40% at 100% 38%, rgba(232, 140, 160, 0.24), transparent 70%),
+    radial-gradient(70% 40% at 30% 100%, rgba(240, 200, 120, 0.28), transparent 70%),
+    #FBF4EE;
+  /* The glowing header card. Light and dark share it: it is the one place
+     the nebula is at full strength. */
+  --hero-grad:
+    var(--stars),
+    radial-gradient(90% 90% at 0% 0%, rgba(232, 128, 86, 0.95), transparent 60%),
+    radial-gradient(80% 90% at 100% 20%, rgba(196, 72, 104, 0.7), transparent 62%),
+    radial-gradient(70% 70% at 70% 120%, rgba(232, 172, 84, 0.5), transparent 65%),
+    linear-gradient(135deg, #8A3A22 0%, #4A2016 100%);
+
+  --surface: rgba(255, 255, 255, 0.62);
+  /* Thick glass: sheets and dialogs, which sit over content, not over the
+     backdrop, so nothing behind may bleed through their text. */
+  --surface-solid: #FFFBF8;
   --ink: #241F18;
   --ink-soft: #7A7166;
-  --line: #EDE6DA;
-  --accent-soft: #F4E1D3;
+  --line: rgba(36, 31, 24, 0.09);
 
   --green: #3F7D58;
   --green-bg: #E1F0E5;
@@ -23,9 +56,20 @@
   --blue: #3E6FB0;
   --blue-bg: #E0EAF6;
 
-  --shadow: 0 10px 24px -12px rgba(36, 31, 24, 0.16), 0 2px 6px rgba(36, 31, 24, 0.05);
-  --shadow-soft: 0 2px 8px rgba(36, 31, 24, 0.06);
-  --nav-shadow: 0 12px 28px -8px rgba(36, 31, 24, 0.22);
+  --shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.7),
+    0 14px 32px -18px rgba(120, 60, 30, 0.35);
+  --shadow-soft: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+  --nav-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.8),
+    0 16px 36px -14px rgba(120, 60, 30, 0.4);
+
+  /* Motion: three durations and one spring, for every transition. */
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
   --font-display-en: 'Lora', Georgia, serif;
   --font-display-ar: 'Cairo', sans-serif;
@@ -46,14 +90,30 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+/* Dark: the same values twice, once for an explicit choice (data-theme)
+   and once for the OS preference before the app has picked (the
+   prototype's getDark()/setDark() precedence). Keep the two identical. */
 :root[data-theme='dark'] {
-  --bg-grad: linear-gradient(180deg, #211A13 0px, #18140F 280px);
-  --surface: #241F17;
-  --ink: #F2ECE1;
-  --ink-soft: #B3A791;
-  --line: #3A3226;
-  --accent-soft: #3A2B22;
-
+  --accent: #CF6A45;
+  --accent-glow: rgba(207, 106, 69, 0.5);
+  --accent-soft: rgba(207, 106, 69, 0.2);
+  --bg-grad:
+    var(--stars),
+    radial-gradient(70% 45% at 0% 0%, rgba(207, 106, 69, 0.42), transparent 70%),
+    radial-gradient(60% 40% at 100% 38%, rgba(196, 72, 104, 0.26), transparent 70%),
+    radial-gradient(70% 40% at 30% 100%, rgba(224, 160, 72, 0.2), transparent 70%),
+    #110B09;
+  --hero-grad:
+    var(--stars),
+    radial-gradient(90% 90% at 0% 0%, rgba(232, 128, 86, 0.95), transparent 60%),
+    radial-gradient(80% 90% at 100% 20%, rgba(196, 72, 104, 0.7), transparent 62%),
+    radial-gradient(70% 70% at 70% 120%, rgba(232, 172, 84, 0.5), transparent 65%),
+    linear-gradient(135deg, #4A2016 0%, #1E100C 100%);
+  --surface: rgba(255, 236, 224, 0.07);
+  --surface-solid: #1B1210;
+  --ink: #F8EFE9;
+  --ink-soft: #BFB0A6;
+  --line: rgba(255, 236, 224, 0.11);
   --green: #7FD9A0;
   --green-bg: #1E3326;
   --red: #E8998A;
@@ -62,24 +122,39 @@
   --amber-bg: #3A301A;
   --blue: #9AC0EA;
   --blue-bg: #1E2C3A;
-
-  --shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.3);
-  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);
-  --nav-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.6);
+  --shadow:
+    inset 0 0 0 1px rgba(255, 236, 224, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 18px 40px -20px rgba(0, 0, 0, 0.75);
+  --shadow-soft: inset 0 0 0 1px rgba(255, 236, 224, 0.09);
+  --nav-shadow:
+    inset 0 0 0 1px rgba(255, 236, 224, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 18px 40px -12px rgba(0, 0, 0, 0.8);
 }
 
-/* Respect the OS preference until the user picks explicitly (persisted
-   choice is applied via the data-theme attribute above, same
-   getDark()/setDark() precedence the prototype's store.js used). */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg-grad: linear-gradient(180deg, #211A13 0px, #18140F 280px);
-    --surface: #241F17;
-    --ink: #F2ECE1;
-    --ink-soft: #B3A791;
-    --line: #3A3226;
-    --accent-soft: #3A2B22;
-
+    --accent: #CF6A45;
+    --accent-glow: rgba(207, 106, 69, 0.5);
+    --accent-soft: rgba(207, 106, 69, 0.2);
+    --bg-grad:
+      var(--stars),
+      radial-gradient(70% 45% at 0% 0%, rgba(207, 106, 69, 0.42), transparent 70%),
+      radial-gradient(60% 40% at 100% 38%, rgba(196, 72, 104, 0.26), transparent 70%),
+      radial-gradient(70% 40% at 30% 100%, rgba(224, 160, 72, 0.2), transparent 70%),
+      #110B09;
+    --hero-grad:
+      var(--stars),
+      radial-gradient(90% 90% at 0% 0%, rgba(232, 128, 86, 0.95), transparent 60%),
+      radial-gradient(80% 90% at 100% 20%, rgba(196, 72, 104, 0.7), transparent 62%),
+      radial-gradient(70% 70% at 70% 120%, rgba(232, 172, 84, 0.5), transparent 65%),
+      linear-gradient(135deg, #4A2016 0%, #1E100C 100%);
+    --surface: rgba(255, 236, 224, 0.07);
+    --surface-solid: #1B1210;
+    --ink: #F8EFE9;
+    --ink-soft: #BFB0A6;
+    --line: rgba(255, 236, 224, 0.11);
     --green: #7FD9A0;
     --green-bg: #1E3326;
     --red: #E8998A;
@@ -87,12 +162,23 @@
     --amber: #E8C468;
     --amber-bg: #3A301A;
     --blue: #9AC0EA;
-  --blue-bg: #1E2C3A;
-
-    --shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.3);
-    --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);
-    --nav-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.6);
+    --blue-bg: #1E2C3A;
+    --shadow:
+      inset 0 0 0 1px rgba(255, 236, 224, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07),
+      0 18px 40px -20px rgba(0, 0, 0, 0.75);
+    --shadow-soft: inset 0 0 0 1px rgba(255, 236, 224, 0.09);
+    --nav-shadow:
+      inset 0 0 0 1px rgba(255, 236, 224, 0.14),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1),
+      0 18px 40px -12px rgba(0, 0, 0, 0.8);
   }
+}
+
+/* The person asked for less transparency: solid surfaces instead of glass. */
+@media (prefers-reduced-transparency: reduce) {
+  :root { --surface: #FFFFFF; }
+  :root[data-theme='dark'] { --surface: #1F1613; }
 }
 
 * { box-sizing: border-box; }

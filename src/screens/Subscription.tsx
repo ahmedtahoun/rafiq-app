@@ -3,7 +3,6 @@ import { useAppStore } from '../store/appStore';
 import { isolate, useT, type MessageKey } from '../lib/i18n';
 import { useFormat } from '../lib/format';
 import { ChevronIcon, CheckIcon } from '../components/icons';
-import { darken } from '../lib/color';
 import { BottomSheet } from '../components/BottomSheet';
 import { LoadState } from '../components/LoadState';
 import { logSubscriptionCancelFeedback, setSubscriptionTier, type CancelReason } from '../lib/mockStore';
@@ -131,7 +130,7 @@ function SubscriptionView({ plan, remote }: { plan: Plan; remote: boolean }) {
       </div>
 
       <div className="subscription-body">
-        <div className="subscription-hero" style={{ background: `linear-gradient(135deg, var(--accent) 0%, ${darken('#B75C3D', 40)} 100%)` }}>
+        <div className="subscription-hero" style={{ background: 'var(--hero-grad)' }}>
           <div className="subscription-hero-top">
             {isPaid && <CheckIcon size={18} color="#FFFFFF" />}
             <div className="subscription-hero-plan">{currentPlanName}</div>

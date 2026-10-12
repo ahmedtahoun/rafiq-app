@@ -61,7 +61,7 @@ function ClientTasksView({ space }: { space: Extract<MemberSpaceView, { status: 
   const client = rel?.client;
   const coachName = rel?.coach.name ?? '';
   const coachInitials = coachName.trim().split(/\s+/).map((w) => w[0]).join('').toUpperCase().slice(0, 2);
-  const heroGrad = `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 40)} 100%)`;
+  const heroGrad = 'var(--hero-grad)';
   const coachGrad = `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 35)} 100%)`;
 
   const mood = rel?.mood ?? null;

@@ -1,7 +1,6 @@
 import { useAppStore } from '../store/appStore';
 import { useT } from '../lib/i18n';
 import { useFormat } from '../lib/format';
-import { darken } from '../lib/color';
 import {
   ChevronIcon, ArrowForwardIcon, CheckIcon, ScheduleIcon, PlusIcon, ProgramsIcon,
 } from '../components/icons';
@@ -22,7 +21,6 @@ import './ProgramDetail.css';
 // with the coach they're viewing (SUPABASE-MIGRATION-PLAN.md step 6),
 // opened from My Programs with params.offeringId.
 const CLIENT_ID = DEMO_MEMBER_CLIENT_ID;
-const ACCENT_HEX = '#B75C3D';
 const RING_R = 30;
 const RING_CIRC = 2 * Math.PI * RING_R;
 
@@ -146,7 +144,7 @@ function ProgramView({ progress, goal, enrolledDisplay, milestoneReviewed, nextS
   const nav = useAppStore((s) => s.nav);
   const back = useAppStore((s) => s.back);
 
-  const heroGrad = `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 40)} 100%)`;
+  const heroGrad = 'var(--hero-grad)';
 
   const { offering } = progress;
   const info = getOfferingTypeInfo(offering.type);

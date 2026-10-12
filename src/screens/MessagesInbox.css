@@ -97,7 +97,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 0 2px var(--surface);
+  box-shadow: 0 0 0 2px var(--surface-solid);
   font-size: 10px;
   font-weight: 800;
   color: #FFFFFF;
