@@ -53,6 +53,37 @@ link it as above, push, and copy its URL and anon key into `.env.local`
 
 5. Optionally sign up as a coach, then `psql "$DATABASE_URL" -f supabase/seed.sql`.
 
+## Backups
+
+The project is on Supabase's free plan, which keeps **no backups**
+(LAUNCH-CHECKLIST §5). Ahmed runs one himself, **every week**:
+
+```sh
+npm run backup-db              # into ~/RafiqBackups; never inside the repo
+```
+
+The script dumps the roles, the schema and every row of the linked project,
+the way Supabase's own guide does. That includes auth users and storage
+metadata, but not the photo files themselves. It encrypts the dump with a
+passphrase that openssl asks for and nothing stores (keep it in the
+password manager), and deletes backups older than 28 days. Members are told a
+deleted account can stay in a backup for up to four weeks, so skipping weeks
+breaks that promise.
+
+To restore, into a project whose connection string is `$DB_URL`:
+
+```sh
+openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 -in rafiq-db-<date>.tar.gz.enc | tar xzf -
+cd rafiq-db-<date>
+psql --single-transaction --variable ON_ERROR_STOP=1 \
+  --file roles.sql --file schema.sql \
+  --command 'SET session_replication_role = replica' \
+  --file data.sql --dbname "$DB_URL"
+```
+
+Delete the decrypted folder when you are done: it holds every member's data
+in plain text.
+
 ## Running the tests
 
 ```bash

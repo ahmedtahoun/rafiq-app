@@ -12,7 +12,8 @@ import { readFileSync } from 'node:fs';
  *   longer says — and a lawyer bills for reviewing it.
  * - Every `[PLACEHOLDER]` is a fact Ahmed has to supply, and the table at
  *   the top is the list he works from. A placeholder in a clause but not in
- *   the table is a fact nobody has been asked for.
+ *   the table is a fact nobody has been asked for. A row whose answer is in
+ *   may outlive its placeholder; an unanswered row no clause uses may not.
  *
  * Nothing here checks the drafts themselves. They are prose for a lawyer,
  * not behaviour.
@@ -76,11 +77,22 @@ test('every placeholder in a clause is a fact the table asks Ahmed for', () => {
   const table = doc.slice(0, tableEnd);
   const clauses = doc.slice(doc.indexOf('## 1 · Parties'));
 
-  const used = new Set((clauses.match(/\[[A-Z][A-Za-z0-9 .]*\]/g) ?? []));
-  const listed = new Set((table.match(/\[[A-Z][A-Za-z0-9 .]*\]/g) ?? []));
+  const placeholders = (text) => text.match(/\[[A-Z][A-Za-z0-9 .]*\]/g) ?? [];
+  const used = new Set(placeholders(clauses));
+  const listed = new Set(placeholders(table));
+  // A row whose answer is in — "**Given", "**Decided", "**Answered" or
+  // "**Proposed" from the law — stays in the table as the record of who
+  // decided it, while the clauses carry the fact itself. Only a row still
+  // waiting for an answer has to have a clause that uses it.
+  const answered = new Set(
+    table
+      .split('\n')
+      .filter((row) => /^\|[^|]*\|\s*\*\*(Given|Decided|Answered|Proposed)\b/.test(row))
+      .flatMap((row) => placeholders(row.split('|')[1])),
+  );
 
   const unasked = [...used].filter((p) => !listed.has(p));
-  const unused = [...listed].filter((p) => !used.has(p));
+  const unused = [...listed].filter((p) => !used.has(p) && !answered.has(p));
   expect(unasked, 'used in a clause but not in the open-facts table').toEqual([]);
   expect(unused, 'in the table but no clause uses it').toEqual([]);
 });
