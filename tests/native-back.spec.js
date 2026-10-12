@@ -53,7 +53,12 @@ async function open(browser, platform) {
       .poll(() => page.evaluate(async () => {
         const { App } = await import('/@id/@capacitor/app');
         return App.hasListeners('backButton');
-      }), { message: 'the backButton listener was never registered' })
+      }), {
+        message: 'the backButton listener was never registered',
+        // The first native test in a worker loads the whole app cold, and
+        // on a loaded run that has taken longer than the 7 s default.
+        timeout: 20_000,
+      })
       .toBe(true);
   } else {
     await page.waitForTimeout(400);
