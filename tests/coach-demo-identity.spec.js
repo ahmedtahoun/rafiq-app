@@ -377,8 +377,8 @@ test('Preview Profile shows what members see: the coach’s own rating, members 
 test('Share Profile counts the coach’s own members and rating', async ({ browser }) => {
   const { page, ctx, errs } = await open(browser, { data: rated() });
   await go(page, 'shareProfile');
-  // Rating, members, and views, which have no source and stay a dash.
-  await expect(page.locator('.share-profile-stat-value')).toHaveText(['4.3', '2', '—']);
+  // Rating and members. (Views had no source and are gone.)
+  await expect(page.locator('.share-profile-stat-value')).toHaveText(['4.3', '2']);
   expect(errs).toEqual([]);
   await ctx.close();
 });

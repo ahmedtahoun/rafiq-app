@@ -22,6 +22,7 @@ import { getAddTaskHref, getEditClientHref, getMessagesHref, isTaskOverdue, type
 import type { Attendance } from '../lib/rosterData';
 import { wallNowMs } from '../lib/wallClock';
 import './ClientDetail.css';
+import { AgreementStatusCard } from '../components/AgreementCard';
 
 type TaskFilter = 'all' | 'pending' | 'overdue' | 'completed';
 
@@ -426,6 +427,12 @@ function ClientDetailView({ roster, client, record }: { roster: Ready<RosterView
               <div className="client-detail-invite-error" role="alert">{t(inviteRefusal)}</div>
             )}
           </div>
+        )}
+
+        {/* The coaching agreement (0028): only a member with an account can
+            sign it, so walk-ins and the signed-out demo have no card. */}
+        {roster.remote && client.memberId && (
+          <AgreementStatusCard clientId={clientId} memberName={client.name} />
         )}
 
         <div className="client-detail-card client-detail-goal-card">

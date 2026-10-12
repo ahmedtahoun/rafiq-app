@@ -138,7 +138,8 @@ test('Home greets by the time of day', async ({ browser }) => {
 // demo's coaches are gone, so this is tests/discover-goal.spec.js's, signed
 // in over a real directory and the member's own goal.
 
-test('Profile has no Share button while the share link goes nowhere', async ({ browser }) => {
+// Signed in, Share is back: tests/share-public-page.spec.js.
+test('signed out, Profile has no Share button: there is no public page to share', async ({ browser }) => {
   const { page, ctx, errs } = await open(browser, { screen: 'profile' });
   await expect(page.locator('.profile-quick-btn')).toHaveCount(2);
   await expect(page.locator('.profile-quick-btn', { hasText: 'Share' })).toHaveCount(0);

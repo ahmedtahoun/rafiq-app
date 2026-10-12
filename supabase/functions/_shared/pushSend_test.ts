@@ -210,6 +210,28 @@ Deno.test('answers, moves and cancellations read like the app', async () => {
   }
 });
 
+Deno.test('a session reminder: each side is told the other\'s name and the time, in its own language; off with Sessions', async () => {
+  const reminder = (recipient: string, devices: Row[]) =>
+    tables({ note: { recipient_id: recipient, kind: 'session-reminder', client_id: CLIENT, payload: { session_id: 's1', scheduled_at: '2026-10-06T07:00:00Z' } }, devices });
+
+  const coach = fakeSender();
+  const coachAr = fakeSender();
+  await run(reminder(COACH, [device('c-en', 'android', 'en'), device('c-ar', 'ios', 'ar')]), { android: coach.send, ios: coachAr.send });
+  // The coach's own name for the member: their roster row.
+  assertEquals([coach.calls[0].banner.title, coach.calls[0].banner.body], [`Your session with ${FSI}Hana M. (roster)${PDI} starts soon`, 'Tue, Oct 6, 10:00 AM']);
+  assertEquals(coachAr.calls[0].banner.title, `جلستك مع ${FSI}Hana M. (roster)${PDI} تبدأ قريبًا`);
+  assertStringIncludes(coachAr.calls[0].banner.body, '10:00');
+  assertEquals(coach.calls[0].banner.data, { notification_id: NOTE, kind: 'session-reminder', client_id: CLIENT });
+
+  const member = fakeSender();
+  await run(reminder(MEMBER, [device('m-en', 'android', 'en', { user_id: MEMBER })]), { android: member.send });
+  assertEquals(member.calls[0].banner.title, `Your session with ${FSI}Rana Coach${PDI} starts soon`);
+
+  const muted = fakeSender();
+  const { out } = await run(reminder(MEMBER, [device('m-off', 'android', 'en', { user_id: MEMBER, muted: ['sessions'] })]), { android: muted.send });
+  assertEquals([out.body.skipped, muted.calls.length], ['no_devices', 0]);
+});
+
 Deno.test('a phone that is gone is removed; a failure is counted and the phone kept; a platform without keys is skipped', async () => {
   const t = tables({
     devices: [device('gone', 'android', 'en'), device('flaky', 'android', 'en'), device('boom', 'android', 'en'), device('ok', 'android', 'en'), device('apple', 'ios', 'en')],

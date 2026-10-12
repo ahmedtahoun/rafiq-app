@@ -1929,7 +1929,7 @@ export function setNotificationPrefs(patch: Partial<NotificationPrefs>): Notific
 // is asked to agree to.
 // ---------------------------------------------------------------------------
 
-type AgreementCategory = 'physical' | 'emotional' | 'general';
+export type AgreementCategory = 'physical' | 'emotional' | 'general';
 
 const PHYSICAL_SPECIALTIES = ['Free diving coaching', 'Scuba diving coaching', 'Fitness coaching', 'Yoga coaching'];
 const EMOTIONAL_SPECIALTIES = ['Relationship coaching', 'Breakup coaching', 'Parenting coaching', 'Stress & anxiety coaching'];
@@ -1956,6 +1956,19 @@ export interface AgreementInfo {
 
 export function getAgreementInfo(specialty: string): AgreementInfo {
   const category = agreementCategory(specialty);
+  return { category, ...AGREEMENT_KEYS[category] };
+}
+
+/**
+ * The agreement for a coach, from their title, which can name several
+ * specialties ("Yoga coaching · Life coaching"): the most protective one any
+ * of them calls for, the physical waiver first, then scope of practice, then
+ * the general agreement. Proposed (issue #143): the lawyer may prefer one
+ * agreement per specialty.
+ */
+export function getAgreementInfoForTitle(title: string): AgreementInfo {
+  const categories = title.split(' · ').map((s) => agreementCategory(s.trim()));
+  const category: AgreementCategory = categories.includes('physical') ? 'physical' : categories.includes('emotional') ? 'emotional' : 'general';
   return { category, ...AGREEMENT_KEYS[category] };
 }
 

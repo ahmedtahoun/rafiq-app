@@ -276,9 +276,12 @@ The sources, read on 2026-10-01, and what they mean for the build are in
       the first update. Tier changes arrive from its webhook as
       `service_role` — the app has no write access to `subscriptions`, by
       design. Four products, each a monthly and a yearly: *Ahmed* creates
-      them in App Store Connect and Play Console. Featured placement and the
-      CSV export are built with it; the Elite Pro card tags both "Coming
-      soon" until then.
+      them in App Store Connect and Play Console. Both Elite Pro extras are
+      built: featured placement (`0027`, `32_featured_elite_pro.sql`), where
+      a coach on a current Elite Pro plan is listed first in Discover,
+      labelled, from the moment the plan is granted; and the earnings CSV
+      export (#162). The Elite Pro card tags both "Coming soon" until
+      billing ships, since nobody can buy Elite Pro before then.
 - [ ] 🔴 *Dev:* Paymob for 1:1 sessions, server-side. The payment result is
       written to `payments` by a webhook / edge function as `service_role`.
       No Paymob secret key in the app, ever.
@@ -488,7 +491,7 @@ builds".
       | Task done: "Omar finished Evening walk" | coach | 0002 `task-completed` |
       | New message | both | 0002 `message` |
       | Payment received: "Sara paid 750 EGP" | coach | 0002 `payment-received`. Only means real money once Paymob collects session fees (§3); until then it fires when the coach records a payment, so don't send that one as push. |
-      | Session reminder, an hour before | both | Nothing yet: needs a scheduled job. |
+      | Session reminder, an hour before | both | 0025: a job every five minutes reminds both sides 45 to 60 minutes before (push only; scheduled with `pg_cron`, push-send README step 6). |
       How: every event above already writes a `notifications` row, so push is
       delivery, not new logic. Add `@capacitor/push-notifications`; a
       `device_tokens` table (one row per device; the user writes only their
@@ -530,7 +533,8 @@ builds".
       inventory, the listing and the review notes say so. *Ahmed:* in
       Xcode, the Push Notifications capability; `google-services.json` in
       `android/app/`; then a test on two real phones in both languages.
-      Left: the session reminder an hour before (a scheduled job).
+      The session reminder is 0025 (both sides, 45 to 60 minutes before;
+      *Ahmed:* `db push` and the `pg_cron` schedule, README step 6).
 - [x] 🔴 **Account deletion must actually happen.** The app files a request
       into `account_deletion_requests`; someone has to process it (§9), within
       a stated time. **Stated: within 30 days**, on the public deletion page.

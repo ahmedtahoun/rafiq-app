@@ -137,7 +137,7 @@ export function renderCoachPage({ lang, code, coach, storeUrls = {} }) {
       <dl class="coach-stats">
         <div><dt>${esc(s.coachPreviewRatingStat)}</dt><dd>${rated ? `★ ${esc(Number(coach.rating_avg).toFixed(1))}` : esc(s.discoverNewCoach)}</dd></div>
         <div><dt>${esc(s.coachPreviewYearsStat)}</dt><dd>${years > 0 ? esc(years) : '—'}</dd></div>
-        <div><dt>${esc(s.coachPreviewReviewsStat)}</dt><dd>${esc(Number(coach.rating_count) || 0)}</dd></div>
+        <div><dt>${esc(s.coachPreviewReviewsStat)}</dt><dd>${coach.rating_count == null ? '—' : esc(Number(coach.rating_count) || 0)}</dd></div>
       </dl>
       ${bio ? `<section>
         <h2>${esc(s.coachPreviewAbout)}</h2>

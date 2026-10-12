@@ -64,7 +64,7 @@ users.
 | 11 | Health data consent | **A new screen at member signup** — not a document, and not part of accepting the terms | **No.** Copy and a sketch only, as asked |
 | 12 | "Verified" badge | Both Terms, and the coach Privacy policy | **Partly**, and less than people will assume. See the clause |
 | 13 | Changes to the terms | Both Terms, §6 *Changes* (replaces it) | **No.** There is no in-app announcement mechanism |
-| 14 | Physical coaching agreement | `AGREEMENT_TEXT`, `src/lib/mockStore.ts` | **Not reachable.** No signed-in member is shown the agreement — issue #143 |
+| 14 | Physical coaching agreement | `AGREEMENT_TEXT`, `src/lib/mockStore.ts` | **Built, once 0028 is pushed** (issue #143): the coach sends it, the member signs. Nothing signed before that |
 | 15 | A coach's public page | Coach Privacy policy | **Built, not reachable.** The page and the switch exist (0026, #160), but rafiqpro.com isn't hosted yet, so the app offers no link |
 
 ---
@@ -950,10 +950,24 @@ hindrance in an Egyptian court? And is a duty to disclose enforceable
 against a member, or does it need something more than an acknowledgement
 to have effect?
 
-**And read it knowing nobody has signed it.** The agreement card renders
-only behind `!remote` (`ClientProfile.tsx:298`), which is the signed-out
-demo, and nothing in `src/`, `admin/` or `supabase/functions/` reads or
-writes the `agreements` table that 0005 created for it. Issue #143.
+**And read it knowing nobody has signed it yet.** Until 0028 (issue
+#143) the card rendered only for the signed-out demo. With 0028 pushed,
+the coach sends the agreement from the member's page and the member signs
+it on their Profile: an unticked "I have read this agreement and I agree
+to it", then "Sign agreement". **Proposed — the lawyer may add to this:**
+the signature records which agreement (physical, emotional, general), the
+SHA-256 of the exact title and body shown, the language shown, the
+member's account, the relationship and the database's time. Once signed,
+nobody changes or deletes it from the app, and the coach can't delete the
+relationship it was signed in either, since that would take the signature
+with it. How long a signature is kept after the relationship ends is a
+question for counsel. Nothing has been signed for real before that.
+
+**Every version of the text is kept.** A signature stores the hash of the
+text, not the text, so every version a member can sign is archived word
+for word, with its hash, in `store/agreement-versions.md`. When counsel's
+revised agreement goes into the app, it is archived there as v2 and v1
+stays: a test fails until it is.
 
 ---
 
@@ -986,10 +1000,12 @@ writes the `agreements` table that 0005 created for it. Issue #143.
 > مجددًا فستستخدم الرابط نفسه.
 
 **What the app actually does**, exactly: the page shows what
-`public_coach_page()` (0026) returns and nothing else: `full_name`,
-`title`, `bio`, `languages`, `experience_years`, `session_mode`,
-`certifications`, `verified`, the lowest active offering's price, and
-the rating count and average. It answers only while `public_page` is on,
+`public_coach_page()` (0026, its rating as 0027 left it) returns and
+nothing else: `full_name`, `title`, `bio`, `languages`,
+`experience_years`, `session_mode`, `certifications`, `verified`, the
+lowest active offering's price, and the rating count and average **only
+from three ratings up**. Below three it returns neither, so no member's
+own score can be read off the page. It answers only while `public_page` is on,
 and never for an unlisted coach (0022) or an account that isn't active.
 The page is sent with `noindex` and cached for at most 60 seconds, which
 is why the clause says "within a minute" and not "immediately". No photo:

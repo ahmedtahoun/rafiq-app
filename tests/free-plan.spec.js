@@ -228,8 +228,9 @@ for (const lang of ['en', 'ar']) {
     await expect(elite).toContainText(ar ? 'رفيق إيليت برو' : 'Rafiq Elite Pro');
     await expect(elite.locator('.subscription-plan-price')).toHaveText(ar ? '900 جنيه / شهريًا' : '900 EGP / month');
     await expect(elite.locator('.subscription-plan-yearly')).toContainText(ar ? '9,000 جنيه' : '9,000 EGP / year');
-    // Featured placement and the CSV export don't exist yet: each carries
-    // its own tag, and nothing else on the card does.
+    // Nobody can buy Elite Pro until billing ships, so featured placement
+    // (0027) and the CSV export (#162), both built, each keep their own
+    // tag, and nothing else on the card has one.
     const soon = elite.locator('.subscription-plan-feature', { has: page.locator('.subscription-feature-soon') });
     await expect(soon).toHaveCount(2);
     await expect(soon.first()).toContainText(ar ? 'ظهور مميّز' : 'Featured placement in Discover');

@@ -71,8 +71,9 @@ select pg_temp.expect('member cannot read coach notes',
 -- Agreements: coach sends, member signs, member changes nothing else ------------
 select pg_temp.expect('coach sends an agreement',
   pg_temp.as_user(:coachA, 'with i as (insert into public.agreements (client_id) values (' || quote_literal(:clientM) || ') returning 1) select count(*)::text from i'), '1');
+-- Since 0028 the member signs through sign_agreement() only (33_agreement_signatures.sql).
 select pg_temp.expect('member signs the agreement',
-  pg_temp.as_user(:memberM, 'with u as (update public.agreements set status = ''signed'', signed_at = now() returning 1) select count(*)::text from u'), '1');
+  pg_temp.as_user(:memberM, 'select (public.sign_agreement(' || quote_literal(:clientM) || ', ''general'', repeat(''a'', 64), ''en'') is not null)::text'), 'true');
 select pg_temp.expect('member cannot backdate sent_at',
   pg_temp.as_user(:memberM, 'with u as (update public.agreements set sent_at = now() - interval ''9 days'' returning 1) select count(*)::text from u'), 'DENIED(42501)');
 
