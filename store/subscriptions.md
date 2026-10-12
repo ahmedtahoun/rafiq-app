@@ -222,33 +222,42 @@ and they must not name a period:
 | Elite Pro name | `Rafiq Elite Pro` | `رفيق إيليت برو` |
 | Elite Pro description | `Unlimited active members, featured placement in Discover, and earnings export.` | `أعضاء نشطون بلا حد، وظهور مميز في «اكتشف»، وتصدير الأرباح.` |
 
-⚠️ **The Elite Pro description names two features. One of them is not a
-thing a plan can grant yet.** The in-app card already handles this
-honestly — `Subscription.tsx:42` marks both with a "Coming soon" badge
-(`soon: ['subscriptionEliteFeature3', 'subscriptionEliteFeature4']`) — but
-a **store description carries no badge**, so what is defensible on the card
-is a flat claim in the listing.
+⚠️ **The Elite Pro description names two features beyond the member
+cap. Both are built. Neither can be bought yet.** The in-app card marks
+each with a "Coming soon" badge (`Subscription.tsx:42`,
+`soon: ['subscriptionEliteFeature3', 'subscriptionEliteFeature4']`), and
+that badge is about the plan rather than the feature: nothing charges for
+Elite Pro until billing ships. A **store description carries no badge**, so
+the listing states flatly what the card qualifies.
 
-* **Earnings export** shipped in #162, so it is real for a coach on
-  `elite_pro`. Its `soon` badge is now stale; see the note at the end of
-  this section.
-* **Featured placement is half-built.** The mechanism exists —
-  `directory.ts:162` sorts featured coaches ahead of the rest, and
-  `coach_directory` exposes the column (0005, 0022) — but **nothing grants
-  it**: `featured` is dashboard-only, not in 0004's column grants, and no
-  plan sets it. So the sort would honour it the moment something did, and
-  today nothing does.
+* **Earnings export** shipped in #162: a coach whose tier is `elite_pro`
+  gets the export button on Earnings, built client-side from the ledger the
+  screen already reads.
+* **Featured placement** is granted by `0027` — in #164, open as this is
+  written. `coach_directory.featured` becomes `cp.featured or` an active
+  Elite Pro plan (tier `elite_pro`, `renews_at` null or still to come), so
+  the coach is listed first in Discover, and labelled, from the moment the
+  tier is granted, and stops being listed first as soon as the plan lapses,
+  with nothing to run. `directory.ts:162` already sorted on the column
+  (0005, 0022); what was missing was anything that set it.
 
-Either wire the plan to `featured` before the paid tiers ship, or cut the
-phrase from the Play description. `store/listing.md` §"What the listing may
-and may not claim" exists for exactly this.
+So both of the description's claims are true of the plan. What is not yet
+true is that anyone can buy it — and the products cannot go live before
+billing in any case, so the listing and the card do not contradict each
+other: the listing describes what the plan grants, the card says the plan
+is not for sale yet. `store/listing.md` §"What the listing may and may not
+claim" is the test either way, and both claims now pass it.
 
-**A question for Ahmed rather than a change:** #162 makes
-`subscriptionEliteFeature4`'s "Coming soon" badge wrong — the export exists
-for a granted `elite_pro` coach. The brief said to leave the Elite Pro
-card's "Coming soon" tag alone, which reads as the card-level upgrade tag
-(`Subscription.tsx:177`) rather than this per-feature badge, so it has been
-left alone pending a word either way.
+**The badge question this section raised is answered: the badges stay.**
+#162 made `subscriptionEliteFeature4`'s "Coming soon" look stale, and this
+file asked whether to drop it. Two written sources settle it — `0027`'s
+header ("until billing ships, a tier is granted by hand … and the Elite Pro
+card keeps its 'Coming soon' tag on this feature") and #164's rewrite of
+`tests/free-plan.spec.js` ("Nobody can buy Elite Pro until billing ships,
+so featured placement (0027) and the CSV export (#162), both built, each
+keep their own tag"). Read that way the badge says *not purchasable*, not
+*not built*, which is equally true of feature 3 and feature 4, so neither
+comes off. Worth revisiting when billing ships, and not before.
 
 ---
 
@@ -315,8 +324,9 @@ taken yet.
 1. **Build the Subscription screen for billing** — plan cards with price
    and period, the auto-renew and cancellation block, Terms and Privacy
    links. Nothing else here can start.
-2. **Decide the featured-placement question** (§3): build it, or cut it
-   from the Elite Pro description and the plan card.
+2. **Featured placement — settled, pending #164's merge.** `0027` grants
+   `featured` to a current Elite Pro plan, so the Elite Pro description's
+   claim stands: nothing to cut from it or from the plan card.
 3. **Add the plans to the App Store description** and the Play listing
    (`store/listing.md`).
 4. **Create the products**: Apple's group and four subscriptions; Play's
