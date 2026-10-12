@@ -207,6 +207,7 @@ device:
 | **Daily** (video sessions) | **Yes** — `@daily-co/daily-js`, imported only when a call is joined (`src/lib/videoCall.ts:85`) | The live audio and video of a 1:1 session while it happens, the person's display name, and connection diagnostics the library reports to Daily. Nothing is recorded or stored, enforced as described above |
 | Google / Apple sign-in | Via the system browser | They return a name and an email; nothing of ours goes to them |
 | Paymob | **No SDK** — server-side only | A coach's name, national ID, account number, amount. Nothing about members |
+| **Apple Push (APNs)** and **Firebase Cloud Messaging** | `@capacitor/push-notifications` registers the device and hands back a token; neither sends anything of its own | The phone's **push token**, and each banner's title and line. A banner may carry a name or a task's title — someone's own words — and a time. **A message banner never carries the message**, which `pushSend.ts` enforces rather than promises: the `message` case sets a title and no body, because a lock screen is public. `payment-received` is never pushed at all |
 | Sentry | Built, **not imported** while the DSN is unset | Nothing today |
 
 Google Fonts used to be here and is not: both fonts ship inside the app

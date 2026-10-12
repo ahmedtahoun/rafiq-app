@@ -81,7 +81,8 @@ Three things `store/review-notes.md` says that matter here:
 Certain: there is no ad SDK, no ad network, and no advertising
 identifier in the project. `store/privacy-inventory.md` §11 lists every
 third party that receives anything — Supabase, Google and Apple
-sign-in, Paymob, and Sentry once a DSN is set — and none is an ad
+sign-in, Paymob, Apple Push and Firebase Cloud Messaging, and Sentry
+once a DSN is set — and none is an ad
 network.
 
 This answer must stay consistent with **Advertising ID** (§11 below) and
@@ -186,6 +187,14 @@ No, Required = Yes** unless the row says otherwise. "Shared = No"
 because §11's third parties are processors acting on our instructions,
 which Google's definition excludes from "shared" — Supabase is the
 backend.
+
+**Apple Push and Firebase Cloud Messaging are processors on the same
+reasoning**, and change no answer on this form. They receive a device
+token and the banner text in order to deliver it, nothing of their own
+choosing, and no new data type: the token is a device identifier we
+already declare, and a banner's words are the name and time already
+declared elsewhere. Worth stating here only because a reviewer who sees
+`@capacitor/push-notifications` in the manifest will look for them.
 
 **Three rows are the exception, decided at q12: the Financial info rows
 are Shared = Yes.** The processor exemption holds when a third party

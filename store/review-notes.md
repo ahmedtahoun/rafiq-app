@@ -175,26 +175,45 @@ before moving on. Stop and file a bug at the first step that isn't.
 23. Android: the hardware back button walks back through screens and only
     leaves the app from a tab root.
 
-> ### ⏳ Push notifications — not yet, add when #135/#137 land
->
-> Both PRs are open and unmerged, so there is nothing to test and the
-> Apple notes in §3 still say there are none. **When they land, add a step
-> here and change three other things**, or the submission will describe an
-> app that no longer matches:
->
-> - a step: with the app **fully closed**, a message from the other side
->   raises a banner; tapping it opens that thread, not just the app;
-> - a step: turning the switch off in Profile → Preferences stops the
->   banner, and turning it back on resumes it;
-> - §3's Apple notes: delete "There are no push notifications in this
->   version. Notifications are shown inside the app.";
-> - the privacy policies already describe the notification token (#140),
->   and `helpCenterA2` still says there are none — Reem changes that string
->   when push ships.
+24. **Phone notifications.** They are off until someone turns them on, and
+    **Rafiq never asks at launch** — the request follows the app's own
+    explanation, on the first message sent or received or the first session
+    booked, or a tap on **Turn on** in Profile. So:
+
+    - Expect **no OS prompt on first run.** If one appears before any
+      message or booking, that is a bug.
+    - Send a message between the two phones. The explanation sheet appears,
+      then the OS prompt. Allow on one phone, choose **Not now** on the
+      other.
+    - The phone that allowed gets a banner for the next message **while the
+      app is closed**; tapping it opens that thread, not just the app.
+    - **Nothing appears while the app is open** — whatever the banner would
+      say is already on screen.
+    - The phone that chose Not now is **never asked again**, and its
+      Profile row offers Turn on. That is correct, not a stuck prompt.
+    - Turn a category off in Profile → the banners for it stop; back on →
+      they resume.
+    - A **message banner never contains the message** — only who it is
+      from. That is deliberate (`pushSend.ts`: "lock screens are public")
+      and worth a look, since a reviewer may read it as a bug.
+25. **A session reminder.** ⏳ **Nothing arrives until pg_cron is switched
+    on** (#154: Dashboard → Database → Extensions → pg_cron, then
+    `select public.schedule_session_reminders();`). Once it is: book a
+    session 45–60 minutes out and both phones get one banner each, in their
+    own language. Skip this step until then rather than filing a bug.
+26. **The coach's public page.** ⏳ **A reviewer cannot see one yet** —
+    the page is served from `rafiqpro.com/c/<code>` and the site is not
+    hosted (§5 of the checklist), and the in-app switch that mints the code
+    is #160, still open. Once both are done: Share → turn the page on →
+    open the link in a browser **signed out**. It must show the name,
+    title, bio, languages, starting price and — only from three reviews —
+    the rating, and must show **no email, no phone, nothing about members,
+    no review text and no photo**. Turning it off must make the same URL
+    say "not available", not 404 with a different message.
 
 ### Deletion (on a third, throwaway account, not the review accounts)
 
-24. Sign up a throwaway member, link it to the review coach, then
+27. Sign up a throwaway member, link it to the review coach, then
     **Delete Account** → confirm → the request shows in pending deletions →
     process it (`account-deletion` function) → the login is gone, and the
     coach's record keeps the sessions without the name.
@@ -265,9 +284,15 @@ App Store Connect → the version → **App Review Information**.
 > Push notifications are optional. The app asks only after explaining why
 > (on the first message sent or received, or the first session booked),
 > never at launch, and Profile → Notifications turns them
-> on or off. Everything they say is also shown inside the app.
+> on or off. Everything they say is also shown inside the app. **A message
+> banner never contains the message** — only who it is from — because a
+> lock screen is public.
+>
+> A coach can also give themselves a page on the open web, off by default,
+> turned on from Share. It shows what they chose to publish about their
+> practice and nothing about any member. ⬚
 
-⚠️ Three lines in those notes depend on things that are still open. Check
+⚠️ Four things in those notes depend on work that is still open. Check
 them before pasting:
 - "No payment is taken" and "no in-app purchase products in this build":
   true while billing is unbuilt. Both become false the moment the products
@@ -276,8 +301,14 @@ them before pasting:
   ships first, rewrite that paragraph.
 - "Reports are reviewed": the response time isn't stated yet
   (LAUNCH-CHECKLIST §9).
-- "There are no push notifications in this version": true today, and false
-  the moment #135/#137 merge. See the box at the end of §2.
+- The public page paragraph ends in a `⬚`. Before submitting, replace it
+  with either a live code for the reviewer to open, or a sentence saying
+  the page cannot be reached yet — true while rafiqpro.com is unhosted
+  (§5) and while the in-app switch is unmerged (#160). **Do not submit
+  with the placeholder in it.**
+- Step 25, the session reminder, is **skippable until pg_cron is switched
+  on** (#154). A reviewer told to expect a reminder that never arrives
+  reads it as a broken feature, so leave that step out until it is on.
 
 ## 4. Google Play: App access
 
