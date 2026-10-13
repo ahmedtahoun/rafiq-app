@@ -64,6 +64,8 @@ const WRITABLE = {
   profiles: ['full_name', 'email', 'phone', 'country_code', 'country', 'country_flag', 'city', 'avatar_photo_url'],
   coach_profiles: ['profile_id', 'title', 'cert', 'bio', 'languages', 'session_mode', 'experience_years', 'certifications', 'cover_photo_url', 'signup_completed_at'],
   member_profiles: ['profile_id', 'goal', 'focus', 'signup_completed_at'],
+  // 0030: not agreed_at, which is the database's time.
+  signup_consents: ['profile_id', 'version', 'transfer_abroad', 'age_18_plus'],
 };
 async function expectOnlyGrantedColumns(page) {
   for (const call of await dbCalls(page)) {
@@ -240,9 +242,14 @@ test('coach onboarding creates the coach_profiles row and marks signup complete'
   await page.locator('#oemail').fill('rana@x.com');
   await page.locator('#ocity').fill('Alexandria');
   await page.locator('.onboarding-chip').first().click();
+  await page.locator('.signup-consent-transfer').check();
+  await page.locator('.signup-consent-age').check();
   await page.locator('button', { hasText: 'Get Started' }).click();
   await page.waitForTimeout(500);
 
+  const [consent] = await dbRows(page, 'signup_consents');
+  expect.soft([consent?.profile_id, consent?.transfer_abroad, consent?.age_18_plus], 'the signup consent is recorded').toEqual([UID, true, true]);
+  expect.soft(consent?.version, 'with the wording it was given to').toBe('2026-10-13');
   const [coach] = await dbRows(page, 'coach_profiles');
   expect.soft(coach?.profile_id).toBe(UID);
   expect.soft(typeof coach?.signup_completed_at, 'a real timestamp').toBe('string');
@@ -265,9 +272,12 @@ test('member onboarding in Arabic stores a stable focus slug, not Arabic text', 
   await page.locator('#cwphone').fill('11 222 3333');
   await page.locator('#cemail').fill('mona@x.com');
   await page.locator('#ccity').fill('الجيزة');
+  await page.locator('.signup-consent-transfer').check();
+  await page.locator('.signup-consent-age').check();
   await page.locator('.client-onboarding-screen button, button').filter({ hasText: /ابدأ|Get Started/ }).last().click();
   await page.waitForTimeout(500);
 
+  expect.soft((await dbRows(page, 'signup_consents')).length, 'the signup consent is recorded').toBe(1);
   const [member] = await dbRows(page, 'member_profiles');
   expect.soft(member?.focus, 'the slug').toBe('meditation');
   expect.soft(member?.goal, "the member's own words, as typed").toBe('أنام أفضل');
@@ -281,6 +291,32 @@ test('member onboarding in Arabic stores a stable focus slug, not Arabic text', 
   await ctx.close();
   expect.soft(errs).toEqual([]);
 });
+
+// The signup consent (LEGAL-DRAFTS.md clause 11, 0030): data held outside
+// Egypt, and 18 or over. Both start unticked, and without both nothing is
+// written — not the consent, not the profile, not the coach row.
+for (const missing of ['transfer', 'age']) {
+  test(`coach onboarding cannot finish without the ${missing} box`, async ({ browser }) => {
+    const { page, ctx, errs } = await open(browser, { screen: 'onboarding', tables: coachTables({ coach: false }) });
+    await page.locator('#oname').fill('Rana Coach');
+    await page.locator('#ophone').fill('10 555 0000');
+    await page.locator('#oemail').fill('rana@x.com');
+    await page.locator('#ocity').fill('Alexandria');
+    await page.locator('.onboarding-chip').first().click();
+    expect.soft(await page.locator('.signup-consent-transfer').isChecked(), 'transfer starts unticked').toBe(false);
+    expect.soft(await page.locator('.signup-consent-age').isChecked(), 'age starts unticked').toBe(false);
+    await page.locator(missing === 'transfer' ? '.signup-consent-age' : '.signup-consent-transfer').check();
+    await page.locator('button', { hasText: 'Get Started' }).click();
+    await page.waitForTimeout(400);
+
+    await expect(page.locator('.onboarding-validation')).toContainText(missing === 'transfer' ? 'where your data is kept' : '18 or older');
+    expect.soft(await currentScreen(page)).toBe('onboarding');
+    const writes = (await dbCalls(page)).filter((c) => c.op === 'insert' || c.op === 'update' || c.op === 'upsert');
+    expect.soft(writes, 'nothing written').toEqual([]);
+    await ctx.close();
+    expect.soft(errs).toEqual([]);
+  });
+}
 
 // --- Where a sign-in lands ------------------------------------------------------
 

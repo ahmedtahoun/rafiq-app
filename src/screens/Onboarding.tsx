@@ -7,6 +7,8 @@ import { CountryPicker } from '../components/CountryPicker';
 import { SpecialtyIcon } from '../components/specialtyIcons';
 import { Button } from '../components/Button';
 import { TextField } from '../components/TextField';
+import { SignupConsent } from '../components/SignupConsent';
+import { NO_SIGNUP_CONSENT, signupConsentGiven } from '../lib/signupConsent';
 import { useRemoteSession } from '../lib/remoteSession';
 import { completeCoachSignupRemote } from '../lib/profileData';
 import { useOwnProfileStore } from '../store/ownProfileStore';
@@ -44,6 +46,7 @@ export default function Onboarding() {
   const [specialties, setSpecialties] = useState<string[]>([]);
   const [experience, setExperience] = useState('1-2 years');
   const [showValidation, setShowValidation] = useState(false);
+  const [consent, setConsent] = useState(NO_SIGNUP_CONSENT);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [showDialPicker, setShowDialPicker] = useState(false);
 
@@ -59,7 +62,7 @@ export default function Onboarding() {
   const emailValid = isValidEmail(email);
   const cityValid = city.trim().length > 0;
   const specialtiesValid = specialties.length > 0;
-  const canFinish = nameValid && phoneValid && emailValid && cityValid && specialtiesValid;
+  const canFinish = nameValid && phoneValid && emailValid && cityValid && specialtiesValid && signupConsentGiven(consent);
 
   const missing: string[] = [];
   if (!nameValid) missing.push(t('missingName'));
@@ -67,6 +70,8 @@ export default function Onboarding() {
   if (!emailValid) missing.push(t('missingEmail'));
   if (!cityValid) missing.push(t('missingCity'));
   if (!specialtiesValid) missing.push(t('missingSpecialties'));
+  if (!consent.transfer) missing.push(t('missingTransferConsent'));
+  if (!consent.adult) missing.push(t('missingAgeConfirm'));
   const validationMessage = missing.length
     ? `${t('validationPrefix')}${missing.join(t('listSeparator'))}${t('validationSuffix')}`
     : '';
@@ -191,6 +196,7 @@ export default function Onboarding() {
             ))}
           </div>
         </div>
+        <SignupConsent value={consent} onChange={setConsent} disabled={saving} />
       </div>
 
       <div className="onboarding-footer">

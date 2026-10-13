@@ -1,16 +1,19 @@
 # Draft clauses, for lawyer review
 
-Fifteen clauses counsel can mark up instead of draft. Each is **Proposed**
-— written against what the code does today, in English and Arabic, with
-every undecided fact left as a visible placeholder.
+Fifteen clauses, written against what the code does today, in English and
+Arabic. **Counsel approved all fifteen, and the second review's changes
+below, on 2026-10-13** (reported by Ahmed). Two facts are still blanks:
+`[OWNER NAME]` and `[TAX REG NO.]`.
 
 Companion to `store/LAWYER-PACKAGE.md`, which is the package itself (the
 four policy documents, the agreement, the crisis block, the deletion page)
 and the questions on it. This file is only the new text.
 
-**Nothing here is live.** It touches no screen, no `i18n.ts` key and no
-public page, by design: a clause goes into the app after counsel approves
-it, not before. Where a clause replaces existing wording the current text
+**What is live.** Clause 11 (the signup consent, 0030), and the policy
+sections the second review changed (where data is held, how long it is
+kept, deletion). The rest goes into the Terms and the Privacy policies
+next; clauses 5, 6, 7 and 12 only with the features they describe, and 15
+with the site. Where a clause replaces existing wording the current text
 is quoted underneath, so the change is visible rather than implied.
 
 **Arabic is written, not translated**, and in the register the two Terms
@@ -25,7 +28,8 @@ codebase addresses coaches as masculine and members as feminine.
 
 Counsel approved these drafts and the reading of the law below. Ahmed then
 asked for one more check before anything goes live, and these changes came
-out of it. **Each needs counsel's confirmation**; nothing else changed.
+out of it. **Counsel confirmed every one of them on 2026-10-13.** Nothing
+else changed.
 
 | # | Change | Why |
 |---|---|---|
@@ -125,7 +129,7 @@ users.
 | 8 | Privacy rights and how to use them | Both Privacy policies, *Your choices* | **Partly.** Deletion and export exist; the others are handled by hand over email |
 | 9 | Who can see member data, and the processors | Member Privacy policy — replaces §3 *Who can see it* and extends §6 *Where your data is held* | **Yes**, and the current text is wrong about it. See the clause |
 | 10 | Public reviews | Member Terms and Member Privacy | **Yes.** `coach_reviews` (0022) publishes exactly what the clause says |
-| 11 | Consent at signup: the transfer abroad, and age 18+ (was: health data consent) | **A consent screen**, once per account — not a document, and not part of accepting the terms | **No.** The health data it covered is gone (0029); the screen is next |
+| 11 | Consent at signup: the transfer abroad, and age 18+ (was: health data consent) | **The last step of onboarding** — not a document, and not part of accepting the terms | **Yes** (0030). The health data it covered is gone (0029) |
 | 12 | "Verified" badge | Both Terms, and the coach Privacy policy | **Partly**, and less than people will assume. See the clause |
 | 13 | Changes to the terms | Both Terms, §6 *Changes* (replaces it) | **Yes, by email** (second review): no in-app announcement needed |
 | 14 | Physical coaching agreement | `AGREEMENT_TEXT`, `src/lib/mockStore.ts` | **Built, once 0028 is pushed** (issue #143): the coach sends it, the member signs. Nothing signed before that |
@@ -133,7 +137,7 @@ users.
 
 ---
 
-## 1 · Parties, governing law, and how to reach us — **Proposed**
+## 1 · Parties, governing law, and how to reach us — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** both Terms (as a new opening section) and both Privacy
 > policies (replacing `Contact`).
@@ -202,7 +206,7 @@ licensing or registration change because the controller is an individual?
 
 ---
 
-## 2 · Minimum age — **Proposed**
+## 2 · Minimum age — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** both Terms, §2 *Your account*.
 
@@ -231,7 +235,7 @@ confirm it.
 
 ---
 
-## 3 · Zero tolerance for objectionable content and abusive users — **Proposed**
+## 3 · Zero tolerance for objectionable content and abusive users — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** both Terms, §5 *Acceptable use*. Written to satisfy App
 > Store Review Guideline 1.2, which asks for a stated method for filtering
@@ -298,7 +302,7 @@ Pick a number Rafiq can hold on a bad week, not a good one.
 
 ---
 
-## 4 · Which language prevails — **Proposed**
+## 4 · Which language prevails — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** both Terms, as the final section.
 
@@ -322,7 +326,7 @@ Arabic matters more than a courtesy read.
 
 ---
 
-## 5 · Coach payments, commission and payouts — **Proposed**
+## 5 · Coach payments, commission and payouts — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** Coach Terms, §4 *Payments*, **replacing it**.
 
@@ -423,7 +427,7 @@ lawful.
 
 ---
 
-## 6 · Member refunds — **Proposed**
+## 6 · Member refunds — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** Member Terms, §3 *Sessions & payments*, beside §4
 > *Cancellations*.
@@ -483,7 +487,7 @@ refunded?
 
 ---
 
-## 7 · Coach subscriptions — **Proposed**
+## 7 · Coach subscriptions — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** Coach Terms, §4 *Payments*, as its own subsection.
 > **Not before billing ships** — the screens say "Coming soon" today.
@@ -563,7 +567,7 @@ if so, can Rafiq satisfy it when it does not control the billing?
 
 ---
 
-## 8 · Your privacy rights, and how to use them — **Proposed**
+## 8 · Your privacy rights, and how to use them — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** both Privacy policies, *Your choices*.
 
@@ -629,7 +633,7 @@ way to qualify the deletion promise (issue #132)?
 
 ---
 
-## 9 · Who can see a member's data — **Proposed**
+## 9 · Who can see a member's data — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** Member Privacy policy — **replaces** §3 *Who can see it*
 > and extends §6 *Where your data is held*.
@@ -760,7 +764,7 @@ that before launch rather than after.
 
 ---
 
-## 10 · Public reviews — **Proposed**
+## 10 · Public reviews — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** Member Terms (§3) and the Member Privacy policy, beside
 > clause 9.
@@ -803,12 +807,15 @@ button rather than an email.
 
 ---
 
-## 11 · Consent at signup: the transfer abroad, and your age — **Proposed (second review, 2026-10-13)**
+## 11 · Consent at signup: the transfer abroad, and your age — **Approved by counsel, 2026-10-13**
 
-> **Goes into:** a **consent screen** shown once to every account — right
-> after sign-in for a new one, and on the next app open for an account that
-> has not seen it. Not a document, and **not** something accepting the
-> terms covers.
+> **Goes into:** the **last step of onboarding**, coach and member alike
+> (`components/SignupConsent.tsx`): every new account answers it before
+> signup completes, and the answer is recorded (0030). Not a document, and
+> **not** something accepting the terms covers.
+>
+> **Accounts made before 0030** — the team's TestFlight accounts — never
+> saw it. Delete them before launch, or have each sign up again.
 
 **What changed since counsel's approval.** This clause was the
 health-data consent. The second review removed the health data instead:
@@ -834,9 +841,8 @@ the age clause 2 relies on.
 >
 > ☐ **I am 18 or older.**
 >
-> [ Continue ]  — enabled once both are ticked
->
-> Not now — sign out
+> [ Get Started ] — onboarding's own button, which finishes only once both
+> are ticked
 
 **العربية**
 
@@ -851,9 +857,7 @@ the age clause 2 relies on.
 >
 > ☐ **عمري 18 عامًا أو أكثر.**
 >
-> [ متابعة ] — تعمل بعد تحديد المربعين
->
-> ليس الآن — تسجيل الخروج
+> [ ابدأ ] — زر الإعداد نفسه، ولا يكتمل التسجيل إلا بعد تحديد المربعين
 
 **Evidence kept**, as the agreement signature (clause 14) already does:
 the account, the database's time, and which version of this text was
@@ -869,7 +873,7 @@ still type anything into a message?
 
 ---
 
-## 12 · What the "Verified" badge means — **Proposed**
+## 12 · What the "Verified" badge means — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** both Terms, and the coach Privacy policy.
 
@@ -928,7 +932,7 @@ says?
 
 ---
 
-## 13 · Changes to these terms — **Proposed**
+## 13 · Changes to these terms — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** both Terms, §6 *Changes*, **replacing it**.
 
@@ -982,7 +986,7 @@ is not built, is to promise email instead, because the policy pages'
 
 ---
 
-## 14 · The physical coaching agreement — **Proposed, and a question**
+## 14 · The physical coaching agreement — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** `AGREEMENT_TEXT`'s `physical` entry,
 > `src/lib/mockStore.ts`.
@@ -1072,7 +1076,7 @@ stays: a test fails until it is.
 
 ---
 
-## 15 · A coach's public page — **Proposed**
+## 15 · A coach's public page — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** the Coach Privacy policy, after what members can see
 > of a coach. Added with #156 (0026) and #160 (the switch in the app).

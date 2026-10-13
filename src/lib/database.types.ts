@@ -1388,6 +1388,38 @@ export type Database = {
           },
         ]
       }
+      signup_consents: {
+        Row: {
+          age_18_plus: boolean
+          agreed_at: string
+          profile_id: string
+          transfer_abroad: boolean
+          version: string
+        }
+        Insert: {
+          age_18_plus: boolean
+          agreed_at?: string
+          profile_id: string
+          transfer_abroad: boolean
+          version: string
+        }
+        Update: {
+          age_18_plus?: boolean
+          agreed_at?: string
+          profile_id?: string
+          transfer_abroad?: boolean
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "signup_consents_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       standing_slots: {
         Row: {
           client_id: string

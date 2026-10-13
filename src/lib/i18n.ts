@@ -151,6 +151,14 @@ const en = {
     missingSpecialties: 'at least one specialty',
     validationPrefix: 'Please add ',
     validationSuffix: ' to continue.',
+    // The signup consent (LEGAL-DRAFTS.md clause 11, 0030). Change
+    // SIGNUP_CONSENT_VERSION in profileData.ts with any change to these four.
+    signupConsentTitle: 'Before you start',
+    signupConsentBody: 'Rafiq Pro keeps your account on servers in Ireland, run by Supabase, so information about you leaves Egypt. Egyptian law asks for your agreement to that, separately from our Terms.',
+    signupConsentTransfer: 'I agree that Rafiq Pro may store and process my data on servers outside Egypt, as the Privacy Policy describes.',
+    signupConsentAge: 'I am 18 or older.',
+    missingTransferConsent: 'your agreement to where your data is kept',
+    missingAgeConfirm: 'confirmation that you are 18 or older',
     listSeparator: ', ',
     welcomePrefix: 'Welcome to Rafiq Pro, ', welcomeNoName: 'Welcome to Rafiq Pro',
     // QuickActions.dc.html
@@ -1370,6 +1378,12 @@ const ar: Record<MessageKey, string> = {
     missingSpecialties: 'تخصصًا واحدًا على الأقل',
     validationPrefix: 'الرجاء إضافة ',
     validationSuffix: ' للمتابعة.',
+    signupConsentTitle: 'قبل البدء',
+    signupConsentBody: 'يحفظ رفيق حسابك على خوادم في أيرلندا تديرها شركة سوبابيس، أي أن معلومات عنك تخرج من مصر. ويشترط القانون المصري موافقتك على ذلك، منفصلةً عن الشروط.',
+    signupConsentTransfer: 'أوافق على أن يحفظ رفيق بياناتي ويعالجها على خوادم خارج مصر، كما توضح سياسة الخصوصية.',
+    signupConsentAge: 'عمري 18 عامًا أو أكثر.',
+    missingTransferConsent: 'موافقتك على مكان حفظ بياناتك',
+    missingAgeConfirm: 'تأكيد أن عمرك 18 عامًا أو أكثر',
     listSeparator: '، ',
     welcomePrefix: 'مرحبًا بك في رفيق، ', welcomeNoName: 'مرحبًا بك في رفيق',
     // QuickActions.dc.html

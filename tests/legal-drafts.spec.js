@@ -100,8 +100,8 @@ test('every placeholder in a clause is a fact the table asks Ahmed for', () => {
 test('no clause went out unmarked, and nothing went live', () => {
   const headings = doc.match(/^## \d+ · /gm) ?? [];
   expect(headings.length, 'fifteen numbered clauses').toBe(15);
-  // Each one has to carry the word, because "Proposed" is the whole
-  // standing of this file.
-  const proposed = doc.match(/^## \d+ · .*\*\*Proposed/gm) ?? [];
-  expect(proposed.length, 'every clause heading says Proposed').toBe(15);
+  // Each one has to carry its standing — Proposed, or Approved by counsel
+  // with the date — because that is the whole standing of this file.
+  const marked = doc.match(/^## \d+ · .*\*\*(Proposed|Approved by counsel, \d{4}-\d{2}-\d{2})\*\*/gm) ?? [];
+  expect(marked.length, 'every clause heading says Proposed or Approved by counsel').toBe(15);
 });
