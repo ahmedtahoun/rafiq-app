@@ -387,7 +387,7 @@ const en = {
     clientFocusLife: 'Life coaching', clientFocusMeditation: 'Meditation', clientFocusBreathwork: 'Breathwork',
     clientFocusFreeDiving: 'Free diving', clientFocusScuba: 'Scuba diving', clientFocusYoga: 'Yoga',
     clientFocusCalisthenics: 'Calisthenics', clientFocusCareer: 'Career', clientFocusRelationships: 'Relationships',
-    clientFocusStress: 'Stress & anxiety', clientFocusSleep: 'Sleep', clientFocusNutrition: 'Nutrition',
+    clientFocusSleep: 'Sleep', clientFocusNutrition: 'Nutrition',
 
     // ClientHome.dc.html
     clientHomeName: 'Sara Ahmed', clientHomeStreak: '5-day check-in streak',
@@ -620,7 +620,7 @@ const en = {
     addTaskSubmit: 'Add Task',
     addTaskForMember: 'For {name}',
     addTaskTitleLabel: 'Task title',
-    addTaskTitlePlaceholder: 'e.g. Log post-session mood rating',
+    addTaskTitlePlaceholder: 'e.g. Write down one thing from the session',
     addTaskDescriptionLabel: 'Description',
     addTaskDescriptionPlaceholder: 'Why this task helps their goal',
     addTaskDueDate: 'Due date',
@@ -1055,10 +1055,6 @@ const en = {
     clientScheduleMoveAlreadyAsked: 'A move for this session is already waiting on your coach.',
 
     clientTasksTitle: 'My Tasks', clientTasksFromCoach: 'From {coach}',
-    clientTasksHowFeeling: 'How are you feeling today?',
-    clientTasksMoodLogged: 'Logged for today — thanks for checking in',
-    clientTasksMoodGreat: 'Great', clientTasksMoodGood: 'Good', clientTasksMoodOkay: 'Okay',
-    clientTasksMoodLow: 'Low', clientTasksMoodHard: 'Hard',
     clientTasksAllCaughtUp: 'All caught up!', clientTasksNoTasksMsg: 'No tasks in this list right now.',
     clientTasksOverdue: 'Overdue', clientTasksRecurring: 'Repeats',
     clientTasksProgressLabel: 'Progress toward goal', clientTasksGoalFallback: 'Feel more in control of life',
@@ -1602,7 +1598,7 @@ const ar: Record<MessageKey, string> = {
     clientFocusLife: 'تدريب حياة', clientFocusMeditation: 'تأمل', clientFocusBreathwork: 'تنفس',
     clientFocusFreeDiving: 'غوص حر', clientFocusScuba: 'غوص بالمعدات', clientFocusYoga: 'يوغا',
     clientFocusCalisthenics: 'تمارين وزن الجسم', clientFocusCareer: 'مهنة', clientFocusRelationships: 'علاقات',
-    clientFocusStress: 'توتر وقلق', clientFocusSleep: 'نوم', clientFocusNutrition: 'تغذية',
+    clientFocusSleep: 'نوم', clientFocusNutrition: 'تغذية',
 
     // ClientHome.dc.html
     clientHomeName: 'سارة أحمد', clientHomeStreak: 'مواظبة 5 أيام',
@@ -1829,7 +1825,7 @@ const ar: Record<MessageKey, string> = {
     addTaskSubmit: 'إضافة المهمة',
     addTaskForMember: 'لـ {name}',
     addTaskTitleLabel: 'عنوان المهمة',
-    addTaskTitlePlaceholder: 'مثال: تسجيل تقييم المزاج بعد الجلسة',
+    addTaskTitlePlaceholder: 'مثال: دوّن شيئًا واحدًا من الجلسة',
     addTaskDescriptionLabel: 'الوصف',
     addTaskDescriptionPlaceholder: 'كيف تساعد هذه المهمة في تحقيق هدفه',
     addTaskDueDate: 'تاريخ الاستحقاق',
@@ -2242,10 +2238,6 @@ const ar: Record<MessageKey, string> = {
     clientScheduleMoveAlreadyAsked: 'هناك طلب نقل لهذه الجلسة بانتظار مدربك بالفعل.',
 
     clientTasksTitle: 'مهامي', clientTasksFromCoach: 'من {coach}',
-    clientTasksHowFeeling: 'كيف تشعرين اليوم؟',
-    clientTasksMoodLogged: 'تم التسجيل لهذا اليوم — شكرًا لمتابعتك',
-    clientTasksMoodGreat: 'رائع', clientTasksMoodGood: 'جيد', clientTasksMoodOkay: 'عادي',
-    clientTasksMoodLow: 'منخفض', clientTasksMoodHard: 'صعب',
     clientTasksAllCaughtUp: 'كل شيء منجز!', clientTasksNoTasksMsg: 'لا توجد مهام في هذه القائمة الآن.',
     clientTasksOverdue: 'متأخرة', clientTasksRecurring: 'متكررة',
     clientTasksProgressLabel: 'التقدم نحو الهدف', clientTasksGoalFallback: 'الشعور بمزيد من التحكم في الحياة',

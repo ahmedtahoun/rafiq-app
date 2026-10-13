@@ -263,24 +263,11 @@ test('ClientTasks: filters + toggling', async ({ browser }) => {
 // ===========================================================================
 });
 
-test('ClientTasks: mood check-in', async ({ browser }) => {
+test('ClientTasks: no mood check-in (health data, removed in 0029)', async ({ browser }) => {
   const { page } = await open(browser, { screen: 'clientTasks' });
-  expect.soft(String(await store(page, `(m) => m.getMood('sara')`)), 'no mood set on a fresh install').toBe('null');
-  expect.soft(String(await n(page, '.client-tasks-mood-logged')), 'no confirmation yet').toBe('0');
-  expect.soft(String(await n(page, '.client-tasks-mood-btn')), 'five moods offered').toBe('5');
-  await page.locator('.client-tasks-mood-btn').nth(1).click();  // good
-  await page.waitForTimeout(300);
-  expect.soft(String(await store(page, `(m) => m.getMood('sara')`)), 'mood written to the store').toBe('good');
-  expect.soft(String(await n(page, '.client-tasks-mood-logged')), 'confirmation appears').toBe('1');
-  expect.soft(String(await n(page, '.client-tasks-mood-emoji-on')), 'selected mood highlighted').toBe('1');
-  await page.locator('.client-tasks-mood-btn').nth(4).click();  // hard
-  await page.waitForTimeout(300);
-  expect.soft(String(await store(page, `(m) => m.getMood('sara')`)), 'mood can be changed').toBe('hard');
-  expect.soft(String(await n(page, '.client-tasks-mood-emoji-on')), 'still exactly one highlighted').toBe('1');
-  await page.reload();
-  await page.evaluate(async () => (await import('/src/store/appStore.ts')).useAppStore.getState().nav('clientTasks'));
-  await page.waitForTimeout(500);
-  expect.soft(String(await n(page, '.client-tasks-mood-logged')), 'mood survives a reload').toBe('1');
+  expect.soft(String(await n(page, '.client-tasks-scroll')), 'the screen rendered').toBe('1');
+  expect.soft(String(await n(page, '[class*="client-tasks-mood"]')), 'no mood row').toBe('0');
+  expect.soft(String(await store(page, `(m) => typeof m.getMood`)), 'and no store to keep one in').toBe('undefined');
   await page.close();
 
 // ===========================================================================
@@ -307,7 +294,6 @@ test('ClientTasks: Arabic RTL + dark', async ({ browser }) => {
   expect.soft(String(errs.length), 'no console/page errors').toBe('0');
   expect.soft(String(await page.evaluate(() => document.documentElement.dir)), 'document direction').toBe('rtl');
   expect.soft(String(await txt(page, '.client-tasks-title')), 'title translated').toBe('مهامي');
-  expect.soft(String(await txt(page, '.client-tasks-mood-question')), 'mood question translated').toBe('كيف تشعرين اليوم؟');
   expect.soft(String(await txt(page, '.client-tasks-filter')), 'filter label translated').toBe('الكل (3)');
   const raw = await page.evaluate(() => document.querySelector('.client-tasks-scroll').innerText);
   expect.soft(/All \(|Pending \(|Completed \(/.test(raw), 'false');

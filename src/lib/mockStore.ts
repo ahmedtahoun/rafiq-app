@@ -274,7 +274,7 @@ export interface Task {
 // dates they would have had instead of a status masquerading as a due date.
 const DEFAULT_TASKS: Record<string, Task[]> = {
   sara: [
-    { id: 't1', title: 'Log post-session mood rating', dueAtMs: TODAY_MS + 18 * HOUR_MS, dueHasTime: true, done: true },
+    { id: 't1', title: 'Write down one thing from the session', dueAtMs: TODAY_MS + 18 * HOUR_MS, dueHasTime: true, done: true },
     { id: 't2', title: 'Write one gratitude note', dueAtMs: TODAY_MS + DAY_MS, done: false },
     { id: 't3', title: '10-minute evening walk', dueAtMs: TODAY_MS + 2 * DAY_MS, done: false },
   ],
@@ -299,7 +299,7 @@ const DEFAULT_TASKS: Record<string, Task[]> = {
     { id: 't3', title: 'Weekly reflection', dueAtMs: TODAY_MS + 4 * DAY_MS, done: false },
   ],
   nour: [
-    { id: 't1', title: 'Log post-session mood rating', dueAtMs: TODAY_MS - 30 * DAY_MS, done: true },
+    { id: 't1', title: 'Write down one thing from the session', dueAtMs: TODAY_MS - 30 * DAY_MS, done: true },
     { id: 't2', title: 'Write one gratitude note', dueAtMs: TODAY_MS - 23 * DAY_MS, done: true },
     { id: 't3', title: '10-minute evening walk', dueAtMs: TODAY_MS - 16 * DAY_MS, done: true },
   ],
@@ -2038,15 +2038,15 @@ export interface Template {
 }
 
 const DEFAULT_TEMPLATES: Template[] = [
-  { id: 'tpl-life-basic', name: 'Life Coaching · Basic', specialty: 'Life coaching', plan: 'Basic', cadence: 'Weekly', icon: 'LC', bg: '#B75C3D', tasks: ['Log post-session mood rating', 'Write one gratitude note', '10-minute evening walk'] },
-  { id: 'tpl-life-full', name: 'Life Coaching · Full Access', specialty: 'Life coaching', plan: 'Full Access', cadence: 'Weekly', icon: 'LC', bg: '#96472D', tasks: ['Log post-session mood rating', 'Write one gratitude note', '10-minute evening walk', 'Weekly reflection journal', 'Set one small goal'] },
+  { id: 'tpl-life-basic', name: 'Life Coaching · Basic', specialty: 'Life coaching', plan: 'Basic', cadence: 'Weekly', icon: 'LC', bg: '#B75C3D', tasks: ['Write down one thing from the session', 'Write one gratitude note', '10-minute evening walk'] },
+  { id: 'tpl-life-full', name: 'Life Coaching · Full Access', specialty: 'Life coaching', plan: 'Full Access', cadence: 'Weekly', icon: 'LC', bg: '#96472D', tasks: ['Write down one thing from the session', 'Write one gratitude note', '10-minute evening walk', 'Weekly reflection journal', 'Set one small goal'] },
   { id: 'tpl-med-basic', name: 'Meditation · Basic', specialty: 'Meditation coaching', plan: 'Basic', cadence: 'Weekly', icon: 'ME', bg: '#7A6BAE', tasks: ['10-minute guided meditation', 'Breathing exercise', 'Sleep log'] },
   { id: 'tpl-diving-basic', name: 'Free Diving Coaching · Basic', specialty: 'Free diving coaching', plan: 'Basic', cadence: 'Weekly', icon: 'FD', bg: '#1F7A8C', tasks: ['Breath-hold (STA) practice log', 'CO2/O2 tolerance table', 'Equalization drill', 'Pool or open-water session log'] },
   { id: 'tpl-scuba-basic', name: 'Scuba Diving Coaching · Basic', specialty: 'Scuba diving coaching', plan: 'Basic', cadence: 'Weekly', icon: 'SD', bg: '#26547C', tasks: ['Equipment check & buoyancy drill', 'Log dive depth & bottom time', 'Air consumption review', 'Certification skill practice'] },
   { id: 'tpl-yoga-basic', name: 'Yoga Coaching · Basic', specialty: 'Yoga coaching', plan: 'Basic', cadence: '2x/week', icon: 'YG', bg: '#5C8A6B', tasks: ['Morning stretch routine', 'Posture check-in', 'Flexibility log'] },
   { id: 'tpl-career-basic', name: 'Career Coaching · Basic', specialty: 'Career coaching', plan: 'Basic', cadence: 'Bi-weekly', icon: 'CR', bg: '#3E6F6F', tasks: ['Update resume section', 'Set one career goal', 'Network outreach'] },
   { id: 'tpl-rel-basic', name: 'Relationship Coaching · Basic', specialty: 'Relationship coaching', plan: 'Basic', cadence: 'Weekly', icon: 'RC', bg: '#A65D6E', tasks: ['Gratitude check-in', 'Communication exercise', 'Weekly reflection'] },
-  { id: 'tpl-stress-basic', name: 'Stress & Anxiety Coaching · Basic', specialty: 'Stress & anxiety coaching', plan: 'Basic', cadence: 'Weekly', icon: 'SA', bg: '#6B7FA6', tasks: ['Breathing exercise', 'Mood log', 'Grounding exercise'] },
+  { id: 'tpl-stress-basic', name: 'Stress & Anxiety Coaching · Basic', specialty: 'Stress & anxiety coaching', plan: 'Basic', cadence: 'Weekly', icon: 'SA', bg: '#6B7FA6', tasks: ['Breathing exercise', 'Evening reflection', 'Grounding exercise'] },
   { id: 'tpl-sleep-basic', name: 'Sleep Coaching · Basic', specialty: 'Sleep coaching', plan: 'Basic', cadence: 'Bi-weekly', icon: 'SL', bg: '#4A5A78', tasks: ['Sleep log', 'Wind-down routine', 'Screen-time check-in'] },
   { id: 'tpl-nutrition-full', name: 'Nutrition · Full Access', specialty: 'Nutrition coaching', plan: 'Full Access', cadence: 'Bi-weekly', icon: 'NU', bg: '#3E6FB0', tasks: ['Food log', 'Water intake check-in', 'Meal prep plan', 'Weekly weigh-in'] },
   { id: 'tpl-fitness-basic', name: 'Fitness Coaching · Basic', specialty: 'Fitness coaching', plan: 'Basic', cadence: '3x/week', icon: 'FC', bg: '#3F7D58', tasks: ['Workout log', 'Step count check-in'] },
@@ -2318,29 +2318,6 @@ const FALLBACK_MEMBER_SESSIONS: MemberSession[] = [
 export function getMemberSessions(clientId: string): MemberSession[] {
   const logged = getSessionLogs(clientId).map((s) => ({ id: s.id, atMs: s.atMs }));
   return [...logged, ...FALLBACK_MEMBER_SESSIONS];
-}
-
-/**
- * The member's daily mood check-in (ClientTasks.dc.html's emoji row).
- *
- * One value per member, not one per day: store.js keeps a single current
- * mood and the screen's "logged for today" confirmation reads whether it
- * is set at all. A real `mood_logs` table would be dated rows, which is
- * why this is a named seam rather than the screen writing localStorage —
- * but dating it here would invent history the prototype never showed.
- */
-export type MoodKey = 'great' | 'good' | 'okay' | 'low' | 'hard';
-
-export const MOOD_KEYS: MoodKey[] = ['great', 'good', 'okay', 'low', 'hard'];
-
-export function getMood(clientId: string): MoodKey | null {
-  return readLocal<Record<string, MoodKey>>('moods', {})[clientId] ?? null;
-}
-
-export function setMood(clientId: string, mood: MoodKey): MoodKey {
-  const all = readLocal<Record<string, MoodKey>>('moods', {});
-  writeLocal('moods', { ...all, [clientId]: mood });
-  return mood;
 }
 
 // ---------------------------------------------------------------------------

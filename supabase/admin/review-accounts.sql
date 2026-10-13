@@ -7,8 +7,8 @@
 -- screen has something to show for: the coach's profile, hours and two
 -- offerings; the member on the coach's roster with a goal; two past sessions
 -- with recaps (one rated), one coming up in three days, a package, a
--- program in progress, tasks (one done), a short message thread, a payment
--- and mood check-ins. Times are relative to today in Cairo, so a reset
+-- program in progress, tasks (one done), a short message thread and a
+-- payment. Times are relative to today in Cairo, so a reset
 -- before each submission keeps "upcoming" upcoming.
 --
 -- Run it again to reset: it deletes everything between the two accounts and
@@ -80,8 +80,8 @@ begin
   -- two accounts never move real money, so they go, refunds first.
   delete from public.payments where refund_of is not null and client_id in (select id from public.clients where coach_id = v_coach);
   delete from public.payments where client_id in (select id from public.clients where coach_id = v_coach);
-  -- Tasks, sessions, packages, enrollments, messages, ratings, mood
-  -- check-ins, notes and booked time go with the roster rows.
+  -- Tasks, sessions, packages, enrollments, messages, ratings, notes and
+  -- booked time go with the roster rows.
   delete from public.clients where coach_id = v_coach;
   delete from public.time_blocks where coach_id = v_coach;
   delete from public.offerings where coach_id = v_coach;
@@ -172,11 +172,6 @@ begin
     (v_client, 'Phone out of the bedroom', 'Charge it in the kitchen tonight.', now() - interval '6 days', true, now() - interval '6 days', now() - interval '13 days'),
     (v_client, 'Ten-minute walk before work', 'Any pace. Note how the morning felt.', now() + interval '1 day', false, null, now() - interval '6 days'),
     (v_client, 'Write three things that went well', 'Two minutes before bed.', now() + interval '2 days', false, null, now() - interval '6 days');
-
-  insert into public.mood_checkins (client_id, mood, created_at) values
-    (v_client, 'okay', now() - interval '5 days'),
-    (v_client, 'good', now() - interval '3 days'),
-    (v_client, 'great', now() - interval '1 day');
 
   insert into public.ratings (client_id, coach_id, session_id, rating, comment, created_at)
   values (v_client, v_coach, v_past2, 5, 'Practical and kind. I left with one clear thing to do.', now() - interval '6 days');

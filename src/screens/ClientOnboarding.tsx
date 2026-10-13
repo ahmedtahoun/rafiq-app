@@ -12,12 +12,15 @@ import { useRemoteSession } from '../lib/remoteSession';
 import { completeClientSignupRemote } from '../lib/profileData';
 import './ClientOnboarding.css';
 
-// Same 12-item focus list as the design's ClientOnboarding.dc.html — a
+// The design's ClientOnboarding.dc.html focus list, less 'Stress' — a
 // single-select "what do you want to work on" field, distinct from the
 // coach-side multi-select specialty picker (src/lib/specialties.ts): a
 // member picks one focus here, a coach can offer several specialties.
 // Icon identity is zipped by position with the label, same as the design's
 // own focusIconKeys/focusList arrays kept separate.
+//
+// 'Stress' is gone (0029): a member choosing it tells us something about
+// their mental health, which Law 151/2020 treats as sensitive data.
 const FOCUS_OPTIONS: { labelKey: MessageKey; icon: SpecialtyIconKey }[] = [
   { labelKey: 'clientFocusLife', icon: 'life' },
   { labelKey: 'clientFocusMeditation', icon: 'meditation' },
@@ -28,7 +31,6 @@ const FOCUS_OPTIONS: { labelKey: MessageKey; icon: SpecialtyIconKey }[] = [
   { labelKey: 'clientFocusCalisthenics', icon: 'calisthenics' },
   { labelKey: 'clientFocusCareer', icon: 'career' },
   { labelKey: 'clientFocusRelationships', icon: 'relationship' },
-  { labelKey: 'clientFocusStress', icon: 'stress' },
   { labelKey: 'clientFocusSleep', icon: 'sleep' },
   { labelKey: 'clientFocusNutrition', icon: 'nutrition' },
 ];

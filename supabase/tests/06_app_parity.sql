@@ -144,8 +144,8 @@ select pg_temp.expect('member cannot inflate own progress',
   pg_temp.as_user(:memberM, 'with u as (update public.enrollments set sessions_completed = 8 returning 1) select count(*)::text from u'), 'DENIED(42501)');
 
 -- Member-owned records -------------------------------------------------------------
-select pg_temp.expect('member logs a mood',
-  pg_temp.as_user(:memberM, 'with i as (insert into public.mood_checkins (client_id, mood) values (' || quote_literal(:clientM) || ', ''good'') returning 1) select count(*)::text from i'), '1');
+select pg_temp.expect('member cannot log a mood (0029: health data, not collected)',
+  pg_temp.as_user(:memberM, 'with i as (insert into public.mood_checkins (client_id, mood) values (' || quote_literal(:clientM) || ', ''good'') returning 1) select count(*)::text from i'), 'DENIED(42501)');
 select pg_temp.expect('coach cannot log a mood for them',
   pg_temp.as_user(:coachA, 'with i as (insert into public.mood_checkins (client_id, mood) values (' || quote_literal(:clientM) || ', ''hard'') returning 1) select count(*)::text from i'), 'DENIED(42501)');
 select pg_temp.expect('other member cannot see the mood',

@@ -8,7 +8,6 @@ import {
   getClient,
   getCoachProfile,
   getMemberSessions,
-  getMood,
   getPackageStatus,
   getProAggregateRating,
   getRecapForMember,
@@ -17,18 +16,15 @@ import {
   isCredentialVerified,
   MIN_REVIEWS_FOR_RATING,
   packageStatusOf,
-  setMood as mockSetMood,
   TODAY_MS,
   toggleTask as mockToggleTask,
   updateClient as mockUpdateClient,
   type AggregateRating,
   type Client,
-  type MoodKey,
   type PackageStatus,
   type Task,
 } from '../lib/mockStore';
 import {
-  addMoodCheckin,
   fetchMemberSpace,
   saveOwnMemberContact,
   setMemberTaskDone,
@@ -148,12 +144,10 @@ export interface MemberRelationshipView {
   sessionsTogether: number;
   /** The coach's most recent recap, if they've written one. */
   latestRecap: { text: string; atMs: number } | null;
-  mood: MoodKey | null;
 }
 
 export interface MemberActions {
   toggleTask: (taskId: string) => Promise<boolean>;
-  setMood: (mood: MoodKey) => Promise<boolean>;
   saveContact: (contact: MemberContact) => Promise<boolean>;
 }
 
@@ -203,7 +197,6 @@ function remoteView(r: Relationship, todayMs: number): MemberRelationshipView {
     pkg: r.package ? packageStatusOf(r.package, todayMs) : null,
     sessionsTogether: r.pastSessions.length,
     latestRecap: recap ? { text: recap.recap, atMs: recap.atMs } : null,
-    mood: r.mood,
   };
 }
 
@@ -232,7 +225,6 @@ function demoView(): MemberRelationshipView {
     // The design's baseline of two sessions before any real log exists.
     sessionsTogether: getSessionLogs(id).length + 2,
     latestRecap: recap ?? null,
-    mood: getMood(id),
   };
 }
 
@@ -288,7 +280,6 @@ export function useMemberSpace(): MemberSpaceView {
       select: () => {},
       actions: {
         toggleTask: (taskId) => done(!!mockToggleTask(DEMO_MEMBER_CLIENT_ID, taskId)),
-        setMood: (mood) => done(!!mockSetMood(DEMO_MEMBER_CLIENT_ID, mood)),
         saveContact: (c) => done(!!mockUpdateClient(DEMO_MEMBER_CLIENT_ID, { name: c.fullName, phone: c.phone, countryCode: c.countryCode })),
       },
     };
@@ -323,13 +314,6 @@ export function useMemberSpace(): MemberSpaceView {
         const result = await setMemberTaskDone(taskId, !task.done);
         if (!result.ok) return false;
         patch((rs) => rs.map((r) => (r.client.id === currentId ? { ...r, tasks: r.tasks.map((t) => (t.id === taskId ? { ...t, done: !task.done } : t)) } : r)));
-        return true;
-      },
-      async setMood(mood) {
-        if (!currentId) return false;
-        const result = await addMoodCheckin(currentId, mood);
-        if (!result.ok) return false;
-        patch((rs) => rs.map((r) => (r.client.id === currentId ? { ...r, mood } : r)));
         return true;
       },
     },

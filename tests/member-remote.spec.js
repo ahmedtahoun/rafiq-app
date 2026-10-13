@@ -164,11 +164,16 @@ test('ticking a task writes only done and done_at; a failure leaves it as stored
   await ctx.close();
 });
 
-test('a mood check-in is a new mood_checkins row for this relationship', async ({ browser }) => {
+// A mood check-in is data about a member's mental health, which Law 151/2020
+// treats as sensitive (a licence and written consent first). No coach screen
+// ever showed one, so the app stopped asking (0029).
+test('the Tasks screen asks nothing about mood, and writes no mood_checkins row', async ({ browser }) => {
   const { page, ctx, errs } = await open(browser, { screen: 'clientTasks' });
-  await page.locator('.client-tasks-mood-btn').first().click();
-  await expect(page.locator('.client-tasks-mood-logged')).toBeVisible();
-  expect(await dbRows(page, 'mood_checkins')).toEqual([{ id: 'mood_checkins-1', client_id: 'rel-a', mood: 'great' }]);
+  await expect(page.locator('.client-tasks-scroll')).toBeVisible();
+  await expect(page.locator('[class*="client-tasks-mood"]')).toHaveCount(0);
+  await expect(page.locator('.phone-frame')).not.toContainText('How are you feeling');
+  await page.locator('.client-tasks-box').first().click();
+  expect(await dbRows(page, 'mood_checkins')).toEqual([]);
   expect(errs).toEqual([]);
   await ctx.close();
 });

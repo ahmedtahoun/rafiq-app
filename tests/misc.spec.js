@@ -57,7 +57,7 @@ test('Notification model: data + target', async ({ browser }) => {
   const { page } = await open(browser, { seed });
   const task = await store(page, `(m) => m.getClientNotifications('sara').find(x => x.kind === 'task-overdue')`);
   expect.soft(String(task.data.count), 'overdue task carries a count').toBe('1');
-  expect.soft(String(task.data.firstTitle), 'and the first title').toBe('Log post-session mood rating');
+  expect.soft(String(task.data.firstTitle), 'and the first title').toBe('Write down one thing from the session');
   expect.soft(String(task.target.screen), 'task rows point at tasks').toBe('clientTasks');
   await page.close();
 }

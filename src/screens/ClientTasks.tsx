@@ -11,24 +11,13 @@ import { MemberTabBar } from '../components/TabBars';
 import { LoadState } from '../components/LoadState';
 import { NoCoachYet } from '../components/NoCoachYet';
 import { useMemberSpace, type MemberSpaceView } from '../store/memberStore';
-import { isTaskOverdue, MOOD_KEYS, type MoodKey } from '../lib/mockStore';
+import { isTaskOverdue } from '../lib/mockStore';
 import './ClientTasks.css';
 
 const RING_R = 22;
 const RING_CIRC = 2 * Math.PI * RING_R;
 
 const ACCENT_HEX = '#B75C3D';
-
-const MOOD_EMOJI: Record<MoodKey, string> = {
-  great: '😄', good: '🙂', okay: '😐', low: '😕', hard: '😣',
-};
-const MOOD_LABEL_KEYS: Record<MoodKey, MessageKey> = {
-  great: 'clientTasksMoodGreat',
-  good: 'clientTasksMoodGood',
-  okay: 'clientTasksMoodOkay',
-  low: 'clientTasksMoodLow',
-  hard: 'clientTasksMoodHard',
-};
 
 type TaskFilter = 'all' | 'pending' | 'overdue' | 'completed';
 
@@ -52,7 +41,7 @@ function ClientTasksView({ space }: { space: Extract<MemberSpaceView, { status: 
   const nav = useAppStore((s) => s.nav);
 
   const [filter, setFilter] = useState<TaskFilter>('all');
-  // A write in flight (a tick or a mood), and whether the last one failed.
+  // A write in flight (a tick), and whether the last one failed.
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -64,7 +53,6 @@ function ClientTasksView({ space }: { space: Extract<MemberSpaceView, { status: 
   const heroGrad = 'var(--hero-grad)';
   const coachGrad = `linear-gradient(135deg, var(--accent) 0%, ${darken(ACCENT_HEX, 35)} 100%)`;
 
-  const mood = rel?.mood ?? null;
 
   // Same progress-ring math ClientHome uses, so "progress toward goal"
   // reads identically wherever the member app shows it.
@@ -102,10 +90,6 @@ function ClientTasksView({ space }: { space: Extract<MemberSpaceView, { status: 
     if (!done) setFailed(true);
   }
 
-  function pickMood(key: MoodKey) {
-    void run(() => space.actions.setMood(key));
-  }
-
   function toggle(taskId: string) {
     void run(() => space.actions.toggleTask(taskId));
   }
@@ -128,38 +112,6 @@ function ClientTasksView({ space }: { space: Extract<MemberSpaceView, { status: 
         </div>
       ) : (
       <>
-      <div className="client-tasks-mood">
-        <div className="client-tasks-mood-question">{t('clientTasksHowFeeling')}</div>
-        <div className="client-tasks-mood-row" role="group" aria-label={t('clientTasksHowFeeling')}>
-          {MOOD_KEYS.map((key) => {
-            const selected = mood === key;
-            return (
-              <button
-                key={key}
-                type="button"
-                className="client-tasks-mood-btn"
-                aria-pressed={selected}
-                disabled={busy}
-                onClick={() => pickMood(key)}
-              >
-                <span className={`client-tasks-mood-emoji${selected ? ' client-tasks-mood-emoji-on' : ''}`}>
-                  {MOOD_EMOJI[key]}
-                </span>
-                <span className={`client-tasks-mood-label${selected ? ' client-tasks-mood-label-on' : ''}`}>
-                  {t(MOOD_LABEL_KEYS[key])}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-        {mood && (
-          <div className="client-tasks-mood-logged">
-            <CheckIcon size={13} color="var(--green)" />
-            <span>{t('clientTasksMoodLogged')}</span>
-          </div>
-        )}
-      </div>
-
       <div className="client-tasks-scroll">
         {failed && (
           <div className="client-tasks-error" role="alert">
