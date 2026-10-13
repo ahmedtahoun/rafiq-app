@@ -98,3 +98,26 @@ export async function installScreenSettle(page) {
     };
   });
 }
+
+/**
+ * How many numbered sections each policy document has — stated here, not
+ * read from the app.
+ *
+ * This was read out of the app's own POLICY_SECTION_COUNT, which made
+ * every assertion using it a tautology: the screens render from that map,
+ * so `rendered === map[prefix]` holds however wrong the map is, and a
+ * section deleted from both the map and i18n.ts moved both sides
+ * together and nothing went red. (Same mistake as the Help Centre's
+ * FAQ_IDS, caught in review on #146.)
+ *
+ * A test states its expectation. `copy-and-i18n.spec.js` checks the app's
+ * map against this one, so the two cannot drift without a named failure,
+ * and the per-screen counts below are what a human decided the documents
+ * contain.
+ */
+export const POLICY_SECTIONS = {
+  privacySection: 10,
+  clientPrivacySection: 10,
+  termsSection: 6,
+  clientTermsSection: 6,
+};

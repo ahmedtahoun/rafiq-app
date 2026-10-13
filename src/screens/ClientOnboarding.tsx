@@ -7,17 +7,22 @@ import { CountryPicker } from '../components/CountryPicker';
 import { BottomSheet } from '../components/BottomSheet';
 import { CrisisResources } from '../components/CrisisResources';
 import { Button } from '../components/Button';
+import { SignupConsent } from '../components/SignupConsent';
+import { NO_SIGNUP_CONSENT, signupConsentGiven } from '../lib/signupConsent';
 import { TextField, TextAreaField } from '../components/TextField';
 import { useRemoteSession } from '../lib/remoteSession';
 import { completeClientSignupRemote } from '../lib/profileData';
 import './ClientOnboarding.css';
 
-// Same 12-item focus list as the design's ClientOnboarding.dc.html — a
+// The design's ClientOnboarding.dc.html focus list, less 'Stress' — a
 // single-select "what do you want to work on" field, distinct from the
 // coach-side multi-select specialty picker (src/lib/specialties.ts): a
 // member picks one focus here, a coach can offer several specialties.
 // Icon identity is zipped by position with the label, same as the design's
 // own focusIconKeys/focusList arrays kept separate.
+//
+// 'Stress' is gone (0029): a member choosing it tells us something about
+// their mental health, which Law 151/2020 treats as sensitive data.
 const FOCUS_OPTIONS: { labelKey: MessageKey; icon: SpecialtyIconKey }[] = [
   { labelKey: 'clientFocusLife', icon: 'life' },
   { labelKey: 'clientFocusMeditation', icon: 'meditation' },
@@ -28,7 +33,6 @@ const FOCUS_OPTIONS: { labelKey: MessageKey; icon: SpecialtyIconKey }[] = [
   { labelKey: 'clientFocusCalisthenics', icon: 'calisthenics' },
   { labelKey: 'clientFocusCareer', icon: 'career' },
   { labelKey: 'clientFocusRelationships', icon: 'relationship' },
-  { labelKey: 'clientFocusStress', icon: 'stress' },
   { labelKey: 'clientFocusSleep', icon: 'sleep' },
   { labelKey: 'clientFocusNutrition', icon: 'nutrition' },
 ];
@@ -57,6 +61,7 @@ export default function ClientOnboarding() {
   const [showValidation, setShowValidation] = useState(false);
   const [showDialPicker, setShowDialPicker] = useState(false);
   const [showCrisis, setShowCrisis] = useState(false);
+  const [consent, setConsent] = useState(NO_SIGNUP_CONSENT);
 
   const dialCountry = COUNTRIES.find((c) => c.code === dialCode) ?? DEFAULT_COUNTRY;
 
@@ -64,13 +69,15 @@ export default function ClientOnboarding() {
   const phoneValid = phone.trim().length >= 7;
   const emailValid = isValidEmail(email);
   const cityValid = city.trim().length > 0;
-  const canFinish = goalValid && phoneValid && emailValid && cityValid;
+  const canFinish = goalValid && phoneValid && emailValid && cityValid && signupConsentGiven(consent);
 
   const missing: string[] = [];
   if (!goalValid) missing.push(t('clientOnboardingMissingGoal'));
   if (!phoneValid) missing.push(t('missingPhone'));
   if (!emailValid) missing.push(t('missingEmail'));
   if (!cityValid) missing.push(t('missingCity'));
+  if (!consent.transfer) missing.push(t('missingTransferConsent'));
+  if (!consent.adult) missing.push(t('missingAgeConfirm'));
   const validationMessage = missing.length
     ? `${t('validationPrefix')}${missing.join(t('listSeparator'))}${t('validationSuffix')}`
     : '';
@@ -185,8 +192,7 @@ export default function ClientOnboarding() {
         />
 
         {/* Onboarding is where a member says what they want to work on, and
-            four of the twelve options are stress, sleep, relationships and
-            life. Saying what coaching is not belongs next to that choice,
+            three of the options are sleep, relationships and life. Saying what coaching is not belongs next to that choice,
             not only in a document nobody opens. */}
         <div className="client-onboarding-care">
           <div className="client-onboarding-care-title">{t('notTherapyTitle')}</div>
@@ -195,6 +201,7 @@ export default function ClientOnboarding() {
             {t('crisisOpenAction')}
           </button>
         </div>
+        <SignupConsent value={consent} onChange={setConsent} disabled={saving} />
       </div>
 
       <div className="client-onboarding-footer">

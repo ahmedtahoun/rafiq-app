@@ -14,7 +14,7 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PGBIN="${PGBIN:-/usr/lib/postgresql/16/bin}"
 PGROOT="${PGROOT:-/var/tmp/rafiq-pgtest}"
-MIN_ASSERTIONS=737
+MIN_ASSERTIONS=746
 
 OUT=""
 OWN_CLUSTER=""
@@ -168,6 +168,9 @@ OUT="$(mktemp)"
   echo
   echo "=== AGREEMENT SIGNATURES ==="
   psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/33_agreement_signatures.sql"
+  echo
+  echo "=== SIGNUP CONSENT ==="
+  psql "$CONN" -v ON_ERROR_STOP=1 -f "$HERE/34_signup_consent.sql"
 } | grep -v '^$' | tee "$OUT"
 
 PASSED="$(grep -c '^PASS' "$OUT" || true)"

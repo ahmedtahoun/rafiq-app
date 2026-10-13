@@ -1,4 +1,5 @@
 import { PolicyPage } from '../components/PolicyPage';
+import { POLICY_SECTION_COUNT } from '../components/policySections';
 import { NotTherapySection } from '../components/NotTherapySection';
 
 // 1:1 port of CoachTermsOfService.dc.html — same shape as the privacy
@@ -12,7 +13,7 @@ export default function CoachTermsOfService() {
       titleKey="termsTitle"
       updatedKey="termsUpdated"
       sectionPrefix="termsSection"
-      sectionCount={6}
+      sectionCount={POLICY_SECTION_COUNT.termsSection}
       footer={<NotTherapySection bodyKey="termsNotTherapyBody" />}
     />
   );

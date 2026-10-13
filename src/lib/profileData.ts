@@ -49,6 +49,29 @@ async function currentUserId(): Promise<string | null> {
   return data.user?.id ?? null;
 }
 
+/**
+ * Which wording of the signup consent (LEGAL-DRAFTS.md clause 11; copy
+ * signupConsent*) the person agreed to. Change it whenever that copy
+ * changes, so a record says which text was shown.
+ */
+export const SIGNUP_CONSENT_VERSION = '2026-10-13';
+
+/**
+ * The consent onboarding's two boxes stand for (0030): data held outside
+ * Egypt, and 18 or over. Written before the rest of the signup, so an
+ * account never completes onboarding without it. A row already there
+ * (23505) is a second attempt after a failed save, not an error.
+ */
+async function recordSignupConsent(uid: string): Promise<{ message: string } | null> {
+  const { error } = await getSupabase().from('signup_consents').insert({
+    profile_id: uid,
+    version: SIGNUP_CONSENT_VERSION,
+    transfer_abroad: true,
+    age_18_plus: true,
+  });
+  return error && error.code !== '23505' ? error : null;
+}
+
 /** The object path stored in a *_photo_url column → a URL an <img> can load.
     A photo that won't sign is shown as no photo, not a failed screen. */
 async function signedUrl(kind: PhotoKind, path: string | null): Promise<string> {
@@ -233,6 +256,9 @@ export async function completeCoachSignupRemote(fields: CoachSignupFields): Prom
   const uid = await currentUserId();
   if (!uid) return NOT_SIGNED_IN;
 
+  const consentError = await recordSignupConsent(uid);
+  if (consentError) return unknown(consentError);
+
   const country = COUNTRIES.find((c) => c.name === fields.country) ?? COUNTRIES[0];
   const person = await getSupabase().from('profiles').update({
     full_name: fields.name.trim(),
@@ -261,6 +287,9 @@ export async function completeClientSignupRemote(fields: ClientSignupFields): Pr
   if (!isSupabaseConfigured()) return NOT_CONFIGURED;
   const uid = await currentUserId();
   if (!uid) return NOT_SIGNED_IN;
+
+  const consentError = await recordSignupConsent(uid);
+  if (consentError) return unknown(consentError);
 
   const person = await getSupabase().from('profiles').update({
     phone: fields.phone.trim(),

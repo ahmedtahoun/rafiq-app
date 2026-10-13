@@ -4,13 +4,13 @@
  * linked to them (`member_id` — set only when a coach accepts their session
  * request, 0008), the coach behind each (the public `coach_directory`
  * view), and for each relationship its tasks, session package, sessions
- * (for the count and the coach's latest recap) and the member's mood
- * check-ins.
+ * (for the count and the coach's latest recap).
  *
  * A member may read all of that (RLS: is_member_of / can_see_client) and
- * write only three things here: a task's done state (0004's
- * tasks_member_scope refuses anything else), a mood check-in, and their own
- * contact details on `profiles`. The roster row itself is the coach's.
+ * write only two things here: a task's done state (0004's
+ * tasks_member_scope refuses anything else) and their own contact details
+ * on `profiles`. (Mood check-ins were health data and are no longer
+ * collected: 0029.) The roster row itself is the coach's.
  *
  * Rows come back in mockStore's shapes, with timestamps as wall-clock ms
  * (src/lib/wallClock.ts), like rosterData.ts.
@@ -18,7 +18,7 @@
 import { getSupabase, isSupabaseConfigured } from './supabase';
 import { toWallMs } from './wallClock';
 import { getProfilePhotoUrl, type PhotoKind } from './storage';
-import type { Client, MoodKey, RawPackage, Task } from './mockStore';
+import type { Client, RawPackage, Task } from './mockStore';
 import type { Tables } from './database.types';
 
 export type MemberErrorCode = 'not_configured' | 'not_signed_in' | 'refused' | 'unknown';
@@ -59,8 +59,6 @@ export interface Relationship {
   package: RawPackage | null;
   /** Sessions that have happened (scheduled before now), newest first. */
   pastSessions: { id: string; atMs: number; recap: string }[];
-  /** The member's latest mood check-in for this relationship. */
-  mood: MoodKey | null;
 }
 
 /** A photo that won't sign is shown as no photo, not a failed screen. */
@@ -124,7 +122,7 @@ export async function fetchMemberRelationships(): Promise<MemberResult<Relations
   const ids = clients.data.map((c) => c.id);
   const coachIds = [...new Set(clients.data.map((c) => c.coach_id))];
 
-  const [coaches, tasks, packages, sessions, moods] = await Promise.all([
+  const [coaches, tasks, packages, sessions] = await Promise.all([
     supabase
       .from('coach_directory')
       .select('coach_id, full_name, title, verified, rating_count, rating_avg, bio, certifications, avatar_photo_url, cover_photo_url')
@@ -132,9 +130,8 @@ export async function fetchMemberRelationships(): Promise<MemberResult<Relations
     supabase.from('tasks').select('id, client_id, title, description, due_at, due_has_time, recurring, done, created_at').in('client_id', ids).order('due_at', { ascending: true }),
     supabase.from('packages').select('client_id, total, used, expires_at').in('client_id', ids),
     supabase.from('sessions').select('id, client_id, scheduled_at, recap, attendance').in('client_id', ids).order('scheduled_at', { ascending: false }),
-    supabase.from('mood_checkins').select('client_id, mood, created_at').in('client_id', ids).order('created_at', { ascending: false }),
   ]);
-  for (const r of [coaches, tasks, packages, sessions, moods]) if (r.error) return unknown(r.error);
+  for (const r of [coaches, tasks, packages, sessions]) if (r.error) return unknown(r.error);
 
   const photos = new Map(
     await Promise.all(
@@ -181,7 +178,6 @@ export async function fetchMemberRelationships(): Promise<MemberResult<Relations
           // and one the member missed (0015's no-show) wasn't held together.
           .filter((s) => s.client_id === row.id && Date.parse(s.scheduled_at) <= now && s.attendance !== 'cancelled' && s.attendance !== 'no_show')
           .map((s) => ({ id: s.id, atMs: toWallMs(s.scheduled_at), recap: s.recap ?? '' })),
-        mood: (moods.data!.find((m) => m.client_id === row.id)?.mood as MoodKey | undefined) ?? null,
       };
     }),
   );
@@ -209,13 +205,6 @@ export async function setMemberTaskDone(taskId: string, done: boolean): Promise<
     .from('tasks')
     .update({ done, done_at: done ? new Date().toISOString() : null })
     .eq('id', taskId);
-  return error ? unknown(error) : ok(null);
-}
-
-/** A mood check-in is a new row each time — mood_checkins keeps history. */
-export async function addMoodCheckin(clientId: string, mood: MoodKey): Promise<MemberResult<null>> {
-  if (!isSupabaseConfigured()) return NOT_CONFIGURED;
-  const { error } = await getSupabase().from('mood_checkins').insert({ client_id: clientId, mood });
   return error ? unknown(error) : ok(null);
 }
 

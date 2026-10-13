@@ -151,6 +151,14 @@ const en = {
     missingSpecialties: 'at least one specialty',
     validationPrefix: 'Please add ',
     validationSuffix: ' to continue.',
+    // The signup consent (LEGAL-DRAFTS.md clause 11, 0030). Change
+    // SIGNUP_CONSENT_VERSION in profileData.ts with any change to these four.
+    signupConsentTitle: 'Before you start',
+    signupConsentBody: 'Rafiq Pro keeps your account on servers in Ireland, run by Supabase, so information about you leaves Egypt. Egyptian law asks for your agreement to that, separately from our Terms.',
+    signupConsentTransfer: 'I agree that Rafiq Pro may store and process my data on servers outside Egypt, as the Privacy Policy describes.',
+    signupConsentAge: 'I am 18 or older.',
+    missingTransferConsent: 'your agreement to where your data is kept',
+    missingAgeConfirm: 'confirmation that you are 18 or older',
     listSeparator: ', ',
     welcomePrefix: 'Welcome to Rafiq Pro, ', welcomeNoName: 'Welcome to Rafiq Pro',
     // QuickActions.dc.html
@@ -387,7 +395,7 @@ const en = {
     clientFocusLife: 'Life coaching', clientFocusMeditation: 'Meditation', clientFocusBreathwork: 'Breathwork',
     clientFocusFreeDiving: 'Free diving', clientFocusScuba: 'Scuba diving', clientFocusYoga: 'Yoga',
     clientFocusCalisthenics: 'Calisthenics', clientFocusCareer: 'Career', clientFocusRelationships: 'Relationships',
-    clientFocusStress: 'Stress & anxiety', clientFocusSleep: 'Sleep', clientFocusNutrition: 'Nutrition',
+    clientFocusSleep: 'Sleep', clientFocusNutrition: 'Nutrition',
 
     // ClientHome.dc.html
     clientHomeName: 'Sara Ahmed', clientHomeStreak: '5-day check-in streak',
@@ -620,7 +628,7 @@ const en = {
     addTaskSubmit: 'Add Task',
     addTaskForMember: 'For {name}',
     addTaskTitleLabel: 'Task title',
-    addTaskTitlePlaceholder: 'e.g. Log post-session mood rating',
+    addTaskTitlePlaceholder: 'e.g. Write down one thing from the session',
     addTaskDescriptionLabel: 'Description',
     addTaskDescriptionPlaceholder: 'Why this task helps their goal',
     addTaskDueDate: 'Due date',
@@ -745,7 +753,7 @@ const en = {
 
     // CoachPrivacyPolicy.dc.html — ported, Arabic included.
     privacyTitle: 'Privacy Policy',
-    privacyUpdated: 'Last updated: September 2026',
+    privacyUpdated: 'Last updated: October 2026',
     privacySection1Heading: 'What we collect',
     privacySection1Body: 'We collect your name, contact details, and the member, task, and schedule information you enter to run your coaching practice on Rafiq Pro. If you set up payouts, we also collect your national ID and the mobile wallet or bank account number you want to be paid to: Paymob, the payment company that sends your money, requires both for every payout. In the app, only you and the Rafiq Pro team can see them, and we share them only with Paymob, only to send your payouts.',
     privacySection2Heading: "Your members' data",
@@ -759,10 +767,18 @@ const en = {
     // The member-facing clientPrivacySection4Body says the same thing from
     // the other side; these two must not disagree.
     privacySection4Body: 'Conversations with members are sent and stored in Rafiq Pro, and are covered by this policy. No third-party messaging service is involved.',
-    privacySection5Heading: 'Your choices',
-    privacySection5Body: 'You can review or update your account details anytime from Profile → Account Details, or delete your account from Profile → Delete Account.',
-    privacySection6Heading: 'Contact',
-    privacySection6Body: 'Questions about this policy can be sent to support@rafiqpro.com, or from Profile → Contact Us.',
+    privacySection5Heading: 'Notifications',
+    privacySection5Body: 'If you turn on notifications, your phone gives Rafiq Pro a notification token — an identifier for that device, not for you — so we can alert you about sessions, members who need you, and new messages. We use it for nothing else. It is removed when you turn notifications off, sign out on that device, or delete your account.',
+    privacySection6Heading: 'Where your data is held',
+    privacySection6Body: 'Rafiq Pro’s database and files are hosted by Supabase on servers in Ireland, so information about you leaves Egypt and is stored in the European Union. Video calls run through Daily’s servers, which may also be outside Egypt for the length of the call. When you create your account we ask you to agree to this transfer, separately from accepting our Terms. Rafiq Pro runs on those servers, so it cannot be used without it.',
+    privacySection7Heading: 'How long we keep it',
+    privacySection7Body: 'We keep your data for as long as your account exists. When an account is deleted, the records tax law requires us to keep — sessions, payments and payouts — are kept for five years after the end of the tax year they belong to, and only the people who keep our accounts can see them. Technical logs, which include internet addresses, are kept by our hosting provider for a short period, currently about a week.',
+    privacySection8Heading: 'Deleting your account, and backups',
+    privacySection8Body: 'When you ask us to delete your account, we delete your data within six working days of your request, as Egyptian law requires, apart from the records named above. We keep encrypted backups of our database for up to four weeks so the service can be restored after a failure, so a copy of your data may remain in a backup until it is deleted. Backups are never used to bring back a single account, and nobody at Rafiq Pro works from them.',
+    privacySection9Heading: 'Your choices',
+    privacySection9Body: 'You can review or update your account details anytime from Profile → Account Details, or delete your account from Profile → Delete Account.',
+    privacySection10Heading: 'Contact',
+    privacySection10Body: 'Questions about this policy can be sent to support@rafiqpro.com, or from Profile → Contact Us.',
 
     // CoachTermsOfService.dc.html — ported, Arabic included.
     termsTitle: 'Terms of Service',
@@ -1047,10 +1063,6 @@ const en = {
     clientScheduleMoveAlreadyAsked: 'A move for this session is already waiting on your coach.',
 
     clientTasksTitle: 'My Tasks', clientTasksFromCoach: 'From {coach}',
-    clientTasksHowFeeling: 'How are you feeling today?',
-    clientTasksMoodLogged: 'Logged for today — thanks for checking in',
-    clientTasksMoodGreat: 'Great', clientTasksMoodGood: 'Good', clientTasksMoodOkay: 'Okay',
-    clientTasksMoodLow: 'Low', clientTasksMoodHard: 'Hard',
     clientTasksAllCaughtUp: 'All caught up!', clientTasksNoTasksMsg: 'No tasks in this list right now.',
     clientTasksOverdue: 'Overdue', clientTasksRecurring: 'Repeats',
     clientTasksProgressLabel: 'Progress toward goal', clientTasksGoalFallback: 'Feel more in control of life',
@@ -1176,7 +1188,7 @@ const en = {
     clientHelpQ12: 'Can I get a copy of my data?',
     clientHelpA12: 'Yes \u2014 open your Profile, and under Privacy tap "Download my data". You get one file holding everything Rafiq keeps about you that you can see: your profile and goals, each pro you work with, and your tasks, sessions, check-ins, messages, ratings, packages, payments and programmes, along with your session requests, saved pros and notifications. Your pro\u2019s private notes about you are not in it \u2014 those are theirs, and you cannot read them anywhere in Rafiq either. The file is put together on your phone, from your own account.',
 
-    clientPrivacyTitle: 'Privacy Policy', clientPrivacyUpdated: 'Last updated: October 2025',
+    clientPrivacyTitle: 'Privacy Policy', clientPrivacyUpdated: 'Last updated: October 2026',
     clientPrivacySection1Heading: 'What we collect',
     clientPrivacySection1Body: 'We collect your name, phone number, and the goals, tasks, and mood check-ins you share so your pro can support you between sessions.',
     clientPrivacySection2Heading: 'How we use it',
@@ -1191,10 +1203,18 @@ const en = {
     // messages go is not a copy nit, so this one describes what the app
     // actually does.
     clientPrivacySection4Body: 'Messages with your pro are sent and stored in Rafiq Pro, and are covered by this policy. No third-party messaging service is involved.',
-    clientPrivacySection5Heading: 'Your choices',
-    clientPrivacySection5Body: 'You can delete your data anytime from Profile → Delete Account, or reach out to your pro with any request.',
-    clientPrivacySection6Heading: 'Contact',
-    clientPrivacySection6Body: 'Questions about this policy can be sent to support@rafiqpro.com, or from Profile → Contact Us. Your pro can also pass a question on to the Rafiq Pro team for you.',
+    clientPrivacySection5Heading: 'Notifications',
+    clientPrivacySection5Body: 'If you turn on notifications, your phone gives Rafiq Pro a notification token — an identifier for that device, not for you — so we can remind you about sessions and tasks and tell you when your pro sends a message. We use it for nothing else. It is removed when you turn notifications off, sign out on that device, or delete your account.',
+    clientPrivacySection6Heading: 'Where your data is held',
+    clientPrivacySection6Body: 'Rafiq Pro’s database and files are hosted by Supabase on servers in Ireland, so information about you leaves Egypt and is stored in the European Union. Video calls run through Daily’s servers, which may also be outside Egypt for the length of the call. When you create your account we ask you to agree to this transfer, separately from accepting our Terms. Rafiq Pro runs on those servers, so it cannot be used without it.',
+    clientPrivacySection7Heading: 'How long we keep it',
+    clientPrivacySection7Body: 'We keep your data for as long as your account exists. When an account is deleted, the records tax law requires us to keep — sessions and payments — are kept for five years after the end of the tax year they belong to, and only the people who keep our accounts can see them. Technical logs, which include internet addresses, are kept by our hosting provider for a short period, currently about a week.',
+    clientPrivacySection8Heading: 'Deleting your account, and backups',
+    clientPrivacySection8Body: 'When you ask us to delete your account, we delete your data within six working days of your request, as Egyptian law requires, apart from the records named above. We keep encrypted backups of our database for up to four weeks so the service can be restored after a failure, so a copy of your data may remain in a backup until it is deleted. Backups are never used to bring back a single account, and nobody at Rafiq Pro works from them.',
+    clientPrivacySection9Heading: 'Your choices',
+    clientPrivacySection9Body: 'You can delete your data anytime from Profile → Delete Account, or reach out to your pro with any request.',
+    clientPrivacySection10Heading: 'Contact',
+    clientPrivacySection10Body: 'Questions about this policy can be sent to support@rafiqpro.com, or from Profile → Contact Us. Your pro can also pass a question on to the Rafiq Pro team for you.',
 
     clientTermsTitle: 'Terms of Service', clientTermsUpdated: 'Last updated: October 2025',
     clientTermsSection1Heading: 'Using Rafiq Pro',
@@ -1358,6 +1378,12 @@ const ar: Record<MessageKey, string> = {
     missingSpecialties: 'تخصصًا واحدًا على الأقل',
     validationPrefix: 'الرجاء إضافة ',
     validationSuffix: ' للمتابعة.',
+    signupConsentTitle: 'قبل البدء',
+    signupConsentBody: 'يحفظ رفيق حسابك على خوادم في أيرلندا تديرها شركة سوبابيس، أي أن معلومات عنك تخرج من مصر. ويشترط القانون المصري موافقتك على ذلك، منفصلةً عن الشروط.',
+    signupConsentTransfer: 'أوافق على أن يحفظ رفيق بياناتي ويعالجها على خوادم خارج مصر، كما توضح سياسة الخصوصية.',
+    signupConsentAge: 'عمري 18 عامًا أو أكثر.',
+    missingTransferConsent: 'موافقتك على مكان حفظ بياناتك',
+    missingAgeConfirm: 'تأكيد أن عمرك 18 عامًا أو أكثر',
     listSeparator: '، ',
     welcomePrefix: 'مرحبًا بك في رفيق، ', welcomeNoName: 'مرحبًا بك في رفيق',
     // QuickActions.dc.html
@@ -1586,7 +1612,7 @@ const ar: Record<MessageKey, string> = {
     clientFocusLife: 'تدريب حياة', clientFocusMeditation: 'تأمل', clientFocusBreathwork: 'تنفس',
     clientFocusFreeDiving: 'غوص حر', clientFocusScuba: 'غوص بالمعدات', clientFocusYoga: 'يوغا',
     clientFocusCalisthenics: 'تمارين وزن الجسم', clientFocusCareer: 'مهنة', clientFocusRelationships: 'علاقات',
-    clientFocusStress: 'توتر وقلق', clientFocusSleep: 'نوم', clientFocusNutrition: 'تغذية',
+    clientFocusSleep: 'نوم', clientFocusNutrition: 'تغذية',
 
     // ClientHome.dc.html
     clientHomeName: 'سارة أحمد', clientHomeStreak: 'مواظبة 5 أيام',
@@ -1813,7 +1839,7 @@ const ar: Record<MessageKey, string> = {
     addTaskSubmit: 'إضافة المهمة',
     addTaskForMember: 'لـ {name}',
     addTaskTitleLabel: 'عنوان المهمة',
-    addTaskTitlePlaceholder: 'مثال: تسجيل تقييم المزاج بعد الجلسة',
+    addTaskTitlePlaceholder: 'مثال: دوّن شيئًا واحدًا من الجلسة',
     addTaskDescriptionLabel: 'الوصف',
     addTaskDescriptionPlaceholder: 'كيف تساعد هذه المهمة في تحقيق هدفه',
     addTaskDueDate: 'تاريخ الاستحقاق',
@@ -1936,7 +1962,7 @@ const ar: Record<MessageKey, string> = {
 
     // CoachPrivacyPolicy.dc.html — ported 1:1.
     privacyTitle: 'سياسة الخصوصية',
-    privacyUpdated: 'آخر تحديث: سبتمبر 2026',
+    privacyUpdated: 'آخر تحديث: أكتوبر 2026',
     privacySection1Heading: 'ما الذي نجمعه',
     privacySection1Body: 'نجمع اسمك وبيانات التواصل الخاصة بك ومعلومات الأعضاء والمهام والجدول التي تدخلها لإدارة ممارستك التدريبية على رفيق. وإذا أعددت استلام مستحقاتك، نجمع أيضًا رقمك القومي ورقم المحفظة الإلكترونية أو الحساب البنكي الذي تريد الاستلام عليه، لأن باي موب، شركة الدفع التي ترسل إليك أموالك، تشترط الاثنين في كل عملية تحويل. داخل التطبيق لا يرى هذه البيانات إلا أنت وفريق رفيق، ولا نشاركها إلا مع باي موب، ولغرض إرسال مستحقاتك فقط.',
     privacySection2Heading: 'بيانات أعضائك',
@@ -1945,10 +1971,18 @@ const ar: Record<MessageKey, string> = {
     privacySection3Body: 'تُستخدم معلوماتك لتشغيل ميزات الجدولة والتذكيرات وتتبع الدفعات. تعمل جلسات الفيديو عبر ديلي، مزوّد الفيديو لدينا: تمر المكالمة عبر خوادمه أثناء حدوثها ولا تُسجَّل أو تُحفَظ أبدًا. لا نبيع بياناتك أو بيانات أعضائك أبدًا لأطراف ثالثة. إذا فعّلت الإشعارات على هاتفك، تتولى آبل (على آيفون) أو جوجل (على أندرويد) توصيلها: نحتفظ بعنوان الإشعارات الخاص بهاتفك مع حسابك، ومعه لغة التطبيق ومنطقتك الزمنية، حتى تسجّل الخروج أو توقفها. لا يتضمن إشعار الرسالة نص الرسالة أبدًا.',
     privacySection4Heading: 'المراسلة',
     privacySection4Body: 'تُرسل المحادثات مع الأعضاء وتُحفظ داخل رفيق، وتخضع لهذه السياسة. لا تتدخل أي خدمة مراسلة خارجية.',
-    privacySection5Heading: 'خياراتك',
-    privacySection5Body: 'يمكنك مراجعة أو تحديث تفاصيل حسابك في أي وقت من الملف الشخصي ← تفاصيل الحساب، أو حذف حسابك من الملف الشخصي ← حذف الحساب.',
-    privacySection6Heading: 'التواصل',
-    privacySection6Body: 'يمكن إرسال الأسئلة حول هذه السياسة إلى support@rafiqpro.com أو من الملف الشخصي ← تواصل معنا.',
+    privacySection5Heading: 'الإشعارات',
+    privacySection5Body: 'إذا شغّلت الإشعارات، يمنح هاتفك رفيق رمز إشعارات — معرّفًا لهذا الجهاز لا لك — لنتمكن من تنبيهك بالجلسات وبالأعضاء الذين يحتاجونك وبالرسائل الجديدة. لا نستخدمه لأي غرض آخر. ويُحذف إذا أوقفت الإشعارات أو خرجت من حسابك على هذا الجهاز أو حذفت حسابك.',
+    privacySection6Heading: 'أين تُحفظ بياناتك',
+    privacySection6Body: 'تُستضاف قاعدة بيانات رفيق وملفاته لدى سوبابيس على خوادم في أيرلندا، فتخرج المعلومات المتعلقة بك من مصر وتُحفظ داخل الاتحاد الأوروبي. وتمر مكالمات الفيديو عبر خوادم ديلي، وقد تكون هي أيضًا خارج مصر طوال مدة المكالمة. وعند إنشاء حسابك نطلب موافقتك على هذا النقل، منفصلة عن قبولك للشروط. ولأن رفيق يعمل على تلك الخوادم، فلا يمكن استخدامه دونها.',
+    privacySection7Heading: 'مدة حفظ البيانات',
+    privacySection7Body: 'نحفظ بياناتك طوال مدة وجود حسابك. وعند حذف الحساب، تبقى السجلات التي يُلزمنا قانون الضرائب بالاحتفاظ بها — الجلسات والدفعات والمستحقات — مدة خمس سنوات من نهاية السنة الضريبية التي تخصها، ولا يطّلع عليها إلا القائمون على حساباتنا. أما السجلات التقنية، وتشمل عناوين الإنترنت، فيحفظها مزوّد الاستضافة مدة قصيرة، نحو أسبوع حاليًا.',
+    privacySection8Heading: 'حذف الحساب والنسخ الاحتياطية',
+    privacySection8Body: 'عندما تطلب حذف حسابك، نحذف بياناتك خلال ستة أيام عمل من طلبك، كما يقضي القانون المصري، فيما عدا السجلات المذكورة أعلاه. ونحفظ نسخًا احتياطية مشفَّرة من قاعدة البيانات مدة أقصاها أربعة أسابيع حتى نتمكن من استعادة الخدمة بعد أي عطل، لذلك قد تبقى نسخة من بياناتك في نسخة احتياطية إلى أن تُحذف. ولا تُستخدم النسخ الاحتياطية أبدًا لإعادة حساب واحد، ولا يعمل عليها أحد في فريق رفيق.',
+    privacySection9Heading: 'خياراتك',
+    privacySection9Body: 'يمكنك مراجعة أو تحديث تفاصيل حسابك في أي وقت من الملف الشخصي ← تفاصيل الحساب، أو حذف حسابك من الملف الشخصي ← حذف الحساب.',
+    privacySection10Heading: 'التواصل',
+    privacySection10Body: 'يمكن إرسال الأسئلة حول هذه السياسة إلى support@rafiqpro.com أو من الملف الشخصي ← تواصل معنا.',
 
     // CoachTermsOfService.dc.html — ported 1:1.
     termsTitle: 'شروط الخدمة',
@@ -2218,10 +2252,6 @@ const ar: Record<MessageKey, string> = {
     clientScheduleMoveAlreadyAsked: 'هناك طلب نقل لهذه الجلسة بانتظار مدربك بالفعل.',
 
     clientTasksTitle: 'مهامي', clientTasksFromCoach: 'من {coach}',
-    clientTasksHowFeeling: 'كيف تشعرين اليوم؟',
-    clientTasksMoodLogged: 'تم التسجيل لهذا اليوم — شكرًا لمتابعتك',
-    clientTasksMoodGreat: 'رائع', clientTasksMoodGood: 'جيد', clientTasksMoodOkay: 'عادي',
-    clientTasksMoodLow: 'منخفض', clientTasksMoodHard: 'صعب',
     clientTasksAllCaughtUp: 'كل شيء منجز!', clientTasksNoTasksMsg: 'لا توجد مهام في هذه القائمة الآن.',
     clientTasksOverdue: 'متأخرة', clientTasksRecurring: 'متكررة',
     clientTasksProgressLabel: 'التقدم نحو الهدف', clientTasksGoalFallback: 'الشعور بمزيد من التحكم في الحياة',
@@ -2347,7 +2377,7 @@ const ar: Record<MessageKey, string> = {
     clientHelpQ12: 'هل يمكنني الحصول على نسخة من بياناتي؟',
     clientHelpA12: 'نعم — افتحي ملفك الشخصي، ومن قسم «الخصوصية» اضغطي «تنزيل بياناتي». يصلك ملف واحد يحتوي كل ما يحتفظ به رفيق عنك ويمكنك الاطلاع عليه: ملفك وأهدافك، وكل محترفة تعملين معها، ومهامك وجلساتك وتسجيلات مزاجك ورسائلك وتقييماتك وباقاتك ومدفوعاتك وبرامجك، ومعها طلبات الجلسات والمحترفات المحفوظات والإشعارات. أما ملاحظات محترفتك الخاصة عنك فليست فيه — فهي ملكها، ولا يمكنك الاطلاع عليها في أي مكان في رفيق. ويُجهَّز الملف على هاتفك، من حسابك أنتِ.',
 
-    clientPrivacyTitle: 'سياسة الخصوصية', clientPrivacyUpdated: 'آخر تحديث: أكتوبر 2025',
+    clientPrivacyTitle: 'سياسة الخصوصية', clientPrivacyUpdated: 'آخر تحديث: أكتوبر 2026',
     clientPrivacySection1Heading: 'ما الذي نجمعه',
     clientPrivacySection1Body: 'نجمع اسمك ورقم هاتفك والأهداف والمهام وتسجيلات المزاج التي تشاركينها حتى تتمكن محترفتك من دعمك بين الجلسات.',
     clientPrivacySection2Heading: 'كيف نستخدمه',
@@ -2356,10 +2386,18 @@ const ar: Record<MessageKey, string> = {
     clientPrivacySection3Body: 'يمكن فقط لك ولمحترفتك رؤية تقدمك ومهامك وسجل مزاجك. قد تُستخدم أعداد الجلسات المجهولة لتحسين رفيق.',
     clientPrivacySection4Heading: 'المراسلة',
     clientPrivacySection4Body: 'تُرسل رسائلك مع محترفتك وتُحفظ داخل رفيق، وتخضع لهذه السياسة. لا تتدخل أي خدمة مراسلة خارجية.',
-    clientPrivacySection5Heading: 'خياراتك',
-    clientPrivacySection5Body: 'يمكنك حذف بياناتك في أي وقت من الملف الشخصي ← حذف الحساب، أو التواصل مع محترفتك لأي طلب.',
-    clientPrivacySection6Heading: 'التواصل',
-    clientPrivacySection6Body: 'يمكن إرسال الأسئلة حول هذه السياسة إلى support@rafiqpro.com أو من الملف الشخصي ← تواصل معنا. ويمكن لمحترفتك أيضًا إيصال سؤالك إلى فريق رفيق نيابة عنك.',
+    clientPrivacySection5Heading: 'الإشعارات',
+    clientPrivacySection5Body: 'إذا شغّلتِ الإشعارات، يمنح هاتفك رفيق رمز إشعارات — معرّفًا لهذا الجهاز لا لكِ — لنتمكن من تذكيرك بالجلسات والمهام وإبلاغك عندما ترسل محترفتك رسالة. لا نستخدمه لأي غرض آخر. ويُحذف إذا أوقفتِ الإشعارات أو خرجتِ من حسابك على هذا الجهاز أو حذفتِ حسابك.',
+    clientPrivacySection6Heading: 'أين تُحفظ بياناتك',
+    clientPrivacySection6Body: 'تُستضاف قاعدة بيانات رفيق وملفاته لدى سوبابيس على خوادم في أيرلندا، فتخرج المعلومات المتعلقة بكِ من مصر وتُحفظ داخل الاتحاد الأوروبي. وتمر مكالمات الفيديو عبر خوادم ديلي، وقد تكون هي أيضًا خارج مصر طوال مدة المكالمة. وعند إنشاء حسابك نطلب موافقتكِ على هذا النقل، منفصلة عن قبولكِ للشروط. ولأن رفيق يعمل على تلك الخوادم، فلا يمكن استخدامه دونها.',
+    clientPrivacySection7Heading: 'مدة حفظ البيانات',
+    clientPrivacySection7Body: 'نحفظ بياناتك طوال مدة وجود حسابك. وعند حذف الحساب، تبقى السجلات التي يُلزمنا قانون الضرائب بالاحتفاظ بها — الجلسات والدفعات — مدة خمس سنوات من نهاية السنة الضريبية التي تخصها، ولا يطّلع عليها إلا القائمون على حساباتنا. أما السجلات التقنية، وتشمل عناوين الإنترنت، فيحفظها مزوّد الاستضافة مدة قصيرة، نحو أسبوع حاليًا.',
+    clientPrivacySection8Heading: 'حذف الحساب والنسخ الاحتياطية',
+    clientPrivacySection8Body: 'عندما تطلب حذف حسابك، نحذف بياناتك خلال ستة أيام عمل من طلبك، كما يقضي القانون المصري، فيما عدا السجلات المذكورة أعلاه. ونحفظ نسخًا احتياطية مشفَّرة من قاعدة البيانات مدة أقصاها أربعة أسابيع حتى نتمكن من استعادة الخدمة بعد أي عطل، لذلك قد تبقى نسخة من بياناتك في نسخة احتياطية إلى أن تُحذف. ولا تُستخدم النسخ الاحتياطية أبدًا لإعادة حساب واحد، ولا يعمل عليها أحد في فريق رفيق.',
+    clientPrivacySection9Heading: 'خياراتك',
+    clientPrivacySection9Body: 'يمكنك حذف بياناتك في أي وقت من الملف الشخصي ← حذف الحساب، أو التواصل مع محترفتك لأي طلب.',
+    clientPrivacySection10Heading: 'التواصل',
+    clientPrivacySection10Body: 'يمكن إرسال الأسئلة حول هذه السياسة إلى support@rafiqpro.com أو من الملف الشخصي ← تواصل معنا. ويمكن لمحترفتك أيضًا إيصال سؤالك إلى فريق رفيق نيابة عنك.',
 
     clientTermsTitle: 'شروط الخدمة', clientTermsUpdated: 'آخر تحديث: أكتوبر 2025',
     clientTermsSection1Heading: 'استخدام رفيق',

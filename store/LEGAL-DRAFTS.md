@@ -1,16 +1,19 @@
 # Draft clauses, for lawyer review
 
-Fifteen clauses counsel can mark up instead of draft. Each is **Proposed**
-— written against what the code does today, in English and Arabic, with
-every undecided fact left as a visible placeholder.
+Fifteen clauses, written against what the code does today, in English and
+Arabic. **Counsel approved all fifteen, and the second review's changes
+below, on 2026-10-13** (reported by Ahmed). Two facts are still blanks:
+`[OWNER NAME]` and `[TAX REG NO.]`.
 
 Companion to `store/LAWYER-PACKAGE.md`, which is the package itself (the
 four policy documents, the agreement, the crisis block, the deletion page)
 and the questions on it. This file is only the new text.
 
-**Nothing here is live.** It touches no screen, no `i18n.ts` key and no
-public page, by design: a clause goes into the app after counsel approves
-it, not before. Where a clause replaces existing wording the current text
+**What is live.** Clause 11 (the signup consent, 0030), and the policy
+sections the second review changed (where data is held, how long it is
+kept, deletion). The rest goes into the Terms and the Privacy policies
+next; clauses 5, 6, 7 and 12 only with the features they describe, and 15
+with the site. Where a clause replaces existing wording the current text
 is quoted underneath, so the change is visible rather than implied.
 
 **Arabic is written, not translated**, and in the register the two Terms
@@ -18,6 +21,34 @@ documents already use: unmarked second person (`يمكنك`, not `يمكنكِ` 
 masculine form). That is deliberate — it reads correctly to a man or a
 woman, which matters more in a contract than in screen copy, where this
 codebase addresses coaches as masculine and members as feminine.
+
+---
+
+## Changes since counsel approved — second review, 2026-10-13
+
+Counsel approved these drafts and the reading of the law below. Ahmed then
+asked for one more check before anything goes live, and these changes came
+out of it. **Counsel confirmed every one of them on 2026-10-13.** Nothing
+else changed.
+
+| # | Change | Why |
+|---|---|---|
+| 1 | Clause 1 names the **owner** and the **tax registration number** | A sole proprietorship has no legal personality of its own: the owner is the contracting party and the controller |
+| 1 | The pre-court step is **14 days** and **not a condition** of going to court; it names the Consumer Protection Agency | Was a blank (`[30 days]`), and a mandatory step could not bind a consumer |
+| 2 | The app **asks for 18+ at signup** (clause 11's screen) | The clause relied on an assumption nothing collected |
+| 6 | Complaints about a session: **7 days**, not 12 hours. Refunds sent within **14 days** | 12 hours was unlikely to hold against a consumer; the refund time was a blank |
+| 8 | Deletion within **six working days**, not 30 days | Art. 32 gives six working days to answer a request, and deletion is one |
+| 8 | Adds the right to **limit how data is used**; members see their data through **Download my data** (#171) | Art. 2 lists the restriction right; the download is built |
+| 9, 11 | The Ireland transfer gets **an explicit tick at signup** instead of "by using Rafiq Pro you agree" | Our own reading — which counsel approved — requires consent and a permit; consent implied by use is the weakest form |
+| 9, 11 | **No health data**: mood check-ins and the stress focus are gone (0029); the health-consent screen becomes the transfer-and-age screen | Removes the art. 12 licence instead of applying for it |
+| 13 | Notice of changes **by email, 14 days ahead**, instead of an in-app notice | Possible today; the in-app notice did not exist |
+| 14 | The Arabic agreement refers to **المحترف**, not **محترفتي** | The old text made every member's pro a woman |
+| Policies | Retention: **five years after the tax year**, restricted access — not "without the details that identify you" | Tax records must show who paid whom (Law 206/2020) |
+
+**For counsel's view, not changed:** the member privacy policy addresses
+members in the feminine, as the rest of the app does. The Arabic governs
+(clause 4); is a feminine-addressed policy a problem for a male member, or
+should the legal documents use a gender-neutral register throughout?
 
 ---
 
@@ -36,11 +67,13 @@ was invented**: where a fact is not decided, the placeholder stays.
 | `[PAYOUT MINIMUM]` | **Decided (Ahmed, 2026-10-07): none** | Ahmed |
 | `[DPO NAME]` / `[DPO EMAIL]` | **Answered from the law (2026-10-07): no separate officer.** Law 151/2020 art. 8 obliges only a *legal person* (شخص اعتباري) to appoint and register a data protection officer; for a natural-person controller, "الشخص الطبيعي المتحكم أو المعالج هو المسئول". Where To Spot is a sole proprietorship, so the proprietor is personally responsible and the clause names support@rafiqpro.com. Counsel to confirm | Law, then counsel |
 | `[24 hours]` | **Decided (Ahmed, 2026-10-07): 24 hours.** The review time Rafiq commits to for a report; Apple reads it as a promise | Ahmed |
-| `[30 days]` | **Privacy requests: answered from the law (2026-10-07): six working days.** Law 151/2020 art. 32 (ستة أيام عمل من تاريخ تقديمه); art. 10(3) adds that silence for that long counts as a refusal. Clause 8 now says so. The other `[30 days]` (clause 1's settlement window, clause 6's refund timing) are ours, not the law's, and stay for counsel | Law |
+| `[30 days]` | **Answered (second review, 2026-10-13): no longer a placeholder anywhere.** Privacy requests: six working days, from the law (art. 32; art. 10(3) adds that silence for that long counts as a refusal), in clause 8. Clause 1's settlement window is now 14 days and clause 6's refund time 14 days, both proposed in the second review | Ahmed |
 | `[BREACH WINDOW]` | **Answered from the law (2026-10-07):** the Personal Data Protection Centre within 72 hours of learning of a breach, and every affected person within three working days of that report, in all cases (art. 7). Clause 8 now says so | Law |
 | `[REFUND WINDOW]` | **Decided (Ahmed, 2026-10-07): 12 hours**, the same as the cancellation rule already in the member terms | Ahmed |
 | `[COURT]` | **Proposed from the law (2026-10-07): "the competent Egyptian courts", no named seat.** A member's dispute under the Consumer Protection Law (181/2018) belongs to the Economic Courts by statute (Law 120/2008 art. 6(15)), and a clause cannot move it. Counsel may still want a seat for coach disputes | Counsel |
-| `[DELETION SLA]` | **Decided (Ahmed, 2026-10-07): 30 days**, as the public deletion page already says. Backups: **none from Supabase**: Ahmed chose the free plan (2026-10-07), which has no backups. Ahmed keeps his own instead: weekly, encrypted, deleted after 28 days (`scripts/backup-db.sh`), so a copy can last up to four weeks after deletion. Issue #132 | Ahmed |
+| `[OWNER NAME]` | **The proprietor's full name, exactly as on the commercial register extract.** A sole proprietorship has no legal personality of its own, so the owner — not the trade name — is the contracting party and the data controller (second review, 2026-10-13) | Ahmed |
+| `[TAX REG NO.]` | **The tax registration number** (رقم التسجيل الضريبي), from the tax card. Online sellers are expected to show it beside the commercial register number | Ahmed |
+| `[DELETION SLA]` | **Decided (second review, 2026-10-13): six working days**, replacing 30 days. A deletion request is a request under art. 32, which gives six working days to answer it, and the app deletes on request rather than in a monthly batch. The public deletion page and both privacy policies now say the same. Backups: Supabase's free plan keeps none; Ahmed's own weekly encrypted backups are deleted after 28 days (`scripts/backup-db.sh`), hence "up to four weeks" | Ahmed |
 
 ## What the law says — research, 2026-10-07
 
@@ -66,10 +99,16 @@ advice.** Each line names its source.
 **What this means before launch.** As we read it, the proprietor needs
 three things from the Centre: a permit to process, a licence for the health
 data, and a permit for the transfer to Ireland. Members also need to give
-written, explicit consent to the health data (clause 11) and to the
-transfer. Counsel: is that reading right; can the proprietor apply as a
-natural person; and can we lawfully launch before the Centre's portal
-opens?
+written, explicit consent to the health data and to the transfer.
+Counsel: is that reading right; can the proprietor apply as a natural
+person; and can we lawfully launch before the Centre's portal opens?
+
+**Second review, 2026-10-13: two of the three are now one.** Rather than
+license the health data, the app stopped collecting it (0029: no mood
+check-ins, no "Stress & anxiety" focus). That leaves the **processing
+permit** and the **transfer permit**, and the transfer consent moves into
+clause 11's signup screen. **Counsel did not answer the launch question**,
+and the grace period ends on **1 November 2026**: ask again.
 
 ## Where each clause goes, and whether the thing it describes exists yet
 
@@ -90,35 +129,38 @@ users.
 | 8 | Privacy rights and how to use them | Both Privacy policies, *Your choices* | **Partly.** Deletion and export exist; the others are handled by hand over email |
 | 9 | Who can see member data, and the processors | Member Privacy policy — replaces §3 *Who can see it* and extends §6 *Where your data is held* | **Yes**, and the current text is wrong about it. See the clause |
 | 10 | Public reviews | Member Terms and Member Privacy | **Yes.** `coach_reviews` (0022) publishes exactly what the clause says |
-| 11 | Health data consent | **A new screen at member signup** — not a document, and not part of accepting the terms | **No.** Copy and a sketch only, as asked |
+| 11 | Consent at signup: the transfer abroad, and age 18+ (was: health data consent) | **The last step of onboarding** — not a document, and not part of accepting the terms | **Yes** (0030). The health data it covered is gone (0029) |
 | 12 | "Verified" badge | Both Terms, and the coach Privacy policy | **Partly**, and less than people will assume. See the clause |
-| 13 | Changes to the terms | Both Terms, §6 *Changes* (replaces it) | **No.** There is no in-app announcement mechanism |
+| 13 | Changes to the terms | Both Terms, §6 *Changes* (replaces it) | **Yes, by email** (second review): no in-app announcement needed |
 | 14 | Physical coaching agreement | `AGREEMENT_TEXT`, `src/lib/mockStore.ts` | **Built, once 0028 is pushed** (issue #143): the coach sends it, the member signs. Nothing signed before that |
 | 15 | A coach's public page | Coach Privacy policy | **Built, not reachable.** The page and the switch exist (0026, #160), but rafiqpro.com isn't hosted yet, so the app offers no link |
 
 ---
 
-## 1 · Parties, governing law, and how to reach us — **Proposed**
+## 1 · Parties, governing law, and how to reach us — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** both Terms (as a new opening section) and both Privacy
 > policies (replacing `Contact`).
 
 **English**
 
-> Rafiq Pro is operated by **Where To Spot**, a sole proprietorship
-> registered in the Arab Republic of Egypt at the Damanhour commercial
-> register office under number **101557**, with its main place of business
+> Rafiq Pro is operated by **Where To Spot**, a sole proprietorship owned
+> by **[OWNER NAME]**, registered in the Arab Republic of Egypt at the
+> Damanhour commercial register office under number **101557**, tax
+> registration number **[TAX REG NO.]**, with its main place of business
 > at **El Sawalem Qibli, Itay El Barud, Beheira Governorate, Egypt**. In
-> these Terms, "Rafiq Pro", "we" and "us" mean that business.
+> these Terms, "Rafiq Pro", "we" and "us" mean that business and its
+> owner.
 >
 > These Terms, and any dispute about them or about your use of Rafiq Pro,
 > are governed by the laws of the Arab Republic of Egypt, and the
 > competent Egyptian courts have jurisdiction.
 >
-> Before going to court, write to us at support@rafiqpro.com and we will
-> try to settle the matter with you directly within [30 days]. Nothing in
-> this paragraph takes away a right you have under Egyptian consumer
-> protection law.
+> If you have a complaint, write to us first at support@rafiqpro.com and
+> we will try to settle it with you directly within 14 days. This is not a
+> condition of going to court, and nothing in this paragraph takes away a
+> right you have under Egyptian consumer protection law, including
+> complaining to the Consumer Protection Agency.
 >
 > For anything about your personal data — a copy of it, a correction, a
 > deletion, or a complaint — write to **support@rafiqpro.com**. As the
@@ -128,17 +170,19 @@ users.
 
 **العربية**
 
-> يُشغّل تطبيق رفيق **وير تو سبوت**، وهي منشأة فردية مقيدة في جمهورية مصر
-> العربية بالسجل التجاري رقم **101557** بمكتب سجل تجاري دمنهور، ومحلها
-> الرئيسي في **السوالم قبلي، إيتاي البارود، محافظة البحيرة**. وتعني كلمة
-> «رفيق» وضمير المتكلم الجمع في هذه الشروط تلك المنشأة.
+> يُشغّل تطبيق رفيق **وير تو سبوت**، وهي منشأة فردية مملوكة لـ**[OWNER NAME]**،
+> مقيدة في جمهورية مصر العربية بالسجل التجاري رقم **101557** بمكتب سجل
+> تجاري دمنهور، ورقم تسجيلها الضريبي **[TAX REG NO.]**، ومحلها الرئيسي في
+> **السوالم قبلي، إيتاي البارود، محافظة البحيرة**. وتعني كلمة «رفيق» وضمير
+> المتكلم الجمع في هذه الشروط تلك المنشأة ومالكها.
 >
 > تخضع هذه الشروط، وأي نزاع بشأنها أو بشأن استخدامك للتطبيق، لقوانين
 > جمهورية مصر العربية، وتختص بها المحاكم المصرية المختصة.
 >
-> وقبل اللجوء إلى القضاء، راسلنا على support@rafiqpro.com وسنسعى إلى تسوية
-> الأمر معك مباشرة خلال [30 days]. ولا يسقط هذا البند أي حق مقرر لك بموجب
-> قانون حماية المستهلك المصري.
+> وإذا كانت لديك شكوى، فراسلنا أولًا على support@rafiqpro.com وسنسعى إلى
+> تسويتها معك مباشرة خلال 14 يومًا. وليس ذلك شرطًا للجوء إلى القضاء، ولا
+> يسقط هذا البند أي حق مقرر لك بموجب قانون حماية المستهلك المصري، بما في
+> ذلك تقديم شكوى إلى جهاز حماية المستهلك.
 >
 > ولأي أمر يتعلق ببياناتك الشخصية — الحصول على نسخة منها أو تصحيحها أو
 > محوها أو تقديم شكوى — راسلنا على **support@rafiqpro.com**. ولأن رفيق
@@ -162,7 +206,7 @@ licensing or registration change because the controller is an individual?
 
 ---
 
-## 2 · Minimum age — **Proposed**
+## 2 · Minimum age — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** both Terms, §2 *Your account*.
 
@@ -170,25 +214,28 @@ licensing or registration change because the controller is an individual?
 
 > Rafiq Pro is for adults. You must be 18 or older to create an account,
 > whether as a professional or as a member, and by creating one you confirm
-> that you are. If we learn that an account belongs to someone under 18 we
-> will close it and delete the data held under it.
+> that you are — the app asks you to confirm it when you create your
+> account. If we learn that an account belongs to someone under 18 we will
+> close it and delete the data held under it.
 
 **العربية**
 
 > رفيق مخصص للبالغين. يلزم أن يكون عمرك 18 عامًا أو أكثر لإنشاء حساب، سواء
-> كمحترف أو كعضو، وبإنشائك الحساب فإنك تؤكد ذلك. وإذا علمنا أن حسابًا يخص
-> شخصًا دون 18 عامًا، فسنغلقه ونمحو البيانات المحفوظة عليه.
+> كمحترف أو كعضو، وبإنشائك الحساب فإنك تؤكد ذلك — ويطلب منك التطبيق تأكيده
+> عند إنشاء الحساب. وإذا علمنا أن حسابًا يخص شخصًا دون 18 عامًا، فسنغلقه
+> ونمحو البيانات المحفوظة عليه.
 
 **Note for counsel.** This closes a real inconsistency rather than adding a
 rule: the Play listing already declares an 18+ target audience and the
 terms are silent, which Apple's own override rule treats as a conflict
 (`store/age-rating.md`). Worth confirming 18 rather than a lower age with a
-guardian's consent, since coaching touches health and mood data (clause 11)
-and a guardian route would need its own consent flow nobody has built.
+guardian's consent, since a guardian route would need its own consent flow
+nobody has built. The signup screen (clause 11) asks each new account to
+confirm it.
 
 ---
 
-## 3 · Zero tolerance for objectionable content and abusive users — **Proposed**
+## 3 · Zero tolerance for objectionable content and abusive users — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** both Terms, §5 *Acceptable use*. Written to satisfy App
 > Store Review Guideline 1.2, which asks for a stated method for filtering
@@ -255,7 +302,7 @@ Pick a number Rafiq can hold on a bad week, not a good one.
 
 ---
 
-## 4 · Which language prevails — **Proposed**
+## 4 · Which language prevails — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** both Terms, as the final section.
 
@@ -279,7 +326,7 @@ Arabic matters more than a courtesy read.
 
 ---
 
-## 5 · Coach payments, commission and payouts — **Proposed**
+## 5 · Coach payments, commission and payouts — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** Coach Terms, §4 *Payments*, **replacing it**.
 
@@ -380,7 +427,7 @@ lawful.
 
 ---
 
-## 6 · Member refunds — **Proposed**
+## 6 · Member refunds — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** Member Terms, §3 *Sessions & payments*, beside §4
 > *Cancellations*.
@@ -405,11 +452,11 @@ beside it:
 > for, report it from the app and we will refund you.
 >
 > **If something went wrong with the session itself.** Tell us within
-> 12 hours of the session and we will look at it and decide, and we
-> will tell you why.
+> 7 days of the session and we will look at it and decide, and we will
+> tell you why.
 >
-> Refunds go back the way the money came in, and usually reach you within
-> **[30 days]**, though your bank sets the final timing. None of this
+> Refunds go back the way the money came in. We send a refund within
+> **14 days** of agreeing to it, though your bank sets when it reaches you. None of this
 > affects any right you have under Egyptian consumer protection law.
 
 **العربية**
@@ -423,11 +470,11 @@ beside it:
 > ذلك. وإذا لم يحضر محترفك جلسة دفعت قيمتها، فأبلغنا من التطبيق وسنرد لك
 > المبلغ.
 >
-> **وإذا وقع خلل في الجلسة نفسها.** أخبرنا خلال 12 ساعة من موعد
-> الجلسة، وسننظر في الأمر ونقرر، وسنبيّن لك سبب قرارنا.
+> **وإذا وقع خلل في الجلسة نفسها.** أخبرنا خلال 7 أيام من موعد الجلسة،
+> وسننظر في الأمر ونقرر، وسنبيّن لك سبب قرارنا.
 >
-> ويُرد المبلغ بالطريقة التي دفعت بها، ويصلك عادة خلال **[30 days]**، مع
-> أن التوقيت النهائي يحدده بنكك. ولا يمس أي ممّا سبق أي حق مقرر لك بموجب
+> ويُرد المبلغ بالطريقة التي دفعت بها، ونرسله خلال **14 يومًا** من موافقتنا
+> عليه، أما موعد وصوله إليك فيحدده بنكك. ولا يمس أي ممّا سبق أي حق مقرر لك بموجب
 > قانون حماية المستهلك المصري.
 
 **Note for counsel.** The 12-hour line is carried over from text already
@@ -440,7 +487,7 @@ refunded?
 
 ---
 
-## 7 · Coach subscriptions — **Proposed**
+## 7 · Coach subscriptions — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** Coach Terms, §4 *Payments*, as its own subsection.
 > **Not before billing ships** — the screens say "Coming soon" today.
@@ -520,7 +567,7 @@ if so, can Rafiq satisfy it when it does not control the billing?
 
 ---
 
-## 8 · Your privacy rights, and how to use them — **Proposed**
+## 8 · Your privacy rights, and how to use them — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** both Privacy policies, *Your choices*.
 
@@ -531,20 +578,21 @@ if so, can Rafiq satisfy it when it does not control the billing?
 >
 > | Right | How to use it |
 > |---|---|
-> | **See what we hold** | Profile → Account details shows what we hold about you. For a full copy, write to support@rafiqpro.com |
+> | **See what we hold** | Members: Profile → Download my data gives you everything we hold about you, in one file. Pros: Profile → Account details shows it, and for a full copy write to support@rafiqpro.com |
 > | **Correct it** | Profile → Edit profile, for anything you can see there. For anything else, write to us |
 > | **Delete it** | Profile → Delete account. Or request it at https://rafiqpro.com/delete-account/ |
 > | **Object to a use of it** | Write to support@rafiqpro.com and say which use |
-> | **Withdraw a consent you gave** | Write to support@rafiqpro.com. Withdrawing the health-data consent (see the signup consent notice) stops the mood check-ins and the coaching-focus features and deletes what they have collected |
+> | **Limit how we use it** | Write to support@rafiqpro.com and say what to limit it to. We keep the data but use it only for that |
+> | **Withdraw a consent you gave** | Write to support@rafiqpro.com. Rafiq Pro stores your data on servers in Ireland, so withdrawing your consent to that transfer means closing your account |
 > | **Be told about a breach** | If your personal data is involved in a breach, we report it to the Personal Data Protection Centre within 72 hours of learning of it, and tell you, in the app and by email, within three working days of that report: what happened and what we have done about it |
 >
 > We answer a request within **six working days** of receiving it, as the
 > law requires. If we refuse a request we will tell you the reason and how
 > to complain to the Personal Data Protection Centre.
 >
-> We delete your account within 30 days of your request. A copy can stay
-> in our encrypted backups for up to four weeks after that, until they are
-> deleted.
+> We delete your account within six working days of your request. A copy
+> can stay in our encrypted backups for up to four weeks after that, until
+> they are deleted.
 
 **العربية**
 
@@ -553,18 +601,19 @@ if so, can Rafiq satisfy it when it does not control the billing?
 >
 > | الحق | كيف تستعمله |
 > |---|---|
-> | **الاطلاع على ما نحفظه** | الملف الشخصي ← بيانات الحساب يعرض ما نحفظه عنك. وللحصول على نسخة كاملة، راسلنا على support@rafiqpro.com |
+> | **الاطلاع على ما نحفظه** | للأعضاء: الملف الشخصي ← تنزيل بياناتي يعطيك كل ما نحفظه عنك في ملف واحد. وللمحترفين: الملف الشخصي ← بيانات الحساب يعرضه، وللحصول على نسخة كاملة راسلنا على support@rafiqpro.com |
 > | **التصحيح** | الملف الشخصي ← تعديل الملف الشخصي، لكل ما تراه هناك. ولما عدا ذلك راسلنا |
 > | **المحو** | الملف الشخصي ← حذف الحساب، أو اطلبه من https://rafiqpro.com/delete-account/ |
 > | **الاعتراض على استخدام** | راسلنا على support@rafiqpro.com موضحًا الاستخدام المعترض عليه |
-> | **سحب موافقة سبق أن منحتها** | راسلنا على support@rafiqpro.com. وسحب الموافقة على البيانات الصحية (انظر إشعار الموافقة عند التسجيل) يوقف تسجيل الحالة المزاجية وخصائص مجال التدريب، ويمحو ما جُمع منها |
+> | **تقييد استخدامها** | راسلنا على support@rafiqpro.com موضحًا النطاق الذي تريد قصرها عليه، فنحتفظ بها ولا نستخدمها إلا فيه |
+> | **سحب موافقة سبق أن منحتها** | راسلنا على support@rafiqpro.com. ولأن رفيق يحفظ بياناتك على خوادم في أيرلندا، فسحب موافقتك على هذا النقل يعني إغلاق حسابك |
 > | **إبلاغك عند وقوع اختراق** | إذا كانت بياناتك الشخصية ضمن خرق، نبلغ مركز حماية البيانات الشخصية خلال 72 ساعة من علمنا به، ونخطرك في التطبيق وبالبريد الإلكتروني خلال ثلاثة أيام عمل من ذلك الإبلاغ: بما حدث وبما اتخذناه من إجراءات |
 >
 > ونرد على الطلب خلال **ستة أيام عمل** من تاريخ وصوله إلينا، كما يقضي
 > القانون. وإذا رفضنا طلبًا فسنوضح سببه وكيف تتقدم بشكوى إلى مركز حماية
 > البيانات الشخصية.
 >
-> ونحذف حسابك خلال 30 يومًا من طلبك. وقد تبقى نسخة منه في نسخنا
+> ونحذف حسابك خلال ستة أيام عمل من طلبك. وقد تبقى نسخة منه في نسخنا
 > الاحتياطية المشفّرة مدة أقصاها أربعة أسابيع بعد ذلك، إلى أن تُحذف.
 
 **What the app actually does.** Deletion is real and asynchronous: the app
@@ -584,7 +633,7 @@ way to qualify the deletion promise (issue #132)?
 
 ---
 
-## 9 · Who can see a member's data — **Proposed**
+## 9 · Who can see a member's data — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** Member Privacy policy — **replaces** §3 *Who can see it*
 > and extends §6 *Where your data is held*.
@@ -608,16 +657,16 @@ current sentence would be misled about something material.
 >
 > **Your pro.** The pro you are working with sees your name, your contact
 > details, your goal and coaching focus, your tasks and whether you have
-> done them, your sessions and their history, your mood check-ins, your
-> payment status with them, and your messages with them. A pro you have
+> done them, your sessions and their history, your payment status with
+> them, and your messages with them. A pro you have
 > only sent a request to sees your name and what you wrote in the request.
 > A pro you are no longer with keeps the record of your work together.
 >
 > **Rafiq Pro's staff.** A small number of our people can read your data
 > when there is a reason to: answering a support request you sent, looking
 > into a report about you or by you, acting on a deletion request, or
-> investigating a fault. We do not read messages or mood check-ins for any
-> other purpose, and never to train anything.
+> investigating a fault. We do not read messages for any other purpose,
+> and never to train anything.
 >
 > **Other members and the public.** Nothing of yours is public, with one
 > exception: if you write a review of a pro, it appears on their page with
@@ -632,12 +681,18 @@ current sentence would be misled about something material.
 > | **Supabase** | A United States company; your data is stored on its servers in **Ireland** | The database and uploaded files — everything above |
 > | **Daily** | A United States company | Live video and audio during a session, for the length of the call. **Sessions are never recorded**, by you, your pro, or us |
 > | **Paymob** | **Egypt** | Payment and payout details when money moves |
-> | **Apple** and **Google** | United States companies | Sign-in: they tell us your name and email address, and nothing of yours goes to them |
+> | **Apple** and **Google** | United States companies | Sign-in: they tell us your name and email address. We send them nothing about you for sign-in |
 > | **Apple Push** and **Firebase Cloud Messaging** (Google) | United States companies | Only what is needed to put a notification on your phone, if you turned them on: a code identifying this phone, and the words of the banner itself — who something is from, when it is, a task's name. **Never the text of a message**, so a notification on a locked screen cannot show one |
 >
 > Because Supabase stores the data in Ireland, information about you leaves
-> Egypt and is held in the European Union. By using Rafiq Pro you agree to
-> that transfer.
+> Egypt and is held in the European Union. When you create your account we
+> ask you to agree to that transfer, separately from accepting our Terms.
+> Rafiq Pro runs on those servers, so it cannot be used without it.
+>
+> **Health.** Rafiq Pro does not ask for information about your health,
+> and keeps none on purpose. Please do not send details of a medical or
+> psychological condition in messages or tasks: if your pro needs to know
+> something about your health to coach you safely, tell them directly.
 >
 > **Reminders.** Shortly before a session starts, Rafiq Pro sends you and
 > your pro a reminder. It is made from the session you already have with
@@ -650,15 +705,15 @@ current sentence would be misled about something material.
 > **أنت.** كل ما يتعلق بك، داخل التطبيق.
 >
 > **محترفتك.** ترى المحترفة التي تعملين معها اسمك وبيانات التواصل معك
-> وهدفك ومجال تدريبك، ومهامك وما أنجزتِه منها، وجلساتك وسجلها، وتسجيلات
-> حالتك المزاجية، وحالة الدفع بينكما، ورسائلكما. والمحترفة التي أرسلتِ
+> وهدفك ومجال تدريبك، ومهامك وما أنجزتِه منها، وجلساتك وسجلها، وحالة الدفع
+> بينكما، ورسائلكما. والمحترفة التي أرسلتِ
 > إليها طلبًا فقط ترى اسمك وما كتبتِه في الطلب. والمحترفة التي لم تعودي
 > تعملين معها يبقى لديها سجل عملكما معًا.
 >
 > **فريق رفيق.** يستطيع عدد محدود من العاملين لدينا قراءة بياناتك عند وجود
 > سبب: الرد على طلب دعم أرسلتِه، أو النظر في بلاغ عنك أو منك، أو تنفيذ طلب
-> حذف، أو فحص خلل تقني. ولا نقرأ الرسائل ولا تسجيلات الحالة المزاجية لأي
-> غرض آخر، ولا نستخدمها أبدًا لتدريب أي نظام.
+> حذف، أو فحص خلل تقني. ولا نقرأ الرسائل لأي غرض آخر، ولا نستخدمها أبدًا
+> لتدريب أي نظام.
 >
 > **الأعضاء الآخرون والجمهور.** لا شيء من بياناتك معلن، باستثناء واحد: إذا
 > كتبتِ تقييمًا لمحترفة، فيظهر في صفحتها باسمك الأول والحرف الأول من اسم
@@ -672,11 +727,18 @@ current sentence would be misled about something material.
 > | **Supabase** | شركة أمريكية، وبياناتك مخزنة على خوادمها في **أيرلندا** | قاعدة البيانات والملفات المرفوعة — كل ما سبق |
 > | **Daily** | شركة أمريكية | الفيديو والصوت المباشر أثناء الجلسة، لمدة المكالمة فقط. **ولا تُسجَّل الجلسات أبدًا**، لا منك ولا من محترفتك ولا منا |
 > | **Paymob** | **مصر** | بيانات الدفع والتحويل عند انتقال الأموال |
-> | **Apple** و**Google** | شركتان أمريكيتان | تسجيل الدخول: يبلغاننا باسمك وبريدك الإلكتروني، ولا يصل إليهما شيء من بياناتك |
+> | **Apple** و**Google** | شركتان أمريكيتان | تسجيل الدخول: يبلغاننا باسمك وبريدك الإلكتروني، ولا نرسل إليهما شيئًا عنكِ لتسجيل الدخول |
 > | **Apple Push** و**Firebase Cloud Messaging** (جوجل) | شركتان أمريكيتان | ما يلزم لإظهار تنبيه على هاتفك فقط، إن كنتِ قد فعّلتِ التنبيهات: رمز يُعرّف هذا الهاتف، ونص التنبيه نفسه — ممن جاء، ومتى الموعد، واسم المهمة. **ولا يصل إليهما نص أي رسالة أبدًا**، حتى لا يُظهر تنبيهٌ على شاشة مقفلة رسالةً. |
 >
-> ولأن Supabase تخزّن البيانات في أيرلندا، فإن معلومات عنك تخرج من مصر
-> وتُحفظ في الاتحاد الأوروبي. وباستخدامك رفيق فإنك توافقين على هذا النقل.
+> ولأن Supabase تخزّن البيانات في أيرلندا، فإن معلومات عنكِ تخرج من مصر
+> وتُحفظ في الاتحاد الأوروبي. وعند إنشاء حسابك نطلب موافقتكِ على هذا النقل،
+> منفصلة عن قبولكِ للشروط. ولأن رفيق يعمل على تلك الخوادم، فلا يمكن
+> استخدامه دونها.
+>
+> **الصحة.** لا يطلب رفيق أي معلومات عن صحتك، ولا يحفظ منها شيئًا عن قصد.
+> فنرجو ألا ترسلي تفاصيل أي حالة طبية أو نفسية في الرسائل أو المهام، وإن
+> احتاجت محترفتك إلى معرفة شيء عن صحتك لتدرّبك بأمان، فأخبريها بذلك
+> مباشرة.
 >
 > **التنبيهات قبل الجلسة.** قبل بدء الجلسة بوقت قصير، يرسل رفيق إليك وإلى
 > محترفتك تنبيهًا. وهو مبني على الجلسة القائمة بينكما — موعدها واسم كلٍّ
@@ -702,7 +764,7 @@ that before launch rather than after.
 
 ---
 
-## 10 · Public reviews — **Proposed**
+## 10 · Public reviews — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** Member Terms (§3) and the Member Privacy policy, beside
 > clause 9.
@@ -745,103 +807,73 @@ button rather than an email.
 
 ---
 
-## 11 · Health data consent — **Proposed**
+## 11 · Consent at signup: the transfer abroad, and your age — **Approved by counsel, 2026-10-13**
 
-> **Goes into:** a **new screen at member signup**. Not a document, not a
-> section of the terms, and **not** something accepting the terms covers.
-> Copy and a sketch only, as asked — no code in this PR.
+> **Goes into:** the **last step of onboarding**, coach and member alike
+> (`components/SignupConsent.tsx`): every new account answers it before
+> signup completes, and the answer is recorded (0030). Not a document, and
+> **not** something accepting the terms covers.
+>
+> **Accounts made before 0030** — the team's TestFlight accounts — never
+> saw it. Delete them before launch, or have each sign up again.
 
-Why separate: a member's coaching focus and their mood history say
-something about their health, and consent bundled into "I accept the
-terms" is not consent to that. The box is **unticked**, and a member who
-leaves it unticked still gets an account.
+**What changed since counsel's approval.** This clause was the
+health-data consent. The second review removed the health data instead:
+mood check-ins and the "Stress & anxiety" focus were the only health data
+the app asked for, no coach screen ever showed a check-in, and 0029
+deletes them and stops collecting them. Data Rafiq does not hold needs no
+art. 12 licence and no art. 12 consent. What still needs a consent is the
+**transfer to Ireland** (art. 14, and the regulations' consent
+requirement), which until now rested on "by using Rafiq Pro you agree" —
+the weakest form of consent there is. So the screen asks for that, and for
+the age clause 2 relies on.
 
 **English**
 
-> ### One more thing, and it's your choice
+> ### Before you start
 >
-> Some of what Rafiq Pro can hold is about your health. We will not collect
-> it unless you say yes here, and you can change your mind at any time.
+> Rafiq Pro keeps your account on servers in Ireland, run by Supabase, so
+> information about you leaves Egypt. Egyptian law asks for your agreement
+> to that, separately from our Terms.
 >
-> **What this covers**
-> * **Your coaching focus** — the area you want help with, such as stress,
->   sleep, or relationships.
-> * **Your mood check-ins** — how you say you are feeling, and when.
+> ☐ **I agree that Rafiq Pro may store and process my data on servers
+> outside Egypt, as the Privacy Policy describes.**
 >
-> **Who sees it:** you, and the pro you choose to work with. Nobody else,
-> except our staff when they are handling something you asked us about (see
-> our Privacy Policy).
+> ☐ **I am 18 or older.**
 >
-> ☐ **I agree that Rafiq Pro may collect and store my coaching focus and my
-> mood check-ins.**
->
-> You can create an account and work with a pro without ticking this.
-> Mood check-ins and focus-based suggestions will be turned off, and you
-> can turn them on later in Profile. If you withdraw this consent we delete
-> what it collected.
->
-> [ Continue ]
+> [ Get Started ] — onboarding's own button, which finishes only once both
+> are ticked
 
 **العربية**
 
-> ### أمر أخير، والقرار لكِ
+> ### قبل أن تبدأ
 >
-> بعض ما يمكن أن يحفظه رفيق يتعلق بصحتك، ولن نجمعه إلا إذا وافقتِ هنا،
-> ويمكنك تغيير رأيك في أي وقت.
+> يحفظ رفيق حسابك على خوادم في أيرلندا تديرها شركة Supabase، أي أن معلومات
+> عنك تخرج من مصر. ويشترط القانون المصري موافقتك على ذلك، منفصلةً عن
+> الشروط.
 >
-> **ما يشمله ذلك**
-> * **مجال التدريب** — الجانب الذي تريدين المساعدة فيه، مثل التوتر أو
->   النوم أو العلاقات.
-> * **تسجيلات حالتك المزاجية** — كيف تصفين شعورك، ومتى.
+> ☐ **أوافق على أن يحفظ رفيق بياناتي ويعالجها على خوادم خارج مصر، كما توضح
+> سياسة الخصوصية.**
 >
-> **ومن يراه:** أنتِ، والمحترفة التي تختارين العمل معها. ولا أحد غيرهما،
-> إلا فريقنا حين يعالج أمرًا طلبتِه منا (انظري سياسة الخصوصية).
+> ☐ **عمري 18 عامًا أو أكثر.**
 >
-> ☐ **أوافق على أن يجمع رفيق مجال تدريبي وتسجيلات حالتي المزاجية ويحفظها.**
->
-> ويمكنك إنشاء حساب والعمل مع محترفة دون تحديد هذا المربع؛ وستُعطّل
-> تسجيلات الحالة المزاجية والاقتراحات المبنية على مجال التدريب، ويمكنك
-> تشغيلها لاحقًا من الملف الشخصي. وإذا سحبتِ هذه الموافقة فسنمحو ما جُمع
-> بموجبها.
->
-> [ متابعة ]
+> [ ابدأ ] — زر الإعداد نفسه، ولا يكتمل التسجيل إلا بعد تحديد المربعين
 
-### Where it goes — screen sketch
+**Evidence kept**, as the agreement signature (clause 14) already does:
+the account, the database's time, and which version of this text was
+shown. Both boxes start unticked; nothing is pre-ticked.
 
-```
-ClientAuth  ──►  ClientOnboarding  ──►  [ NEW: Health data consent ]  ──►  ClientHome
-(Google/Apple)   name, goal, focus       the unticked box above            tab root
-                        │                          │
-                        │                          └── not ticked: member_profiles.focus
-                        │                              stays empty, mood check-in UI hidden
-                        └── Today focus is asked HERE, before any consent,
-                            which is the gap this closes
-```
-
-Two notes on the placement, both from the code rather than a preference:
-
-* **`ClientOnboarding` already asks for the focus** and writes
-  `member_profiles.focus` (0006, "a stable slug — 'life', 'meditation', …,
-  never display text"). So today the sensitive field is collected one
-  screen *before* any consent exists. Either the consent screen comes
-  first, or onboarding stops writing `focus` until it is given. The sketch
-  takes the second route because onboarding's focus question is what
-  Discover's recommendations read, and moving it would change that screen's
-  shape; counsel may prefer the first.
-* **Mood check-ins are `mood_checkins` (0005)** — an enum of `great`,
-  `good`, `okay`, `low`, `hard` with a timestamp, written by the member.
-  Withdrawing consent means deleting those rows, which nothing does yet.
-
-**Note for counsel.** Is a mood check-in and a coaching focus "sensitive
-personal data" under Law 151/2020, or is it ordinary personal data that
-needs no separate step? We have assumed the stricter reading. If it is
-sensitive, two further questions: does it need a licence from the Data
-Protection Centre, and does the Ireland transfer in clause 9 need its own
-consent because of it?
+**Note for counsel.** Three questions. A transfer the service cannot run
+without is consent with no real alternative: together with the Centre's
+transfer permit, is it enough? Is a ticked box "written" consent where the
+law asks for writing (the E-Signature Law, 15/2004, treats a qualifying
+electronic record as writing)? And does removing the mood check-ins and the
+stress focus take Rafiq outside art. 12 altogether, given that members can
+still type anything into a message?
 
 ---
 
-## 12 · What the "Verified" badge means — **Proposed**
+## 12 · What the "Verified" badge means — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** both Terms, and the coach Privacy policy.
 
@@ -900,7 +932,7 @@ says?
 
 ---
 
-## 13 · Changes to these terms — **Proposed**
+## 13 · Changes to these terms — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** both Terms, §6 *Changes*, **replacing it**.
 
@@ -908,8 +940,8 @@ says?
 
 > We may change these Terms. When a change matters to you — a change to
 > what you pay, to what we collect, to how we use it, or to your rights
-> here — we will tell you **in the app before it takes effect**, and the
-> notice will say when that is. Smaller corrections take effect when we
+> here — we will **email you before it takes effect**, at least 14 days
+> before, and the email will say when that is. Smaller corrections take effect when we
 > publish them, and the date at the top of this page always says when it
 > last changed.
 >
@@ -925,8 +957,9 @@ says?
 **العربية**
 
 > قد نعدّل هذه الشروط. وعندما يكون التعديل مؤثرًا عليك — في ما تدفعه، أو
-> في ما نجمعه، أو في كيفية استخدامه، أو في حقوقك هنا — فسنبلغك **داخل
-> التطبيق قبل أن يصبح ساريًا**، ويبيّن الإشعار موعد السريان. أما
+> في ما نجمعه، أو في كيفية استخدامه، أو في حقوقك هنا — فسنراسلك **بالبريد
+> الإلكتروني قبل أن يصبح ساريًا** بـ14 يومًا على الأقل، وتبيّن الرسالة موعد
+> السريان. أما
 > التصحيحات الطفيفة فتسري عند نشرها، والتاريخ في أعلى هذه الصفحة يوضح دائمًا
 > موعد آخر تعديل.
 >
@@ -937,18 +970,23 @@ says?
 > بالفعل في غرض لا تشمله هذه السياسة، فسنسألك مرة أخرى، ولن نبدأ قبل
 > موافقتك. والاستمرار في استخدام التطبيق ليس جوابًا على ذلك السؤال.
 
+**Second review (2026-10-13): email instead of an in-app notice.** Every
+account has an email address (Google and Apple both give one), so Rafiq
+can keep this promise today, by hand, without building an announcement
+feature — and the clause can go live now instead of waiting for one. It
+replaces a live "continued use means you accept" that is weaker than this.
+
 **What the app actually does.** Nothing. There is no mechanism to announce
 anything in the app ahead of time: the notification feed carries
-relationship events, not announcements, and push notifications are not on
-main. So the first sentence is a **commitment to build something**, not a
-description. If counsel approves the clause, an in-app notice becomes a
+relationship events, not announcements. So an in-app notice would be a
+**commitment to build something**, not a description. If counsel approves the clause, an in-app notice becomes a
 launch dependency rather than a nicety — and the honest alternative, if it
 is not built, is to promise email instead, because the policy pages'
 "last updated" date on its own is not notice.
 
 ---
 
-## 14 · The physical coaching agreement — **Proposed, and a question**
+## 14 · The physical coaching agreement — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** `AGREEMENT_TEXT`'s `physical` entry,
 > `src/lib/mockStore.ts`.
@@ -990,23 +1028,25 @@ acknowledges the risk, and takes on a duty to disclose.
 > reasonable care and skill, and does not release them from responsibility
 > for their own fault.
 
-**العربية — البديل المقترح**
+**العربية — البديل المقترح** (المراجعة الثانية: المحترف بصيغة عامة، لأن
+العضو قد يعمل مع محترف أو محترفة، والنص السابق جعل المحترف أنثى لكل من
+يوقّع)
 
-> **النشاط البدني والمخاطر وما تُبلغينه لمحترفتك**
+> **النشاط البدني والمخاطر وما أُبلغ به المحترف**
 >
 > أفهم أن هذا النشاط بدني، وأنه يحمل مخاطر إصابة لا يمكن إلغاؤها كليًا،
 > مهما بلغت العناية في تنظيمه.
 >
-> وأقرّ بأنني أبلغت محترفتي بأي حالة طبية أو إصابة أو دواء أو حمل أو قيد
-> قد يؤثر في سلامتي في هذه الجلسات، وبأنني سأبلغها إذا تغيّر أي من ذلك.
-> وأفهم أن محترفتي تخطط للجلسات بناءً على ما أبلغتها به، ولا يمكنها أن
-> تحسب ما لم أبلغها به.
+> وأقرّ بأنني أبلغت المحترف الذي أتدرب معه بأي حالة طبية أو إصابة أو دواء
+> أو حمل أو قيد قد يؤثر في سلامتي في هذه الجلسات، وبأنني سأبلغه إذا تغيّر
+> أي من ذلك. وأفهم أن المحترف يخطط للجلسات بناءً على ما أبلغته به، ولا
+> يمكنه أن يحسب ما لم أبلغه به.
 >
 > وأتعهد باتباع تعليمات السلامة التي تُعطى لي أثناء الجلسة، وبأن أتوقف
-> وأخبر محترفتي إذا شعرت بتوعّك أو بألم.
+> وأخبر المحترف إذا شعرت بتوعّك أو بألم.
 >
-> وأفهم أن هذا لا يمس واجب محترفتي في إدارة الجلسات بعناية ومهارة
-> معقولتين، ولا يعفيها من المسؤولية عن خطئها.
+> وأفهم أن هذا لا يمس واجب المحترف في إدارة الجلسات بعناية ومهارة
+> معقولتين، ولا يعفيه من المسؤولية عن خطئه.
 
 **Note for counsel.** Three questions. Is the art. 217 reading right, and
 does it make the current release void or merely narrow? Is the final
@@ -1036,7 +1076,7 @@ stays: a test fails until it is.
 
 ---
 
-## 15 · A coach's public page — **Proposed**
+## 15 · A coach's public page — **Approved by counsel, 2026-10-13**
 
 > **Goes into:** the Coach Privacy policy, after what members can see
 > of a coach. Added with #156 (0026) and #160 (the switch in the app).

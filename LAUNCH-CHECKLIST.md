@@ -638,11 +638,23 @@ Waits on the name decision (§1).
 
 ## 8. Legal and policy (Ahmed)
 
-- [ ] 🔴 Privacy policy and terms reviewed by a lawyer and hosted publicly.
-      Cover Egypt's data protection law (Law 151/2020), and GDPR if you accept
-      EU users. Mood check-ins and coaching topics (breakups, stress) are
-      sensitive — say how they're protected. Hosting is ready (`site/`);
-      the text it publishes is the app's current copy, not yet reviewed.
+- [x] 🔴 Privacy policy and terms reviewed by a lawyer. **Done: counsel
+      approved the fifteen clauses in `store/LEGAL-DRAFTS.md`, the reading of
+      Law 151/2020, and the second review's changes (2026-10-13).** Health
+      data is no longer collected (0029); the transfer abroad and 18+ are
+      agreed to at signup (0030).
+      **Left:** the approved clauses go into the Terms and Privacy policies
+      (clauses 5, 6, 7 and 12 with their features, 15 with the site); fill
+      `[OWNER NAME]` and `[TAX REG NO.]`; delete the pre-0030 TestFlight
+      accounts before launch. Hosting is its own item (§5).
+- [ ] 🔴 *Ahmed:* **ask counsel whether Rafiq can launch before the Data
+      Protection Centre grants its permits** — processing (art. 4) and the
+      transfer to Ireland (art. 14). Counsel has not answered, and the grace
+      period ends **1 November 2026**. Apply as soon as the Centre's portal
+      takes applications.
+- [ ] 🔴 *Ahmed:* sign Supabase's and Daily's data processing agreements.
+      The privacy policy says processors may not use member data for their
+      own purposes; the agreements are what make that true.
 - [ ] 🔴 **App Privacy (Apple) and Data safety (Google) forms** — list what's
       collected: name, email, phone, photos, messages, mood check-ins, ratings,
       payment status, plus crash data once §10 lands. For coaches who set up

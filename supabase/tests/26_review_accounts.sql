@@ -91,11 +91,11 @@ select pg_temp.expect('...at 17:00 in Cairo, on the roster row',
 select pg_temp.expect('one task done, two open',
   (select count(*) filter (where done)::text || '/' || count(*) filter (where not done)::text
    from public.tasks t join public.clients c on c.id = t.client_id where c.coach_id = :coachR), '1/2');
-select pg_temp.expect('package, program, payment, moods',
+select pg_temp.expect('package, program, payment, and no mood check-ins (0029)',
   (select concat_ws(' ', p.used || '/' || p.total, e.sessions_completed, (select count(*) from public.payments where client_id = c.id),
                     (select count(*) from public.mood_checkins where client_id = c.id))
    from public.clients c join public.packages p on p.client_id = c.id join public.enrollments e on e.client_id = c.id
-   where c.coach_id = :coachR), '2/4 2 1 3');
+   where c.coach_id = :coachR), '2/4 2 1 0');
 select pg_temp.expect('the thread notified each side',
   (select count(*) filter (where recipient_id = :memberR)::text || '/' || count(*) filter (where recipient_id = :coachR)::text
    from public.notifications where kind = 'message' and recipient_id in (:coachR, :memberR)), '2/1');

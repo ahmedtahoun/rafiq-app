@@ -56,13 +56,13 @@ select pg_temp.expect('member ticks own task (done, done_at)',
 select pg_temp.expect('member cannot tick another''s task',
   pg_temp.as_user(:memberM, 'with u as (update public.tasks set done = true where title = ''Member N task'' returning 1) select count(*)::text from u'), '0');
 
--- Mood check-ins -----------------------------------------------------------------
-select pg_temp.expect('member checks in on own relationship',
-  pg_temp.as_user(:memberM, 'with i as (insert into public.mood_checkins (client_id, mood) values (' || quote_literal(:clientM) || ', ''great'') returning 1) select count(*)::text from i'), '1');
-select pg_temp.expect('...not on someone else''s',
+-- Mood check-ins: no longer collected (0029, health data) -------------------------
+select pg_temp.expect('member cannot check in, even on own relationship',
+  pg_temp.as_user(:memberM, 'with i as (insert into public.mood_checkins (client_id, mood) values (' || quote_literal(:clientM) || ', ''great'') returning 1) select count(*)::text from i'), 'DENIED(42501)');
+select pg_temp.expect('...nor on someone else''s',
   pg_temp.as_user(:memberM, 'with i as (insert into public.mood_checkins (client_id, mood) values (' || quote_literal(:clientN) || ', ''low'') returning 1) select count(*)::text from i'), 'DENIED(42501)');
-select pg_temp.expect('the coach reads the check-in',
-  pg_temp.as_user(:coachA, 'select (count(*) > 0)::text from public.mood_checkins where client_id = ' || quote_literal(:clientM)), 'true');
+select pg_temp.expect('the coach has no check-ins to read',
+  pg_temp.as_user(:coachA, 'select (count(*) > 0)::text from public.mood_checkins where client_id = ' || quote_literal(:clientM)), 'false');
 
 -- A report on their coach (ClientCoach, through fileProReport) -------------------
 select pg_temp.expect('member reports own coach on own relationship',
