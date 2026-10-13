@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { IGNORED_CONSOLE } from './helpers.js';
+import { IGNORED_CONSOLE, POLICY_SECTIONS } from './helpers.js';
 import { installFakeSupabase, signIn } from './fakeSupabase.js';
 import { DIRECTORY_MEMBER, directoryTables } from './directoryFixture.js';
 
@@ -159,11 +159,37 @@ test('every agreement category has its own written Arabic, and the right one is 
   await ctx.close();
 });
 
+// Which document each policy screen renders. The count comes from
+// POLICY_SECTIONS in helpers.js -- a number a human decided -- and never
+// from the app's own map, which the screens also render from: asserting
+// one against the other is not a test. The bridge test below is what keeps
+// the app's map honest against these numbers.
+const PREFIX_OF = {
+  coachPrivacyPolicy: 'privacySection',
+  clientPrivacyPolicy: 'clientPrivacySection',
+  coachTermsOfService: 'termsSection',
+  clientTermsOfService: 'clientTermsSection',
+};
+const sectionCount = (screen) => POLICY_SECTIONS[PREFIX_OF[screen]];
+
+test("the app's section counts are the ones these specs expect", async ({ page }) => {
+  await page.goto('/');
+  const app = await page.evaluate(async () => {
+    const { POLICY_SECTION_COUNT } = await import('/src/components/policySections.ts');
+    return { ...POLICY_SECTION_COUNT };
+  });
+  // Deliberately the whole object, not a loop over the app's own keys: a
+  // prefix dropped from the map has to fail here, and a loop driven by the
+  // map would skip it.
+  expect(app, 'src/components/policySections.ts vs POLICY_SECTIONS in tests/helpers.js').toEqual(POLICY_SECTIONS);
+});
+
 test('both privacy policies say messaging is in-app', async ({ browser }) => {
   for (const screen of ['coachPrivacyPolicy', 'clientPrivacyPolicy']) {
     const { page, ctx } = await open(browser, { screen });
     const text = await frame(page);
-    expect.soft(await page.locator('.policy-page-section').count(), `${screen}: six sections`).toBe(6);
+    const sections = sectionCount(screen);
+    expect.soft(await page.locator('.policy-page-section').count(), `${screen}: ${sections} sections`).toBe(sections);
     expect.soft(/whatsapp/i.test(text), `${screen}: names no third-party messenger`).toBe(false);
     expect.soft(text, `${screen}: states messages are covered by this policy`)
       .toContain('No third-party messaging service is involved');
@@ -175,10 +201,12 @@ test('policy pages render every section in both languages', async ({ browser }) 
   for (const lang of ['en', 'ar']) {
     for (const screen of ['coachPrivacyPolicy', 'clientPrivacyPolicy', 'coachTermsOfService', 'clientTermsOfService']) {
       const { page, ctx, errs } = await open(browser, { screen, lang });
-      // Six numbered sections, and a seventh block on the two Terms
-      // documents: "Coaching is not therapy" plus the crisis lines, which
-      // <NotTherapySection> renders with the same section class.
-      const expected = screen.toLowerCase().includes('terms') ? 7 : 6;
+      // The document's own numbered sections, plus one more block on the
+      // two Terms documents: "Coaching is not therapy" plus the crisis
+      // lines, which <NotTherapySection> renders with the same section
+      // class. The count comes from the app so this cannot drift from it —
+      // the privacy policies have ten sections and the terms six.
+      const expected = sectionCount(screen) + (screen.toLowerCase().includes('terms') ? 1 : 0);
       expect.soft(await page.locator('.policy-page-section').count(), `${screen}/${lang}: ${expected} sections`).toBe(expected);
       const text = await frame(page);
       // A key that is missing renders as its own name; this catches that.
